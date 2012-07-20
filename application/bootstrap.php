@@ -103,6 +103,7 @@ Kohana::modules(array(
 	'database'     => MODPATH.'database',     // Database access
 	'postgresql'   => MODPATH.'postgresql',   // PostgreSQL database access
 	'orm'          => MODPATH.'orm',          // Object Relationship Mapping
+	'phpexcel'     => MODPATH.'phpexcel',     // PHPExcel library
 	// 'image'     => MODPATH.'image',        // Image manipulation
 	// 'unittest'  => MODPATH.'unittest',     // Unit testing
 	// 'userguide' => MODPATH.'userguide',    // User guide and API documentation
