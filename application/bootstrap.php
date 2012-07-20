@@ -112,16 +112,7 @@ Kohana::modules(array(
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
-
-/**
- * Import route
- *
- * import
- * import/tdf
- * import/tdf/
- *
- */
-Route::set('import', '(<controller>(/<form>)(/<action>))')
+Route::set('default', '(<controller>(/<form>)(/<action>))')
 	->defaults(array(
 		'controller' => 'import',
 		'action'     => 'index',
