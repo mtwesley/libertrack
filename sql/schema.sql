@@ -6,7 +6,7 @@ create database sgs with encoding = 'UTF8' template template0;
 
 -- domains
 
-create domain d_id as bigint;
+create domain d_id as bigint check (value > 0);
 
 create domain d_int as integer;
 
@@ -76,28 +76,28 @@ create domain d_oid as oid;
 -- tables
 
 create table users (
-  user_id d_id not null,
+  id bigserial not null,
   username d_username unique not null,
   password d_text_short,
   access_level d_access_level not null,
 
-  constraint users_pkey primary key (user_id)
+  constraint users_pkey primary key (id)
 );
 
 create table sessions (
-  session_id d_id not null,
+  id bigserial not null,
   user_id d_id not null,
   ip_address d_ip_address not null,
   user_agent d_text_medium,
   from_timestamp d_timestamp not null,
   to_timestamp d_timestamp not null,
 
-  constraint sessions_pkey primary key (session_id),
-  constraint sessions_user_id foreign key (user_id) references users (user_id)
+  constraint sessions_pkey primary key (id),
+  constraint sessions_user_id foreign key (user_id) references users (id)
 );
 
 create table species (
-  species_id d_id not null,
+  id bigserial not null,
   code d_species_code unique not null,
   class d_species_class not null,
   botanic_name d_text_short not null,
@@ -106,12 +106,12 @@ create table species (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint species_pkey primary key (species_id),
-  constraint species_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint species_pkey primary key (id),
+  constraint species_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table operators (
-  operator_id d_id not null,
+  id bigserial not null,
   tin d_operator_tin unique not null,
   name d_text_short unique,
   contact d_text_short,
@@ -121,12 +121,12 @@ create table operators (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint operators_pkey primary key (operator_id),
-  constraint operators_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint operators_pkey primary key (id),
+  constraint operators_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table sites (
-  site_id d_id not null,
+  id bigserial not null,
   type d_site_type not null,
   reference d_site_reference not null,
   name d_text_short unique not null,
@@ -134,42 +134,42 @@ create table sites (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint sites_pkey primary key (site_id),
-  constraint sites_operator_id foreign key (operator_id) references operators (operator_id),
-  constraint sites_user_id_fkey foreign key (user_id) references users (user_id),
+  constraint sites_pkey primary key (id),
+  constraint sites_operator_id foreign key (operator_id) references operators (id),
+  constraint sites_user_id_fkey foreign key (user_id) references users (id),
 
   constraint sites_unique_type_reference unique(type,reference)
 );
 
 create table blocks (
-  block_id d_id not null,
+  id bigserial not null,
   site_id d_id not null,
   coordinates d_block_coordinates not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint blocks_pkey primary key (block_id),
-  constraint blocks_site_id_fkey foreign key (site_id) references sites (site_id),
-  constraint blocks_user_id_fkey foreign key (user_id) references users (user_id),
+  constraint blocks_pkey primary key (id),
+  constraint blocks_site_id_fkey foreign key (site_id) references sites (id),
+  constraint blocks_user_id_fkey foreign key (user_id) references users (id),
 
   constraint blocks_unique_site_coordinates unique(site_id,coordinates)
 );
 
 create table printjobs (
-  printjob_id d_id not null,
+  id bigserial not null,
   number d_positive_int unique not null,
   site_id d_id not null,
   allocation_date d_date not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint printjobs_pkey primary key (printjob_id),
-  constraint printjobs_site_id_fkey foreign key (site_id) references sites (site_id),
-  constraint printjobs_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint printjobs_pkey primary key (id),
+  constraint printjobs_site_id_fkey foreign key (site_id) references sites (id),
+  constraint printjobs_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table barcodes (
-  barcode_id d_id not null,
+  id bigserial not null,
   barcode d_barcode unique not null,
   type d_barcode_type default 'P' not null,
   parent_id d_id,
@@ -178,10 +178,10 @@ create table barcodes (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint barcodes_pkey primary key (barcode_id),
-  constraint barcodes_parent_id_fkey foreign key (parent_id) references barcodes (barcode_id),
-  constraint barcodes_printjob_id_fkey foreign key (printjob_id) references printjobs (printjob_id),
-  constraint barcodes_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint barcodes_pkey primary key (id),
+  constraint barcodes_parent_id_fkey foreign key (parent_id) references barcodes (id),
+  constraint barcodes_printjob_id_fkey foreign key (printjob_id) references printjobs (id),
+  constraint barcodes_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table barcode_hops_cached (
@@ -190,12 +190,12 @@ create table barcode_hops_cached (
   hops d_hops not null,
 
   constraint barcode_hops_cached_pkey primary key (barcode_id, parent_id),
-  constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (barcode_id),
-  constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (barcode_id)
+  constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
+  constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id)
 );
 
 create table files (
-  file_id d_id not null,
+  id bigserial not null,
   name d_text_short not null,
   path d_text_medium not null,
   mime_type d_text_short not null,
@@ -206,12 +206,12 @@ create table files (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint files_pkey primary key (file_id),
-  constraint files_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint files_pkey primary key (id),
+  constraint files_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table csv (
-  csv_id d_id not null,
+  id bigserial not null,
   file_id d_id not null,
   type d_csv_type not null,
   form_type d_form_type not null,
@@ -222,14 +222,14 @@ create table csv (
   timestamp d_timestamp default current_timestamp not null,
   status d_status default 'P' not null,
 
-  constraint csv_pkey primary key (csv_id),
-  constraint csv_file_id_fkey foreign key (file_id) references files (file_id),
-  constraint csv_other_csv_id_fkey foreign key (other_csv_id) references csv (csv_id),
-  constraint csv_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint csv_pkey primary key (id),
+  constraint csv_file_id_fkey foreign key (file_id) references files (id),
+  constraint csv_other_csv_id_fkey foreign key (other_csv_id) references csv (id),
+  constraint csv_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table invoices (
-  invoice_id d_id not null,
+  id bigserial not null,
   site_id d_id not null,
   reference_number d_positive_int unique not null,
   from_date d_date not null,
@@ -240,13 +240,13 @@ create table invoices (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint invoices_pkey primary key (invoice_id),
-  constraint invoices_site_id_fkey foreign key (site_id) references sites (site_id),
-  constraint invoices_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint invoices_pkey primary key (id),
+  constraint invoices_site_id_fkey foreign key (site_id) references sites (id),
+  constraint invoices_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table ssf_data (
-  data_id d_id not null,
+  id bigserial not null,
   site_id d_id not null,
   operator_id d_id not null,
   block_id d_id not null,
@@ -263,19 +263,19 @@ create table ssf_data (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint ssf_data_pkey primary key (data_id),
-  constraint ssf_data_site_id_fkey foreign key (site_id) references sites (site_id),
-  constraint ssf_data_operator_id_fkey foreign key (operator_id) references operators (operator_id),
-  constraint ssf_data_block_id_fkey foreign key (block_id) references blocks (block_id),
-  constraint ssf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (barcode_id),
-  constraint ssf_data_species_id_fkey foreign key (species_id) references species (species_id),
-  constraint ssf_data_user_id_fkey foreign key (user_id) references users (user_id),
+  constraint ssf_data_pkey primary key (id),
+  constraint ssf_data_site_id_fkey foreign key (site_id) references sites (id),
+  constraint ssf_data_operator_id_fkey foreign key (operator_id) references operators (id),
+  constraint ssf_data_block_id_fkey foreign key (block_id) references blocks (id),
+  constraint ssf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
+  constraint ssf_data_species_id_fkey foreign key (species_id) references species (id),
+  constraint ssf_data_user_id_fkey foreign key (user_id) references users (id),
 
   constraint ssf_data_unique_tree_map_number unique(site_id,block_id,survey_line,cell_number,tree_map_number)
 );
 
 create table tdf_data (
-  data_id d_id not null,
+  id bigserial not null,
   site_id d_id not null,
   operator_id d_id not null,
   block_id d_id not null,
@@ -296,19 +296,19 @@ create table tdf_data (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint tdf_data_pkey primary key (data_id),
-  constraint tdf_data_site_id_fkey foreign key (site_id) references sites (site_id),
-  constraint tdf_data_operator_id_fkey foreign key (operator_id) references operators (operator_id),
-  constraint tdf_data_block_id_fkey foreign key (block_id) references blocks (block_id),
-  constraint tdf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (barcode_id),
-  constraint tdf_data_tree_barcode_id_fkey foreign key (tree_barcode_id) references barcodes (barcode_id),
-  constraint tdf_data_stump_barcode_id_fkey foreign key (stump_barcode_id) references barcodes (barcode_id),
-  constraint tdf_data_species_id_fkey foreign key (species_id) references species (species_id),
-  constraint tdf_data_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint tdf_data_pkey primary key (id),
+  constraint tdf_data_site_id_fkey foreign key (site_id) references sites (id),
+  constraint tdf_data_operator_id_fkey foreign key (operator_id) references operators (id),
+  constraint tdf_data_block_id_fkey foreign key (block_id) references blocks (id),
+  constraint tdf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
+  constraint tdf_data_tree_barcode_id_fkey foreign key (tree_barcode_id) references barcodes (id),
+  constraint tdf_data_stump_barcode_id_fkey foreign key (stump_barcode_id) references barcodes (id),
+  constraint tdf_data_species_id_fkey foreign key (species_id) references species (id),
+  constraint tdf_data_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table ldf_data (
-  data_id d_id not null,
+  id bigserial not null,
   site_id d_id not null,
   operator_id d_id not null,
   barcode_id d_id unique not null,
@@ -327,18 +327,18 @@ create table ldf_data (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint ldf_data_pkey primary key (data_id),
-  constraint ldf_data_site_id_fkey foreign key (site_id) references sites (site_id),
-  constraint ldf_data_operator_id_fkey foreign key (operator_id) references operators (operator_id),
-  constraint ldf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (barcode_id),
-  constraint ldf_data_parent_barcode_id_fkey foreign key (parent_barcode_id) references barcodes (barcode_id),
-  constraint ldf_data_species_id_fkey foreign key (species_id) references species (species_id),
-  constraint ldf_data_invoice_id_fkey foreign key (invoice_id) references invoices (invoice_id),
-  constraint ldf_data_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint ldf_data_pkey primary key (id),
+  constraint ldf_data_site_id_fkey foreign key (site_id) references sites (id),
+  constraint ldf_data_operator_id_fkey foreign key (operator_id) references operators (id),
+  constraint ldf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
+  constraint ldf_data_parent_barcode_id_fkey foreign key (parent_barcode_id) references barcodes (id),
+  constraint ldf_data_species_id_fkey foreign key (species_id) references species (id),
+  constraint ldf_data_invoice_id_fkey foreign key (invoice_id) references invoices (id),
+  constraint ldf_data_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table mif_data (
-  data_id d_id not null,
+  id bigserial not null,
   operator_id d_id not null,
   conversion_factor d_conversion_factor not null,
   barcode_id d_id unique not null,
@@ -353,15 +353,15 @@ create table mif_data (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint mif_data_pkey primary key (data_id),
-  constraint mif_data_operator_id_fkey foreign key (operator_id) references operators (operator_id),
-  constraint mif_data_barcode_id_fkey foreign key (barcode_id) references barcodes (barcode_id),
-  constraint mif_data_species_id_fkey foreign key (species_id) references species (species_id),
-  constraint mif_data_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint mif_data_pkey primary key (id),
+  constraint mif_data_operator_id_fkey foreign key (operator_id) references operators (id),
+  constraint mif_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
+  constraint mif_data_species_id_fkey foreign key (species_id) references species (id),
+  constraint mif_data_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table mof_data (
-  data_id d_id not null,
+  id bigserial not null,
   operator_id d_id not null,
   conversion_factor d_conversion_factor not null,
   barcode_id d_id unique not null,
@@ -375,15 +375,15 @@ create table mof_data (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint mof_data_pkey primary key (data_id),
-  constraint mof_data_operator_id_fkey foreign key (operator_id) references operators (operator_id),
-  constraint mof_data_barcode_id_fkey foreign key (barcode_id) references barcodes (barcode_id),
-  constraint mof_data_species_id_fkey foreign key (species_id) references species (species_id),
-  constraint mof_data_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint mof_data_pkey primary key (id),
+  constraint mof_data_operator_id_fkey foreign key (operator_id) references operators (id),
+  constraint mof_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
+  constraint mof_data_species_id_fkey foreign key (species_id) references species (id),
+  constraint mof_data_user_id_fkey foreign key (user_id) references users (id)
 );
 
-create table shf_data (
-  data_id d_id not null,
+create table specs_data (
+  id bigserial not null,
   operator_id d_id not null,
   expected_loading_date d_date not null,
   barcode_id d_id unique not null,
@@ -398,15 +398,15 @@ create table shf_data (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint shf_data_pkey primary key (data_id),
-  constraint shf_data_operator_id_fkey foreign key (operator_id) references operators (operator_id),
-  constraint shf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (barcode_id),
-  constraint shf_data_species_id_fkey foreign key (species_id) references species (species_id),
-  constraint shf_data_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint specs_data_pkey primary key (id),
+  constraint specs_data_operator_id_fkey foreign key (operator_id) references operators (id),
+  constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
+  constraint specs_data_species_id_fkey foreign key (species_id) references species (id),
+  constraint specs_data_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table epr_data (
-  data_id d_id not null,
+  id bigserial not null,
   request_number d_text_short not null,
   operator_id d_id not null,
   proposed_loading_date d_date not null,
@@ -415,125 +415,102 @@ create table epr_data (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint epr_data_pkey primary key (data_id),
-  constraint epr_data_operator_id_fkey foreign key (operator_id) references operators (operator_id),
-  constraint epr_data_barcode_id_fkey foreign key (barcode_id) references barcodes (barcode_id),
-  constraint epr_data_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint epr_data_pkey primary key (id),
+  constraint epr_data_operator_id_fkey foreign key (operator_id) references operators (id),
+  constraint epr_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
+  constraint epr_data_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table revisions (
-  revision_id d_id not null,
+  id bigserial not null,
   form_type d_form_type not null,
   form_data_id d_id not null,
   form_data d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint revisions_pkey primary key (revision_id),
-  constraint revisions_user_id_fkey foreign key (user_id) references users (user_id)
+  constraint revisions_pkey primary key (id),
+  constraint revisions_user_id_fkey foreign key (user_id) references users (id)
 );
 
 
 -- indexes
 
-create index users_access_level on users (user_id,access_level);
+create index users_access_level on users (id,access_level);
 
-create index species_code on species (species_id,code);
-create index species_class on species (species_id,class);
+create index species_code on species (id,code);
+create index species_class on species (id,class);
 
-create index operators_tin on operators (operator_id,tin);
+create index operators_tin on operators (id,tin);
 
-create index sites_name on sites (site_id,name);
-create index sites_operator_id on sites (site_id,operator_id);
+create index sites_name on sites (id,name);
+create index sites_operator_id on sites (id,operator_id);
 
-create index printjobs_number on printjobs (printjob_id,number);
-create index printjobs_site_id on printjobs (printjob_id,site_id);
+create index printjobs_number on printjobs (id,number);
+create index printjobs_site_id on printjobs (id,site_id);
 
-create index barcodes_barcode_id on barcodes (barcode_id,barcode);
-create index barcodes_printjob_id on barcodes (barcode_id,printjob_id);
-create index barcodes_parent_id on barcodes (barcode_id,parent_id);
-create index barcodes_type on barcodes (barcode_id,type);
-create index barcodes_is_locked on barcodes (barcode_id,is_locked);
+create index barcodes_barcode_id on barcodes (id,barcode);
+create index barcodes_printjob_id on barcodes (id,printjob_id);
+create index barcodes_parent_id on barcodes (id,parent_id);
+create index barcodes_type on barcodes (id,type);
+create index barcodes_is_locked on barcodes (id,is_locked);
 
-create index invoices_site_id on invoices (invoice_id,site_id);
-create index invoices_reference_number on invoices (invoice_id,reference_number);
+create index invoices_site_id on invoices (id,site_id);
+create index invoices_reference_number on invoices (id,reference_number);
 
-create index csv_file_id on csv (csv_id,file_id);
-create index csv_type on csv (csv_id,type);
-create index csv_other_csv_id on csv (csv_id,other_csv_id);
-create index csv_form_type_data_id on csv (csv_id,form_type,form_data_id);
+create index csv_file_id on csv (id,file_id);
+create index csv_type on csv (id,type);
+create index csv_other_csv_id on csv (id,other_csv_id);
+create index csv_form_type_data_id on csv (id,form_type,form_data_id);
 
-create index ssf_data_site_id on ssf_data (data_id,site_id);
-create index ssf_data_operator_id on ssf_data (data_id,operator_id);
-create index ssf_data_block_id on ssf_data (data_id,block_id);
-create index ssf_data_barcode_id on ssf_data (data_id,barcode_id);
-create index ssf_data_species_id on ssf_data (data_id,species_id);
+create index ssf_data_site_id on ssf_data (id,site_id);
+create index ssf_data_operator_id on ssf_data (id,operator_id);
+create index ssf_data_block_id on ssf_data (id,block_id);
+create index ssf_data_barcode_id on ssf_data (id,barcode_id);
+create index ssf_data_species_id on ssf_data (id,species_id);
 
-create index tdf_data_site_id on tdf_data (data_id,site_id);
-create index tdf_data_operator_id on tdf_data (data_id,operator_id);
-create index tdf_data_block_id on tdf_data (data_id,block_id);
-create index tdf_data_barcode_id on tdf_data (data_id,barcode_id);
-create index tdf_data_tree_barcode_id on tdf_data (data_id,tree_barcode_id);
-create index tdf_data_stump_barcode_id on tdf_data (data_id,stump_barcode_id);
-create index tdf_data_species_id on tdf_data (data_id,species_id);
+create index tdf_data_site_id on tdf_data (id,site_id);
+create index tdf_data_operator_id on tdf_data (id,operator_id);
+create index tdf_data_block_id on tdf_data (id,block_id);
+create index tdf_data_barcode_id on tdf_data (id,barcode_id);
+create index tdf_data_tree_barcode_id on tdf_data (id,tree_barcode_id);
+create index tdf_data_stump_barcode_id on tdf_data (id,stump_barcode_id);
+create index tdf_data_species_id on tdf_data (id,species_id);
 
-create index ldf_data_site_id on ldf_data (data_id,site_id);
-create index ldf_data_operator_id on ldf_data (data_id,operator_id);
-create index ldf_data_barcode_id on ldf_data (data_id,barcode_id);
-create index ldf_data_parent_barcode_id on ldf_data (data_id,parent_barcode_id);
-create index ldf_data_species_id on ldf_data (data_id,species_id);
-create index ldf_data_invoice_id on ldf_data (data_id,invoice_id);
-create index ldf_data_coc_status on ldf_data (data_id,coc_status);
-create index ldf_data_volume on ldf_data (data_id,volume);
+create index ldf_data_site_id on ldf_data (id,site_id);
+create index ldf_data_operator_id on ldf_data (id,operator_id);
+create index ldf_data_barcode_id on ldf_data (id,barcode_id);
+create index ldf_data_parent_barcode_id on ldf_data (id,parent_barcode_id);
+create index ldf_data_species_id on ldf_data (id,species_id);
+create index ldf_data_invoice_id on ldf_data (id,invoice_id);
+create index ldf_data_coc_status on ldf_data (id,coc_status);
+create index ldf_data_volume on ldf_data (id,volume);
 
-create index mif_data_operator_id on mif_data (data_id,operator_id);
-create index mif_data_barcode_id on mif_data (data_id,barcode_id);
-create index mif_data_species_id on mif_data (data_id,species_id);
-create index mif_data_batch_number on mif_data (data_id,batch_number);
-create index mif_data_volume on mif_data (data_id,volume);
+create index mif_data_operator_id on mif_data (id,operator_id);
+create index mif_data_barcode_id on mif_data (id,barcode_id);
+create index mif_data_species_id on mif_data (id,species_id);
+create index mif_data_batch_number on mif_data (id,batch_number);
+create index mif_data_volume on mif_data (id,volume);
 
-create index mof_data_operator_id on mof_data (data_id,operator_id);
-create index mof_data_barcode_id on mof_data (data_id,barcode_id);
-create index mof_data_species_id on mof_data (data_id,species_id);
-create index mof_data_batch_number on mof_data (data_id,batch_number);
-create index mof_data_volume on mof_data (data_id,volume);
-create index mof_data_grade on mof_data (data_id,grade);
+create index mof_data_operator_id on mof_data (id,operator_id);
+create index mof_data_barcode_id on mof_data (id,barcode_id);
+create index mof_data_species_id on mof_data (id,species_id);
+create index mof_data_batch_number on mof_data (id,batch_number);
+create index mof_data_volume on mof_data (id,volume);
+create index mof_data_grade on mof_data (id,grade);
 
-create index shf_data_operator_id on shf_data (data_id,operator_id);
-create index shf_data_barcode_id on shf_data (data_id,barcode_id);
-create index shf_data_species_id on shf_data (data_id,species_id);
-create index shf_data_volume on shf_data (data_id,volume);
-create index shf_data_grade on shf_data (data_id,grade);
+create index specs_data_operator_id on specs_data (id,operator_id);
+create index specs_data_barcode_id on specs_data (id,barcode_id);
+create index specs_data_species_id on specs_data (id,species_id);
+create index specs_data_volume on specs_data (id,volume);
+create index specs_data_grade on specs_data (id,grade);
 
-create index epr_data_operator_id on epr_data (data_id,operator_id);
-create index epr_data_barcode_id on epr_data (data_id,barcode_id);
-create index epr_data_barcode_type on epr_data (data_id,barcode_type);
-create index epr_data_request_number on epr_data (data_id,request_number);
+create index epr_data_operator_id on epr_data (id,operator_id);
+create index epr_data_barcode_id on epr_data (id,barcode_id);
+create index epr_data_barcode_type on epr_data (id,barcode_type);
+create index epr_data_request_number on epr_data (id,request_number);
 
-create index revisions_form_type_data_id on revisions (revision_id,form_type,form_data_id);
-
-
--- sequences
-
-create sequence s_species_species_id minvalue 1;
-create sequence s_operators_operator_id minvalue 1;
-create sequence s_sites_site_id minvalue 1;
-create sequence s_printjobs_printjob_id minvalue 1;
-create sequence s_barcodes_barcode_id minvalue 1;
-create sequence s_blocks_block_id minvalue 1;
-create sequence s_files_file_id minvalue 1;
-create sequence s_csv_csv_id minvalue 1;
-create sequence s_invoices_invoice_id minvalue 1;
-create sequence s_ssf_data_data_id minvalue 1;
-create sequence s_tdf_data_data_id minvalue 1;
-create sequence s_ldf_data_data_id minvalue 1;
-create sequence s_mif_data_data_id minvalue 1;
-create sequence s_mof_data_data_id minvalue 1;
-create sequence s_shf_data_data_id minvalue 1;
-create sequence s_epr_data_data_id minvalue 1;
-create sequence s_revisions_revision_id minvalue 1;
-create sequence s_users_user_id minvalue 1;
-create sequence s_sessions_session_id minvalue 1;
+create index revisions_form_type_data_id on revisions (id,form_type,form_data_id);
 
 
 -- language
@@ -549,7 +526,7 @@ $$
   declare id d_id;
 begin
 
-  select barcode_id from barcodes where barcode = x_barcode limit 1 into id;
+  select id from barcodes where barcode = x_barcode limit 1 into id;
   return id;
 
 end
@@ -562,7 +539,7 @@ $$
   declare id d_id;
 begin
 
-  select printjob_id from printjobs where number = x_number limit 1 into id;
+  select id from printjobs where number = x_number limit 1 into id;
   return id;
 
 end
@@ -575,7 +552,7 @@ $$
   declare id d_id;
 begin
 
-  select species_id from species where code = x_code limit 1 into id;
+  select id from species where code = x_code limit 1 into id;
   return id;
 
 end
@@ -588,7 +565,7 @@ $$
   declare id d_id;
 begin
 
-  select operator_id from operators where tin = x_tin limit 1 into id;
+  select id from operators where tin = x_tin limit 1 into id;
   return id;
 
 end
@@ -601,7 +578,7 @@ $$
   declare id d_id;
 begin
 
-  select site_id from sites where type = x_type and reference = x_reference limit 1 into id;
+  select id from sites where type = x_type and reference = x_reference limit 1 into id;
   return id;
 
 end
@@ -614,7 +591,7 @@ $$
   declare id d_id;
 begin
 
-  select site_id from sites where name = x_name limit 1 into id;
+  select id from sites where name = x_name limit 1 into id;
   return id;
 
 end
@@ -627,7 +604,7 @@ $$
   declare id d_id;
 begin
 
-  select block_id from blocks where site_id = lookup_site_id(x_site_type,x_site_reference) and coordinates = x_coordinates limit 1 into id;
+  select id from blocks where site_id = lookup_site_id(x_site_type,x_site_reference) and coordinates = x_coordinates limit 1 into id;
   return id;
 
 end
@@ -659,31 +636,31 @@ $$ language 'plpgsql';
 create function rebuild_barcode_hops(x_barcode_id d_id)
   returns void as
 $$
-  declare id d_id;
-  declare h d_positive_int;
+  declare x_id d_id;
+  declare x_hops d_positive_int;
 begin
   if x_barcode_id is null then
     delete from barcode_hops_cached;
 
-    for id in select barcode_id from barcodes where parent_id is null loop
-      perform rebuild_barcode_hops(id);
+    for x_id in select id from barcodes where parent_id is null loop
+      perform rebuild_barcode_hops(x_id);
     end loop;
   else
 
     delete from barcode_hops_cached where barcode_id = x_barcode_id;
     insert into barcode_hops_cached(barcode_id,parent_id,hops) values(x_barcode_id,x_barcode_id,0);
-    select parent_id from barcodes where barcode_id = x_barcode_id into id;
+    select parent_id from barcodes where id = x_barcode_id into x_id;
 
-    h = 1;
-    while id is not null loop
+    x_hops = 1;
+    while x_id is not null loop
       insert into barcode_hops_cached(barcode_id,parent_id,hops)
-      values(x_barcode_id,id,h);
-      h = h + 1;
-      select parent_id from barcodes where barcode_id = id into id;
+      values(x_barcode_id,x_id,x_hops);
+      x_hops = x_hops + 1;
+      select parent_id from barcodes where id = x_id into x_id;
     end loop;
 
-    for id in select barcode_id from barcodes where parent_id = x_barcode_id loop
-      perform rebuild_barcode_hops(id);
+    for x_id in select id from barcodes where parent_id = x_barcode_id loop
+      perform rebuild_barcode_hops(x_id);
     end loop;
   end if;
 end
@@ -708,14 +685,14 @@ $$ language 'plpgsql';
 create function rebuild_barcode_locks(x_barcode_id d_id, x_locked d_bool)
   returns void as
 $$
-  declare id d_id;
+  declare x_id d_id;
 begin
-  for id in select barcode_id from barcode_hops_cached where parent_id = x_barcode_id loop
-    update barcodes set is_locked = x_locked where barcode_id = id;
+  for x_id in select barcode_id from barcode_hops_cached where parent_id = x_barcode_id loop
+    update barcodes set is_locked = x_locked where id = x_id;
   end loop;
 
-  for id in select parent_id from barcode_hops_cached where barcode_id = x_barcode_id loop
-    update barcodes set is_locked = x_locked where barcode_id = id;
+  for x_id in select parent_id from barcode_hops_cached where barcode_id = x_barcode_id loop
+    update barcodes set is_locked = x_locked where id = x_id;
   end loop;
 end
 $$ language 'plpgsql';
@@ -726,7 +703,7 @@ create function ssf_data_update_barcodes()
 $$
 begin
   if new.barcode_id is not null then
-    update barcodes set type = 'T' where barcodes.barcode_id = new.barcode_id;
+    update barcodes set type = 'T' where barcodes.id = new.barcode_id;
   end if;
 
   return null;
@@ -739,21 +716,21 @@ create function tdf_data_update_barcodes()
 $$
 begin
   if new.barcode_id is not null then
-    update barcodes set type = 'L' where barcodes.barcode_id = new.barcode_id;
+    update barcodes set type = 'L' where barcodes.id = new.barcode_id;
   end if;
 
   if new.tree_barcode_id is not null then
     if new.barcode_id is not null then
-      update barcodes set parent_id = new.tree_barcode_id where barcodes.barcode_id = new.barcode_id;
+      update barcodes set parent_id = new.tree_barcode_id where barcodes.id = new.barcode_id;
     end if;
 
     if new.stump_barcode_id is not null then
-      update barcodes set parent_id = new.tree_barcode_id where barcodes.barcode_id = new.stump_barcode_id;
+      update barcodes set parent_id = new.tree_barcode_id where barcodes.id = new.stump_barcode_id;
     end if;
   end if;
 
   if new.stump_barcode_id is not null then
-    update barcodes set type = 'S' where barcodes.barcode_id = new.stump_barcode_id;
+    update barcodes set type = 'S' where barcodes.id = new.stump_barcode_id;
   end if;
 
   return null;
@@ -766,10 +743,10 @@ create function ldf_data_update_barcodes()
 $$
 begin
   if new.barcode_id is not null then
-    update barcodes set type = 'L' where barcodes.barcode_id = new.barcode_id;
+    update barcodes set type = 'L' where barcodes.id = new.barcode_id;
 
     if new.parent_barcode_id is not null then
-      update barcodes set parent_id = new.parent_barcode_id where barcodes.barcode_id = new.barcode_id;
+      update barcodes set parent_id = new.parent_barcode_id where barcodes.id = new.barcode_id;
     end if;
   end if;
 
@@ -783,7 +760,7 @@ create function mof_data_update_barcodes()
 $$
 begin
   if new.barcode_id is not null then
-    update barcodes set type = 'B' where barcodes.barcode_id = new.barcode_id;
+    update barcodes set type = 'B' where barcodes.id = new.barcode_id;
   end if;
 
   return null;
