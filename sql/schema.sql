@@ -197,10 +197,7 @@ create table barcode_hops_cached (
 create table files (
   id bigserial not null,
   name d_text_short not null,
-  path d_text_medium not null,
   mime_type d_text_short not null,
-  ctime d_timestamp not null,
-  mtime d_timestamp not null,
   content d_oid unique,
   md5 d_text_short,
   user_id d_id default 1 not null,
