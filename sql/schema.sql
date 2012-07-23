@@ -520,11 +520,11 @@ create language plpgsql;
 create function lookup_barcode_id(x_barcode character varying(13))
   returns d_id as
 $$
-  declare id d_id;
+  declare x_id d_id;
 begin
 
-  select id from barcodes where barcode = x_barcode limit 1 into id;
-  return id;
+  select id from barcodes where barcode = x_barcode limit 1 into x_id;
+  return x_id;
 
 end
 $$ language 'plpgsql';
@@ -533,11 +533,11 @@ $$ language 'plpgsql';
 create function lookup_printjob_id(x_number int)
   returns d_id as
 $$
-  declare id d_id;
+  declare x_id d_id;
 begin
 
-  select id from printjobs where number = x_number limit 1 into id;
-  return id;
+  select id from printjobs where number = x_number limit 1 into x_id;
+  return x_id;
 
 end
 $$ language 'plpgsql';
@@ -546,11 +546,11 @@ $$ language 'plpgsql';
 create function lookup_species_id(x_code character varying(5))
   returns d_id as
 $$
-  declare id d_id;
+  declare x_id d_id;
 begin
 
-  select id from species where code = x_code limit 1 into id;
-  return id;
+  select id from species where code = x_code limit 1 into x_id;
+  return x_id;
 
 end
 $$ language 'plpgsql';
@@ -559,11 +559,11 @@ $$ language 'plpgsql';
 create function lookup_operator_id(x_tin bigint)
   returns d_id as
 $$
-  declare id d_id;
+  declare x_id d_id;
 begin
 
-  select id from operators where tin = x_tin limit 1 into id;
-  return id;
+  select id from operators where tin = x_tin limit 1 into x_id;
+  return x_id;
 
 end
 $$ language 'plpgsql';
@@ -572,11 +572,11 @@ $$ language 'plpgsql';
 create function lookup_site_id(x_type character(3), x_reference character varying(7))
   returns d_id as
 $$
-  declare id d_id;
+  declare x_id d_id;
 begin
 
-  select id from sites where type = x_type and reference = x_reference limit 1 into id;
-  return id;
+  select id from sites where type = x_type and reference = x_reference limit 1 into x_id;
+  return x_id;
 
 end
 $$ language 'plpgsql';
@@ -585,11 +585,11 @@ $$ language 'plpgsql';
 create function lookup_site_id(x_name character varying(50))
   returns d_id as
 $$
-  declare id d_id;
+  declare x_id d_id;
 begin
 
-  select id from sites where name = x_name limit 1 into id;
-  return id;
+  select id from sites where name = x_name limit 1 into x_id;
+  return x_id;
 
 end
 $$ language 'plpgsql';
@@ -598,11 +598,11 @@ $$ language 'plpgsql';
 create function lookup_block_id(x_site_type character(3), x_site_reference character varying(7), x_coordinates character varying(6))
   returns d_id as
 $$
-  declare id d_id;
+  declare x_id d_id;
 begin
 
-  select id from blocks where site_id = lookup_site_id(x_site_type,x_site_reference) and coordinates = x_coordinates limit 1 into id;
-  return id;
+  select id from blocks where site_id = lookup_site_id(x_site_type,x_site_reference) and coordinates = x_coordinates limit 1 into x_id;
+  return x_id;
 
 end
 $$ language 'plpgsql';
