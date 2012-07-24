@@ -7,6 +7,15 @@ class Model_Block extends ORM {
     'user' => array()
   );
 
-}
+  public function formo() {
+    return array(
+      'site' => array(
+        'orm_primary_val' => 'reference'
+      ),
+      'id' => array(
+        'render' => false
+      )
+    );
+  }
 
-?>
+}

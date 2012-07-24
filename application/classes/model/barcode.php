@@ -7,7 +7,8 @@ class Model_Barcode extends ORM {
     'parent'   => array(
       'model'       => 'barcode',
       'foreign_key' => 'parent_id'
-    )
+    ),
+    'user' => array()
   );
 
   protected $_has_many = array(
@@ -18,5 +19,3 @@ class Model_Barcode extends ORM {
   );
 
 }
-
-?>
