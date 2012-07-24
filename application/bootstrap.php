@@ -102,18 +102,25 @@ Kohana::modules(array(
 	// 'codebench' => MODPATH.'codebench',    // Benchmarking tool
 	'database'     => MODPATH.'database',     // Database access
 	'postgresql'   => MODPATH.'postgresql',   // PostgreSQL database access
-	'orm'          => MODPATH.'orm',          // Object Relationship Mapping
+	'orm'          => MODPATH.'orm',          // Object relationship mapping
 	'phpexcel'     => MODPATH.'phpexcel',     // PHPExcel library
 	// 'image'     => MODPATH.'image',        // Image manipulation
 	// 'unittest'  => MODPATH.'unittest',     // Unit testing
-	// 'userguide' => MODPATH.'userguide',    // User guide and API documentation
+	'userguide'    => MODPATH.'userguide',    // User guide and API documentation
+  'formo'        => MODPATH.'formo',        // Object-based form handling
 	));
 
 /**
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
-Route::set('default', '(<controller>(/<form>)(/<action>))')
+//Route::set('import', '(import/(<form>)(/<action>))')
+//	->defaults(array(
+//		'controller' => 'import',
+//		'action'     => 'index',
+//	));
+//
+Route::set('default', '(<controller>(/<action>(/<id>)))')
 	->defaults(array(
 		'controller' => 'import',
 		'action'     => 'index',

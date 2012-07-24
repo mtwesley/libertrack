@@ -29,7 +29,7 @@ abstract class Formo_Core_Validator extends Formo_Container {
 		'form' => array(),
 		'fields' => array(),
 	);
-	
+
 	/**
 	 * Create validation object
 	 *
@@ -139,9 +139,9 @@ abstract class Formo_Core_Validator extends Formo_Container {
 
 			$has_errors = $this->_determine_errors() === FALSE;
 		}
-		
+
 		$passed_validation = ($has_errors === FALSE);
-		
+
 		$this->_run_callbacks($passed_validation);
 
 		return $passed_validation;
@@ -176,7 +176,7 @@ abstract class Formo_Core_Validator extends Formo_Container {
 	{
 		if ($this->_validation->errors())
 			return FALSE;
-		
+
 		return $this->_validation->check();
 	}
 
@@ -316,7 +316,7 @@ abstract class Formo_Core_Validator extends Formo_Container {
 		{
 			$errors += $field->errors($file, $translate);
 		}
-		
+
 		// Add this error
 		$file = $file
 			? $file
@@ -329,7 +329,7 @@ abstract class Formo_Core_Validator extends Formo_Container {
 
 	/**
 	 * Ensure the array for a field's callbacks exists and is an array
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $type
 	 * @param mixed $alias
@@ -341,13 +341,13 @@ abstract class Formo_Core_Validator extends Formo_Container {
 		{
 			$this->_defaults['callbacks'][$type][$alias] = array();
 		}
-		
+
 		return $this->_defaults['callbacks'][$type][$alias];
 	}
 
 	/**
 	 * Add a callback
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $type
 	 * @param mixed $alias
@@ -359,13 +359,13 @@ abstract class Formo_Core_Validator extends Formo_Container {
 	{
 		$this->_create_callback_array($type, $alias);
 		$this->_defaults['callbacks'][$type][$alias][] = array($method, $values);
-		
+
 		return $this;
 	}
-	
+
 	/**
 	 * Add multiple callbacks
-	 * 
+	 *
 	 * @access public
 	 * @param mixed array $callbacks
 	 * @return void
@@ -373,7 +373,7 @@ abstract class Formo_Core_Validator extends Formo_Container {
 	public function callbacks(array $callbacks)
 	{
 		$types = array('pass', 'fail');
-		
+
 		foreach ($callbacks as $type => $callback)
 		{
 			foreach ($callback as $alias => $_callbacks)
@@ -382,13 +382,13 @@ abstract class Formo_Core_Validator extends Formo_Container {
 				$this->_defaults['callbacks'][$type][$alias] += $_callbacks;
 			}
 		}
-		
+
 		return $this;
 	}
 
 	/**
 	 * Run callbacks
-	 * 
+	 *
 	 * @access protected
 	 * @param mixed $passed_validatoin
 	 * @return void
@@ -404,7 +404,7 @@ abstract class Formo_Core_Validator extends Formo_Container {
 			{
 				$method = array_shift($callback);
 				$values = arr::get($callback, 0, array());
-				
+
 				$this->_replace_callback_vals($alias, $values);
 				call_user_func_array($method, $values);
 			}
