@@ -34,11 +34,11 @@ if ($_POST['form'] == 'csv') {
   $csv_file = $_FILES['csv']['tmp_name'];
 
   // insert file into database
-  $sql = "INSERT INTO files (file_id,name,path,mime_type,ctime,mtime)
-          VALUES (nextval('s_files_file_id'),'$filename','$filepath','text/csv',now(),now())
-          RETURNING file_id";
+  $sql = "INSERT INTO files (name,mime_type)
+          VALUES ('$filename','text/csv')
+          RETURNING id";
   $result = pg_fetch_assoc(pg_query($connection, $sql));
-  $file_id = $result['file_id'];
+  $file_id = $result['id'];
 
   // parse CSV
   include_once 'lib/parsecsv.php';
@@ -75,32 +75,31 @@ if ($_POST['form'] == 'csv') {
   for ($i = $start(); $i < count($csv->data); $i++) {
     if (!$data = $parse_function($csv->data[$i], $csv)) continue;
     $_data = pg_escape_string(serialize($data));
-    $sql = "INSERT INTO csv (csv_id,file_id,type,form_type,data)
-            VALUES (nextval('s_csv_csv_id'),{$file_id},'I','{$form_type}','{$_data}')
-            RETURNING csv_id";
+    $sql = "INSERT INTO csv (file_id,type,form_type,data)
+            VALUES ({$file_id},'I','{$form_type}','{$_data}')
+            RETURNING id";
     $result = pg_fetch_assoc(pg_query($sql));
-    $csv_id = $result['csv_id'];
+    $csv_id = $result['id'];
     $csv_ids[] = $csv_id;
 
     // attempt import into form data table
     $import_function = strtolower($form_type).'_import_data';
-    $form_data_id = $import_function($data);
 
-    if ($form_data_id) {
+    if ($import_function($data)) {
       $csv_ids['accepted'][] = $csv_id;
       pg_query("UPDATE csv
-                SET form_data_id = $form_data_id, status = 'A'
-                WHERE csv_id = $csv_id");
+                SET status = 'A'
+                WHERE id = $csv_id");
       $accepted_output .= '<tr>';
       foreach ($data as $key => $value) {
-        $accepted_output .= '<td class="accepted"><input class="form_data_id_'.$form_data_id.' csv_id_'.$csv_id.'" type="text" name="form_data_id_'.$form_data_id.'_'.$key.'" value="'.$value.'"/></td>';
+        $accepted_output .= '<td class="accepted"><input class="csv_id_'.$csv_id.'" type="text" name="csv_id_'.$csv_id.'_'.$key.'" value="'.$value.'"/></td>';
       }
       $accepted_output .= '</tr>';
     } else {
       $csv_ids['rejected'][] = $csv_id;
       pg_query("UPDATE csv
                 SET status = 'R'
-                WHERE csv_id = $csv_id");
+                WHERE id = $csv_id");
       $rejected_output .= '<tr>';
       foreach ($data as $key => $value) {
         $rejected_output .= '<td class="rejected"><input class="csv_id_'.$csv_id.'" type="text" name="csv_id_'.$csv_id.'_'.$key.'" value="'.$value.'"/></td>';
@@ -110,9 +109,9 @@ if ($_POST['form'] == 'csv') {
   }
 
   echo '<strong class="accepted">'.count($csv_ids['accepted']).' Rows Accepted -- Passed Import</strong>';
-//  echo $accepted_header_output;
-//  echo $accepted_output;
-//  echo '</table><div class="submit"><input type="submit" name="submit" value="Apply Corrections" /></div></form>';
+  echo $accepted_header_output;
+  echo $accepted_output;
+  echo '</table><div class="submit"><input type="submit" name="submit" value="Apply Corrections" /></div></form>';
 
   echo '<strong class="rejected">'.count($csv_ids['rejected']).' Rows Rejected -- Failed Import</strong>';
   echo $rejected_header_output;
@@ -170,13 +169,16 @@ function ssf_import_data($row) {
   $row['is_requested'] = $row['is_requested'] ? $row['is_requested'] : 'YES';
   $row['is_fda_approved'] = $row['is_fda_approved'] ? $row['is_fda_approved'] : 'YES';
 
-  $sql = "INSERT INTO ssf_data (data_id,site_id,operator_id,block_id,barcode_id,species_id,survey_line,cell_number,tree_map_number,diameter,height,is_requested,is_fda_approved,fda_remarks)
-          VALUES (nextval('s_ssf_data_data_id'),lookup_site_id('{$row['site_type']}','{$row['site_reference']}'),lookup_operator_id({$row['operator_tin']}),lookup_block_id('{$row['site_type']}','{$row['site_reference']}','{$row['block_coordinates']}'),lookup_barcode_id('{$row['barcode']}'),lookup_species_id('{$row['species_code']}'),{$row['survey_line']},{$row['cell_number']},{$row['tree_map_number']},{$row['diameter']},{$row['height']},'{$row['is_requested']}','{$row['is_fda_approved']}','{$row['fda_remarks']}')
-          RETURNING data_id";
+  pg_query("BEGIN");
 
-  if (($result = pg_fetch_assoc(pg_query($sql)))) {
-    return $result['data_id'];
-  }
+  $sql = "INSERT INTO ssf_data (site_id,operator_id,block_id,barcode_id,species_id,survey_line,cell_number,tree_map_number,diameter,height,is_requested,is_fda_approved,fda_remarks)
+          VALUES (lookup_site_id('{$row['site_type']}','{$row['site_reference']}'),lookup_operator_id({$row['operator_tin']}),lookup_block_id('{$row['site_type']}','{$row['site_reference']}','{$row['block_coordinates']}'),lookup_barcode_id('{$row['barcode']}'),lookup_species_id('{$row['species_code']}'),{$row['survey_line']},{$row['cell_number']},{$row['tree_map_number']},{$row['diameter']},{$row['height']},'{$row['is_requested']}','{$row['is_fda_approved']}','{$row['fda_remarks']}')";
+  $result = pg_fetch_assoc(pg_query($sql));
+
+  pg_query("ROLLBACK");
+
+  if ($result) return TRUE;
+  return FALSE;
 }
 
 function ssf_results_header() {

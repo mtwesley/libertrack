@@ -72,3 +72,8 @@
   }
 </style>
 <h2>SGS Database</h2>
+<a href="import.php">Import</a> |
+<a href="import.php">Operators</a> |
+<a href="import.php">Sites</a> |
+<a href="import.php">Blocks</a>
+<br /><br />
