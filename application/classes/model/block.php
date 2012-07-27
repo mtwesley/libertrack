@@ -10,7 +10,7 @@ class Model_Block extends ORM {
   public function formo() {
     return array(
       'site' => array(
-        'orm_primary_val' => 'reference'
+        'orm_primary_val' => 'name'
       ),
       'id' => array(
         'render' => false
