@@ -149,4 +149,108 @@ class Controller_Admin extends Controller {
     $this->response->body($body);
   }
 
+  public function action_printjobs() {
+    $id = $this->request->param('id');
+    $body = View::factory('header')->render();
+
+    $model = ORM::factory('printjob', $id);
+    $form = Formo::form()
+      ->orm('load', $model, array('site_id'))
+      ->add('import', 'file')
+      ->add($id ? 'update' : 'save', 'submit');
+
+    if ($form->sent($_POST) and $form->load($_POST)) {
+      $import = $form->import->val();
+      $array = file($import['tmp_name']);
+
+//      $body .= Debug::vars($array);
+
+      $file = ORM::factory('file', $id);
+      $file->name = $import['name'];
+      $file->type = $import['type'];
+      $file->size = $import['size'];
+      $file->content_md5 = md5_file($import['tmp_name']);
+      try {
+        $file->save();
+        $body .= '<p>File uploaded.</p>';
+      } catch (Exception $e) {
+        $body .= '<p>Unable to upload file.</p>';
+      }
+
+      $matches = array();
+      preg_match('/Print\sJob\:\s*(\d+).*/', $array[2], $matches);
+      $model->allocation_date = Date::formatted_time('now', 'Y-m-d');
+      $model->number = $matches[1];
+      try {
+        $model->save();
+        $body .= '<p>Printjob saved.</p>';
+      } catch (Exception $e) {
+        $body .= '<p>Unable to save printjob.</p>';
+      }
+
+      $barcode_ids = array();
+      $barcode_errors = 0;
+
+      $file_data = array();
+
+      $start = Model_Printjob::PARSE_START;
+      $count = count($array);
+      for ($i = $start; $i < ($count - 1); $i++) {
+        $line = $array[$i];
+        $data = $model->parse_txt($line, $array);
+        if (!$data) continue;
+        $file_data[] = $data;
+
+        $barcode = ORM::factory('barcode');
+        $barcode->printjob = $model;
+        $barcode->barcode = $data['barcode'];
+        try {
+          $barcode->save();
+          $barcode_ids[] = $barcode->id;
+        } catch (Exception $e) {
+          $barcode_errors++;
+        }
+      }
+
+      $body .= '<p>'.count($barcode_ids).' barcodes parsed from file.</p>';
+      if ($barcode_errors) {
+        $body .= '<p>'.$barcode_errors.' barcodes not parsed due to errors.</p>';
+      }
+
+
+//      try {
+//        $id ? $model->update() : $model->save();
+//        $body .= '<p>Printjob saved.</p>';
+//      } catch (Exception $e) {
+//        $body .= '<p>Unable to save printjob.</p>';
+//      }
+    }
+
+    $body .= $form->render();
+
+    if ($id === null) {
+
+      $printjobs = ORM::factory('printjob')->find_all()->as_array();
+      $body .= '<table border="1">';
+      $body .= '<tr>';
+      $body .= '<td><strong>opeator</strong></td>';
+      $body .= '<td><strong>site</strong></td>';
+      $body .= '<td><strong>number</strong></td>';
+      $body .= '<td></td>';
+      $body .= '</tr>';
+      foreach ($printjobs as $printjob) {
+        $body .= '<tr>';
+        $body .= '<td>'.$printjob->site->operator->name.'</td>';
+        $body .= '<td>'.$printjob->site->name.'</td>';
+        $body .= '<td>'.$printjob->number.'</td>';
+        $body .= '<td>'.HTML::anchor('/admin/printjobs/'.$printjob->id, 'edit').'</td>';
+        $body .= '</tr>';
+      }
+      $body .= '</table>';
+
+    }
+
+    $this->response->body($body);
+  }
+
 }
