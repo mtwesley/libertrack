@@ -25,6 +25,148 @@ class Controller_Import extends Controller {
     }
   }
 
+  public static function process_csv($csv) {
+    $errors    = array();
+    $data      = unserialize($csv->data);
+    $form_type = strtolower($csv->form_type);
+
+    $model = ORM::factory($form_type);
+    $model->parse_data($data);
+    $errors = $model->validate_data($data, 'errors');
+
+    if (!$errors) {
+      try {
+        $model->save();
+      }
+      catch (ORM_Validation_Exception $e) {
+        $errors = $e->errors();
+      }
+    }
+
+    if ($errors) {
+      $csv->errors = serialize($errors);
+      $csv->status = 'R';
+      Notify::msg('CSV rejected', 'error', TRUE);
+    } else {
+      $csv->form_data_id = $model->id;
+      $csv->status = 'A';
+      Notify::msg('CSV accepted', 'success', TRUE);
+    }
+
+    try {
+      $csv->save();
+    }
+    catch (Exception $e) {
+      Notify::msg('Unable to save CSV', 'error');
+    }
+  }
+
+  private static function detect_form_type($excel) {
+    if     (strpos(strtoupper($excel[1][D]), 'STOCK SURVEY FORM') !== false) return 'SSF';
+    elseif (strpos(strtoupper($excel[1][C]), 'TREE FELLING')      !== false) return 'TDF';
+    elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA FORM')     !== false) return 'LDF';
+
+    else Notify::msg('Unknown template format.', 'error');
+  }
+
+  protected function upload_form() {
+
+
+
+  }
+
+  public function action_files() {
+    $id      = $this->request->param('id');
+    $command = $this->request->param('command');
+
+    switch ($command) {
+      case 'review': break;
+      case 'process': break;
+
+      default:
+      case 'upload': break;
+    }
+
+    $form = Formo::form()
+      ->add('import', 'file')
+      ->add('upload', 'submit');
+
+    if ($form->sent($_POST) and $form->load($_POST)) {
+      $import = $form->import->val();
+      $excel = PHPExcel_IOFactory::load($import['tmp_name'])->getActiveSheet()->toArray(null,true,true,true);
+
+      // detect type of file
+      $form_type = self::detect_form_type($excel);
+
+      // upload file
+      $file = ORM::factory('file');
+      $file->name = $import['name'];
+      $file->type = $import['type'];
+      $file->size = $import['size'];
+      $file->operation   = 'I';
+      $file->content_md5 = md5_file($import['tmp_name']);
+
+      try {
+        $file->save();
+        Notify::msg($file->name.' successfully uploaded.', 'success');
+      } catch (Exception $e) {
+        Notify::msg('Sorry, file upload failed. Please try again.', 'failure');
+      }
+
+      if ($file->id) {
+        // file has been saved
+        $csv_error   = 0;
+        $csv_succsss = 0;
+        $all_data    = array();
+
+        // parse CSV
+        $form_model = ORM::factory($form_type);
+        $start = constant('Model_'.$form_type.'::PARSE_START');
+        $count = count($excel);
+        for ($i = $start; $i <= $count; $i++) {
+          $row = $excel[$i];
+          if ( ! $data = $form_model->parse_csv($row, $excel)) continue;
+          $all_data[] = $data;
+
+          // save CSV
+          $csv = ORM::factory('csv');
+          $csv->file_id = $file->id;
+          $csv->type = 'I';
+          $csv->form_type = $form_type;
+          $csv->data = serialize(array('values' => $data));
+          try {
+            $csv->save();
+            $csv_success++;
+          } catch (Exception $e) {
+            $csv_error++;
+          }
+        }
+      }
+
+      if ($csv_success) Notify::msg($csv_success.' rows successfully parsed.', 'success');
+      if ($csv_error) Notify::msg($csv_error.' rows failed to be parsed.', 'error');
+    }
+
+    $body .= View::factory('header')->render();
+    $body .= $form->render();
+
+    $files = ORM::factory('file')
+      ->where('operation', '=', 'I')
+      ->find_all()->as_array();
+
+    $body .= View::factory('files')
+      ->set('mode', 'import')
+      ->set('files', $files)
+      ->render();
+
+    $this->response->body($body);
+
+  }
+
+  public function action_data() {
+
+  }
+
   public function action_edit() {
     $id = $this->request->param('id');
     $body = View::factory('header')->render();
@@ -62,9 +204,10 @@ class Controller_Import extends Controller {
       if ($csv_saved) {
         $form_model = ORM::factory($form_type);
         $form_model->parse_data($data);
+        $validation = $form_model->validate_data();
 
         try {
-          $form_model->save();
+          $form_model->save($validation);
 
           $csv->form_data_id = $form_model->id;
           $csv->status = 'A';
@@ -105,14 +248,12 @@ class Controller_Import extends Controller {
         foreach ($data as $value) {
           $rows .= '<td>'.$value.'</td>';
         }
-        $rows .= '<td>'.($item->form_data_id ? 'YES' : 'NO').'</td>';
         $rows .= '</tr>';
       }
       $header .= '<tr><td><strong>form_type</strong></td>';
       foreach (array_keys($data) as $key) {
         $header .= '<td><strong>'.$key.'</td>';
       }
-      $header .= '<td><strong>is_imported</strong></td></tr>';
       $body .= '<p><table border="1">' . $header . $rows . '</table></p>';
     } else {
       $body .= '<p><strong>No pending records</strong></p>';
@@ -163,7 +304,7 @@ class Controller_Import extends Controller {
         foreach ($data as $value) {
           $rows .= '<td>'.$value.'</td>';
         }
-        $rows .= '<td>'.($item->form_data_id ? 'YES' : 'NO').'</td>';
+        $rows .= '<td>'.Debug::vars($item->errors).'</td>';
         $rows .= '<td>'.HTML::anchor('/import/csv/'.$item->id.'/edit', 'edit').'</td>';
         $rows .= '</tr>';
       }
@@ -171,7 +312,7 @@ class Controller_Import extends Controller {
       foreach (array_keys($data) as $key) {
         $header .= '<td><strong>'.$key.'</td>';
       }
-      $header .= '<td><strong>is_imported</strong></td><td></td></tr>';
+      $header .= '<td><strong>errors</strong></td><td></td></tr>';
       $body .= '<p><table border="1">' . $header . $rows . '</table></p>';
     } else {
       $body .= '<p><strong>No rejected records</strong></p>';
@@ -190,145 +331,15 @@ class Controller_Import extends Controller {
 
     // pending
     $pending = $file->csv
-      ->where('status', 'LIKE', 'P')
+      ->where('status', 'IN', array('P','R'))
       ->find_all()
       ->as_array();
 
     foreach ($pending as $csv) {
-      $data = unserialize($csv->data);
-      $form_type = strtolower($csv->form_type);
-
-      $model = ORM::factory($form_type);
-      $model->parse_data($data);
-
-      try {
-        $model->save();
-
-        $csv->form_data_id = $model->id;
-        $csv->status = 'A';
-        $csv->save();
-        $body .= '<p>CSV '.$csv->id.' accepted</p>';
-      } catch (Exception $e) {
-        $csv->status = 'R';
-        $csv->save();
-        $body .= '<p>CSV '.$csv->id.' rejected</p>';
-      }
+      self::process_csv($csv);
     }
 
     $this->request->redirect('import/files/'.$id.'/review');
-  }
-
-  public function action_files() {
-    $id = $this->request->param('id');
-    $body = View::factory('header')->render();
-
-    $form = Formo::form()
-      ->add('import', 'file')
-      ->add('upload', 'submit');
-
-    if ($form->sent($_POST) and $form->load($_POST)) {
-      $import = $form->import->val();
-      $array = PHPExcel_IOFactory::load($import['tmp_name'])->getActiveSheet()->toArray(null,true,true,true);
-
-      // detect type of file
-      if (strpos($array[1][D], 'STOCK SURVEY FORM') !== false) {
-        $is_form = true;
-        $form_type = 'SSF';
-      } elseif (strpos($array[1][C], 'Tree Felling') !== false) {
-        $is_form = true;
-        $form_type = 'TDF';
-      } elseif (strpos($array[1][C], 'L0G DATA F0RM') !== false) {
-        $is_form = true;
-        $form_type = 'LDF';
-      } elseif (strpos($array[3][A], 'Print Job') !== false) {
-        $is_printjob = true;
-      }
-
-      $file = ORM::factory('file', $id);
-      $file->name = $import['name'];
-      $file->type = $import['type'];
-      $file->size = $import['size'];
-      $file->content_md5 = md5_file($import['tmp_name']);
-      try {
-        $file->save();
-        $body .= '<p>File uploaded.</p>';
-      } catch (Exception $e) {
-          $body .= '<p>Unable to upload file.</p>';
-      }
-
-      $csv_ids = array();
-      $csv_errors = 0;
-      $file_data = array();
-      $model = ORM::factory($form_type);
-      $start = constant('Model_'.$form_type.'::PARSE_START');
-      $count = count($array);
-      for ($i = $start; $i <= $count; $i++) {
-        $row = $array[$i];
-        $data = $model->parse_csv($row, $array);
-        if (!$data) continue;
-        $file_data[] = $data;
-
-        if ($is_form) {
-          $csv = ORM::factory('csv');
-          $csv->file_id = $file->id;
-          $csv->type = 'I';
-          $csv->form_type = $form_type;
-          $csv->data = serialize($data);
-          try {
-            $csv->save();
-            $csv_ids[] = $csv->id;
-          } catch (Exception $e) {
-            $csv_errors++;
-          }
-        }
-      }
-
-      $body .= '<p>'.count($csv_ids).' items parsed from file.</p>';
-      if ($csv_errors) {
-        $body .= '<p>'.$csv_errors.' items not parsed due to errors.</p>';
-      }
-
-      if ($is_form) $file->data_type = 'F';
-      elseif ($is_printjob) $file->data_type = 'P';
-
-      $file->data_md5 = md5(serialize($file_data));
-      try {
-        $file->save();
-      } catch (Exception $e) {
-        // this error doesnt really matter now
-      }
-
-    }
-
-    $body .= $form->render();
-
-    $files = ORM::factory('file')->where('data_type', '=', 'F')->find_all()->as_array();
-    $body .= '<table border="1">';
-    $body .= '<tr>';
-    $body .= '<td><strong>name</strong></td>';
-    $body .= '<td><strong>type</strong></td>';
-    $body .= '<td><strong>size</strong></td>';
-    $body .= '<td><strong>statistics</strong></td>';
-    $body .= '<td></td>';
-    $body .= '</tr>';
-    foreach ($files as $f) {
-      $_p = (int) $f->csv->where('status', '=', 'P')->find_all()->count();
-      $_a = (int) $f->csv->where('status', '=', 'A')->find_all()->count();
-      $_r = (int) $f->csv->where('status', '=', 'R')->find_all()->count();
-
-      $_total = $_p + $_a + $_r;
-
-      $body .= '<tr>';
-      $body .= '<td>'.$f->name.'</td>';
-      $body .= '<td>'.$f->type.'</td>';
-      $body .= '<td>'.Controller_Import::format_bytes($f->size).'</td>';
-      $body .= '<td>'.$_p.' Pending ('.number_format($_p * 100 / $_total).'%)<br> '.$_a.' Accepted ('.number_format($_a * 100 / $_total).'%)<br> '.$_r.' Rejected ('.number_format($_r * 100 / $_total).'%)</td>';
-      $body .= '<td>'.HTML::anchor('/import/files/'.$f->id.'/review', 'review').' | '.HTML::anchor('/import/files/'.$f->id.'/process', 'process').'</td>';
-      $body .= '</tr>';
-    }
-    $body .= '</table>';
-
-    $this->response->body($body);
   }
 
   private static function ssf_parse_data($row, &$array) {
