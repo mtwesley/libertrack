@@ -30,6 +30,8 @@ create domain d_measurement_int as int check (value >= 0);
 
 create domain d_measurement_float as real check (value >= 0);
 
+create domain d_operation as character(1) check (value ~ '^[IEU]$');
+
 create domain d_species_code as character varying(5) check (value ~ '^[A-Z]{3,5}$');
 
 create domain d_species_class as character(1) check (value ~ '^[ABC]$');
@@ -41,10 +43,6 @@ create domain d_site_reference as character varying(7) check (value ~ '^[A-Z1-9]
 create domain d_operator_tin as bigint check (value > 0);
 
 create domain d_survey_line as numeric(2) check ((value > 0) and (value <= 20));
-
-create domain d_cell_number as numeric(2) check ((value > 0) and (value <= 20));
-
-create domain d_csv_type as character(1) check (value ~ '^[IE]$');
 
 create domain d_form_type as character varying(5) check (value ~ '^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR)$');
 
@@ -60,15 +58,13 @@ create domain d_block_coordinates as character varying(7) check (value ~ '^[A-Z]
 
 create domain d_status as character(1) check (value ~ '^[PAR]$');
 
-create domain d_coc_status as character(1) check (value ~ '^[PESLAHN]$');
+create domain d_coc_status as character(1) check (value ~ '^[PIHEZYALZ]$');
 
 create domain d_username as character varying(24) check (value ~ '^[0-9A-Za-z_]{3,24}$');
 
 create domain d_access_level as character(1) check (value ~ '^[AMD]$');
 
 create domain d_ip_address as inet;
-
-create domain d_hops as numeric(1) check (value >= 0);
 
 create domain d_oid as oid;
 
@@ -159,7 +155,7 @@ create table printjobs (
   id bigserial not null,
   number d_positive_int unique not null,
   site_id d_id not null,
-  allocation_date d_date not null,
+  allocation_date d_date default current_timestamp not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -187,7 +183,7 @@ create table barcodes (
 create table barcode_hops_cached (
   barcode_id d_id not null,
   parent_id d_id not null,
-  hops d_hops not null,
+  hops d_positive_int not null,
 
   constraint barcode_hops_cached_pkey primary key (barcode_id, parent_id),
   constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
@@ -197,9 +193,11 @@ create table barcode_hops_cached (
 create table files (
   id bigserial not null,
   name d_text_short not null,
-  mime_type d_text_short not null,
+  type d_text_short not null,
+  size d_int not null,
+  operation d_operation default 'U',
   content d_oid unique,
-  md5 d_text_short,
+  content_md5 d_text_short unique,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -210,7 +208,7 @@ create table files (
 create table csv (
   id bigserial not null,
   file_id d_id not null,
-  type d_csv_type not null,
+  operation d_operation not null,
   form_type d_form_type not null,
   form_data_id d_id,
   other_csv_id d_id,
@@ -281,7 +279,7 @@ create table tdf_data (
   stump_barcode_id d_id unique not null,
   species_id d_id not null,
   survey_line d_survey_line not null,
-  cell_number d_cell_number not null,
+  cell_number d_positive_int not null,
   top_min d_measurement_int not null,
   top_max d_measurement_int not null,
   bottom_min d_measurement_int not null,
@@ -455,8 +453,10 @@ create index barcodes_is_locked on barcodes (id,is_locked);
 create index invoices_site_id on invoices (id,site_id);
 create index invoices_reference_number on invoices (id,reference_number);
 
+create index files_operation on files (id,operation);
+
 create index csv_file_id on csv (id,file_id);
-create index csv_type on csv (id,type);
+create index csv_operation on csv (id,operation);
 create index csv_other_csv_id on csv (id,other_csv_id);
 create index csv_form_type_data_id on csv (id,form_type,form_data_id);
 
