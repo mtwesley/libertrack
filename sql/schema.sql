@@ -32,6 +32,8 @@ create domain d_measurement_float as real check (value >= 0);
 
 create domain d_operation as character(1) check (value ~ '^[IEU]$');
 
+create domain d_operation_type as character varying(5) check (value ~ '^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR|PJ|UNKWN)$');
+
 create domain d_species_code as character varying(5) check (value ~ '^[A-Z]{3,5}$');
 
 create domain d_species_class as character(1) check (value ~ '^[ABC]$');
@@ -195,7 +197,8 @@ create table files (
   name d_text_short not null,
   type d_text_short not null,
   size d_int not null,
-  operation d_operation default 'U',
+  operation d_operation default 'U' not null,
+  operation_type d_operation_type default 'UNKWN' not null,
   content d_oid unique,
   content_md5 d_text_short unique,
   user_id d_id default 1 not null,
@@ -212,7 +215,9 @@ create table csv (
   form_type d_form_type not null,
   form_data_id d_id,
   other_csv_id d_id,
-  data d_text_long,
+  values d_text_long,
+  errors d_text_long,
+  suggestions d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
   status d_status default 'P' not null,
@@ -255,6 +260,7 @@ create table ssf_data (
   is_requested d_bool default true not null,
   is_fda_approved d_bool default true not null,
   fda_remarks d_text_long,
+  create_date d_date not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -288,6 +294,7 @@ create table tdf_data (
   action d_text_long,
   comment d_text_long,
   coc_status d_coc_status default 'P' not null,
+  create_date d_date not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -319,6 +326,7 @@ create table ldf_data (
   action d_text_long,
   comment d_text_long,
   coc_status d_coc_status default 'P' not null,
+  create_date d_date not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
