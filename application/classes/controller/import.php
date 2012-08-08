@@ -2,6 +2,17 @@
 
 class Controller_Import extends Controller {
 
+  private static function cleanup_errors($errors) {
+    foreach ($errors as $field => $error) {
+      $array  = explode('.', $error);
+      $type   = array_pop($array);
+      $source = array_pop($array);
+      $errors[$field ? $field : $source] = $type;
+    }
+
+    return $errors;
+  }
+
   private static function process_csv($csv) {
     $errors    = array();
     $form_type = strtolower($csv->form_type);
@@ -13,14 +24,19 @@ class Controller_Import extends Controller {
       try {
         $form_model->save();
       } catch (ORM_Validation_Exception $e) {
-        $errors = $e->errors();
+        $errors = $e->errors('');
       }
     }
 
     if ($errors) {
-      $csv->errors = $errors;
+      $suggestions = $form_model->make_suggestions($csv->values, $errors);
+
+      $csv->suggestions = $suggestions;
+      $csv->errors = self::cleanup_errors($errors);
       $csv->status = 'R';
     } else {
+      $csv->errors = NULL;
+      $csv->suggestions = NULL;
       $csv->form_data_id = $form_model->id;
       $csv->status = 'A';
     }
@@ -160,31 +176,30 @@ class Controller_Import extends Controller {
       ->find_all()
       ->as_array();
 
-    $body .= View::factory('header');
-
-    if ($pending) $body .= View::factory('import/csvs')
-      ->set('mode', 'pending')
+    if ($pending) $_body .= View::factory('import/csvs')
+      ->set('title', 'Pending')
       ->set('csvs', $pending)
       ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
       ->render();
     else Notify::msg('No pending records found.');
 
-    if ($accepted) $body .= View::factory('import/csvs')
-      ->set('mode', 'accepted')
+    if ($accepted) $_body .= View::factory('import/csvs')
+      ->set('title', 'Accepted')
       ->set('csvs', $accepted)
       ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
       ->render();
     else Notify::msg('No accepted records found.');
 
-    if ($rejected) $body .= View::factory('import/csvs')
-      ->set('mode', 'rejected')
+    if ($rejected) $_body .= View::factory('import/csvs')
+      ->set('title', 'Rejected')
       ->set('csvs', $rejected)
       ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
       ->render();
     else Notify::msg('No rejected records found.');
 
+    $body .= View::factory('header');
+    $body .= $_body;
     $this->response->body($body);
-
   }
 
   private function handle_file_process($id = NULL) {
@@ -248,10 +263,12 @@ class Controller_Import extends Controller {
 
       if ($updated) {
         $result = self::process_csv($csv);
-        if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success');
-        elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error');
-        else    Notify::msg('Updated data failed to be processed.', 'error');
+        if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
+        elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
+        else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
       }
+
+      $this->request->redirect('import/data/'.$csv->id);
     }
 
     $body .= View::factory('header')->render();
@@ -260,44 +277,55 @@ class Controller_Import extends Controller {
     $this->response->body($body);
   }
 
-  private function handle_csv_list($form_type = NULL, $range = array()) {
-    $form = Formo::form()
-      ->add_group('form_type', 'select', SGS::$form_type, NULL, array(
-        'label' => 'Form',
-        'required' => TRUE
-      ))
-      ->add('from', 'input', array(
-        'label' => 'From'
-      ))
-      ->add('to', 'input', array(
-        'label' => 'To'
-      ))
-      ->add('search', 'submit', 'Search');
-
-    if ($form->sent($_POST) and $form->load($_POST)) {
-      $form_type = $form->form_type->val();
-      $from      = $form->from->val();
-      $to        = $form->to->val();
-
-
+  private function handle_csv_list($id = NULL, $form_type = NULL, $range = array()) {
+    if ($id) {
       $csvs = ORM::factory('csv')
         ->where('operation', '=', 'I')
-        ->and_where('form_type', '=', $form_type)
-        ->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to))
-        ->order_by('timestamp', 'desc')
+        ->and_where('id', '=', $id)
         ->find_all()
         ->as_array();
 
-      if ($csvs) $results = View::factory('import/csvs')
-        ->set('mode', 'import')
-        ->set('csvs', $csvs)
-        ->set('fields', SGS_Form_ORM::get_fields($form_type))
-        ->render();
-      else Notify::msg('Search returned an empty set of results.');
+      $form_type = reset($csvs)->form_type;
+    }
+    else {
+      $form = Formo::form()
+        ->add_group('form_type', 'select', SGS::$form_type, NULL, array(
+          'label' => 'Form',
+          'required' => TRUE
+        ))
+        ->add('from', 'input', array(
+          'label' => 'From'
+        ))
+        ->add('to', 'input', array(
+          'label' => 'To'
+        ))
+        ->add('search', 'submit', 'Search');
+
+      if ($form->sent($_POST) and $form->load($_POST)) {
+        $form_type = $form->form_type->val();
+        $from      = $form->from->val();
+        $to        = $form->to->val();
+
+
+        $csvs = ORM::factory('csv')
+          ->where('operation', '=', 'I')
+          ->and_where('form_type', '=', $form_type)
+          ->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to))
+          ->order_by('timestamp', 'desc')
+          ->find_all()
+          ->as_array();
+      }
     }
 
+    if ($csvs) $results = View::factory('import/csvs')
+      ->set('mode', 'import')
+      ->set('csvs', $csvs)
+      ->set('fields', SGS_Form_ORM::get_fields($form_type))
+      ->render();
+    else Notify::msg('Search returned an empty set of results.');
+
     $body .= View::factory('header')->render();
-    $body .= $form->render();
+    if ($form) $body .= $form->render();
     $body .= $results;
 
     $this->response->body($body);
@@ -396,8 +424,8 @@ class Controller_Import extends Controller {
     $command = $this->request->param('command');
 
     if (!$command && !is_numeric($id)) {
-      $command = $id;
       $id      = NULL;
+      $command = $id;
     }
 
     switch ($command) {
@@ -405,7 +433,7 @@ class Controller_Import extends Controller {
       case 'process': return self::handle_file_process($id);
 
       default:
-      case 'list': return self::handle_file_list();
+      case 'list': return self::handle_file_list($id);
     }
   }
 
@@ -413,11 +441,16 @@ class Controller_Import extends Controller {
     $id      = $this->request->param('id');
     $command = $this->request->param('command');
 
+    if (!$command && !is_numeric($id)) {
+      $id      = NULL;
+      $command = $id;
+    }
+
     switch ($command) {
       case 'edit': return self::handle_csv_edit($id);
 
       default:
-      case 'list': return self::handle_csv_list();
+      case 'list': return self::handle_csv_list($id);
     }
   }
 
