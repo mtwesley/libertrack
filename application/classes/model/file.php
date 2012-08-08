@@ -11,4 +11,15 @@ class Model_File extends ORM {
     'invoices' => array()
   );
 
+  public function rules()
+  {
+    return array(
+      'name'           => array(array('not_empty')),
+      'type'           => array(array('not_empty')),
+      'size'           => array(array('not_empty')),
+      'operation'      => array(array('not_empty')),
+      'operation_type' => array(array('not_empty')),
+      'content_md5'    => array(array('is_unique', array($this->_table_name, ':field', ':value'))),
+    );
+  }
 }
