@@ -176,21 +176,21 @@ class Controller_Import extends Controller {
       ->find_all()
       ->as_array();
 
-    if ($pending) $_body .= View::factory('import/csvs')
+    if ($pending) $_body .= View::factory('csvs')
       ->set('title', 'Pending')
       ->set('csvs', $pending)
       ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
       ->render();
     else Notify::msg('No pending records found.');
 
-    if ($accepted) $_body .= View::factory('import/csvs')
+    if ($accepted) $_body .= View::factory('csvs')
       ->set('title', 'Accepted')
       ->set('csvs', $accepted)
       ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
       ->render();
     else Notify::msg('No accepted records found.');
 
-    if ($rejected) $_body .= View::factory('import/csvs')
+    if ($rejected) $_body .= View::factory('csvs')
       ->set('title', 'Rejected')
       ->set('csvs', $rejected)
       ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
@@ -317,7 +317,7 @@ class Controller_Import extends Controller {
       }
     }
 
-    if ($csvs) $results = View::factory('import/csvs')
+    if ($csvs) $results = View::factory('csvs')
       ->set('mode', 'import')
       ->set('csvs', $csvs)
       ->set('fields', SGS_Form_ORM::get_fields($form_type))
