@@ -81,6 +81,7 @@ if (isset($_SERVER['KOHANA_ENV']))
  */
 Kohana::init(array(
 	'base_url'   => '/',
+  'index_file' => '',
 ));
 
 /**
@@ -108,18 +109,17 @@ Kohana::modules(array(
 	// 'unittest'  => MODPATH.'unittest',     // Unit testing
 	'userguide'    => MODPATH.'userguide',    // User guide and API documentation
   'formo'        => MODPATH.'formo',        // Object-based form handling
+  'notify'       => MODPATH.'notify',       // Message notification system
+  'breadcrumbs'  => MODPATH.'breadcrumbs'   // Simple breadcrumbs navigation
 	));
 
 /**
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
-//Route::set('import', '(import/(<form>)(/<action>))')
-//	->defaults(array(
-//		'controller' => 'import',
-//		'action'     => 'index',
-//	));
-//
+Route::set('import_export', '<controller>(/<action>(/<id>)(/<command>))');
+Route::set('model', '<controller>/<id>');
+
 Route::set('default', '(<controller>(/<action>(/<id>)))')
 	->defaults(array(
 		'controller' => 'import',
