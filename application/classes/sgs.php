@@ -131,7 +131,7 @@ class SGS {
 
   public static function path($path)
   {
-    return self::value($path, 'path');
+    return self::value(preg_replace ('`^'.preg_quote(URL::base()).'`', '', $path), 'path');
   }
 
   public static function title($path)

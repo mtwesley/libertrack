@@ -21,7 +21,7 @@ clear:
 **/
 
 if (!$path)  $path  = Request::$current->url();
-if (!$title) $title = SGS::title(preg_replace ('/^\//', '', $path));
+if (!$title) $title = SGS::title($path);
 
 if (!$top) $top = View::factory('top')->set('title', $title);
 
