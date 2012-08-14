@@ -66,19 +66,19 @@ class Valid extends Kohana_Valid {
     return (bool) ($max_length ? self::max_length($value, $max_length) : TRUE);
   }
 
-  public static function is_positive_int($value)
-  {
-    return (bool) (self::is_int($value) AND $value > 0);
-  }
-
   public static function is_text_short($value)
   {
-    return (bool) (UTF8::strlen($value) <= 50);
+    return (bool) (self::is_varchar($value, 50));
   }
 
   public static function is_text_medium($value)
   {
-    return (bool) (UTF8::strlen($value) <= 500);
+    return (bool) (self::is_varchar($value, 500));
+  }
+
+  public static function is_text_long($value)
+  {
+    return (bool) (self::is_varchar($value));
   }
 
   public static function is_boolean($value)
@@ -101,6 +101,11 @@ class Valid extends Kohana_Valid {
     return (bool) (strtotime($value) > 0);
   }
 
+  public static function is_positive_int($value)
+  {
+    return (bool) (self::is_int($value) AND $value > 0);
+  }
+
   public static function is_measurement_int($value)
   {
     return (bool) (self::is_int($value) AND $value >= 0);
@@ -111,9 +116,9 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_float($value) AND $value >= 0);
   }
 
-  public static function is_file_data_type($value)
+  public static function is_file_type($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^[FPU]$/', (string) $value));
+    return (bool) (self::is_varchar($value, 100));
   }
 
   public static function is_species_code($value)
@@ -146,9 +151,14 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_positive_int($value) AND ($value <= 20));
   }
 
-  public static function is_csv_type($value)
+  public static function is_operation($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^[IE]$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^[IEUP]$/', (string) $value));
+  }
+
+  public static function is_operation_type($value)
+  {
+    return (bool) (self::is_char($value) AND preg_match('/^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR|PJ|UNKWN)$/', (string) $value));
   }
 
   public static function is_form_type($value)
@@ -183,7 +193,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_status($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^[PAR]$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^[PARD]$/', (string) $value));
   }
 
   public static function is_coc_status($value)

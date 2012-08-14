@@ -5,6 +5,7 @@ class Model_LDF extends SGS_Form_ORM {
   const PARSE_START = 9;
 
   public static $fields = array(
+    'create_date'    => 'Date Registered',
     'operator_tin'   => 'Operator TIN',
     'site_name'      => 'Site Name',
     'site_type'      => 'Site Type',
@@ -21,7 +22,6 @@ class Model_LDF extends SGS_Form_ORM {
     'action'         => 'Action',
     'comment'        => 'Comment',
     // 'coc_status'     => 'CoC Status',
-    'create_date'       => 'Date Registered',
   );
 
   protected $_table_name = 'ldf_data';
@@ -45,23 +45,8 @@ class Model_LDF extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    if ( ! (array_filter($row))) return null;
-
-    $matches = array();
-    preg_match('/((([A-Z]+)\/)?([A-Z1-9\s-_]+)?)\/?([A-Z1-9]+)/', $csv[2][B], $matches);
-
-    $create_date       = $csv[3][B];
-    $operator_tin      = $csv[4][B];
-    $site_name         = $matches[1];
-    $site_type         = $matches[3];
-    $site_reference    = $matches[4];
-    $block_coordinates = $matches[5];
-
-    return array(
-      'operator_tin'   => $operator_tin,
-      'site_name'      => $site_name,
-      'site_type'      => $site_type,
-      'site_reference' => $site_reference,
+    extract(SGS::parse_site_and_block_info($csv[2][B]));
+    $data = array(
       'parent_barcode' => $row[A],
       'species_code'   => $row[B],
       'barcode'        => $row[C],
@@ -74,13 +59,21 @@ class Model_LDF extends SGS_Form_ORM {
       'action'         => $row[J],
       'comment'        => $row[K],
       // 'coc_status'     => $row[L],
-      'create_date'    => $create_date,
     );
+
+    if (array_fileter($data)) return array(
+      'create_date'    => $csv[3][B],
+      'operator_tin'   => $csv[4][B],
+      'site_name'      => $site_name,
+      'site_type'      => $site_type,
+      'site_reference' => $site_reference,
+    ) + $data;
   }
 
   public function parse_data($data)
   {
-    $this->site = SGS::lookup_site($data['site_type'], $data['site_reference']);
+    if ($data['site_type'] and $data['site_reference']) $this->site = SGS::lookup_site($data['site_type'], $data['site_reference']);
+    elseif ($data['site_name']) $this->site = SGS::lookup_site_by_name($data['site_name']);
 
     foreach ($data as $key => $value) switch ($key) {
       case 'operator_tin':
@@ -99,7 +92,7 @@ class Model_LDF extends SGS_Form_ORM {
         $this->species = SGS::lookup_species($value); break;
 
       case 'create_date':
-        $this->$key = Date::formatted_time($value, SGS::PGSQL_DATE_FORMAT); break;
+        $this->$key = SGS::date($value, TRUE); break;
 
       default:
         $this->$key = $value; break;
@@ -126,27 +119,16 @@ class Model_LDF extends SGS_Form_ORM {
     return $suggestions;
   }
 
-  public static function fields()
+  public static function fields($display = FALSE)
   {
-    return array(
-      'operator_tin'   => 'Operator TIN',
-      'site_name'      => 'Site Name',
-      'site_type'      => 'Site Type',
-      'site_reference' => 'Site Reference',
-      'parent_barcode' => 'Parent Barcode',
-      'species_code'   => 'Species Code',
-      'barcode'        => 'Barcode',
-      'bottom_max'     => 'Butt Max',
-      'bottom_min'     => 'Butt Min',
-      'top_max'        => 'Top Max',
-      'top_min'        => 'Top Min',
-      'length'         => 'Length',
-      'volume'         => 'Volume',
-      'action'         => 'Action',
-      'comment'        => 'Comment',
-      // 'coc_status'     => 'CoC Status',
-      'create_date'       => 'Date Registered',
-    );
+    foreach (self::$fields as $key => $value) switch ($key) {
+      case 'site_type':
+      case 'site_reference':
+        if ($display) continue;
+      default:
+        $fields[$key] = $value;
+    }
+    return $fields;
   }
 
   public function rules()

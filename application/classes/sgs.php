@@ -8,10 +8,47 @@ class SGS {
   const PGSQL_DATE_FORMAT = 'Y-m-d';
   const PGSQL_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
+  public static $path = array(
+    'index'           => 'Home',
+
+    'import'          => 'Import',
+    'import/upload'   => 'Upload Documents',
+    'import/files'    => 'File Management',
+    'import/data'     => 'Data Management',
+
+    'export'          => 'Export',
+    'export/download' => 'Download Documents',
+    'export/files'    => 'File Management',
+    'export/data'     => 'Data Management',
+
+    'export/download/ssf' => 'Stock Survey Form',
+    'export/download/tdf' => 'Tree Data Form',
+    'export/download/ldf' => 'Log Data Form',
+
+    'admin'           => 'Administration',
+    'admin/files'     => 'File Management',
+    'admin/operators' => 'Operator Configuration',
+    'admin/sites'     => 'Site Configuration',
+    'admin/blocks'    => 'Block Registration',
+    'admin/species'   => 'Species Configuration',
+    'admin/printjobs' => 'Print Job Management',
+    'admin/barcodes'  => 'Barcode Management',
+
+    'analysis'        => 'Analysis, Checks, and Queries',
+    'analysis/ssf'    => 'Stock Survey Form',
+    'analysis/tdf'    => 'Tree Data Form',
+    'analysis/ldf'    => 'Log Data Form',
+
+    'reports'         => 'Reports',
+    'reports/ssf'     => 'Stock Survey Form',
+    'reports/tdf'     => 'Tree Data Form',
+    'reports/ldf'     => 'Log Data Form',
+  );
+
   public static $operation = array(
     'I' => 'Import',
     'E' => 'Export',
-    'P' => 'Print Job',
+    'A' => 'Administration',
     'U' => 'Unknown'
   );
 
@@ -92,22 +129,47 @@ class SGS {
     else return $default;
   }
 
-  public static function date($date)
+  public static function path($path)
   {
-    return Date::formatted_time($date, self::DATE_FORMAT);
+    return self::value($path, 'path');
   }
 
-  public static function datetime($datetime)
+  public static function title($path)
   {
-    return Date::formatted_time($datetime, self::DATETIME_FORMAT);
+    if ((!$path) or ($path == '/')) return 'Home';
+
+    while (($title == NULL) and ($path)) {
+      $title = self::path($path);
+      $path  = substr($path, 0, strrpos($path, '/'));
+    }
+
+    return $title;
+  }
+
+  public static function date($date, $pgsql = FALSE)
+  {
+    try {
+      return Date::formatted_time($date, $pgsql ? self::PGSQL_DATE_FORMAT : self::DATE_FORMAT);
+    } catch (Exception $e) {
+      return date($pgsql ? self::PGSQL_DATE_FORMAT : self::DATE_FORMAT, strtotime($date));
+    }
+  }
+
+  public static function datetime($datetime, $pgsql = FALSE)
+  {
+    try {
+      return Date::formatted_time($datetime, $pgsql ? self::PGSQL_DATETIME_FORMAT : self::DATETIME_FORMAT);
+    } catch (Exception $e) {
+      return date($pgsql ? self::PGSQL_DATETIME_FORMAT : self::DATETIME_FORMAT, strtotime($datetime));
+    }
   }
 
   public static function db_range($from = NULL, $to = NULL)
   {
-    if ($from) $from = Date::formatted_time($from, self::PGSQL_DATETIME_FORMAT);
+    if ($from) $from = self::datetime($from, TRUE);
     else $from = '-infinity';
 
-    if ($to) $to = Date::formatted_time($to, self::PGSQL_DATETIME_FORMAT);
+    if ($to) $to = self::datetime($to, TRUE);
     else $to = 'infinity';
 
     return array(
@@ -346,6 +408,39 @@ class SGS {
 
     $query_args = array();
     return self::suggest($code, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
+  }
+
+  public static function parse_site_and_block_info($text) {
+    $matches = array();
+    preg_match('/((([A-Z]+)\/)?([A-Z1-9\s-_]+)?)(\/([A-Z1-9]+))?/', $text, $matches);
+
+    return array(
+      'site_name'         => $matches[1],
+      'site_type'         => $matches[3],
+      'site_reference'    => $matches[4],
+      'block_coordinates' => $matches[6]
+    );
+  }
+
+  public static function odd_even(&$odd) {
+    return ($odd ? ($odd = false) : ($odd = true)) ? 'odd' : 'even';
+  }
+
+  public static function wordify($string)
+  {
+    return preg_replace('/[^\w-]+/', '_', $string);
+  }
+
+  public static function render_classes($classes)
+  {
+    return implode(' ', (array) self::wordify($classes));
+  }
+
+  public static function render_styles($styles) {
+    foreach ((array) $styles as $style) {
+      $return .= HTML::style('css/'.$style.'.css');
+    }
+    return $return;
   }
 
 }

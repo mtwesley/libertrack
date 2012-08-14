@@ -5,6 +5,7 @@ class Model_SSF extends SGS_Form_ORM {
   const PARSE_START = 13;
 
   public static $fields = array(
+    'create_date'       => 'Date Surveyed',
     'operator_tin'      => 'Operator TIN',
     'site_name'         => 'Site Name',
     'site_type'         => 'Site Type',
@@ -20,7 +21,6 @@ class Model_SSF extends SGS_Form_ORM {
     'is_requested'      => 'Is Requested',
     'is_fda_approved'   => 'Is FDA Approved',
     'fda_remarks'       => 'FDA Remarks',
-    'create_date'       => 'Date Surveyed',
   );
 
 
@@ -43,24 +43,8 @@ class Model_SSF extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    if ( ! (array_filter($row))) return null;
-
-    $matches = array();
-    preg_match('/((([A-Z]+)\/)?([A-Z1-9\s-_]+)?)\/?([A-Z1-9]+)/', $csv[2][B], $matches);
-
-    $create_date       = $csv[3][B];
-    $operator_tin      = $csv[2][H];
-    $site_name         = $matches[1];
-    $site_type         = $matches[3];
-    $site_reference    = $matches[4];
-    $block_coordinates = $matches[5];
-
-    return array(
-      'operator_tin'      => $operator_tin,
-      'site_name'         => $site_name,
-      'site_type'         => $site_type,
-      'site_reference'    => $site_reference,
-      'block_coordinates' => $block_coordinates,
+    extract(SGS::parse_site_and_block_info($csv[2][B]));
+    $data = array(
       'barcode'           => $row[A],
       'tree_map_number'   => $row[B],
       'survey_line'       => $row[C],
@@ -68,16 +52,26 @@ class Model_SSF extends SGS_Form_ORM {
       'species_code'      => $row[E],
       'diameter'          => $row[F],
       'height'            => $row[G],
+    );
+
+    if (array_filter($data)) return array(
+      'create_date'       => $csv[3][B],
+      'operator_tin'      => $csv[2][H],
+      'site_name'         => $site_name,
+      'site_type'         => $site_type,
+      'site_reference'    => $site_reference,
+      'block_coordinates' => $block_coordinates,
+    ) + $data + array(
       'is_requested'      => $row[H] == 'NO' ? 'NO' : 'YES',
       'is_fda_approved'   => $row[I] == 'NO' ? 'NO' : 'YES',
       'fda_remarks'       => $row[J],
-      'create_date'       => $create_date,
     );
   }
 
   public function parse_data($data)
   {
-    $this->site = SGS::lookup_site($data['site_type'], $data['site_reference']);
+    if ($data['site_type'] and $data['site_reference']) $this->site = SGS::lookup_site($data['site_type'], $data['site_reference']);
+    elseif ($data['site_name']) $this->site = SGS::lookup_site_by_name($data['site_name']);
 
     foreach ($data as $key => $value) switch ($key) {
       case 'operator_tin':
@@ -98,7 +92,7 @@ class Model_SSF extends SGS_Form_ORM {
         $this->species = SGS::lookup_species($value); break;
 
       case 'create_date':
-        $this->$key = Date::formatted_time($value, SGS::PGSQL_DATE_FORMAT); break;
+        $this->$key = SGS::date($value, TRUE); break;
 
       default:
         $this->$key = $value; break;
@@ -124,26 +118,16 @@ class Model_SSF extends SGS_Form_ORM {
     return $suggestions;
   }
 
-  public function fields()
+  public static function fields($display = FALSE)
   {
-    return array(
-      'operator_tin'      => 'Operator TIN',
-      'site_name'         => 'Site Name',
-      'site_type'         => 'Site Type',
-      'site_reference'    => 'Site Reference',
-      'block_coordinates' => 'Block Name',
-      'barcode'           => 'Barcode',
-      'tree_map_number'   => 'Tree Map Number',
-      'survey_line'       => 'Survey Line',
-      'cell_number'       => 'Cell Number',
-      'species_code'      => 'Species Code',
-      'diameter'          => 'Diameter',
-      'height'            => 'Height',
-      'is_requested'      => 'Is Requested',
-      'is_fda_approved'   => 'Is FDA Approved',
-      'fda_remarks'       => 'FDA Remarks',
-      'create_date'       => 'Date Surveyed',
-    );
+    foreach (self::$fields as $key => $value) switch ($key) {
+      case 'site_type':
+      case 'site_reference':
+        if ($display) continue;
+      default:
+        $fields[$key] = $value;
+    }
+    return $fields;
   }
 
   public function rules()
@@ -202,6 +186,17 @@ class Model_SSF extends SGS_Form_ORM {
                                    array('is_species_code'),
                                    array('is_existing_species'))
     );
+  }
+
+  public function __get($column) {
+    switch ($column) {
+      case 'is_requested':
+      case 'is_fda_approved':
+        return parent::__get($column) == 't' ? TRUE : FALSE;
+
+      default:
+        return parent::__get($column);
+    }
   }
 
 }

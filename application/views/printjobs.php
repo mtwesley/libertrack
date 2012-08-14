@@ -1,16 +1,16 @@
-<table border="1">
-  <tr>
-    <td><strong>Operator</strong></td>
-    <td><strong>Site</strong></td>
-    <td><strong>Number</strong></td>
-    <td></td>
+<table class="data">
+  <tr class="head">
+    <th>Print Job</th>
+    <th>Operator</th>
+    <th>Site</th>
+    <th></th>
   </tr>
   <?php foreach ($printjobs as $printjob): ?>
-  <tr>
-    <td><?php print $printjob->site->operator->name; ?></td>
-    <td><?php print $printjob->site->name; ?></td>
-    <td><?php print $printjob->number; ?></td>
-    <td><?php print HTML::anchor('admin/printjobs/'.$printjob->id.'/edit', 'edit'); ?></td>
+  <tr class="<?php print SGS::odd_even($odd); ?>">
+    <td><?php echo $printjob->number; ?></td>
+    <td><?php echo $printjob->site->operator->name; ?></td>
+    <td><?php echo $printjob->site->name; ?></td>
+    <td><?php echo HTML::anchor('admin/printjobs/'.$printjob->id.'/barcodes', 'View Barcodes', array('class' => 'link')); ?></td>
   </tr>
   <?php endforeach; ?>
 </table>

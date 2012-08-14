@@ -1,26 +1,39 @@
-<table border="1">
-  <tr>
-    <td><strong>Name</strong></td>
-    <td><strong>Type</strong></td>
-    <td><strong>Size</strong></td>
-    <td><strong>Operation</strong></td>
-    <td><strong>Operation Type</strong></td>
+<style type="text/css">
+  .pending {
+    color: #aa7700;
+  }
+
+  .accepted {
+    color: #008200;
+  }
+
+  .rejected {
+    color: #990000;
+  }
+</style>
+<table class="data">
+  <tr class="head">
+    <th>Name</th>
+    <!-- <th>Type</th> -->
+    <th>Size</th>
+    <th>Operation</th>
+    <th>Content</th>
+    <th>Uploaded</th>
 
     <?php if ($mode == 'import'): ?>
-    <td><strong>Statistics</strong></td>
+    <th>Statistics</th>
     <?php endif; ?>
 
-    <td><strong>Created</strong></td>
-    <td></td>
+    <th></th>
   </tr>
   <?php foreach ($files as $file): ?>
-  <tr>
-    <td><?php print $file->name; ?></td>
-    <td><?php print $file->type; ?></td>
-    <td><?php print Num::unbytes($file->size); ?></td>
-    <td><?php print $operation = SGS::value($file->operation, 'operation', 'U'); ?></td>
-    <td><?php print SGS::value($file->operation_type, 'operation_type', 'UNKWN'); ?></td>
-    <td><?php print SGS::datetime($file->timestamp); ?></td>
+  <tr class="<?php print SGS::odd_even($odd); ?>">
+    <td><?php echo $file->name; ?></td>
+    <!-- <td><?php echo $file->type; ?></td> -->
+    <td><?php echo Num::unbytes($file->size, 0); ?></td>
+    <td><?php echo $operation = SGS::value($file->operation, 'operation', 'U'); ?></td>
+    <td><?php echo SGS::value($file->operation_type, 'operation_type', 'UNKWN'); ?></td>
+    <td><?php echo SGS::datetime($file->timestamp); ?></td>
 
     <?php if ($mode == 'import'): ?>
     <?php
@@ -35,15 +48,15 @@
       $_rp = $_total ? number_format($_r * 100 / $_total) : 0;
     ?>
     <td>
-      <?php print $_p; ?> Pending (<?php print $_pp; ?>%)<br />
-      <?php print $_a; ?> Accepted (<?php print $_ap; ?>%)<br />
-      <?php print $_r; ?> Rejected (<?php print $_rp; ?>%)
+      <div class="pending"><?php echo $_p; ?> Pending (<?php echo $_pp; ?>%)</div>
+      <div class="accepted"><?php echo $_a; ?> Accepted (<?php echo $_ap; ?>%)</div>
+      <div class="rejected"><?php echo $_r; ?> Rejected (<?php echo $_rp; ?>%)</div>
     </td>
     <?php endif; ?>
 
     <td>
-      <?php if (in_array($file->operation, array('I','E'))) print HTML::anchor(strtolower($operation).'/files/'.$file->id.'/review', 'Review'); ?>
-      <?php if ($mode == 'import') print HTML::anchor('import/files/'.$file->id.'/process', 'Process'); ?>
+      <?php if (in_array($file->operation, array('I','E'))) echo HTML::anchor(strtolower($operation).'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
+      <?php if ($mode == 'import') echo HTML::anchor('import/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
     </td>
   </tr>
   <?php endforeach; ?>

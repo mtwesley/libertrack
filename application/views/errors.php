@@ -2,9 +2,9 @@
   <?php foreach ($errors as $field => $error): ?>
   <li>
     <?php if ($fields[$field]): ?>
-    <strong><?php print $fields[$field]; ?>: </strong>
+    <strong><?php echo $fields[$field]; ?>: </strong>
     <?php endif; ?>
-    <?php print $error; ?>
+    <?php echo $error; ?>
   </li>
   <?php endforeach; ?>
 </ul>

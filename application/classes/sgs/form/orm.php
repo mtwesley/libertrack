@@ -2,9 +2,9 @@
 
 class SGS_Form_ORM extends ORM {
 
-  public static function get_fields($form_type)
+  public static function get_fields($form_type, $display = FALSE)
   {
-    return call_user_func(array('Model_'.$form_type, 'fields'));
+    return call_user_func_array(array('Model_'.$form_type, 'fields'), array($display));
   }
 
   public function validate_data($data, $return = 'validation')

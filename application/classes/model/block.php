@@ -8,13 +8,34 @@ class Model_Block extends ORM {
   );
 
   public function formo() {
-    return array(
+    $array = array(
       'site' => array(
-        'orm_primary_val' => 'name'
+        'orm_primary_val' => 'name',
+        'label'           => 'Site'
       ),
-      'id' => array(
-        'render' => false
-      )
+      'id'   => array('render' => FALSE)
+    );
+    foreach (self::fields() as $field => $label) {
+      $array[$field]['label'] = $label;
+    }
+    return $array;
+  }
+
+  public static function fields() {
+    return array(
+      'site_id'     => 'Site',
+      'coordinates' => 'Name'
+    );
+  }
+
+  public function rules()
+  {
+    return array(
+      'coordinates' => array(array('not_empty'),
+                             array('is_block_coordinates')),
+      'site_id'     => array(array('not_empty')),
+      'user_id'            => array(),
+      'timestamp'          => array()
     );
   }
 

@@ -2,9 +2,10 @@
 
 class Model_TDF extends SGS_Form_ORM {
 
-  const PARSE_START = 13;
+  const PARSE_START = 9;
 
   public static $fields = array(
+    'create_date'       => 'Date Registered',
     'operator_tin'      => 'Operator TIN',
     'site_name'         => 'Site Name',
     'site_type'         => 'Site Type',
@@ -23,7 +24,6 @@ class Model_TDF extends SGS_Form_ORM {
     'length'            => 'Length',
     'action'            => 'Action',
     'comment'           => 'Comment',
-    'create_date'       => 'Date Registered',
   );
 
   protected $_table_name = 'tdf_data';
@@ -51,24 +51,8 @@ class Model_TDF extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    if ( ! (array_filter($row))) return null;
-
-    $matches = array();
-    preg_match('/((([A-Z]+)\/)?([A-Z1-9\s-_]+)?)\/?([A-Z1-9]+)/', $csv[2][B], $matches);
-
-    $create_date       = $csv[3][B];
-    $operator_tin      = $csv[2][G];
-    $site_name         = $matches[1];
-    $site_type         = $matches[3];
-    $site_reference    = $matches[4];
-    $block_coordinates = $matches[5];
-
-    return array(
-      'operator_tin'      => $operator_tin,
-      'site_name'         => $site_name,
-      'site_type'         => $site_type,
-      'site_reference'    => $site_reference,
-      'block_coordinates' => $block_coordinates,
+    extract(SGS::parse_site_and_block_info($csv[2][B]));
+    $data = array(
       'survey_line'       => $row[A],
       'cell_number'       => $row[B],
       'tree_barcode'      => $row[C],
@@ -82,13 +66,22 @@ class Model_TDF extends SGS_Form_ORM {
       'stump_barcode'     => $row[K],
       'action'            => $row[L],
       'comment'           => $row[M],
-      'create_date'       => $create_date,
     );
+
+    if (array_fileter($data)) return array(
+      'create_date'       => $csv[3][B],
+      'operator_tin'      => $csv[2][G],
+      'site_name'         => $site_name,
+      'site_type'         => $site_type,
+      'site_reference'    => $site_reference,
+      'block_coordinates' => $block_coordinates,
+    ) + $data;
   }
 
   public function parse_data($data)
   {
-    $this->site = SGS::lookup_site($data['site_type'], $data['site_reference']);
+    if ($data['site_type'] and $data['site_reference']) $this->site = SGS::lookup_site($data['site_type'], $data['site_reference']);
+    elseif ($data['site_name']) $this->site = SGS::lookup_site_by_name($data['site_name']);
 
     foreach ($data as $key => $value) switch ($key) {
       case 'operator_tin':
@@ -112,7 +105,7 @@ class Model_TDF extends SGS_Form_ORM {
         $this->species = SGS::lookup_species($value); break;
 
       case 'create_date':
-        $this->$key = Date::formatted_time($value, SGS::PGSQL_DATE_FORMAT); break;
+        $this->$key = SGS::date($value, TRUE); break;
 
       default:
         $this->$key = $value; break;
@@ -140,29 +133,16 @@ class Model_TDF extends SGS_Form_ORM {
     return $suggestions;
   }
 
-  public function fields()
+  public static function fields($display = FALSE)
   {
-    return array(
-      'operator_tin'      => 'Operator TIN',
-      'site_name'         => 'Site Name',
-      'site_type'         => 'Site Type',
-      'site_reference'    => 'Site Reference',
-      'block_coordinates' => 'Block Name',
-      'survey_line'       => 'Survey Line',
-      'cell_number'       => 'Cell Number',
-      'tree_barcode'      => 'Tree Barcode',
-      'species_code'      => 'Species Code',
-      'barcode'           => 'New Cross Cut Barcode',
-      'bottom_max'        => 'Butt Max',
-      'bottom_min'        => 'Butt Min',
-      'top_max'           => 'Top Max',
-      'top_min'           => 'Top Min',
-      'stump_barcode'     => 'Stump Barcode',
-      'length'            => 'Length',
-      'action'            => 'Action',
-      'comment'           => 'Comment',
-      'create_date'       => 'Date Registered',
-    );
+    foreach (self::$fields as $key => $value) switch ($key) {
+      case 'site_type':
+      case 'site_reference':
+        if ($display) continue;
+      default:
+        $fields[$key] = $value;
+    }
+    return $fields;
   }
 
   public function rules()

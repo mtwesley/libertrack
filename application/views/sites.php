@@ -1,18 +1,18 @@
-<table border="1">
-  <tr>
-    <td><strong>Type</strong></td>
-    <td><strong>Reference</strong></td>
-    <td><strong>Name</strong></td>
-    <td><strong>Operator</strong></td>
-    <td></td>
+<table class="data">
+  <tr class="head">
+    <!-- <th>Type</th> -->
+    <!-- <th>Reference</th> -->
+    <th>Name</th>
+    <th>Operator</th>
+    <th></th>
   </tr>
   <?php foreach ($sites as $site): ?>
-  <tr>
-    <td><?php print $site->type; ?></td>
-    <td><?php print $site->reference; ?></td>
-    <td><?php print $site->name; ?></td>
-    <td><?php print $site->operator->name; ?></td>
-    <td><?php print HTML::anchor('admin/sites/'.$site->id.'/edit', 'edit'); ?></td>
+  <tr class="<?php print SGS::odd_even($odd); ?>">
+    <!-- <td><?php echo $site->type; ?></td> -->
+    <!-- <td><?php echo $site->reference; ?></td> -->
+    <td><?php echo $site->name; ?></td>
+    <td><?php echo $site->operator->name; ?></td>
+    <td><?php echo HTML::anchor('admin/sites/'.$site->id.'/edit', 'Edit', array('class' => 'link')); ?></td>
   </tr>
   <?php endforeach; ?>
 </table>

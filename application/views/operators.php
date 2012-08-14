@@ -1,22 +1,22 @@
-<table border="1">
-  <tr>
-    <td><strong>TIN</strong></td>
-    <td><strong>Name</strong></td>
-    <td><strong>Contact</strong></td>
-    <td><strong>Address</strong></td>
-    <td><strong>E-mail</strong></td>
-    <td><strong>Phone Number</strong></td>
-    <td></td>
+<table class="data">
+  <tr class="head">
+    <th>TIN</th>
+    <th>Name</th>
+    <th>Contact</th>
+    <th>Address</th>
+    <th>E-mail</th>
+    <th>Phone Number</th>
+    <th></th>
   </tr>
   <?php foreach ($operators as $operator): ?>
-  <tr>
-    <td><?php print $operator->tin; ?></td>
-    <td><?php print $operator->name; ?></td>
-    <td><?php print $operator->contact; ?></td>
-    <td><?php print $operator->address; ?></td>
-    <td><?php print $operator->email; ?></td>
-    <td><?php print $operator->phone; ?></td>
-    <td><?php print HTML::anchor('admin/operators/'.$operator->id.'/edit', 'edit'); ?></td>
+  <tr class="<?php print SGS::odd_even($odd); ?>">
+    <td><?php echo $operator->tin; ?></td>
+    <td><?php echo $operator->name; ?></td>
+    <td><?php echo $operator->contact; ?></td>
+    <td><?php echo $operator->address; ?></td>
+    <td><?php echo $operator->email; ?></td>
+    <td><?php echo $operator->phone; ?></td>
+    <td><?php echo HTML::anchor('admin/operators/'.$operator->id.'/edit', 'Edit', array('class' => 'link')); ?></td>
   </tr>
   <?php endforeach; ?>
 </table>

@@ -117,11 +117,10 @@ Kohana::modules(array(
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
-Route::set('import_export', '<controller>(/<action>(/<id>)(/<command>))');
-Route::set('model', '<controller>/<id>');
+Route::set('main', '<controller>(/<action>(/<id>)(/<command>))');
 
 Route::set('default', '(<controller>(/<action>(/<id>)))')
 	->defaults(array(
-		'controller' => 'import',
+		'controller' => 'index',
 		'action'     => 'index',
 	));

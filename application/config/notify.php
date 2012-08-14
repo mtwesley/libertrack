@@ -2,9 +2,9 @@
 
 return array(
 	'default_message_type' => 'notice',
-	'view'                 => 'notify/notify',
+	'view'                 => 'messages',
 	'persistent_messages'	 => FALSE,
 	'translate'            => FALSE,
-	'session_name'			   => 'notify_messages',
+	'session_name'			   => 'messages',
 );
 

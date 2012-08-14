@@ -1,39 +1,48 @@
 <?php if ($title): ?>
-<p><strong><?php print $title; ?>:</strong></p>
+<p><strong><?php echo $title; ?>:</strong></p>
 <?php endif; ?>
 
-<table border="1">
-  <tr>
+<table class="data">
+  <tr class="head">
+    <th>Status</th>
     <?php foreach ($fields as $name): ?>
-    <td><strong><?php print $name; ?></strong></td>
+    <th><?php echo $name; ?></th>
     <?php endforeach; ?>
-    <td><strong>Errors</strong></td>
-    <td><strong>Suggestions</strong></td>
-    <td></td>
+    <th></th>
   </tr>
   <?php foreach ($csvs as $csv): ?>
-  <tr>
-    <?php foreach ($fields as $key => $name): ?>
-    <td><?php print $csv->values[$key]; ?></td>
-    <?php endforeach; ?>
-
+  <tr class="<?php print SGS::odd_even($odd); ?>">
     <td>
       <?php
-          if ($csv->errors) print View::factory('errors')
+        switch ($csv->status):
+          case 'P': echo HTML::image('images/flag_yellow.png', array('class' => 'status pending', 'title' => 'Pending')); break;
+          case 'A': echo HTML::image('images/flag_green.png', array('class' => 'status accepted', 'title' => 'Accepted')); break;
+          case 'R': echo HTML::image('images/flag_red.png', array('class' => 'status rejected', 'title' => 'Rejected')); break;
+        endswitch;
+      ?>
+    </td>
+    <?php foreach ($fields as $key => $name): ?>
+    <td><?php echo $csv->values[$key]; ?></td>
+    <?php endforeach; ?>
+    <td><?php if ($csv->status != 'A') echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?></td>
+  </tr>
+  <?php if ($csv->errors or $csv->suggestions): ?>
+  <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
+    <td colspan="<?php echo (count($fields) + 2); ?>">
+      <?php
+          if ($csv->errors) echo View::factory('errors')
             ->set('fields', $fields)
             ->set('errors', $csv->errors)
             ->render();
       ?>
-    </td>
-    <td>
       <?php
-          if ($csv->suggestions) print View::factory('suggestions')
+          if ($csv->suggestions) echo View::factory('suggestions')
             ->set('fields', $fields)
             ->set('suggestions', $csv->suggestions)
             ->render();
       ?>
     </td>
-    <td><?php print HTML::anchor('import/data/'.$csv->id.'/edit', 'edit'); ?></td>
   </tr>
+  <?php endif; ?>
   <?php endforeach; ?>
 </table>
