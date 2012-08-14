@@ -39,7 +39,7 @@ $styles[] = 'style';
 <html lang="en">
   <head>
     <?php echo $head; ?>
-    <title>SGS &middot; LiberFor <?php if ($title): ?> &vert; <?php echo $title; ?><?php endif; ?></title>
+    <title>SGS · LiberFor <?php if ($title): ?> | <?php echo $title; ?><?php endif; ?></title>
     <style type="text/css">
       body {
         font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;

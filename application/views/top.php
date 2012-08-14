@@ -19,8 +19,12 @@
     line-height: 40px;
   }
 
+  #title .dot {
+    margin: 0 -5px;
+  }
+
   #title .divider {
-    margin-right: -10px;
+    margin: 0 -10px 0 -5px;
     color: #000;
     font-size: 40px;
     line-height: 40px;
@@ -42,9 +46,13 @@
 </style>
 <div id="title">
   <a class="top-home-link" href="/">
-  <span class="main"><span class="sgs">SGS</span> &middot; LiberFor</span>
+  <span class="main">
+    <span class="sgs">SGS</span>
+    <span class="dot"> · </span>
+    LiberFor
+  </span>
   <?php if ($title): ?>
-  <span class="divider"> &vert; </span>
+  <span class="divider"> | </span>
   <span class="sub"><?php echo $title; ?></span>
   <?php endif; ?>
   </a>
