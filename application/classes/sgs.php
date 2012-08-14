@@ -136,14 +136,12 @@ class SGS {
 
   public static function title($path)
   {
-    if ((!$path) or ($path == '/')) return 'Home';
-
     while (($title == NULL) and ($path)) {
       $title = self::path($path);
       $path  = substr($path, 0, strrpos($path, '/'));
     }
 
-    return $title;
+    return $title ? $title : 'Home';
   }
 
   public static function date($date, $pgsql = FALSE)
