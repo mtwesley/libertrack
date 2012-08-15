@@ -261,4 +261,48 @@ class Controller_Admin extends Controller {
     $this->response->body($view);
   }
 
+  public function action_species() {
+    $id = $this->request->param('id');
+
+    $model = ORM::factory('species', $id);
+    $form = Formo::form()
+      ->orm('load', $model, array('user_id', 'timestamp'), true)
+      ->add('save', 'submit', array(
+        'label' => $id ? 'Update Species' : 'Add a New Species'
+      ));
+
+    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      try {
+        if ($id) {
+          $model->update();
+          Notify::msg('Species successfully updated.', 'success', TRUE);
+        }
+        else {
+          $model->save();
+          Notify::msg('Species successfully added.', 'success', TRUE);
+        }
+        $this->request->redirect('admin/species');
+      } catch (Database_Exception $e) {
+        Notify::msg('Sorry, unable to save species due to incorrect or missing input. Please try again.', 'error');
+      } catch (Exception $e) {
+        Notify::msg('Sorry, species failed to be saved. Please try again.', 'error');
+      }
+    }
+
+    if ($id === null) {
+      $sites = ORM::factory('species')
+        ->find_all()
+        ->as_array();
+
+      $table .= View::factory('species')
+        ->set('species', $sites);
+    }
+
+    $content .= $form->render();
+    $content .= $table;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
 }

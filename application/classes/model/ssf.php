@@ -70,8 +70,7 @@ class Model_SSF extends SGS_Form_ORM {
 
   public function parse_data($data)
   {
-    if ($data['site_type'] and $data['site_reference']) $this->site = SGS::lookup_site($data['site_type'], $data['site_reference']);
-    elseif ($data['site_name']) $this->site = SGS::lookup_site_by_name($data['site_name']);
+    $this->site = SGS::lookup_site($data['site_type'], $data['site_reference'], $data['site_name']);
 
     foreach ($data as $key => $value) switch ($key) {
       case 'operator_tin':
@@ -83,7 +82,7 @@ class Model_SSF extends SGS_Form_ORM {
         break;
 
       case 'block_coordinates':
-        $this->block = SGS::lookup_block($data['site_type'], $data['site_reference'], $value); break;
+        $this->block = SGS::lookup_block($data['site_type'], $data['site_reference'], $data['site_name'], $value); break;
 
       case 'barcode':
         $this->$key = SGS::lookup_barcode($value); break;
@@ -167,21 +166,16 @@ class Model_SSF extends SGS_Form_ORM {
       'operator_tin'      => array(array('not_empty'),
                                    array('is_operator_tin'),
                                    array('is_existing_operator')),
-
-      'site_name'         => array(array('is_existing_site_by_name')),
+      'site_name'         => array(array('is_text_short'),
+                                   array('is_existing_site', array(':validation', 'site_type', 'site_reference', 'site_name'))),
       'site_type'         => array(array('is_site_type')),
-
-      'site_reference'    => array(array('is_site_reference'),
-                                   array('is_existing_site', array(':validation', 'site_type', 'site_reference'))),
-
+      'site_reference'    => array(array('is_site_reference')),
       'block_coordinates' => array(array('not_empty'),
                                    array('is_block_coordinates'),
-                                   array('is_existing_block', array(':validation', 'site_type', 'site_reference', 'block_coordinates'))),
-
+                                   array('is_existing_block', array(':validation', 'site_type', 'site_reference', 'site_name', 'block_coordinates'))),
       'barcode'           => array(array('not_empty'),
                                    array('is_barcode'),
                                    array('is_existing_barcode')),
-
       'species_code'      => array(array('not_empty'),
                                    array('is_species_code'),
                                    array('is_existing_species'))

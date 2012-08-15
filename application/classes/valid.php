@@ -4,7 +4,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_unique($table, $field, $value)
   {
-    return ! (bool) DB::select($field)
+    return ! (bool) $value = DB::select($field)
       ->from($table)
       ->where($field, '=', $value)
       ->execute()
@@ -21,24 +21,14 @@ class Valid extends Kohana_Valid {
     return (bool) SGS::lookup_operator($value, TRUE);
   }
 
-  public static function is_existing_site($array, $type_field, $reference_field)
+  public static function is_existing_site($array, $type_field, $reference_field, $name_field)
   {
-    return (bool) SGS::lookup_site($array[$type_field], $array[$reference_field], TRUE);
+    return (bool) SGS::lookup_site($array[$type_field], $array[$reference_field], $array[$name_field], TRUE);
   }
 
-  public static function is_existing_site_by_name($value)
+  public static function is_existing_block($array, $site_type_field, $site_reference_field, $site_name_field, $coordinates_field)
   {
-    return (bool) SGS::lookup_site_by_name($value, TRUE);
-  }
-
-  public static function is_existing_block($array, $site_type_field, $site_reference_field, $coordinates_field)
-  {
-    return (bool) SGS::lookup_block($array[$site_type_field], $array[$site_reference_field], $array[$coordinates_field], TRUE);
-  }
-
-  public static function is_existing_block_by_site_name($array, $site_name_field, $coordinates_field)
-  {
-    return (bool) SGS::lookup_block($array[$site_name_field], $array[$coordinates_field], TRUE);
+    $block = SGS::lookup_block($array[$site_type_field], $array[$site_reference_field], $array[$site_name], $array[$coordinates_field], TRUE);
   }
 
   public static function is_existing_species($value)
@@ -83,7 +73,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_boolean($value)
   {
-    return (bool) preg_match('/^yes|no|1|0|true|false$/i', (string) $value);
+    return (bool) preg_match('/^yes|no|y|n|1|0|true|false$/i', (string) $value);
   }
 
   public static function is_money($value)
@@ -136,6 +126,12 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_char($value, 3) AND preg_match('/^[A-Z]{3}$/', (string) $value));
   }
 
+  public static function is_site_name($value)
+  {
+    $info = SGS::parse_site_and_block_info($value);
+    return (bool) (($info['site_type']) and ($info['site_reference']) and ($info['site_name']));
+  }
+
   public static function is_site_reference($value)
   {
     return (bool) (self::is_varchar($value, 7) AND preg_match('/^[A-Z1-9]{2,7}$/', (string) $value));
@@ -173,7 +169,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_barcode($value)
   {
-    return (bool) (self::is_varchar($value) AND preg_match('/^[0-9A-Z]{8}(-[0-9A-Z]{4})?$/', (string) $value));
+    return (bool) ((!is_numeric($value)) AND self::is_varchar($value) AND preg_match('/^[0-9A-Z]{8}(-[0-9A-Z]{4})?$/', (string) $value));
   }
 
   public static function is_barcode_type($value)

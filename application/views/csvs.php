@@ -4,7 +4,8 @@
 
 <table class="data">
   <tr class="head">
-    <th>Status</th>
+    <th></th>
+    <th>Form</th>
     <?php foreach ($fields as $name): ?>
     <th><?php echo $name; ?></th>
     <?php endforeach; ?>
@@ -21,14 +22,20 @@
         endswitch;
       ?>
     </td>
+    <td><?php echo $csv->form_type; ?></td>
     <?php foreach ($fields as $key => $name): ?>
     <td><?php echo $csv->values[$key]; ?></td>
     <?php endforeach; ?>
-    <td><?php if ($csv->status != 'A') echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?></td>
+    <td>
+      <?php if ($csv->status != 'A'): ?>
+      <?php echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?>
+      <?php endif; ?>
+    </td>
   </tr>
   <?php if ($csv->errors or $csv->suggestions): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td colspan="<?php echo (count($fields) + 2); ?>">
+    <td colspan="<?php echo (count($fields) + 3); ?>">
       <?php
           if ($csv->errors) echo View::factory('errors')
             ->set('fields', $fields)

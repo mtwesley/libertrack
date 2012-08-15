@@ -152,12 +152,33 @@ class Controller_Import extends Controller {
     $this->request->redirect('import/files/'.$id.'/review');
   }
 
+  private function handle_csv_process($id) {
+    $id = $this->request->param('id');
+
+    $csv = ORM::factory('csv', $id);
+    if ($csv->status == 'A') {
+      Notify::msg('Sorry, import data that has already been processed and accepted cannot be re-processed. Please edit the form data instead.', 'warning', TRUE);
+      $this->request->redirect('import/data/'.$id.'/list');
+    }
+
+    $form_type = $csv->form_type;
+    $fields    = SGS_Form_ORM::get_fields($form_type, TRUE);
+
+    $csv->status = 'P';
+    $result = self::process_csv($csv);
+    if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
+    elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
+    else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
+
+    $this->request->redirect('import/data/'.$id);
+  }
+
   private function handle_csv_edit($id) {
     $id = $this->request->param('id');
 
     $csv = ORM::factory('csv', $id);
     if ($csv->status == 'A') {
-      Notify::msg('Sorry, import data that has already been accepted cannot be edited. Please edit the form data instead.', 'warning', TRUE);
+      Notify::msg('Sorry, import data that has already been processed and accepted cannot be edited. Please edit the form data instead.', 'warning', TRUE);
       $this->request->redirect('import/data/'.$id.'/list');
     }
 
@@ -186,7 +207,7 @@ class Controller_Import extends Controller {
       $csv->values = $data;
       $csv->status = 'P';
       try {
-        // $csv->save();
+        $csv->save();
         $updated = true;
       } catch (Exception $e) {
         Notify::msg('Sorry, update failed. Please try again.', 'error');
@@ -307,9 +328,9 @@ class Controller_Import extends Controller {
             $reader = PHPExcel_IOFactory::createReaderForFile($import['tmp_name']);
           }
 
-          if (($reader instanceof PHPExcel_Reader_Excel2007) or ($reader instanceof PHPExcel_Reader_Excel5)) {
-            $reader->setReadDataOnly(TRUE);
-          }
+//          if (($reader instanceof PHPExcel_Reader_Excel2007) or ($reader instanceof PHPExcel_Reader_Excel5)) {
+//            $reader->setReadDataOnly(TRUE);
+//          }
 
           if ($reader instanceof PHPExcel_Reader_IReader) {
             $excel = $reader->load($import['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, FALSE, TRUE, TRUE);
@@ -412,10 +433,11 @@ class Controller_Import extends Controller {
     }
 
     switch ($command) {
-      case 'edit': return self::handle_csv_edit($id);
+      case 'edit':    return self::handle_csv_edit($id);
+      case 'process': return self::handle_csv_process($id);
 
       default:
-      case 'list': return self::handle_csv_list($id);
+      case 'list':    return self::handle_csv_list($id);
     }
   }
 

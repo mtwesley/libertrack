@@ -52,7 +52,7 @@ create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF
 
 create domain d_grade as character(1) check (value ~ E'^[ABC]$');
 
-create domain d_barcode as character varying(13) check (value ~ E'^[0-9A-Z]{8}(-[0-9A-Z]{4})?$');
+create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLR]$');
 

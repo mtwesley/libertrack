@@ -42,7 +42,8 @@ class Model_Site extends ORM {
       'type'        => array(array('is_site_type')),
       'reference'   => array(array('is_site_reference')),
       'name'        => array(array('not_empty'),
-                             array('is_text_short')),
+                             array('is_text_short'),
+                             array('is_site_name')),
       'operator_id' => array(array('not_empty')),
       'user_id'            => array(),
       'timestamp'          => array()

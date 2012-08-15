@@ -45,6 +45,73 @@ class SGS {
     'reports/ldf'     => 'Log Data Form',
   );
 
+  public static $errors = array(
+    // default messages
+    'alpha'         => ':field must contain only letters',
+    'alpha_dash'    => ':field must contain only numbers, letters and dashes',
+    'alpha_numeric' => ':field must contain only letters and numbers',
+    'color'         => ':field must be a color',
+    'credit_card'   => ':field must be a credit card number',
+    'date'          => ':field must be a date',
+    'decimal'       => ':field must be a decimal with :param2 places',
+    'digit'         => ':field must be a digit',
+    'email'         => ':field must be a email address',
+    'email_domain'  => ':field must contain a valid email domain',
+    'equals'        => ':field must equal :param2',
+    'exact_length'  => ':field must be exactly :param2 characters long',
+    'in_array'      => ':field must be one of the available options',
+    'ip'            => ':field must be an IP address',
+    'matches'       => ':field must be the same as :param2',
+    'min_length'    => ':field must be at least :param2 characters long',
+    'max_length'    => ':field must not exceed :param2 characters long',
+    'not_empty'     => ':field must not be empty',
+    'numeric'       => ':field must be numeric',
+    'phone'         => ':field must be a phone number',
+    'range'         => ':field must be within the range of :param2 to :param3',
+    'regex'         => ':field does not match the required format',
+    'url'           => ':field must be a URL',
+
+    // additional messages
+    'is_unique'                      => ':field value must be unique among :param1',
+    'is_existing_barcode'            => ':field must be an existing barcode',
+    'is_existing_operator'           => ':field does not reference an existing operator',
+    'is_existing_site'               => ':field does not reference and existing site',
+    'is_existing_block'              => ':field does not reference an existing block',
+    'is_existing_species'            => ':field does not reference an existing species',
+    'is_int'                         => ':field must be a number with no decimal places (for example, "1985")',
+    'is_float'                       => ':field must be a number (for example, "19.85")',
+    'is_char'                        => ':field must be exactly one letter (for example, "A")',
+    'is_varchar'                     => ':field must contain only numbers, letters, and valid characters',
+    'is_text_short'                  => ':field must be of short-length',
+    'is_text_medium'                 => ':field must be of medium-length',
+    'is_text_long'                   => ':field too long',
+    'is_boolean'                     => ':field must be an affirmative (for example, "YES" or "NO")',
+    'is_money'                       => ':field must be a valid monetary amount in USD with no dollar sign (for example, "10.12")',
+    'is_date'                        => ':field must be a valid date (for example, "2012-09-27")',
+    'is_timestamp'                   => ':field must be a valid date and time (for example, "2012-09-27 22:30")',
+    'is_positive_int'                => ':field must be a positive number with no decimal places',
+    'is_measurement_int'             => ':field must be positive number with no decimal places',
+    'is_measurement_float'           => ':field must be a positive number',
+    'is_file_type'                   => ':field must be a file mime type (for example, "text/css")',
+    'is_species_code'                => ':field does not match the required species code format',
+    'is_species_class'               => ':field must be a species class (for example, "A", "B" or "C")',
+    'is_site_name'                   => ':field does not match the required site format',
+    'is_site_type'                   => ':field does not match the required site type format',
+    'is_site_reference'              => ':field does not match the required site reference format',
+    'is_operator_tin'                => ':field does not match the required operator TIN format',
+    'is_survey_line'                 => ':field must be a number from 1 to 20',
+    'is_operation'                   => ':field must be either (I)mport or (E)xport',
+    'is_operation_type'              => ':field must be a type of form or print job (for example, "SSF")',
+    'is_form_type'                   => ':field must not be a type of form (for example, "SSF")',
+    'is_grade'                       => ':field must not be a grade (for example, "A", "B" or "C")',
+    'is_barcode'                     => ':field does not match the required barcode format',
+    'is_barcode_type'                => ':field must be a barcode type (for example, "Pending")',
+    'is_conversion_factor'           => ':field must be a fraction or decimal number between 0 and 1',
+    'is_block_coordinates'           => ':field does not match the required block name format',
+    'is_status'                      => ':field must be either (P)ending, (A)ctive or (R)ejected',
+    'is_coc_status'                  => ':field must be a CoC status (for example, "Pending")',
+  );
+
   public static $operation = array(
     'I' => 'Import',
     'E' => 'Export',
@@ -144,22 +211,34 @@ class SGS {
     return $title ? $title : 'Home';
   }
 
-  public static function date($date, $pgsql = FALSE)
+  public static function fix_date($text)
   {
-    try {
-      return Date::formatted_time($date, $pgsql ? self::PGSQL_DATE_FORMAT : self::DATE_FORMAT);
-    } catch (Exception $e) {
-      return date($pgsql ? self::PGSQL_DATE_FORMAT : self::DATE_FORMAT, strtotime($date));
-    }
+    if ($text !== $fix = preg_replace('/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/', '$2-$1-$3', trim($text))) return $fix;
   }
 
-  public static function datetime($datetime, $pgsql = FALSE)
+  public static function date($date, $pgsql = FALSE, $fix = TRUE)
   {
     try {
-      return Date::formatted_time($datetime, $pgsql ? self::PGSQL_DATETIME_FORMAT : self::DATETIME_FORMAT);
+      $d = Date::formatted_time($date, $pgsql ? self::PGSQL_DATE_FORMAT : self::DATE_FORMAT);
     } catch (Exception $e) {
-      return date($pgsql ? self::PGSQL_DATETIME_FORMAT : self::DATETIME_FORMAT, strtotime($datetime));
+      $d = date($pgsql ? self::PGSQL_DATE_FORMAT : self::DATE_FORMAT, strtotime($date));
     }
+
+    if (Valid::is_date($d)) return $d;
+    elseif ($fix) return self::date(self::fix_date($date), $pgsql, FALSE);
+    else return $d;
+  }
+
+  public static function datetime($datetime, $pgsql = FALSE, $fix = TRUE)
+  {
+    try {
+      $dt = Date::formatted_time($datetime, $pgsql ? self::PGSQL_DATETIME_FORMAT : self::DATETIME_FORMAT);
+    } catch (Exception $e) {
+      $dt = date($pgsql ? self::PGSQL_DATETIME_FORMAT : self::DATETIME_FORMAT, strtotime($datetime));
+    }
+
+    if ($dt) return $dt;
+    elseif ($fix) self::date(self::fix_date($dt), $pgsql, FALSE);
   }
 
   public static function db_range($from = NULL, $to = NULL)
@@ -182,59 +261,49 @@ class SGS {
   {
     $id = DB::select('id')
       ->from('operators')
-      ->where('tin', '=', $tin)
+      ->where('tin', '=', (int) $tin)
       ->execute()
       ->get('id');
 
     return $returning_id ? $id : ORM::factory('operator', $id);
   }
 
-  public static function lookup_site($type, $reference, $returning_id = FALSE)
+  public static function lookup_site($type, $reference, $name, $returning_id = FALSE)
   {
-    $id = DB::select('id')
+    if ($type and $reference) $id = DB::select('id')
       ->from('sites')
-      ->where('type', '=', $type)
-      ->and_where('reference', '=', $reference)
+      ->where('type', '=', (string) $type)
+      ->and_where('reference', '=', (string) $reference)
+      ->execute()
+      ->get('id');
+
+    elseif ($name) $id = DB::select('id')
+      ->from('sites')
+      ->where('name', '=', (string) $name)
       ->execute()
       ->get('id');
 
     return $returning_id ? $id : ORM::factory('site', $id);
   }
 
-  public static function lookup_site_by_name($name, $returning_id = FALSE)
+  public static function lookup_block($site_type, $site_reference, $site_name, $coordinates, $returning_id = FALSE)
   {
-    $id = DB::select('id')
-      ->from('sites')
-      ->where('name', '=', $name)
-      ->execute()
-      ->get('id');
-
-    return $returning_id ? $id : ORM::factory('site', $id);
-  }
-
-  public static function lookup_block($site_type, $site_reference, $coordinates, $returning_id = FALSE)
-  {
-    $id = DB::select(array('blocks.id', 'block_id'))
+    if ($site_type and $site_reference) $id = DB::select(array('blocks.id', 'block_id'))
       ->from('sites')
       ->join('blocks')
       ->on('blocks.site_id', '=', 'sites.id')
-      ->where('sites.type', '=', $site_type)
-      ->and_where('sites.reference', '=', $site_reference)
-      ->and_where('blocks.coordinates', '=', $coordinates)
+      ->where('sites.type', '=', (string) $site_type)
+      ->and_where('sites.reference', '=', (string) $site_reference)
+      ->and_where('blocks.coordinates', '=', (string) $coordinates)
       ->execute()
       ->get('block_id');
 
-    return $returning_id ? $id : ORM::factory('block', $id);
-  }
-
-  public static function lookup_block_by_site_name($site_name, $coordinates, $returning_id = FALSE)
-  {
-    $id = DB::select(array('blocks.id', 'block_id'))
+    elseif ($site_name) $id = DB::select(array('blocks.id', 'block_id'))
       ->from('sites')
       ->join('blocks')
       ->on('blocks.site_id', '=', 'sites.id')
-      ->where('sites.name', '=', $site_name)
-      ->and_where('blocks.coordinates', '=', $coordinates)
+      ->where('sites.name', '=', (string) $site_name)
+      ->and_where('blocks.coordinates', '=', (string) $coordinates)
       ->execute()
       ->get('block_id');
 
@@ -245,7 +314,7 @@ class SGS {
   {
     $id = DB::select('id')
       ->from('barcodes')
-      ->where('barcode', '=', $barcode)
+      ->where('barcode', '=', (string) $barcode)
       ->execute()
       ->get('id');
 
@@ -256,7 +325,7 @@ class SGS {
   {
     $id = DB::select('id')
       ->from('printjobs')
-      ->where('number', '=', $number)
+      ->where('number', '=', (int) $number)
       ->execute()
       ->get('id');
 
@@ -267,7 +336,7 @@ class SGS {
   {
     $id = DB::select('id')
       ->from('species')
-      ->where('code', '=', $code)
+      ->where('code', '=', (string) $code)
       ->execute()
       ->get('id');
 
@@ -408,7 +477,13 @@ class SGS {
     return self::suggest($code, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
   }
 
-  public static function parse_site_and_block_info($text) {
+  public static function decode_error($field, $error)
+  {
+    return self::$errors[$error];
+  }
+
+  public static function parse_site_and_block_info($text)
+  {
     $matches = array();
     preg_match('/((([A-Z]+)\/)?([A-Z1-9\s-_]+)?)(\/([A-Z1-9]+))?/', $text, $matches);
 

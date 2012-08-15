@@ -138,6 +138,7 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'operators') echo 'active'; ?>"><?php echo HTML::anchor('admin/operators', SGS::title('admin/operators')); ?></li>
     <li class="<?php if ($secondary == 'sites')     echo 'active'; ?>"><?php echo HTML::anchor('admin/sites', SGS::title('admin/sites')); ?></li>
     <li class="<?php if ($secondary == 'blocks')    echo 'active'; ?>"><?php echo HTML::anchor('admin/blocks', SGS::title('admin/blocks')); ?></li>
+    <li class="<?php if ($secondary == 'species')   echo 'active'; ?>"><?php echo HTML::anchor('admin/species', SGS::title('admin/species')); ?></li>
     <li class="<?php if ($secondary == 'printjobs') echo 'active'; ?>"><?php echo HTML::anchor('admin/printjobs', SGS::title('admin/printjobs')); ?></li>
 
     <?php elseif ($primary == 'import'): ?>

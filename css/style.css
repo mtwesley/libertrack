@@ -17,7 +17,7 @@
 
 #content form span.label {
   padding: 4px 10px;
-  width: 125px;
+  width: 150px;
   display: block;
   float: left;
   font-weight: bold;
@@ -30,7 +30,6 @@
   margin: 6px auto;
   padding: 0 300px;
   clear: both;
-/*  width: 600px;*/
   position: relative;
 }
 
@@ -51,7 +50,7 @@
 }
 
 #content form p.submit {
-  margin-left: 705px;
+  margin-left: 730px;
   padding: 0;
   text-align: left;
 }
@@ -75,7 +74,7 @@
   background-color: #323232;
 }
 
-#content form p span.error-message-arrow {
+#content form p span.arrow {
   width: 20px;
   height: 20px;
   position: absolute;
@@ -92,9 +91,7 @@
   border-top: 2px solid #d2bfa3;
 }
 
-#content table.data tr {
-/*  border: 1px solid #aaa;*/
-}
+#content table.data tr {}
 
 #content table.data tr.head {
   background-color: #e1d5c4;
@@ -116,6 +113,10 @@
   text-align: left;
 }
 
+#content table.data tr.details td {
+  padding: 6px 6px;
+}
+
 #content table.data th {
 }
 
@@ -124,7 +125,7 @@
 }
 
 #content table.data tr.details td {
-  border-top: none;
+  border-top: 1px dotted #e6dfd4;
 }
 
 #content table.data a.link {
@@ -135,13 +136,10 @@
   color: #eee8df;
   font-size: 9px;
   font-weight: bold;
-/*  text-transform: lowercase;*/
   text-decoration: none;
-  border-top: 1px solid #564832;
   background-color: #887250;
 }
 
 #content table.data a.link:hover {
-  border-top: 1px solid #564832;
   background-color: #564832;
 }
