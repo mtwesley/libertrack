@@ -54,7 +54,7 @@ class Model_Printjob extends ORM {
     return array(
       'site_id'         => array(array('not_empty')),
       'number'          => array(array('is_positive_int')),
-      'allocation_date' => array('is_date'),
+      'allocation_date' => array(array('is_date')),
       'user_id'         => array(),
       'timestamp'       => array()
     );
