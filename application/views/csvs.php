@@ -9,7 +9,7 @@
     <?php foreach ($fields as $name): ?>
     <th><?php echo $name; ?></th>
     <?php endforeach; ?>
-    <th></th>
+    <th class="links"></th>
   </tr>
   <?php foreach ($csvs as $csv): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
@@ -26,10 +26,12 @@
     <?php foreach ($fields as $key => $name): ?>
     <td><?php echo $csv->values[$key]; ?></td>
     <?php endforeach; ?>
-    <td>
+    <td class="links">
+      <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
       <?php if ($csv->status != 'A'): ?>
       <?php echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
       <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?>
+      <span class="link toggle-details">Details</span>
       <?php endif; ?>
     </td>
   </tr>

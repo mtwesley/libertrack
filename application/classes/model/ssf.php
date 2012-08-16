@@ -122,6 +122,7 @@ class Model_SSF extends SGS_Form_ORM {
     foreach (self::$fields as $key => $value) switch ($key) {
       case 'site_type':
       case 'site_reference':
+      case 'fda_remarks':
         if ($display) continue;
       default:
         $fields[$key] = $value;

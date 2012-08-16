@@ -1,10 +1,7 @@
 <style type="text/css">
   .details-suggestions {}
   .details-suggestion {
-    margin-right: 10px;
-    min-width: 150px;
-    max-width: 300px;
-    float: left;
+    margin-bottom: 6px;
   }
   .details-suggestion strong {
     padding-right: 20px;
@@ -15,8 +12,10 @@
     list-style-type: none;
   }
   .details-suggestion li {
-    margin: 6px 0;
-    padding: 6px 15px;
+    margin: 6px 6px 0 0;
+    padding: 3px 6px;
+    display: block;
+    float: left;
     color: #4a96ff;
     border: 1px dotted #b0d1ff;
     background-color: #e3efff;
@@ -41,6 +40,7 @@
       <?php endforeach; ?>
     </ul>
   </div>
+  <div class="clear details-suggestion"></div>
   <?php endif; ?>
   <?php endforeach; ?>
 </div>

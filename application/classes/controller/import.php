@@ -339,9 +339,7 @@ class Controller_Import extends Controller {
           Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
         }
 
-        if ($excel) {
-          // detect type of file
-          $form_type = self::detect_form_type($excel);
+        if ($excel && ($form_type = self::detect_form_type($excel))) {
 
           // upload file
           $file = ORM::factory('file');

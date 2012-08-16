@@ -24,7 +24,7 @@
     <th>Statistics</th>
     <?php endif; ?>
 
-    <th></th>
+    <th class="links"></th>
   </tr>
   <?php foreach ($files as $file): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
@@ -54,7 +54,7 @@
     </td>
     <?php endif; ?>
 
-    <td>
+    <td class="links">
       <?php if (in_array($file->operation, array('I','E'))) echo HTML::anchor(strtolower($operation).'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
       <?php if ($mode == 'import') echo HTML::anchor('import/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
     </td>

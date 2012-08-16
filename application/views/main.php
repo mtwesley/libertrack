@@ -34,6 +34,11 @@ if ($right)         $classes['body'][] = 'sidebar-right';
 
 $styles[] = 'layout';
 $styles[] = 'style';
+$styles[] = 'effects';
+
+$scripts[] = 'jquery-1.8.0.min';
+$scripts[] = 'jquery-ui-1.8.23.min';
+$scripts[] = 'effects';
 
 ?><!DOCTYPE html>
 <html lang="en">
@@ -48,7 +53,7 @@ $styles[] = 'style';
       }
     </style>
     <?php echo SGS::render_styles($styles); ?>
-    <?php echo $scripts; ?>
+    <?php echo SGS::render_scripts($scripts); ?>
   </head>
 
   <body class="<?php echo SGS::render_classes($classes['body']); ?>">

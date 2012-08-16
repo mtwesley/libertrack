@@ -398,7 +398,7 @@ class SGS {
     }
   }
 
-  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 10, $offset = 0)
+  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 25, $offset = 0)
   {
     $table  = 'barcodes';
     $model  = 'barcode';
@@ -512,6 +512,13 @@ class SGS {
   public static function render_styles($styles) {
     foreach ((array) $styles as $style) {
       $return .= HTML::style('css/'.$style.'.css');
+    }
+    return $return;
+  }
+
+  public static function render_scripts($scripts) {
+    foreach ((array) $scripts as $script) {
+      $return .= HTML::script('js/'.$script.'.js');
     }
     return $return;
   }
