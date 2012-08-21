@@ -354,7 +354,7 @@ class Controller_Import extends Controller {
       if ($csvs) {
         $clone = clone($csvs);
         $pagination = Pagination::factory(array(
-          'items_per_page' => 2,
+          'items_per_page' => 50,
           'total_items' => $clone->find_all()->count()));
 
         $csvs = $csvs

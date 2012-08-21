@@ -43,9 +43,9 @@
 
       $_total = $_p + $_a + $_r;
 
-      $_pp = $_total ? round($_p * 100 / $_total, 0, PHP_ROUND_HALF_DOWN) : 0;
-      $_ap = $_total ? round($_a * 100 / $_total, 0, PHP_ROUND_HALF_DOWN) : 0;
-      $_rp = $_total ? round($_r * 100 / $_total, 0, PHP_ROUND_HALF_DOWN) : 0;
+      $_pp = $_total ? round(($_p * 100 / $_total), 0, PHP_ROUND_HALF_DOWN) : 0;
+      $_ap = $_total ? round(($_a * 100 / $_total), 0, PHP_ROUND_HALF_DOWN) : 0;
+      $_rp = $_total ? round(($_r * 100 / $_total), 0, PHP_ROUND_HALF_DOWN) : 0;
     ?>
     <td>
       <div class="pending"><?php echo $_p; ?> Pending (<?php echo $_pp; ?>%)</div>
