@@ -136,7 +136,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_site_reference($value)
   {
-    return (bool) (self::is_varchar($value, 7) AND preg_match('/^[A-Z1-9]{2,7}$/', (string) $value));
+    return (bool) (self::is_varchar($value, 7) AND preg_match('/^[A-Z1-9\s_-]{2,10}$/', (string) $value));
   }
 
   public static function is_operator_tin($value)
