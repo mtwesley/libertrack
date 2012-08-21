@@ -36,7 +36,7 @@ class Model_Operator extends ORM {
     return array(
       'tin'       => array(array('not_empty'),
                            array('is_operator_tin'),
-                           array('is_unique', array($this->_table_name, ':field', ':value'))),
+                           array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'name'      => array(array('not_empty'),
                            array('is_text_short')),
       'contact'   => array(array('is_text_short')),

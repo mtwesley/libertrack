@@ -19,7 +19,7 @@ class Model_File extends ORM {
       'size'           => array(array('not_empty')),
       'operation'      => array(array('not_empty')),
       'operation_type' => array(array('not_empty')),
-      'content_md5'    => array(array('is_unique', array($this->_table_name, ':field', ':value'))),
+      'content_md5'    => array(array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
     );
   }
 }

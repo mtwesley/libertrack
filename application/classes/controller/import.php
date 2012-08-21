@@ -131,6 +131,7 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_process($id = NULL) {
+    set_time_limit(0);
     if (!$id) $id = $this->request->param('id');
     $file = ORM::factory('file', $id);
 
@@ -386,6 +387,7 @@ class Controller_Import extends Controller {
   }
 
   public function action_upload() {
+    set_time_limit(0);
     $form = Formo::form()
       ->add('import', 'file', array(
         'label' => 'File'

@@ -2,13 +2,15 @@
 
 class Valid extends Kohana_Valid {
 
-  public static function is_unique($table, $field, $value)
+  public static function is_unique($table, $field, $value, $id = array())
   {
-    return ! (bool) $value = DB::select($field)
+    $query = DB::select($field)
       ->from($table)
       ->where($field, '=', $value)
-      ->execute()
-      ->get($field);
+    ;
+    if ($id) $query->and_where('id', 'NOT IN', (array) $id);
+
+    return ! (bool) $value = $query->execute()->get($field);
   }
 
   public static function is_existing_barcode($value)
