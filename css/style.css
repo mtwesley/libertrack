@@ -65,11 +65,11 @@
 }
 
 #content form p span.error-message {
-  margin-left: 565px;
-  padding: 6px 10px;
+  margin-left: 590px;
+  padding: 5px 8px;
   display: block;
   position: absolute;
-  top: -2px;
+  top: -1px;
   color: #fafafa;
   background-color: #323232;
 }
@@ -79,7 +79,7 @@
   height: 20px;
   position: absolute;
   left: -16px;
-  top: 3px;
+  top: 2px;
   background-image: url('/images/err_msg_arrow.gif');
   background-repeat: no-repeat;
 }
@@ -89,6 +89,10 @@
   width: 100%;
   border-collapse: collapse;
   border-top: 2px solid #d2bfa3;
+}
+
+#content table.has-pagination {
+  margin-bottom: 2px;
 }
 
 #content table.data tr {}

@@ -58,9 +58,15 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_list() {
+    $pagination = Pagination::factory(array(
+      'items_per_page' => 50,
+    ));
+
     $files = ORM::factory('file')
       ->where('operation', '=', 'I')
       ->order_by('timestamp', 'desc')
+      ->offset($pagination->offset)
+      ->limit($pagination->items_per_page)
       ->find_all()
       ->as_array();
 
@@ -145,9 +151,9 @@ class Controller_Import extends Controller {
       else    $failure++;
     }
 
-    if ($accepted) Notify::msg($accepted.' rows accepted as form data.', 'success', TRUE);
-    if ($rejected) Notify::msg($rejected.' rows rejected as form data.', 'error', TRUE);
-    if ($failure)  Notify::msg($failure.' rows failed to be processed.', 'error', TRUE);
+    if ($accepted) Notify::msg($accepted.' records accepted as form data.', 'success', TRUE);
+    if ($rejected) Notify::msg($rejected.' records rejected as form data.', 'error', TRUE);
+    if ($failure)  Notify::msg($failure.' records failed to be processed.', 'error', TRUE);
 
     $this->request->redirect('import/files/'.$id.'/review');
   }
@@ -223,14 +229,25 @@ class Controller_Import extends Controller {
       $this->request->redirect('import/data/'.$csv->id);
     }
 
+    $csvs = array($csv);
+    $table = View::factory('csvs')
+      ->set('mode', 'import')
+      ->set('csvs', $csvs)
+      ->set('fields', SGS_Form_ORM::get_fields($csv->form_type, TRUE))
+      ->render();
+
     $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
   }
 
   private function handle_csv_list($id = NULL, $form_type = NULL, $range = array()) {
+    if (!Request::$current->query('page')) Session::instance()->delete('pagination.csv');
     if ($id) {
+      Session::instance()->delete('pagination.csv');
+
       $csvs = ORM::factory('csv')
         ->where('operation', '=', 'I')
         ->and_where('id', '=', $id)
@@ -238,10 +255,26 @@ class Controller_Import extends Controller {
         ->as_array();
 
       $form_type = reset($csvs)->form_type;
-      $display = TRUE;
     }
     else {
-      $form = Formo::form()
+      $operator_ids = DB::select('id', 'name')
+        ->from('operators')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $site_ids = DB::select('id', 'name')
+        ->from('sites')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $block_ids = DB::select('id', 'name')
+        ->from('blocks')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $form = Formo::form(array(
+        'attr' => array('action' => URL::site('import/data'))
+      ))
         ->add_group('form_type', 'select', SGS::$form_type, NULL, array(
           'label' => 'Data',
           'required' => TRUE
@@ -251,8 +284,17 @@ class Controller_Import extends Controller {
           'A' => 'Accepted',
           'R' => 'Rejected',
         ), NULL, array(
-          'label' => 'Status',
+          'label'    => 'Status',
           'required' => TRUE
+        ))
+        ->add_group('operator_id', 'select', $operator_ids, NULL, array(
+          'label' => 'Operator'
+        ))
+        ->add_group('site_id', 'select', $site_ids, NULL, array(
+          'label' => 'Site'
+        ))
+        ->add_group('block_id', 'select', $block_ids, NULL, array(
+          'label' => 'Block'
         ))
         ->add('from', 'input', array(
           'label' => 'From'
@@ -263,34 +305,76 @@ class Controller_Import extends Controller {
         ->add('search', 'submit', 'Search');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+        Session::instance()->delete('pagination.csv');
+
         $form_type = $form->form_type->val();
         $status    = $form->status->val();
         $from      = $form->from->val();
         $to        = $form->to->val();
 
+        $operator_id = $form->operator_id->val();
+        $site_id     = $form->site_id->val();
+        $block_id    = $form->block_id->val();
 
         $csvs = ORM::factory('csv')
           ->where('operation', '=', 'I')
           ->and_where('form_type', '=', $form_type)
           ->and_where('status', 'IN', $status)
           ->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to))
-          ->order_by('timestamp', 'desc')
+          ->order_by('timestamp', 'desc');
+
+        if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
+        if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
+        if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
+
+        Session::instance()->set('pagination.csv', array(
+          'form_type' => $form_type,
+          'status'    => $status,
+          'from'      => $from,
+          'to'        => $to
+        ));
+
+        $search = TRUE;
+      }
+      elseif ($settings = Session::instance()->get('pagination.csv')) {
+        $form_type = $settings['form_type'];
+        $status    = $settings['status'];
+        $from      = $settings['from'];
+        $to        = $settings['to'];
+
+        $csvs = ORM::factory('csv')
+          ->where('operation', '=', 'I')
+          ->and_where('form_type', '=', $form_type)
+          ->and_where('status', 'IN', $status)
+          ->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to))
+          ->order_by('timestamp', 'desc');
+      }
+
+      if ($csvs) {
+        $clone = clone($csvs);
+        $pagination = Pagination::factory(array(
+          'items_per_page' => 2,
+          'total_items' => $clone->find_all()->count()));
+
+        $csvs = $csvs
+          ->offset($pagination->offset)
+          ->limit($pagination->items_per_page)
           ->find_all()
           ->as_array();
-
-        $display = TRUE;
       }
     }
 
     if ($csvs) $table = View::factory('csvs')
+      ->set('classes', array('has-pagination'))
       ->set('mode', 'import')
       ->set('csvs', $csvs)
       ->set('fields', SGS_Form_ORM::get_fields($form_type, TRUE))
       ->render();
-    elseif ($display) Notify::msg('Search returned an empty set of results.');
+    elseif ($search) Notify::msg('Search returned an empty set of results.');
 
     if ($form) $content .= $form->render();
     $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -327,10 +411,6 @@ class Controller_Import extends Controller {
           if (!$reader->canRead($import['tmp_name'])) {
             $reader = PHPExcel_IOFactory::createReaderForFile($import['tmp_name']);
           }
-
-//          if (($reader instanceof PHPExcel_Reader_Excel2007) or ($reader instanceof PHPExcel_Reader_Excel5)) {
-//            $reader->setReadDataOnly(TRUE);
-//          }
 
           if ($reader instanceof PHPExcel_Reader_IReader) {
             $excel = $reader->load($import['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, FALSE, TRUE, TRUE);
@@ -370,12 +450,14 @@ class Controller_Import extends Controller {
               $row = $excel[$i];
               if ( ! $data = $form_model->parse_csv($row, $excel)) continue;
 
+              $item = reset($data);
+
               // save CSV
               $csv = ORM::factory('csv');
-              $csv->file_id = $file->id;
-              $csv->operation = 'I';
-              $csv->form_type = $form_type;
-              $csv->values = $data;
+              $csv->file_id     = $file->id;
+              $csv->operation   = 'I';
+              $csv->form_type   = $form_type;
+              $csv->values      = $data;
               try {
                 $csv->save();
                 $csv_success++;
@@ -384,14 +466,14 @@ class Controller_Import extends Controller {
               }
             }
 
-            if ($csv_success) Notify::msg($csv_success.' rows successfully parsed.', 'success', TRUE);
-            if ($csv_error) Notify::msg($csv_error.' rows failed to be parsed.', 'error', TRUE);
+            if ($csv_success) Notify::msg($csv_success.' records successfully parsed.', 'success', TRUE);
+            if ($csv_error) Notify::msg($csv_error.' records failed to be parsed.', 'error', TRUE);
 
             Notify::msg('Next, click '.HTML::anchor('import/files/'.$file->id.'/process', 'process').
                         ' to validate uploaded data and import it as form data or '.HTML::anchor('import/files/'.$file->id.'/review', 'review').
                         ' to review uploaded data.', TRUE);
 
-            $this->request->redirect('import/files');
+            $this->request->redirect('import/files/'.$file->id.'/process');
           }
         }
       }

@@ -30,6 +30,8 @@ create domain d_measurement_int as int check (value >= 0);
 
 create domain d_measurement_float as real check (value >= 0);
 
+create domain d_password as character(32) check (value ~ E'[0-9abcdef]');
+
 create domain d_file_type as character varying(100);
 
 create domain d_operation as character(1) check (value ~ E'^[IEAU]$');
@@ -58,15 +60,13 @@ create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLR]$');
 
 create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value < 1));
 
-create domain d_block_coordinates as character varying(7) check (value ~ E'^[A-Z]{1,4}[0-9]{1,3}$');
+create domain d_block_name as character varying(7) check (value ~ E'^[A-Z]{1,4}[0-9]{1,3}$');
 
 create domain d_status as character(1) check (value ~ E'^[PARD]$');
 
 create domain d_coc_status as character(1) check (value ~ E'^[PIHEZYALZ]$');
 
 create domain d_username as character varying(24) check (value ~ E'^[0-9A-Za-z_]{3,24}$');
-
-create domain d_access_level as character(1) check (value ~ E'^[AMD]$');
 
 create domain d_ip_address as inet;
 
@@ -75,13 +75,44 @@ create domain d_oid as oid;
 
 -- tables
 
+create table roles (
+  id serial,
+  name d_text_short unique not null,
+  description d_text_long not null,
+
+  constraint roles_pkey primary key (id)
+);
+
 create table users (
-  id bigserial not null,
+  id serial,
+  email d_text_short unique,
   username d_username unique not null,
-  password d_text_short,
-  access_level d_access_level not null,
+  password d_password not null,
+  logins d_measurement_int not null default 0,
+  last_login d_int,
 
   constraint users_pkey primary key (id)
+);
+
+create table roles_users (
+  user_id d_int,
+  role_id d_int,
+
+  constraint roles_users_pkey primary key (user_id, role_id),
+  constraint roles_users_user_id_fkey foreign key (user_id) references users (id),
+  constraint roles_users_role_id_fkey foreign key (role_id) references roles (id)
+);
+
+create table user_tokens (
+  id serial,
+  user_id d_int not null,
+  user_agent d_text_short not null,
+  token d_text_short unique not null,
+  created d_int not null,
+  expires d_int not null,
+
+  constraint user_tokens_pkey primary key (id),
+  constraint user_tokens_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table sessions (
@@ -89,11 +120,13 @@ create table sessions (
   user_id d_id not null,
   ip_address d_ip_address not null,
   user_agent d_text_medium,
+  last_active d_int not null,
+  contents d_text_long not null,
   from_timestamp d_timestamp not null,
   to_timestamp d_timestamp not null,
 
   constraint sessions_pkey primary key (id),
-  constraint sessions_user_id foreign key (user_id) references users (id)
+  constraint sessions_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table species (
@@ -144,7 +177,7 @@ create table sites (
 create table blocks (
   id bigserial not null,
   site_id d_id not null,
-  coordinates d_block_coordinates not null,
+  name d_block_name not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -152,7 +185,7 @@ create table blocks (
   constraint blocks_site_id_fkey foreign key (site_id) references sites (id),
   constraint blocks_user_id_fkey foreign key (user_id) references users (id),
 
-  constraint blocks_unique_site_coordinates unique(site_id,coordinates)
+  constraint blocks_unique_site_name unique(site_id,name)
 );
 
 create table printjobs (
@@ -199,6 +232,9 @@ create table files (
   name d_text_short not null,
   type d_file_type not null,
   size d_int not null,
+  operator_id d_id,
+  site_id d_id,
+  block_id d_id,
   operation d_operation default 'U' not null,
   operation_type d_operation_type default 'UNKWN' not null,
   content d_oid unique,
@@ -217,6 +253,9 @@ create table csv (
   form_type d_form_type not null,
   form_data_id d_id,
   other_csv_id d_id,
+  operator_id d_id,
+  site_id d_id,
+  block_id d_id,
   values d_text_long,
   errors d_text_long,
   suggestions d_text_long,
@@ -441,8 +480,6 @@ create table revisions (
 
 -- indexes
 
-create index users_access_level on users (id,access_level);
-
 create index species_code on species (id,code);
 create index species_class on species (id,class);
 
@@ -605,13 +642,39 @@ end
 $$ language 'plpgsql';
 
 
-create function lookup_block_id(x_site_type character(3), x_site_reference character varying(7), x_coordinates character varying(6))
+create function lookup_block_id(x_site_type character(3), x_site_reference character varying(7), x_name character varying(6))
   returns d_id as
 $$
   declare x_id d_id;
 begin
 
-  select id from blocks where site_id = lookup_site_id(x_site_type,x_site_reference) and coordinates = x_coordinates limit 1 into x_id;
+  select id from blocks where site_id = lookup_site_id(x_site_type,x_site_reference) and name = x_name limit 1 into x_id;
+  return x_id;
+
+end
+$$ language 'plpgsql';
+
+
+create function lookup_role_id(x_name character varying(50))
+  returns d_id as
+$$
+  declare x_id d_id;
+begin
+
+  select id from roles where name = x_name limit 1 into x_id;
+  return x_id;
+
+end
+$$ language 'plpgsql';
+
+
+create function lookup_user_id(x_username character varying(50))
+  returns d_id as
+$$
+  declare x_id d_id;
+begin
+
+  select id from users where username = x_username limit 1 into x_id;
   return x_id;
 
 end

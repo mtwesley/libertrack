@@ -66,7 +66,7 @@ if (!$command && !is_numeric($id)) {
 
   #navigation .secondary li {
     margin: 0;
-    padding: 4px 10px;
+    padding: 6px 10px 0;
   }
 
   #navigation .secondary li a {

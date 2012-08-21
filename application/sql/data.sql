@@ -1,7 +1,15 @@
 
+insert into roles (name, description) values ('login', 'Basic user');
+insert into roles (name, description) values ('admin', 'Administrative user');
+
 -- users
 
-insert into users (username,access_level) values('sgs','A');
+insert into users (username, password) values('sgs', md5('5gSu8z_'));
+
+-- roles for users
+
+insert intot roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('login'));
+insert intot roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('admin'));
 
 -- species
 

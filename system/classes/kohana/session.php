@@ -296,8 +296,8 @@ abstract class Kohana_Session {
 	{
 		$data = NULL;
 
-		try
-		{
+//		try
+//		{
 			if (is_string($data = $this->_read($id)))
 			{
 				if ($this->_encrypted)
@@ -318,13 +318,13 @@ abstract class Kohana_Session {
 			{
 				// Ignore these, session is valid, likely no data though.
 			}
-		}
-		catch (Exception $e)
-		{
-			// Error reading the session, usually
-			// a corrupt session.
-			throw new Session_Exception('Error reading session data.', NULL, Session_Exception::SESSION_CORRUPT);
-		}
+//		}
+//		catch (Exception $e)
+//		{
+//			// Error reading the session, usually
+//			// a corrupt session.
+//			throw new Session_Exception('Error reading session data.', NULL, Session_Exception::SESSION_CORRUPT);
+//		}
 
 		if (is_array($data))
 		{

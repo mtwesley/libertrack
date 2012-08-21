@@ -1,8 +1,13 @@
+<?php
+
+$classes[] = 'data';
+
+?>
 <?php if ($title): ?>
 <p><strong><?php echo $title; ?>:</strong></p>
 <?php endif; ?>
 
-<table class="data">
+<table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <th></th>
     <th>Form</th>

@@ -24,18 +24,18 @@ class Model_Block extends ORM {
   public static function fields() {
     return array(
       'site_id'     => 'Site',
-      'coordinates' => 'Name'
+      'name' => 'Name'
     );
   }
 
   public function rules()
   {
     return array(
-      'coordinates' => array(array('not_empty'),
-                             array('is_block_coordinates')),
-      'site_id'     => array(array('not_empty')),
-      'user_id'            => array(),
-      'timestamp'          => array()
+      'name'      => array(array('not_empty'),
+                           array('is_block_name')),
+      'site_id'   => array(array('not_empty')),
+      'user_id'   => array(),
+      'timestamp' => array()
     );
   }
 

@@ -105,7 +105,7 @@ class Controller_Admin extends Controller {
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Block' : 'Add a New Block'
       ))
-      ->order(array('coordinates' => 0));
+      ->order(array('name' => 0));
 
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
       try {
@@ -202,7 +202,7 @@ class Controller_Admin extends Controller {
             // save printjob
             $matches = array();
             preg_match('/Print\sJob\:\s*(\d+).*/', $array[2], $matches);
-            $model->allocation_date = SGS::date('now', TRUE);
+            $model->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
             $model->number = $matches[1];
 
             try {

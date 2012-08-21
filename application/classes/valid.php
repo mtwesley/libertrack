@@ -26,9 +26,9 @@ class Valid extends Kohana_Valid {
     return (bool) SGS::lookup_site($array[$type_field], $array[$reference_field], $array[$name_field], TRUE);
   }
 
-  public static function is_existing_block($array, $site_type_field, $site_reference_field, $site_name_field, $coordinates_field)
+  public static function is_existing_block($array, $site_type_field, $site_reference_field, $site_name_field, $name_field)
   {
-    $block = SGS::lookup_block($array[$site_type_field], $array[$site_reference_field], $array[$site_name], $array[$coordinates_field], TRUE);
+    $block = SGS::lookup_block($array[$site_type_field], $array[$site_reference_field], $array[$site_name], $array[$name_field], TRUE);
   }
 
   public static function is_existing_species($value)
@@ -182,7 +182,7 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_float($value) AND ($value > 0) AND ($value < 1));
   }
 
-  public static function is_block_coordinates($value)
+  public static function is_block_name($value)
   {
     return (bool) (self::is_varchar($value, 7) AND preg_match('/^[A-Z]{1,4}[0-9]{1,3}$/', (string) $value));
   }

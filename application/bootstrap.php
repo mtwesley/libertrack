@@ -110,7 +110,7 @@ Kohana::modules(array(
 	'userguide'    => MODPATH.'userguide',    // User guide and API documentation
   'formo'        => MODPATH.'formo',        // Object-based form handling
   'notify'       => MODPATH.'notify',       // Message notification system
-  'breadcrumbs'  => MODPATH.'breadcrumbs'   // Simple breadcrumbs navigation
+  'pagination'   => MODPATH.'pagination'    // Simple breadcrumbs navigation
 	));
 
 /**

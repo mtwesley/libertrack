@@ -22,7 +22,7 @@
   <strong>Processing Errors:</strong>
   <ul>
     <?php foreach ($errors as $field => $error): ?>
-    <li><?php echo ucfirst($error); ?></li>
+    <li><?php echo SGS::errorfy($error); ?></li>
     <?php endforeach; ?>
   </ul>
 </div>
