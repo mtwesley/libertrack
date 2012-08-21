@@ -8,8 +8,8 @@ insert into users (username, password) values('sgs', md5('5gSu8z_'));
 
 -- roles for users
 
-insert intot roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('login'));
-insert intot roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('admin'));
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('login'));
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('admin'));
 
 -- species
 
