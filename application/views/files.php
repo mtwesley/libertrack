@@ -48,9 +48,9 @@
       $_rp = $_total ? round(($_r * 100 / $_total), 0) : 0;
     ?>
     <td>
-      <div class="pending"><?php echo $_p; ?> Pending (<?php echo $_pp; ?>%)</div>
-      <div class="accepted"><?php echo $_a; ?> Accepted (<?php echo $_ap; ?>%)</div>
-      <div class="rejected"><?php echo $_r; ?> Rejected (<?php echo $_rp; ?>%)</div>
+      <span class="pending"><?php echo $_p; ?> Pending (<?php echo $_pp; ?>%)</span> | 
+      <span class="accepted"><?php echo $_a; ?> Accepted (<?php echo $_ap; ?>%)</span> |
+      <span class="rejected"><?php echo $_r; ?> Rejected (<?php echo $_rp; ?>%)</span>
     </td>
     <?php endif; ?>
 

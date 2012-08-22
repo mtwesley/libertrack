@@ -475,7 +475,7 @@ class Controller_Import extends Controller {
                         ' to validate uploaded data and import it as form data or '.HTML::anchor('import/files/'.$file->id.'/review', 'review').
                         ' to review uploaded data.', TRUE);
 
-            $this->request->redirect('import/files/'.$file->id.'/process');
+            $this->request->redirect('import/files');
           }
         }
       }
