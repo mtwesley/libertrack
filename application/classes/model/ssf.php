@@ -87,7 +87,7 @@ class Model_SSF extends SGS_Form_ORM {
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
       default:
-        if (isset($this->$key)) $this->$key = $value; break;
+        try { $this->$key = $value; } catch (Exception $e) {}
     }
   }
 
