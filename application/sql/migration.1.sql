@@ -27,7 +27,7 @@ create trigger t_sites_parse_type
 
 -- domains
 
-create domain d_site_name as character varying(15) check (value ~ E'^[A-Z]{3}[\\s_-]*[A-Z1-9]{1,10}$');
+create domain d_site_name as character varying(15);
 
 -- columns
 
@@ -42,3 +42,6 @@ drop domain d_site_reference;
 
 update sites set "name" = substring("name" from E'^[A-Z]+\/([A-Z1-9\\s_-]+)$');
 
+-- add check
+
+alter domain d_site_name add check (value ~ E'^[A-Z]{3}[\\s_-]*[A-Z1-9]{1,10}$');

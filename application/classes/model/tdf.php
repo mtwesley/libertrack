@@ -101,7 +101,7 @@ class Model_TDF extends SGS_Form_ORM {
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
       default:
-        $this->$key = $value; break;
+        if (isset($this->$key)) $this->$key = $value; break;
     }
   }
 

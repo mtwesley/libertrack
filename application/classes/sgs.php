@@ -490,8 +490,8 @@ class SGS {
     preg_match('/((([A-Z]+)\/)?([A-Z1-9\s-_]+)?)(\/([A-Z1-9]+))?/', $text, $matches);
 
     return array(
-      'site_name'      => $matches[1],
-      'block_name'     => $matches[6]
+      'site_name'  => $matches[4],
+      'block_name' => $matches[6]
     );
   }
 
