@@ -23,14 +23,14 @@ class Valid extends Kohana_Valid {
     return (bool) SGS::lookup_operator($value, TRUE);
   }
 
-  public static function is_existing_site($array, $type_field, $reference_field, $name_field)
+  public static function is_existing_site($value)
   {
-    return (bool) SGS::lookup_site($array[$type_field], $array[$reference_field], $array[$name_field], TRUE);
+    return (bool) SGS::lookup_site($value, TRUE);
   }
 
-  public static function is_existing_block($array, $site_type_field, $site_reference_field, $site_name_field, $name_field)
+  public static function is_existing_block($array, $site_name_field, $name_field)
   {
-    $block = SGS::lookup_block($array[$site_type_field], $array[$site_reference_field], $array[$site_name], $array[$name_field], TRUE);
+    $block = SGS::lookup_block($array[$site_name_field], $array[$name_field], TRUE);
   }
 
   public static function is_existing_species($value)
@@ -123,20 +123,9 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_char($value) AND preg_match('/^[ABC]$/', (string) $value));
   }
 
-  public static function is_site_type($value)
-  {
-    return (bool) (self::is_char($value, 3) AND preg_match('/^[A-Z]{3}$/', (string) $value));
-  }
-
   public static function is_site_name($value)
   {
-    $info = SGS::parse_site_and_block_info($value);
-    return (bool) (($info['site_type']) and ($info['site_reference']) and ($info['site_name']));
-  }
-
-  public static function is_site_reference($value)
-  {
-    return (bool) (self::is_varchar($value, 7) AND preg_match('/^[A-Z1-9\s_-]{2,10}$/', (string) $value));
+    return (bool) (self::is_varchar($value, 15) AND preg_match('/^[A-Z]{3}[\s_-]*[A-Z1-9]{1,10}$/', (string) $value));
   }
 
   public static function is_operator_tin($value)

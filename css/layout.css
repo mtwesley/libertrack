@@ -6,7 +6,9 @@ body {
 }
 
 html {}
-body {}
+body {
+  padding-bottom: 20px;
+}
 
 a {}
 a:visited {}

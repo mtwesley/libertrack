@@ -8,8 +8,6 @@ class Model_LDF extends SGS_Form_ORM {
     'create_date'    => 'Date Registered',
     'operator_tin'   => 'Operator TIN',
     'site_name'      => 'Site Name',
-    'site_type'      => 'Site Type',
-    'site_reference' => 'Site Reference',
     'parent_barcode' => 'Parent Barcode',
     'species_code'   => 'Species Code',
     'barcode'        => 'Barcode',
@@ -65,22 +63,17 @@ class Model_LDF extends SGS_Form_ORM {
       'create_date'    => $csv[3][B],
       'operator_tin'   => $csv[4][B],
       'site_name'      => $site_name,
-      'site_type'      => $site_type,
-      'site_reference' => $site_reference,
     ) + $data;
   }
 
   public function parse_data($data)
   {
-    $this->site = SGS::lookup_site($data['site_type'], $data['site_reference'], $data['site_name']);
-
     foreach ($data as $key => $value) switch ($key) {
       case 'operator_tin':
         $this->operator = SGS::lookup_operator($value); break;
 
       case 'site_name':
-      case 'site_type':
-      case 'site_reference':
+        $this->site = SGS::lookup_site($value);
         break;
 
       case 'barcode':
@@ -177,9 +170,6 @@ class Model_LDF extends SGS_Form_ORM {
   public static function fields($display = FALSE)
   {
     foreach (self::$fields as $key => $value) switch ($key) {
-      case 'site_type':
-      case 'site_reference':
-        if ($display) continue;
       default:
         $fields[$key] = $value;
     }
@@ -226,9 +216,7 @@ class Model_LDF extends SGS_Form_ORM {
                                    array('is_operator_tin'),
                                    array('is_existing_operator')),
       'site_name'         => array(array('is_text_short'),
-                                   array('is_existing_site', array(':validation', 'site_type', 'site_reference', 'site_name'))),
-      'site_type'         => array(array('is_site_type')),
-      'site_reference'    => array(array('is_site_reference')),
+                                   array('is_existing_site', array(':validation', 'site_name'))),
       'barcode'           => array(array('not_empty'),
                                    array('is_barcode'),
                                    array('is_existing_barcode')),

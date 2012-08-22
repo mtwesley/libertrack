@@ -97,9 +97,7 @@ class SGS {
     'is_file_type'         => '":field" must be a file mime type (for example, "text/css")',
     'is_species_code'      => '":field" does not match the required species code format',
     'is_species_class'     => '":field" must be a species class (for example, "A", "B" or "C")',
-    'is_site_name'         => '":field" does not match the required site format',
-    'is_site_type'         => '":field" does not match the required site type format',
-    'is_site_reference'    => '":field" does not match the required site reference format',
+    'is_site_name'         => '":field" does not match the required site format (for example, "ABC123" or "ABC 123")',
     'is_operator_tin'      => '":field" does not match the required operator TIN format',
     'is_survey_line'       => '":field" must be a number from 1 to 20',
     'is_operation'         => '":field" must be either (I)mport or (E)xport',
@@ -270,16 +268,9 @@ class SGS {
     return $returning_id ? $id : ORM::factory('operator', $id);
   }
 
-  public static function lookup_site($type, $reference, $name, $returning_id = FALSE)
+  public static function lookup_site($name, $returning_id = FALSE)
   {
-    if ($type and $reference) $id = DB::select('id')
-      ->from('sites')
-      ->where('type', '=', (string) $type)
-      ->and_where('reference', '=', (string) $reference)
-      ->execute()
-      ->get('id');
-
-    elseif ($name) $id = DB::select('id')
+    $id = DB::select('id')
       ->from('sites')
       ->where('name', '=', (string) $name)
       ->execute()
@@ -288,19 +279,9 @@ class SGS {
     return $returning_id ? $id : ORM::factory('site', $id);
   }
 
-  public static function lookup_block($site_type, $site_reference, $site_name, $name, $returning_id = FALSE)
+  public static function lookup_block($site_name, $name, $returning_id = FALSE)
   {
-    if ($site_type and $site_reference) $id = DB::select(array('blocks.id', 'block_id'))
-      ->from('sites')
-      ->join('blocks')
-      ->on('blocks.site_id', '=', 'sites.id')
-      ->where('sites.type', '=', (string) $site_type)
-      ->and_where('sites.reference', '=', (string) $site_reference)
-      ->and_where('blocks.name', '=', (string) $name)
-      ->execute()
-      ->get('block_id');
-
-    elseif ($site_name) $id = DB::select(array('blocks.id', 'block_id'))
+    $id = DB::select(array('blocks.id', 'block_id'))
       ->from('sites')
       ->join('blocks')
       ->on('blocks.site_id', '=', 'sites.id')
@@ -510,8 +491,6 @@ class SGS {
 
     return array(
       'site_name'      => $matches[1],
-      'site_type'      => $matches[3],
-      'site_reference' => $matches[4],
       'block_name'     => $matches[6]
     );
   }

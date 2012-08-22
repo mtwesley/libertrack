@@ -179,7 +179,7 @@ class Controller_Export extends Controller {
 
         // file
         $tempname  = tempnam(sys_get_temp_dir(), 'ssf_').'.'.$type;
-        $fullname  = $site->reference.'_SSF_'.$block->name.'.'.$type;
+        $fullname  = $site->name.'_SSF_'.$block->name.'.'.$type;
         $writer->save($tempname);
 
         $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
@@ -271,7 +271,7 @@ class Controller_Export extends Controller {
 
         // file
         $tempname  = tempnam(sys_get_temp_dir(), 'tdf_').'.'.$type;
-        $fullname  = $site->reference.'_TDF_'.$block->name.'_'.Date::formatted_time('now', 'Y_m_d').'.'.$type;
+        $fullname  = $site->name.'_TDF_'.$block->name.'_'.Date::formatted_time('now', 'Y_m_d').'.'.$type;
         $objWriter = new PHPExcel_Writer_CSV($excel);
         $objWriter->save($tempname);
 
@@ -360,7 +360,7 @@ class Controller_Export extends Controller {
 
         // file
         $tempname  = tempnam(sys_get_temp_dir(), 'ldf_').'.csv';
-        $fullname  = $site->reference.'_LDF_'.Date::formatted_time('now', 'Y_m_d').'.csv';
+        $fullname  = $site->name.'_LDF_'.Date::formatted_time('now', 'Y_m_d').'.csv';
         $objWriter = new PHPExcel_Writer_CSV($excel);
         $objWriter->save($tempname);
 

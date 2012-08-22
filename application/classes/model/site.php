@@ -15,13 +15,12 @@ class Model_Site extends ORM {
 
   public function formo() {
     $array = array(
-      'operator'  => array(
+      'operator' => array(
         'orm_primary_val' => 'name',
         'label'           => 'Operator'
       ),
-      'id'        => array('render' => FALSE),
-      'type'      => array('render' => FALSE),
-      'reference' => array('render' => FALSE)
+      'id'       => array('render' => FALSE),
+      'type'     => array('render' => FALSE),
     );
     foreach (self::fields() as $field => $label) {
       $array[$field]['label'] = $label;
@@ -32,15 +31,14 @@ class Model_Site extends ORM {
   public static function fields() {
     return array(
       'operator_id' => 'Operator',
-      'name'        => 'Name'
+      'name'        => 'Name',
+      'type'        => 'Type'
     );
   }
 
   public function rules()
   {
     return array(
-      'type'        => array(array('is_site_type')),
-      'reference'   => array(array('is_site_reference')),
       'name'        => array(array('not_empty'),
                              array('is_text_short'),
                              array('is_site_name')),

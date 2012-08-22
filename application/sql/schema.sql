@@ -44,7 +44,7 @@ create domain d_species_class as character(1) check (value ~ E'^[ABC]$');
 
 create domain d_site_type as character(3) check (value ~ E'^[A-Z]{3}$');
 
-create domain d_site_reference as character varying(7) check (value ~ E'^[A-Z1-9\\s_-]{2,10}$');
+create domain d_site_name as character varying(10) check (value ~ E'^[A-Z]{3}[\\s_-]*[A-Z1-9]{1,10}$');
 
 create domain d_operator_tin as bigint check (value > 0);
 
@@ -161,8 +161,7 @@ create table operators (
 create table sites (
   id bigserial not null,
   type d_site_type not null,
-  reference d_site_reference not null,
-  name d_text_short unique not null,
+  name d_site_name unique not null,
   operator_id d_id not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -170,8 +169,6 @@ create table sites (
   constraint sites_pkey primary key (id),
   constraint sites_operator_id foreign key (operator_id) references operators (id),
   constraint sites_user_id_fkey foreign key (user_id) references users (id),
-
-  constraint sites_unique_type_reference unique(type,reference)
 );
 
 create table blocks (
@@ -616,19 +613,6 @@ end
 $$ language 'plpgsql';
 
 
-create function lookup_site_id(x_type character(3), x_reference character varying(7))
-  returns d_id as
-$$
-  declare x_id d_id;
-begin
-
-  select id from sites where type = x_type and reference = x_reference limit 1 into x_id;
-  return x_id;
-
-end
-$$ language 'plpgsql';
-
-
 create function lookup_site_id(x_name character varying(50))
   returns d_id as
 $$
@@ -642,13 +626,13 @@ end
 $$ language 'plpgsql';
 
 
-create function lookup_block_id(x_site_type character(3), x_site_reference character varying(7), x_name character varying(6))
+create function lookup_block_id(x_site_name character varying(10), x_name character varying(6))
   returns d_id as
 $$
   declare x_id d_id;
 begin
 
-  select id from blocks where site_id = lookup_site_id(x_site_type,x_site_reference) and name = x_name limit 1 into x_id;
+  select id from blocks where site_id = lookup_site_id(x_site_name) and name = x_name limit 1 into x_id;
   return x_id;
 
 end
@@ -844,15 +828,14 @@ end
 $$ language 'plpgsql';
 
 
-create function site_type_and_reference()
+create function sites_parse_type()
   returns trigger as
 $$
   declare x_site text[];
 begin
   if new.name is not null then
-    select regexp_matches(new.name::text, E'((([A-Z]+)\/)?([A-Z1-9\\s_-]+)?)(\/([A-Z1-9]+))?') into x_site;
-    new.type = x_site[3];
-    new.reference = x_site[4];
+    select regexp_matches(new.name::text, E'^([A-Z]{3})([\\s_-]*[A-Z1-9]{1,10})?$') into x_site;
+    new.type = x_site[1];
   end if;
 
   return new;
@@ -892,7 +875,7 @@ create trigger t_barcodes_locks
   for each row
   execute procedure barcodes_locks();
 
-create trigger t_site_type_and_reference
+create trigger t_sites_parse_type
   before insert or update on sites
   for each row
-  execute procedure site_type_and_reference();
+  execute procedure sites_parse_type();

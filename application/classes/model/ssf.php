@@ -8,8 +8,6 @@ class Model_SSF extends SGS_Form_ORM {
     'create_date'     => 'Date Surveyed',
     'operator_tin'    => 'Operator TIN',
     'site_name'       => 'Site Name',
-    'site_type'       => 'Site Type',
-    'site_reference'  => 'Site Reference',
     'block_name'      => 'Block Name',
     'barcode'         => 'Barcode',
     'tree_map_number' => 'Tree Map Number',
@@ -58,8 +56,6 @@ class Model_SSF extends SGS_Form_ORM {
       'create_date'     => $csv[3][B],
       'operator_tin'    => $csv[2][H],
       'site_name'       => $site_name,
-      'site_type'       => $site_type,
-      'site_reference'  => $site_reference,
       'block_name'      => $block_name,
     ) + $data + array(
       'is_requested'    => $row[H] == 'NO' ? 'NO' : 'YES',
@@ -70,19 +66,16 @@ class Model_SSF extends SGS_Form_ORM {
 
   public function parse_data($data)
   {
-    $this->site = SGS::lookup_site($data['site_type'], $data['site_reference'], $data['site_name']);
-
     foreach ($data as $key => $value) switch ($key) {
       case 'operator_tin':
         $this->operator = SGS::lookup_operator($value); break;
 
       case 'site_name':
-      case 'site_type':
-      case 'site_reference':
+        $this->site = SGS::lookup_site($value);
         break;
 
       case 'block_name':
-        $this->block = SGS::lookup_block($data['site_type'], $data['site_reference'], $data['site_name'], $value); break;
+        $this->block = SGS::lookup_block($data['site_name'], $value); break;
 
       case 'barcode':
         $this->$key = SGS::lookup_barcode($value); break;
@@ -182,9 +175,6 @@ class Model_SSF extends SGS_Form_ORM {
   public static function fields($display = FALSE)
   {
     foreach (self::$fields as $key => $value) switch ($key) {
-      case 'site_type':
-      case 'site_reference':
-        if ($display) continue;
       default:
         $fields[$key] = $value;
     }
@@ -229,12 +219,10 @@ class Model_SSF extends SGS_Form_ORM {
                                 array('is_operator_tin'),
                                 array('is_existing_operator')),
       'site_name'      => array(array('is_text_short'),
-                                array('is_existing_site', array(':validation', 'site_type', 'site_reference', 'site_name'))),
-      'site_type'      => array(array('is_site_type')),
-      'site_reference' => array(array('is_site_reference')),
+                                array('is_existing_site')),
       'block_name'     => array(array('not_empty'),
                                 array('is_block_name'),
-                                array('is_existing_block', array(':validation', 'site_type', 'site_reference', 'site_name', 'block_name'))),
+                                array('is_existing_block', array(':validation', 'site_name', 'block_name'))),
       'barcode'        => array(array('not_empty'),
                                 array('is_barcode'),
                                 array('is_existing_barcode')),
