@@ -13,6 +13,8 @@ class SGS {
   public static $path = array(
     'index'           => 'Home',
 
+    'documents'       => 'Documents',
+
     'import'          => 'Import',
     'import/upload'   => 'Upload Documents',
     'import/files'    => 'File Management',
@@ -74,7 +76,7 @@ class SGS {
     'url'           => '":field" must be a URL',
 
     // additional messages
-    'is_unique'            => '":field" must be unique among :param1 data, possible duplicate found',
+    'is_unique'            => '":field" must be unique among :param1, possible duplicate found',
     'is_existing_barcode'  => '":field" must be an existing barcode',
     'is_existing_operator' => '":field" does not reference an existing operator',
     'is_existing_site'     => '":field" does not reference and existing site',
@@ -504,6 +506,7 @@ class SGS {
   public static function errorfy($string)
   {
     $string = preg_replace('/('.preg_quote(implode('|', array_keys(self::$form_type))).'_data)/', 'form', $string);
+    $string = str_replace('content_md5', 'File', $string);
     $string = preg_replace('/\b(tin)\b/', 'TIN', $string);
     $string = str_replace('_id', '', $string);
     $string = str_replace('_', ' ', $string);

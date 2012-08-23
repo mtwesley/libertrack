@@ -1,5 +1,38 @@
 Options All Indexes -Multiviews
 
+IndexOptions FancyIndexing
+IndexOptions FoldersFirst IgnoreCase XHTML NameWidth=*
+IndexOptions SuppressHTMLPreamble SuppressRules HTMLTable
+IndexOptions IconHeight=16 IconWidth=16
+IndexOptions SuppressDescription
+
+IndexIgnore readme.html
+
+HeaderName /indices/header.php
+ReadmeName /indices/footer.php
+
+DefaultIcon /indices/icons/text.png
+
+AddIcon /indices/icons/blank.gif        ^^BLANKICON^^
+AddIcon /indices/icons/dir.png          ^^DIRECTORY^^
+
+AddIcon /indices/icons/back.png         ..
+AddIcon /indices/icons/comp.png         .comp
+AddIcon /indices/icons/compressed.gif   .zip .tar .tgz .rar
+AddIcon /indices/icons/doc.png          .doc
+AddIcon /indices/icons/image.png        .jpg .png .gif .tif .tiff
+AddIcon /indices/icons/java.png         .java
+AddIcon /indices/icons/js.png           .js
+AddIcon /indices/icons/movie-ms.gif     .wmv .avi
+AddIcon /indices/icons/mov.png          .mov .qt
+AddIcon /indices/icons/pdf.png          .pdf
+AddIcon /indices/icons/php.png          .php
+AddIcon /indices/icons/ppt.png          .ppt
+AddIcon /indices/icons/ps.png           .ps
+AddIcon /indices/icons/sound.png        .mp3 .wav .m4a
+AddIcon /indices/icons/text.png         .csv .txt .text .html .htm
+AddIcon /indices/icons/xls.png          .xls
+
 # Turn on URL rewriting
 RewriteEngine On
 

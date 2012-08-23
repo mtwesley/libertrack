@@ -123,12 +123,13 @@ if (!$command && !is_numeric($id)) {
 </style>
 <div id="navigation">
   <ul class="nav primary">
-    <li class="<?php if ($primary == 'index')    echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('index')); ?></li>
-    <li class="<?php if ($primary == 'import')   echo 'active'; ?>"><?php echo HTML::anchor('import', SGS::title('import')); ?></li>
-    <li class="<?php if ($primary == 'export')   echo 'active'; ?>"><?php echo HTML::anchor('export', SGS::title('export')); ?></li>
-    <li class="<?php if ($primary == 'analysis') echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('analysis')); ?></li>
-    <li class="<?php if ($primary == 'reports')  echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('reports')); ?></li>
-    <li class="<?php if ($primary == 'admin')    echo 'active'; ?>"><?php echo HTML::anchor('admin', SGS::title('admin')); ?></li>
+    <li class="<?php if ($primary == 'index')     echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('index')); ?></li>
+    <li class="<?php if ($primary == 'import')    echo 'active'; ?>"><?php echo HTML::anchor('import', SGS::title('import')); ?></li>
+    <li class="<?php if ($primary == 'export')    echo 'active'; ?>"><?php echo HTML::anchor('export', SGS::title('export')); ?></li>
+    <li class="<?php if ($primary == 'analysis')  echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('analysis')); ?></li>
+    <li class="<?php if ($primary == 'reports')   echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('reports')); ?></li>
+    <li class="<?php if ($primary == 'documents') echo 'active'; ?>"><?php echo HTML::anchor('documents', SGS::title('documents')); ?></li>
+    <li class="<?php if ($primary == 'admin')     echo 'active'; ?>"><?php echo HTML::anchor('admin', SGS::title('admin')); ?></li>
   </ul>
 
 

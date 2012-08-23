@@ -524,11 +524,12 @@ class Controller_Import extends Controller {
             $file->operation_type = $form_type;
             $file->content_md5    = md5_file($import['tmp_name']);
 
+
             try {
               $file->save();
               Notify::msg($file->name.' document successfully uploaded.', 'success', TRUE);
             } catch (ORM_Validation_Exception $e) {
-              foreach ($e->errors('') as $err) Notify::msg($err, 'error');
+              foreach ($e->errors('') as $err) Notify::msg($err, 'error', TRUE);
             }
 
             if ($file->id) {
@@ -566,6 +567,7 @@ class Controller_Import extends Controller {
                     case 'SSF':
                       if (!($file->operator->tin && $file->site->name and $file->operation_type)) throw new Exception();
                       $newdir = DOCPATH.implode(DIRECTORY_SEPARATOR, array(
+                        'import',
                         $file->operator->tin,
                         $file->site->name,
                         $file->operation_type,
@@ -577,6 +579,7 @@ class Controller_Import extends Controller {
                     case 'TDF':
                       if (!($file->operator->tin && $file->site->name and $file->operation_type)) throw new Exception();
                       $newdir = DOCPATH.implode(DIRECTORY_SEPARATOR, array(
+                        'import',
                         $file->operator->tin,
                         $file->site->name,
                         $file->operation_type,
@@ -588,6 +591,7 @@ class Controller_Import extends Controller {
                     case 'LDF':
                       if (!($file->operator->tin && $file->site->name and $file->operation_type)) throw new Exception();
                       $newdir = DOCPATH.implode(DIRECTORY_SEPARATOR, array(
+                        'import',
                         $file->operator->tin,
                         $file->site->name,
                         $file->operation_type
