@@ -123,7 +123,7 @@ class Model_SSF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
       $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
       $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
-      $excel->getActiveSheet()->SetCellValue('A11', 'Tree ID Number');
+      $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
       $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
       $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
       $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
@@ -131,12 +131,11 @@ class Model_SSF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
       $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
       $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
-      $excel->getActiveSheet()->SetCellValue('C12', "Survey Line Number");
+      $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
       $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
       $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
       $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
       $excel->getActiveSheet()->SetCellValue('L12', "Barcode Check");
-      $excel->getActiveSheet()->SetCellValue('M12', "UPPER SPECIES");
     }
 
     $excel->getActiveSheet()->SetCellValue('B2', $this->site->name.'/'.$this->block->name);
