@@ -1,9 +1,4 @@
 
--- SGS database
-
-create database sgs with encoding = 'UTF8' template template0;
-
-
 -- domains
 
 create domain d_id as bigint check (value > 0);
@@ -168,7 +163,7 @@ create table sites (
 
   constraint sites_pkey primary key (id),
   constraint sites_operator_id foreign key (operator_id) references operators (id),
-  constraint sites_user_id_fkey foreign key (user_id) references users (id),
+  constraint sites_user_id_fkey foreign key (user_id) references users (id)
 );
 
 create table blocks (
