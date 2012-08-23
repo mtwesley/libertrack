@@ -162,9 +162,8 @@ class Controller_Admin extends Controller {
       }
 
     } else {
-      $model = ORM::factory('printjob');
       $form = Formo::form()
-        ->orm('load', $model, array('site_id'))
+        ->orm('load', $printjob, array('site_id'))
         ->add('import[]', 'file', array(
           'label'    => 'File',
           'required' => TRUE,
@@ -214,11 +213,13 @@ class Controller_Admin extends Controller {
               // save printjob
               $matches = array();
               preg_match('/Print\sJob\:\s*(\d+).*/', $array[2], $matches);
-              $model->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
-              $model->number = $matches[1];
+
+              $printjob = ORM::factory('printjob');
+              $printjob->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
+              $printjob->number = $matches[1];
 
               try {
-                $model->save();
+                $printjob->save();
               } catch (Exception $e) {
                 Notify::msg('Sorry, print job failed to be saved. Please try again.', 'error', TRUE);
               }
@@ -228,10 +229,10 @@ class Controller_Admin extends Controller {
               $count = count($array);
               for ($i = $start; $i < ($count - 1); $i++) {
                 $line = $array[$i];
-                if (! $data = $model->parse_txt($line, $array)) continue;
+                if (! $data = $printjob->parse_txt($line, $array)) continue;
 
                 $barcode = ORM::factory('barcode');
-                $barcode->printjob = $model;
+                $barcode->printjob = $printjob;
                 $barcode->barcode = $data['barcode'];
                 try {
                   $barcode->save();

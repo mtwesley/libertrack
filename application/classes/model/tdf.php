@@ -195,7 +195,7 @@ class Model_TDF extends SGS_Form_ORM {
             ->where($field.'_id', '=', SGS::lookup_barcode($values[$field]))
             ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
             ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
-            ->and_where('block_id', '=', SGS::lookup_block($values['block_name']))
+            ->and_where('block_id', '=', SGS::lookup_block($values['site_name'], $values['block_name']))
             ->execute()
             ->get('id');
           break;
@@ -211,7 +211,7 @@ class Model_TDF extends SGS_Form_ORM {
       ->and_where('species_code', '=', $values['species_code'])
       ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
       ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
-      ->and_where('block_id', '=', SGS::lookup_block($values['block_name']))
+      ->and_where('block_id', '=', SGS::lookup_block($values['site_name'], $values['block_name']))
       ->execute()
       ->get('id');
 
