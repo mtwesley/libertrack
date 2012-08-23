@@ -13,7 +13,7 @@ class Model_TDF extends SGS_Form_ORM {
     'cell_number'    => 'Cell Number',
     'tree_barcode'   => 'Tree Barcode',
     'species_code'   => 'Species Code',
-    'barcode'        => 'New Cross Cut Barcode',
+    'barcode'        => 'Felled Tree Barcode',
     'bottom_max'     => 'Butt Max',
     'bottom_min'     => 'Butt Min',
     'top_max'        => 'Top Max',

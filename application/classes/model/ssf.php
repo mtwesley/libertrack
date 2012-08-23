@@ -9,7 +9,7 @@ class Model_SSF extends SGS_Form_ORM {
     'operator_tin'    => 'Operator TIN',
     'site_name'       => 'Site Name',
     'block_name'      => 'Block Name',
-    'barcode'         => 'Barcode',
+    'barcode'         => 'Tree Barcode',
     'tree_map_number' => 'Tree Map Number',
     'survey_line'     => 'Survey Line',
     'cell_number'     => 'Cell Number',
