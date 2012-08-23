@@ -1,4 +1,4 @@
-Options All -Indexes -Multiviews
+Options All Indexes -Multiviews
 
 # Turn on URL rewriting
 RewriteEngine On

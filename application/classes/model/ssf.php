@@ -52,7 +52,7 @@ class Model_SSF extends SGS_Form_ORM {
       'height'            => $row[G],
     );
 
-    if (array_filter($data)) return array(
+    if (array_filter($data)) return SGS::cleanify(array(
       'create_date'     => $csv[3][B],
       'operator_tin'    => $csv[2][H],
       'site_name'       => $site_name,
@@ -61,7 +61,7 @@ class Model_SSF extends SGS_Form_ORM {
       'is_requested'    => $row[H] == 'NO' ? 'NO' : 'YES',
       'is_fda_approved' => $row[I] == 'NO' ? 'NO' : 'YES',
       'fda_remarks'     => $row[J],
-    );
+    ));
   }
 
   public function parse_data($data)
@@ -156,6 +156,7 @@ class Model_SSF extends SGS_Form_ORM {
   public function make_suggestions($values, $errors) {
     $suggestions = array();
     foreach ($errors as $field => $error) {
+      $suggest = NULL;
       switch ($field) {
         case 'barcode':
           $args = array(
@@ -166,10 +167,48 @@ class Model_SSF extends SGS_Form_ORM {
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
           break;
       }
-      $suggestions[$field] = $suggest;
+      if ($suggest) $suggestions[$field] = $suggest;
     }
 
     return $suggestions;
+  }
+
+  public function find_duplicates($values, $errors) {
+    $duplicates = array();
+
+    foreach ($this->fields() as $field => $label) {
+      $duplicate = NULL;
+      switch ($field) {
+        case 'barcode':
+          $duplicate = DB::select('id')
+            ->from($this->_table_name)
+            ->where('barcode_id', '=', SGS::lookup_barcode($values[$field]))
+            ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
+            ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
+            ->and_where('block_id', '=', SGS::lookup_block($values['block_name']))
+            ->execute()
+            ->get('id');
+          break;
+      }
+      if ($duplicate) $duplicates[$field] = $duplicate;
+    }
+
+    // everything else
+    $id = DB::select('id')
+      ->from($this->_table_name)
+      ->where('survey_line', '=', $values['survey_line'])
+      ->and_where('cell_number', '=', $values['cell_number'])
+      ->and_where('tree_map_number', '=', $values['tree_map_number'])
+      ->and_where('species_code', '=', $values['species_code'])
+      ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
+      ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
+      ->and_where('block_id', '=', SGS::lookup_block($values['block_name']))
+      ->execute()
+      ->get('id');
+
+    if ($id) $duplicates[] = $id;
+
+    return $duplicates;
   }
 
   public static function fields($display = FALSE)

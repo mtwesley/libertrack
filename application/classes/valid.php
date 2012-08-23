@@ -180,7 +180,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_status($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^[PARD]$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^[PARDU]$/', (string) $value));
   }
 
   public static function is_coc_status($value)

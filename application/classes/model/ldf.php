@@ -59,11 +59,11 @@ class Model_LDF extends SGS_Form_ORM {
       // 'coc_status'     => $row[L],
     );
 
-    if (array_filter($data)) return array(
+    if (array_filter($data)) return SGS::cleanify(array(
       'create_date'    => $csv[3][B],
       'operator_tin'   => $csv[4][B],
       'site_name'      => $site_name,
-    ) + $data;
+    ) + $data);
   }
 
   public function parse_data($data)
@@ -167,6 +167,30 @@ class Model_LDF extends SGS_Form_ORM {
     return $suggestions;
   }
 
+  public function find_duplicates($values, $errors) {
+    $duplicates = array();
+
+    foreach ($this->fields() as $field => $label) {
+      $duplicate = NULL;
+      switch ($field) {
+        case 'barcode':
+        case 'parent_barcode':
+          $duplicate = DB::select('id')
+            ->from($this->_table_name)
+            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field]))
+            ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
+            ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
+            ->and_where('block_id', '=', SGS::lookup_block($values['block_name']))
+            ->execute()
+            ->get('id');
+          break;
+      }
+      if ($duplicate) $duplicates[$field] = $duplicate;
+    }
+
+    return $duplicates;
+  }
+
   public static function fields($display = FALSE)
   {
     foreach (self::$fields as $key => $value) switch ($key) {
@@ -216,7 +240,7 @@ class Model_LDF extends SGS_Form_ORM {
                                    array('is_operator_tin'),
                                    array('is_existing_operator')),
       'site_name'         => array(array('is_text_short'),
-                                   array('is_existing_site', array(':validation', 'site_name'))),
+                                   array('is_existing_site')),
       'barcode'           => array(array('not_empty'),
                                    array('is_barcode'),
                                    array('is_existing_barcode')),

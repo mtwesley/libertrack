@@ -3,6 +3,9 @@
 class Model_File extends ORM {
 
   protected $_belongs_to = array(
+    'operator' => array(),
+    'site'     => array(),
+    'block'    => array(),
     'user' => array()
   );
 

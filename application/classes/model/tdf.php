@@ -66,12 +66,12 @@ class Model_TDF extends SGS_Form_ORM {
       'comment'           => $row[M],
     );
 
-    if (array_filter($data)) return array(
+    if (array_filter($data)) return SGS::cleanify(array(
       'create_date'    => $csv[3][B],
       'operator_tin'   => $csv[2][G],
       'site_name'      => $site_name,
       'block_name'     => $block_name,
-    ) + $data;
+    ) + $data);
   }
 
   public function parse_data($data)
@@ -185,6 +185,45 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     return $suggestions;
+  }
+
+  public function find_duplicates($values, $errors) {
+    $duplicates = array();
+
+    foreach ($this->fields() as $field => $label) {
+      $duplicate = NULL;
+      switch ($field) {
+        case 'barcode':
+        case 'tree_barcode':
+        case 'stump_barcode':
+          $duplicate = DB::select('id')
+            ->from($this->_table_name)
+            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field]))
+            ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
+            ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
+            ->and_where('block_id', '=', SGS::lookup_block($values['block_name']))
+            ->execute()
+            ->get('id');
+          break;
+      }
+      if ($duplicate) $duplicates[$field] = $duplicate;
+    }
+
+    // everything else
+    $id = DB::select('id')
+      ->from($this->_table_name)
+      ->where('survey_line', '=', $values['survey_line'])
+      ->and_where('cell_number', '=', $values['cell_number'])
+      ->and_where('species_code', '=', $values['species_code'])
+      ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
+      ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
+      ->and_where('block_id', '=', SGS::lookup_block($values['block_name']))
+      ->execute()
+      ->get('id');
+
+    if ($id) $duplicates[] = $id;
+
+    return $duplicates;
   }
 
   public static function fields($display = FALSE)

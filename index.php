@@ -24,6 +24,11 @@ $modules = 'modules';
 $system = 'system';
 
 /**
+ * Other directories
+ */
+$documents = 'documents';
+
+/**
  * The default extension of resource files. If you change this, all resources
  * must be renamed to use the new extension.
  *
@@ -69,10 +74,18 @@ if ( ! is_dir($modules) AND is_dir(DOCROOT.$modules))
 if ( ! is_dir($system) AND is_dir(DOCROOT.$system))
 	$system = DOCROOT.$system;
 
+// Make other paths relative to the docroot
+if ( ! is_dir($documents) AND is_dir(DOCROOT.$documents))
+	$documents = DOCROOT.$documents;
+
+
 // Define the absolute paths for configured directories
 define('APPPATH', realpath($application).DIRECTORY_SEPARATOR);
 define('MODPATH', realpath($modules).DIRECTORY_SEPARATOR);
 define('SYSPATH', realpath($system).DIRECTORY_SEPARATOR);
+
+// Other absolute paths for directories
+define('DOCPATH', realpath($documents).DIRECTORY_SEPARATOR);
 
 // Clean up the configuration vars
 unset($application, $modules, $system);

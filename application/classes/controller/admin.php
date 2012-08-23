@@ -165,80 +165,88 @@ class Controller_Admin extends Controller {
       $model = ORM::factory('printjob');
       $form = Formo::form()
         ->orm('load', $model, array('site_id'))
-        ->add('import', 'file', array(
+        ->add('import[]', 'file', array(
           'label'    => 'File',
-          'required' => TRUE
+          'required' => TRUE,
+          'attr'  => array('multiple' => 'multiple')
         ))
         ->add('save', 'submit', 'Upload Print Job');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
-        $import = $form->import->val();
+        $barcode_success = 0;
+        $barcode_errors = 0;
 
-        $info = pathinfo($import['name']);
-        if (!array_filter($info)) Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
-        else {
+        $num_files = count(reset($_FILES['import']));
+        for ($j = 0; $j < $num_files; $j++) {
+          $import = array(
+            'name'     => $_FILES['import']['name'][$j],
+            'type'     => $_FILES['import']['type'][$j],
+            'tmp_name' => $_FILES['import']['tmp_name'][$j],
+            'error'    => $_FILES['import']['error'][$j],
+            'size'     => $_FILES['import']['size'][$j]
+          );
 
-          $array = file($import['tmp_name']);
+          $info = pathinfo($import['name']);
+          if (!array_filter($info)) Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
+          else {
 
-          // upload file
-          $file = ORM::factory('file');
-          $file->name = $import['name'];
-          $file->type = $import['type'];
-          $file->size = $import['size'];
-          $file->operation = 'A';
-          $file->operation_type = 'PJ';
-          $file->content_md5 = md5_file($import['tmp_name']);
+            $array = file($import['tmp_name']);
 
-          try {
-            $file->save();
-            Notify::msg($file->name.' successfully uploaded.', 'success', TRUE);
-          } catch (ORM_Validation_Exception $e) {
-            foreach ($e->errors('') as $err) Notify::msg($err, 'error');
-          } catch (Exception $e) {
-            Notify::msg('Sorry, print job file upload failed. Please try again.', 'error');
-          }
-
-          if ($file->id) {
-            // save printjob
-            $matches = array();
-            preg_match('/Print\sJob\:\s*(\d+).*/', $array[2], $matches);
-            $model->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
-            $model->number = $matches[1];
+            // upload file
+            $file = ORM::factory('file');
+            $file->name = $import['name'];
+            $file->type = $import['type'];
+            $file->size = $import['size'];
+            $file->operation = 'A';
+            $file->operation_type = 'PJ';
+            $file->content_md5 = md5_file($import['tmp_name']);
 
             try {
-              $model->save();
-              Notify::msg('Print job successfully saved.', 'success', TRUE);
+              $file->save();
+              Notify::msg($file->name.' print job successfully uploaded.', 'success', TRUE);
+            } catch (ORM_Validation_Exception $e) {
+              foreach ($e->errors('') as $err) Notify::msg($err, 'error');
             } catch (Exception $e) {
-              Notify::msg('Sorry, print job failed to be saved. Please try again.', 'error', TRUE);
+              Notify::msg('Sorry, print job upload failed. Please try again.', 'error');
             }
 
-            // prase barcodes
-            $barcode_success = 0;
-            $barcode_errors = 0;
+            if ($file->id) {
+              // save printjob
+              $matches = array();
+              preg_match('/Print\sJob\:\s*(\d+).*/', $array[2], $matches);
+              $model->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
+              $model->number = $matches[1];
 
-            $start = Model_Printjob::PARSE_START;
-            $count = count($array);
-            for ($i = $start; $i < ($count - 1); $i++) {
-              $line = $array[$i];
-              if (! $data = $model->parse_txt($line, $array)) continue;
-
-              $barcode = ORM::factory('barcode');
-              $barcode->printjob = $model;
-              $barcode->barcode = $data['barcode'];
               try {
-                $barcode->save();
-                $barcode_success++;
+                $model->save();
               } catch (Exception $e) {
-                $barcode_errors++;
+                Notify::msg('Sorry, print job failed to be saved. Please try again.', 'error', TRUE);
+              }
+
+              // prase barcodes
+              $start = Model_Printjob::PARSE_START;
+              $count = count($array);
+              for ($i = $start; $i < ($count - 1); $i++) {
+                $line = $array[$i];
+                if (! $data = $model->parse_txt($line, $array)) continue;
+
+                $barcode = ORM::factory('barcode');
+                $barcode->printjob = $model;
+                $barcode->barcode = $data['barcode'];
+                try {
+                  $barcode->save();
+                  $barcode_success++;
+                } catch (Exception $e) {
+                  $barcode_errors++;
+                }
               }
             }
-
-            if ($barcode_success) Notify::msg($barcode_success.' barcodes successfully parsed.', 'success', TRUE);
-            if ($barcode_error) Notify::msg($barcode_error.' barcodes failed to be parsed.', 'error', TRUE);
-
-            $this->request->redirect('admin/printjobs');
           }
         }
+        if ($barcode_success) Notify::msg($barcode_success.' barcodes successfully parsed.', 'success', TRUE);
+        if ($barcode_error) Notify::msg($barcode_error.' barcodes failed to be parsed.', 'error', TRUE);
+
+        $this->request->redirect('admin/printjobs');
       }
 
       $printjobs = ORM::factory('printjob')

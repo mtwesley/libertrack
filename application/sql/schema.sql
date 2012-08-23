@@ -62,7 +62,7 @@ create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value 
 
 create domain d_block_name as character varying(7) check (value ~ E'^[A-Z]{1,4}[0-9]{1,3}$');
 
-create domain d_status as character(1) check (value ~ E'^[PARD]$');
+create domain d_status as character(1) check (value ~ E'^[PARDU]$');
 
 create domain d_coc_status as character(1) check (value ~ E'^[PIHEZYALZ]$');
 
@@ -256,6 +256,7 @@ create table csv (
   values d_text_long,
   errors d_text_long,
   suggestions d_text_long,
+  duplicates d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
   status d_status default 'P' not null,

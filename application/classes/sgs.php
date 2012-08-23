@@ -14,12 +14,12 @@ class SGS {
     'index'           => 'Home',
 
     'import'          => 'Import',
-    'import/upload'   => 'Upload Document',
+    'import/upload'   => 'Upload Documents',
     'import/files'    => 'File Management',
     'import/data'     => 'Data Management',
 
     'export'          => 'Export',
-    'export/download' => 'Download Document',
+    'export/download' => 'Download Documents',
     'export/files'    => 'File Management',
     'export/data'     => 'Data Management',
 
@@ -66,7 +66,7 @@ class SGS {
     'matches'       => '":field" must be the same as ":param2"',
     'min_length'    => '":field" must be at least :param2 characters long',
     'max_length'    => '":field" must not exceed :param2 characters long',
-    'not_empty'     => '":field" must not be empty -- perhaps it needs to be configured',
+    'not_empty'     => '":field" must not be empty',
     'numeric'       => '":field" must be numeric',
     'phone'         => '":field" must be a phone number',
     'range'         => '":field" must be within the range of :param2 to :param3',
@@ -360,12 +360,12 @@ class SGS {
                 ->from($table)
                 ->offset($offset)
                 ->limit($limit)
-                ->order_by(DB::expr("similarity($match::text, '$search'::text)"));
+                ->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"));
             }
             else {
               $query = call_user_func_array(array('DB', 'select'), array_merge(array(array($table.'.id', 'id')), (array) $fields))
                 ->from($table)
-                ->where($match, 'LIKE', '%'.strtoupper($str).'%');
+                ->where(DB::expr("regexp_replace(upper($match::text), E'[^0-9A-Z]', '')"), 'LIKE', '%'.preg_replace('/[^0-9A-Z]/', '', strtoupper($str)).'%');
             }
 
             foreach ((array) $query_args as $_query_args) {
@@ -431,10 +431,7 @@ class SGS {
   {
     $table  = 'operators';
     $model  = 'operator';
-    $match  = array(
-      '__value' => 'tin',
-      '__cast'  => 'text'
-    );
+    $match  = 'tin';
     $fields = array(
       'tin'
     );
@@ -512,6 +509,14 @@ class SGS {
     $string = str_replace('_', ' ', $string);
     $string = preg_replace('/\b(\w)/e', 'strtoupper("$1")', $string, 1);
     return $string;
+  }
+
+  public static function cleanify($array)
+  {
+    foreach ($array as $key => $value) {
+      $value = trim($value);
+    }
+    return $array;
   }
 
   public static function render_classes($classes)

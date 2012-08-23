@@ -68,6 +68,7 @@ for ($i = $n7; $i <= $n8; $i++)
     display: block;
     float: left;
     border-right: 2px solid #fff;
+    cursor: pointer;
   }
 
   .pagination a {

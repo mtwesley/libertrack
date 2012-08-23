@@ -30,10 +30,15 @@ class Controller_Import extends Controller {
 
     if ($errors) {
       $suggestions = $form_model->make_suggestions($csv->values, $errors);
+      $duplicates  = $form_model->find_duplicates($csv->values, $errors);
 
+      $csv->errors      = self::cleanup_errors($errors);
       $csv->suggestions = $suggestions;
-      $csv->errors = self::cleanup_errors($errors);
-      $csv->status = 'R';
+      $csv->duplicates  = $duplicates;
+
+      if ($duplicates) $csv->status = 'U';
+      else $csv->status = 'R';
+
     } else {
       $csv->errors = NULL;
       $csv->suggestions = NULL;
@@ -57,24 +62,109 @@ class Controller_Import extends Controller {
     else Notify::msg('Unknown template format.', 'error');
   }
 
-  private function handle_file_list() {
-    $pagination = Pagination::factory(array(
-      'items_per_page' => 50,
-    ));
+  private function handle_file_list($id = NULL) {
+    if (!Request::$current->query('page')) Session::instance()->delete('pagination.files');
+    if ($id) {
+      Session::instance()->delete('pagination.csv');
 
-    $files = ORM::factory('file')
-      ->where('operation', '=', 'I')
-      ->order_by('timestamp', 'desc')
-      ->offset($pagination->offset)
-      ->limit($pagination->items_per_page)
-      ->find_all()
-      ->as_array();
+      $files = ORM::factory('file')
+        ->where('operation', '=', 'I')
+        ->and_where('id', '=', $id)
+        ->find_all()
+        ->as_array();
+    }
+    else {
+      $operator_ids = DB::select('id', 'name')
+        ->from('operators')
+        ->execute()
+        ->as_array('id', 'name');
 
-    if ($files) $content .= View::factory('files')
+      $site_ids = DB::select('id', 'name')
+        ->from('sites')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $block_ids = DB::select('id', 'name')
+        ->from('blocks')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $form = Formo::form(array('attr' => array('action' => URL::site('import/files'))))
+        ->add_group('form_type', 'select', SGS::$form_type, NULL, array(
+          'label' => 'Type',
+          'required' => TRUE
+        ))
+        ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'))
+        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
+        ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
+        ->add('search', 'submit', 'Search');
+
+      if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+        Session::instance()->delete('pagination.files');
+
+        $operation_type = $form->form_type->val();
+        $operator_id    = $form->operator_id->val();
+        $site_id        = $form->site_id->val();
+        $block_id       = $form->block_id->val();
+
+        $files = ORM::factory('file')
+          ->where('operation', '=', 'I')
+          ->and_where('operation_type', '=', $operation_type);
+
+        if ($operator_id) $files->and_where('operator_id', 'IN', (array) $operator_id);
+        if ($site_id)     $files->and_where('site_id', 'IN', (array) $site_id);
+        if ($block_id)    $files->and_where('block_id', 'IN', (array) $block_id);
+
+        Session::instance()->set('pagination.csv', array(
+          'form_type'   => $operation_type,
+          'operator_id' => $operator_id,
+          'site_id'     => $site_id,
+          'block_id'    => $block_id,
+        ));
+
+        $search = TRUE;
+      }
+      else {
+        if ($settings = Session::instance()->get('pagination.files')) {
+          $operation_type = $settings['form_type'];
+          $operator_id    = $settings['operator_id'];
+          $site_id        = $settings['site_id'];
+          $block_id       = $settings['block_id'];
+        }
+
+        $files = ORM::factory('file')
+          ->where('operation', '=', 'I');
+
+        if ($operation_type) $files->and_where('operation_type', '=', $operation_type);
+        if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
+        if ($site_id)        $files->and_where('site_id', 'IN', (array) $site_id);
+        if ($block_id)       $files->and_where('block_id', 'IN', (array) $block_id);
+      }
+
+      if ($files) {
+        $clone = clone($files);
+        $pagination = Pagination::factory(array(
+          'items_per_page' => 50,
+          'total_items' => $clone->find_all()->count()));
+
+        $files = $files
+          ->offset($pagination->offset)
+          ->limit($pagination->items_per_page)
+          ->find_all()
+          ->as_array();
+      }
+    }
+
+    if ($files) $table = View::factory('files')
+      ->set('classes', array('has-pagination'))
       ->set('mode', 'import')
       ->set('files', $files)
       ->render();
     else Notify::msg('No files found.');
+
+    if ($form) $content .= $form->render();
+    $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -141,14 +231,16 @@ class Controller_Import extends Controller {
       ->find_all()
       ->as_array();
 
-    $accepted = 0;
-    $rejected = 0;
-    $failure  = 0;
+    $accepted   = 0;
+    $rejected   = 0;
+    $duplicated = 0;
+    $failure    = 0;
 
     foreach ($pending as $csv) {
       $result = self::process_csv($csv);
       if     ($result == 'A') $accepted++;
       elseif ($result == 'R') $rejected++;
+      elseif ($result == 'U') $duplicated++;
       else    $failure++;
     }
 
@@ -175,6 +267,7 @@ class Controller_Import extends Controller {
     $result = self::process_csv($csv);
     if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
     elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
+    elseif ($result == 'U') Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE);
     else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
 
     $this->request->redirect('import/data/'.$id);
@@ -224,6 +317,7 @@ class Controller_Import extends Controller {
         $result = self::process_csv($csv);
         if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
         elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
+        elseif ($result == 'U') Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE);
         else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
       }
 
@@ -244,7 +338,7 @@ class Controller_Import extends Controller {
     $this->response->body($view);
   }
 
-  private function handle_csv_list($id = NULL, $form_type = NULL, $range = array()) {
+  private function handle_csv_list($id = NULL, $form_type = NULL) {
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.csv');
     if ($id) {
       Session::instance()->delete('pagination.csv');
@@ -273,9 +367,7 @@ class Controller_Import extends Controller {
         ->execute()
         ->as_array('id', 'name');
 
-      $form = Formo::form(array(
-        'attr' => array('action' => URL::site('import/data'))
-      ))
+      $form = Formo::form(array('attr' => array('action' => URL::site('import/data'))))
         ->add_group('form_type', 'select', SGS::$form_type, NULL, array(
           'label' => 'Data',
           'required' => TRUE
@@ -288,21 +380,9 @@ class Controller_Import extends Controller {
           'label'    => 'Status',
           'required' => TRUE
         ))
-        ->add_group('operator_id', 'select', $operator_ids, NULL, array(
-          'label' => 'Operator'
-        ))
-        ->add_group('site_id', 'select', $site_ids, NULL, array(
-          'label' => 'Site'
-        ))
-        ->add_group('block_id', 'select', $block_ids, NULL, array(
-          'label' => 'Block'
-        ))
-        ->add('from', 'input', array(
-          'label' => 'From'
-        ))
-        ->add('to', 'input', array(
-          'label' => 'To'
-        ))
+        ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'))
+        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
+        ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
         ->add('search', 'submit', 'Search');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
@@ -310,8 +390,6 @@ class Controller_Import extends Controller {
 
         $form_type = $form->form_type->val();
         $status    = $form->status->val();
-        $from      = $form->from->val();
-        $to        = $form->to->val();
 
         $operator_id = $form->operator_id->val();
         $site_id     = $form->site_id->val();
@@ -321,7 +399,6 @@ class Controller_Import extends Controller {
           ->where('operation', '=', 'I')
           ->and_where('form_type', '=', $form_type)
           ->and_where('status', 'IN', $status)
-          ->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to))
           ->order_by('timestamp', 'desc');
 
         if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
@@ -329,25 +406,26 @@ class Controller_Import extends Controller {
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
 
         Session::instance()->set('pagination.csv', array(
-          'form_type' => $form_type,
-          'status'    => $status,
-          'from'      => $from,
-          'to'        => $to
+          'form_type'   => $form_type,
+          'operator_id' => $operator_id,
+          'site_id'     => $site_id,
+          'block_id'    => $block_id,
+          'status'      => $status,
         ));
 
         $search = TRUE;
       }
       elseif ($settings = Session::instance()->get('pagination.csv')) {
-        $form_type = $settings['form_type'];
-        $status    = $settings['status'];
-        $from      = $settings['from'];
-        $to        = $settings['to'];
+        $form_type   = $settings['form_type'];
+        $status      = $settings['status'];
+        $operator_id = $settings['operator_id'];
+        $site_id     = $settings['site_id'];
+        $block_id    = $settings['block_id'];
 
         $csvs = ORM::factory('csv')
           ->where('operation', '=', 'I')
           ->and_where('form_type', '=', $form_type)
           ->and_where('status', 'IN', $status)
-          ->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to))
           ->order_by('timestamp', 'desc');
       }
 
@@ -389,96 +467,150 @@ class Controller_Import extends Controller {
   public function action_upload() {
     set_time_limit(0);
     $form = Formo::form()
-      ->add('import', 'file', array(
-        'label' => 'File'
+      ->add('import[]', 'file', array(
+        'label' => 'File',
+        'required' => TRUE,
+        'attr'  => array('multiple' => 'multiple')
       ))
       ->add('upload', 'submit', 'Upload');
 
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
-      $import = $form->import->val();
-      $info = pathinfo($import['name']);
-      $ext  = $info['extension'];
+      $csv_error   = 0;
+      $csv_success = 0;
+      $num_files = count(reset($_FILES['import']));
 
-      switch ($ext) {
-        case 'csv':  $reader = new PHPExcel_Reader_CSV; break;
-        case 'xls':  $reader = new PHPExcel_Reader_Excel5; break;
-        case 'xlsx': $reader = new PHPExcel_Reader_Excel2007; break;
-        default:
-          if (array_filter($info)) Notify::msg('Sorry, uploaded file not supported. Please try again. If you continue to receive this error, ensure that the uploaded file is a CSV or Excel document.', 'error');
-          else Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
-      }
+      for ($j = 0; $j < $num_files; $j++) {
+        $import = array(
+          'name'     => $_FILES['import']['name'][$j],
+          'type'     => $_FILES['import']['type'][$j],
+          'tmp_name' => $_FILES['import']['tmp_name'][$j],
+          'error'    => $_FILES['import']['error'][$j],
+          'size'     => $_FILES['import']['size'][$j]
+        );
 
-      if ($reader) {
-        try {
-          if (!$reader->canRead($import['tmp_name'])) {
-            $reader = PHPExcel_IOFactory::createReaderForFile($import['tmp_name']);
-          }
+        $info = pathinfo($import['name']);
+        $ext  = $info['extension'];
 
-          if ($reader instanceof PHPExcel_Reader_IReader) {
-            $excel = $reader->load($import['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, FALSE, TRUE, TRUE);
-          }
-        } catch (Exception $e) {
-          Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
+        switch ($ext) {
+          case 'csv':  $reader = new PHPExcel_Reader_CSV; break;
+          case 'xls':  $reader = new PHPExcel_Reader_Excel5; break;
+          case 'xlsx': $reader = new PHPExcel_Reader_Excel2007; break;
+          default:
+            if (array_filter($info)) Notify::msg('Sorry, uploaded file not supported. Please try again. If you continue to receive this error, ensure that the uploaded file is a CSV or Excel document.', 'error');
+            else Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
         }
 
-        if ($excel && ($form_type = self::detect_form_type($excel))) {
-
-          // upload file
-          $file = ORM::factory('file');
-          $file->name = $import['name'];
-          $file->type = $import['type'];
-          $file->size = $import['size'];
-          $file->operation      = 'I';
-          $file->operation_type = $form_type;
-          $file->content_md5    = md5_file($import['tmp_name']);
-
+        if ($reader) {
           try {
-            $file->save();
-            Notify::msg($file->name.' successfully uploaded.', 'success', TRUE);
-          } catch (ORM_Validation_Exception $e) {
-            foreach ($e->errors('') as $err) Notify::msg($err, 'error');
-          }
-
-          if ($file->id) {
-            // file has been saved
-            $csv_error   = 0;
-            $csv_succsss = 0;
-
-            // parse CSV
-            $form_model = ORM::factory($form_type);
-            $start = constant('Model_'.$form_type.'::PARSE_START');
-            $count = count($excel);
-            for ($i = $start; $i <= $count; $i++) {
-              $row = $excel[$i];
-              if ( ! $data = $form_model->parse_csv($row, $excel)) continue;
-
-              $item = reset($data);
-
-              // save CSV
-              $csv = ORM::factory('csv');
-              $csv->file_id     = $file->id;
-              $csv->operation   = 'I';
-              $csv->form_type   = $form_type;
-              $csv->values      = $data;
-              try {
-                $csv->save();
-                $csv_success++;
-              } catch (Exception $e) {
-                $csv_error++;
-              }
+            if (!$reader->canRead($import['tmp_name'])) {
+              $reader = PHPExcel_IOFactory::createReaderForFile($import['tmp_name']);
             }
 
-            if ($csv_success) Notify::msg($csv_success.' records successfully parsed.', 'success', TRUE);
-            if ($csv_error) Notify::msg($csv_error.' records failed to be parsed.', 'error', TRUE);
+            if ($reader instanceof PHPExcel_Reader_IReader) {
+              $excel = $reader->load($import['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, FALSE, TRUE, TRUE);
+            }
+          } catch (Exception $e) {
+            Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
+          }
 
-            Notify::msg('Next, click '.HTML::anchor('import/files/'.$file->id.'/process', 'process').
-                        ' to validate uploaded data and import it as form data or '.HTML::anchor('import/files/'.$file->id.'/review', 'review').
-                        ' to review uploaded data.', TRUE);
+          if ($excel && ($form_type = self::detect_form_type($excel))) {
 
-            $this->request->redirect('import/files');
+            // upload file
+            $file = ORM::factory('file');
+            $file->name = $import['name'];
+            $file->type = $import['type'];
+            $file->size = $import['size'];
+            $file->operation      = 'I';
+            $file->operation_type = $form_type;
+            $file->content_md5    = md5_file($import['tmp_name']);
+
+            try {
+              $file->save();
+              Notify::msg($file->name.' document successfully uploaded.', 'success', TRUE);
+            } catch (ORM_Validation_Exception $e) {
+              foreach ($e->errors('') as $err) Notify::msg($err, 'error');
+            }
+
+            if ($file->id) {
+              // parse CSV
+              $form_model = ORM::factory($form_type);
+              $start = constant('Model_'.$form_type.'::PARSE_START');
+              $count = count($excel);
+              for ($i = $start; $i <= $count; $i++) {
+                $row = $excel[$i];
+                if ( ! $data = $form_model->parse_csv($row, $excel)) continue;
+
+                // save CSV
+                $csv = ORM::factory('csv');
+                $csv->file_id     = $file->id;
+                $csv->operation   = 'I';
+                $csv->form_type   = $form_type;
+                $csv->values      = $data;
+                try {
+                  $csv->save();
+                  $csv_success++;
+                } catch (Exception $e) {
+                  $csv_error++;
+                }
+              }
+
+              try {
+                $file->operator_id = $csv->operator_id;
+                $file->site_id     = $csv->site_id;
+                $file->block_id    = $csv->block_id;
+                $file->save();
+
+                try {
+                  $tmpname = $import['tmp_name'];
+                  switch ($file->operation_type) {
+                    case 'SSF':
+                      if (!($file->operator->tin && $file->site->name and $file->operation_type)) throw new Exception();
+                      $newdir = DOCPATH.implode(DIRECTORY_SEPARATOR, array(
+                        $file->operator->tin,
+                        $file->site->name,
+                        $file->operation_type,
+                        $file->block->name
+                      ));
+                      $newname = $newdir.DIRECTORY_SEPARATOR.$file->site->name.'_SSF_'.$file->block->name.'.'.$ext;
+                      break;
+
+                    case 'TDF':
+                      if (!($file->operator->tin && $file->site->name and $file->operation_type)) throw new Exception();
+                      $newdir = DOCPATH.implode(DIRECTORY_SEPARATOR, array(
+                        $file->operator->tin,
+                        $file->site->name,
+                        $file->operation_type,
+                        $file->block->name
+                      ));
+                      $newname = $newdir.DIRECTORY_SEPARATOR.$file->site->name.'_TDF_'.$file->block->name.'_'.Date::formatted_time(SGS::date($csv->create_date), 'Y_m_d').'.'.$ext;
+                      break;
+
+                    case 'LDF':
+                      if (!($file->operator->tin && $file->site->name and $file->operation_type)) throw new Exception();
+                      $newdir = DOCPATH.implode(DIRECTORY_SEPARATOR, array(
+                        $file->operator->tin,
+                        $file->site->name,
+                        $file->operation_type
+                      ));
+                      $newname = $newdir.DIRECTORY_SEPARATOR.$file->site->name.'_LDF_'.Date::formatted_time(SGS::date($csv->create_date), 'Y_m_d').'.'.$ext;
+                      break;
+                  }
+                  if (!is_dir($newdir)) mkdir($newdir, 0777, TRUE);
+                  if (!(rename($tmpname, $newname) and chmod($newname, 0777))) throw new Exception();
+                } catch (Exception $e) {
+                  Notify::msg('Sorry, unable to store uploaded file', 'error');
+                }
+              } catch (Exception $e) {
+                Notify::msg('Sorry, unable to save file properties.', 'error');
+              }
+            }
           }
         }
       }
+      if ($csv_success) Notify::msg($csv_success.' records successfully parsed.', 'success', TRUE);
+      if ($csv_error) Notify::msg($csv_error.' records failed to be parsed.', 'error', TRUE);
+
+      $this->request->redirect('import/files');
     }
 
     $content .= $form->render();
