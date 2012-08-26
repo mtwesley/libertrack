@@ -84,6 +84,7 @@ for ($i = $n7; $i <= $n8; $i++)
   .pagination a:hover {}
 
   .pagination span.active {
+    background-color: #eee8df;
     font-weight: bold;
   }
 </style>

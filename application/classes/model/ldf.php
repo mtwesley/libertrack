@@ -103,10 +103,10 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('I'.$row, $this->volume);
     $excel->getActiveSheet()->SetCellValue('J'.$row, $this->action);
     $excel->getActiveSheet()->SetCellValue('K'.$row, $this->comment);
-//    $excel->getActiveSheet()->SetCellValue('L'.$count, $ldf->coc_status);
+//    $excel->getActiveSheet()->SetCellValue('L'.$count, $this->coc_status);
   }
 
-  public function export_headers($excel, $values, $headers = TRUE) {
+  public function export_headers($excel, $args, $headers = TRUE) {
     if ($headers) {
       $excel->getActiveSheet()->SetCellValue('C1', 'LOG DATA FORM');
       $excel->getActiveSheet()->SetCellValue('K1', 'SOP13-6'); // don't know
@@ -134,11 +134,64 @@ class Model_LDF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('G8', 'Min');
     }
 
-    $excel->getActiveSheet()->SetCellValue('B2', $this->site->name);
-    $excel->getActiveSheet()->SetCellValue('G2', $this->operator->name); // site holder name
-    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($values['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name);
+    $excel->getActiveSheet()->SetCellValue('G2', $this->operator->tin); // site holder name
+    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
     $excel->getActiveSheet()->SetCellValue('G3', ''); // form reference number ?
     $excel->getActiveSheet()->SetCellValue('B4', $this->operator->tin);
+    $excel->getActiveSheet()->SetCellValue('G4', ''); // log measurer
+    $excel->getActiveSheet()->SetCellValue('B5', ''); // date entered into CoCIS
+    $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
+  }
+
+  public function download_data($values, $excel, $row) {
+    $excel->getActiveSheet()->SetCellValue('A'.$row, $values['parent_barcode']);
+    $excel->getActiveSheet()->SetCellValue('B'.$row, $values['species_code']);
+    $excel->getActiveSheet()->SetCellValue('C'.$row, $values['barcode']);
+    $excel->getActiveSheet()->SetCellValue('D'.$row, $values['bottom_max']);
+    $excel->getActiveSheet()->SetCellValue('E'.$row, $values['bottom_min']);
+    $excel->getActiveSheet()->SetCellValue('F'.$row, $values['top_max']);
+    $excel->getActiveSheet()->SetCellValue('G'.$row, $values['top_min']);
+    $excel->getActiveSheet()->SetCellValue('H'.$row, $values['length']);
+    $excel->getActiveSheet()->SetCellValue('I'.$row, $values['volume']);
+    $excel->getActiveSheet()->SetCellValue('J'.$row, $values['action']);
+    $excel->getActiveSheet()->SetCellValue('K'.$row, $values['comment']);
+//    $excel->getActiveSheet()->SetCellValue('L'.$count, $values['coc_status']);
+  }
+
+  public function download_headers($values, $excel, $args, $headers = TRUE) {
+    if ($headers) {
+      $excel->getActiveSheet()->SetCellValue('C1', 'LOG DATA FORM');
+      $excel->getActiveSheet()->SetCellValue('K1', 'SOP13-6'); // don't know
+      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
+      $excel->getActiveSheet()->SetCellValue('F2', 'Site Holder Name:');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Date Registered:');
+      $excel->getActiveSheet()->SetCellValue('F3', 'Form Reference No.:');
+      $excel->getActiveSheet()->SetCellValue('A4', 'Site TIN:');
+      $excel->getActiveSheet()->SetCellValue('F4', 'Log Measurer:');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Date Entered in to CoCIS:');
+      $excel->getActiveSheet()->SetCellValue('F5', 'Entered By:');
+      $excel->getActiveSheet()->SetCellValue('A6', 'Original Log Barcode');
+      $excel->getActiveSheet()->SetCellValue('B6', 'Species Code');
+      $excel->getActiveSheet()->SetCellValue('C6', 'New Cross Cut Barcode');
+      $excel->getActiveSheet()->SetCellValue('D6', 'Diameter (cm underbark to the nearest cm)');
+      $excel->getActiveSheet()->SetCellValue('H6', 'Length (m) to the nearest 0.1m');
+      $excel->getActiveSheet()->SetCellValue('I6', 'Volume declared (m3)');
+      $excel->getActiveSheet()->SetCellValue('J6', 'Action');
+      $excel->getActiveSheet()->SetCellValue('K6', 'Comment');
+      $excel->getActiveSheet()->SetCellValue('D7', 'Butt end');
+      $excel->getActiveSheet()->SetCellValue('F7', 'Top');
+      $excel->getActiveSheet()->SetCellValue('D8', 'Max');
+      $excel->getActiveSheet()->SetCellValue('E8', 'Min');
+      $excel->getActiveSheet()->SetCellValue('F8', 'Max');
+      $excel->getActiveSheet()->SetCellValue('G8', 'Min');
+    }
+
+    $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name']);
+    $excel->getActiveSheet()->SetCellValue('G2', $values['operator_tin']); // site holder name
+    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G3', ''); // form reference number ?
+    $excel->getActiveSheet()->SetCellValue('B4', $values['operator_tin']);
     $excel->getActiveSheet()->SetCellValue('G4', ''); // log measurer
     $excel->getActiveSheet()->SetCellValue('B5', ''); // date entered into CoCIS
     $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
@@ -157,6 +210,21 @@ class Model_LDF extends SGS_Form_ORM {
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
           break;
+        case 'operator_tin':
+          $args = array(
+            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
+          );
+          $suggest = SGS::suggest_operator($values[$field], $args, 'tin');
+          break;
+        case 'site_name':
+          $args = array(
+            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
+          );
+          $suggest = SGS::suggest_site($values[$field], $args, 'name');
+          break;
+        case 'species_code':
+          $suggest = SGS::suggest_species($values[$field], array(), 'code');
+          break;
       }
       $suggestions[$field] = $suggest;
     }
@@ -172,17 +240,17 @@ class Model_LDF extends SGS_Form_ORM {
       switch ($field) {
         case 'barcode':
         case 'parent_barcode':
-          $duplicate = DB::select('id')
+          $query = DB::select('id')
             ->from($this->_table_name)
-            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field]))
-            ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
-            ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
-            ->and_where('block_id', '=', SGS::lookup_block($values['site_name'], $values['block_name']))
-            ->execute()
-            ->get('id');
+            ->where($field.'_id', '=', $val = SGS::lookup_barcode($values[$field]) ? $val : NULL);
+
+          if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
+          if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
+          if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
+
+          if ($duplicate = $query->execute()->get('id')) $duplicates[$field] = $duplicate;
           break;
       }
-      if ($duplicate) $duplicates[$field] = $duplicate;
     }
 
     return $duplicates;

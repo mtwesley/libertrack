@@ -1,6 +1,6 @@
 <style type="text/css">
   .details-errors {
-    margin-bottom: 6px;
+    margin: 7px 0 3px;
   }
   .details-errors ul {
     margin: 0;
@@ -8,7 +8,7 @@
     list-style-type: none;
   }
   .details-errors ul li {
-    margin: 6px 6px 0 0;
+    margin: 6px 6px 6px 0;
     padding: 3px 6px;
     display: block;
     float: left;
@@ -26,5 +26,5 @@
     <?php endforeach; ?>
   </ul>
 </div>
-<div class="clear details-errors"></div>
+<div class="clear"></div>
 <?php endif; ?>

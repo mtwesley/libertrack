@@ -1,3 +1,8 @@
+<?php
+
+$classes[] = 'data';
+
+?>
 <style type="text/css">
   .pending {
     color: #aa7700;
@@ -15,13 +20,16 @@
     color: #0066cc;
   }
 </style>
-<table class="data">
+<table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
+    <th></th>
+    <th>Type</th>
     <th>Name</th>
     <th>Size</th>
-    <th>Operation</th>
-    <th>Content</th>
     <th>Uploaded</th>
+    <th>Operator</th>
+    <th>Site</th>
+    <th>Block</th>
 
     <?php if ($mode == 'import'): ?>
     <th>Statistics</th>
@@ -31,11 +39,30 @@
   </tr>
   <?php foreach ($files as $file): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
-    <td><?php echo $file->name; ?></td>
+    <td>
+      <?php
+        $info = pathinfo($file->name);
+        switch ($info['extension']):
+          case 'xls':
+          case 'xlsx':
+            echo HTML::image('images/xls.png', array('class' => 'xls', 'title' => SGS::$file_type['xls'])); break;
+          case 'csv':
+            echo HTML::image('images/csv.png', array('class' => 'csv', 'title' => SGS::$file_type['csv'])); break;
+        endswitch;
+      ?>
+    </td>
+    <td><?php echo $file->operation_type; ?></td>
+    <td>
+      <?php
+        if ($file->path) echo HTML::anchor($file->path, $file->name, array('title' => 'Download', 'class' => 'download-link'));
+        else echo $file->name;
+      ?>
+    </td>
     <td><?php echo Num::unbytes($file->size, 0); ?></td>
-    <td><?php echo $operation = SGS::value($file->operation, 'operation', 'U'); ?></td>
-    <td><?php echo SGS::value($file->operation_type, 'operation_type', 'UNKWN'); ?></td>
     <td><?php echo SGS::datetime($file->timestamp); ?></td>
+    <td><?php echo $file->operator->name; ?></td>
+    <td><?php echo $file->site->name; ?></td>
+    <td><?php echo $file->block->name; ?></td>
 
     <?php if ($mode == 'import'): ?>
     <?php
@@ -46,10 +73,10 @@
 
       $_total = $_p + $_a + $_r + $_u;
 
-      $_pp = $_total ? round(($_p * 100 / $_total), 0) : 0;
-      $_ap = $_total ? round(($_a * 100 / $_total), 0) : 0;
-      $_rp = $_total ? round(($_r * 100 / $_total), 0) : 0;
-      $_up = $_total ? round(($_u * 100 / $_total), 0) : 0;
+      $_pp = $_total ? floor($_p * 100 / $_total) : 0;
+      $_ap = $_total ? floor($_a * 100 / $_total) : 0;
+      $_rp = $_total ? floor($_r * 100 / $_total) : 0;
+      $_up = $_total ? floor($_u * 100 / $_total) : 0;
     ?>
     <td>
       <span class="pending"><?php echo $_p; ?> Pending (<?php echo $_pp; ?>%)</span> |
@@ -60,9 +87,36 @@
     <?php endif; ?>
 
     <td class="links">
-      <?php if (in_array($file->operation, array('I','E'))) echo HTML::anchor(strtolower($operation).'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
-      <?php if ($mode == 'import') echo HTML::anchor('import/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
+      <?php if (in_array($file->operation, array('I','E'))) echo HTML::anchor(strtolower(SGS::value($file->operation, 'operation', 'U')).'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
+      <?php if ($mode == 'import'): ?>
+      <?php echo HTML::anchor('import/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
+      <span class="link toggle-download-form">Download</span>
+      <?php endif; ?>
     </td>
   </tr>
+  <?php if ($mode == 'import'): ?>
+  <tr class="form download-form <?php echo $odd ? 'odd' : 'even'; ?>">
+    <td colspan="<?php echo ($mode == 'import') ? 11 : 10; ?>">
+      <?php
+        echo Formo::form(array('attr' => array('action' => '/import/files/'.$file->id.'/download')))
+          ->add_group('status', 'checkboxes', SGS::$status, array_keys(SGS::$status), array(
+            'label'    => 'Status',
+            'required' => TRUE,
+          ))
+          ->add('name', 'input', substr($file->name, 0, strrpos($file->name, '.')), array('label' => 'Name'))
+          ->add('type', 'radios', array(
+            'options' => array(
+              'xls' => SGS::$file_type['xls'],
+              'csv' => SGS::$file_type['csv']
+            ),
+            'label'    => 'Format',
+            'required' => TRUE,
+            'value'    => 'xls'
+          ))
+          ->add('download', 'submit', array('label' => 'Download'));
+      ?>
+    </td>
+  </tr>
+  <?php endif; ?>
   <?php endforeach; ?>
 </table>

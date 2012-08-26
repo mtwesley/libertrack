@@ -114,15 +114,17 @@ class Controller_Export extends Controller {
       ->add('from', 'input', array('label' => 'From'))
       ->add('to', 'input', array('label' => 'To'))
       ->add('block_id', 'select', array(
-        'options' => $block_options,
-        'label'   => 'Block'
+        'options'  => $block_options,
+        'label'    => 'Block',
+        'required' => TRUE
       ))
       ->add('type', 'radios', array(
         'options' => array(
-          'xls' => 'Excel Spreadsheet',
-          'csv' => 'CSV Document'
+          'xls' => SGS::$file_type['xls'],
+          'csv' => SGS::$file_type['csv']
         ),
-        'label' => 'Document Type'
+        'label'    => 'Format',
+        'required' => TRUE
       ))
       ->add('download', 'submit', array('label' => 'Download'));
 
@@ -208,15 +210,17 @@ class Controller_Export extends Controller {
       ->add('from', 'input', array('label' => 'From'))
       ->add('to', 'input', array('label' => 'To'))
       ->add('block_id', 'select', array(
-        'options' => $block_options,
-        'label'   => 'Block'
+        'options'  => $block_options,
+        'label'    => 'Block',
+        'required' => TRUE
       ))
       ->add('type', 'radios', array(
         'options' => array(
-          'xls' => 'Excel Spreadsheet',
-          'csv' => 'CSV Document'
+          'xls' => SGS::$file_type['xls'],
+          'csv' => SGS::$file_type['csv']
         ),
-        'label' => 'Document Type'
+        'label'    => 'Format',
+        'required' => TRUE
       ))
       ->add('download', 'submit', array('label' => 'Download'));
 
@@ -298,15 +302,17 @@ class Controller_Export extends Controller {
       ->add('from', 'input', array('label' => 'From'))
       ->add('to', 'input', array('label' => 'To'))
       ->add('site_id', 'select', array(
-        'options' => $site_options,
-        'label'   => 'Site'
+        'options'  => $site_options,
+        'label'    => 'Site',
+        'required' => TRUE
       ))
       ->add('type', 'radios', array(
         'options' => array(
-          'xls' => 'Excel Spreadsheet',
-          'csv' => 'CSV Document'
+          'xls' => SGS::$file_type['xls'],
+          'csv' => SGS::$file_type['csv']
         ),
-        'label' => 'Document Type'
+        'label'    => 'Format',
+        'required' => TRUE
       ))
       ->add('download', 'submit', array('label' => 'Download'));
 

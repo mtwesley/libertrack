@@ -8,11 +8,24 @@
 
 }
 
+.toggle-form {
+  margin: 10px 0;
+  padding: 6px 6px;
+  border-top: 2px solid #ffb685;
+  background-color: #ffd6ba;
+  font-weight: bold;
+  cursor: pointer;
+}
+.toggle-form:hover {
+  text-decoration: underline;
+}
+
 #content form {
   margin: 10px 0;
   padding: 2px 6px;
   border-top: 2px solid #ffb685;
   background-color: #ffd6ba;
+  clear: both;
 }
 
 #content form span.label {
@@ -50,12 +63,12 @@
 }
 
 #content form p.submit {
-  margin-left: 730px;
+  margin-left: 680px;
   padding: 0;
   text-align: left;
 }
 #content form p.submit input {
-  width: 150px;
+  width: 200px;
   cursor: pointer;
 }
 
@@ -91,6 +104,66 @@
   border-top: 2px solid #d2bfa3;
 }
 
+#content table.data form {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+}
+
+#content table.data form span.label {}
+
+#content table.data form span.field {}
+
+#content table.data form p {
+  margin: 6px auto;
+  padding: 0 300px;
+  clear: both;
+  position: relative;
+}
+
+#content table.data form p.input input,
+#content table.data form p.submit input,
+#content table.data form p.select select {}
+
+#content table.data form p.input {}
+#content table.data form p.input input {
+  background-color: #eae5de;
+}
+
+#content table.data form p.submit {
+  margin-left: 680px;
+  padding: 0;
+  text-align: left;
+}
+#content table.data form p.submit input {
+  width: 200px;
+  cursor: pointer;
+}
+
+#content table.data form p.select {}
+#content table.data form p.select select {}
+
+#content table.data form p span.error-message {
+  margin-left: 590px;
+  padding: 5px 8px;
+  display: block;
+  position: absolute;
+  top: -1px;
+  color: #fafafa;
+  background-color: #323232;
+}
+
+#content table.data form p span.arrow {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  left: -16px;
+  top: 2px;
+  background-image: url('/images/err_msg_arrow.gif');
+  background-repeat: no-repeat;
+}
+
 #content table.has-pagination {
   margin-bottom: 2px;
 }
@@ -109,7 +182,8 @@
   background-color: #eee8df;
 }
 
-#content table.data tr.details {
+#content table.data tr.details,
+#content table.data tr.download-form {
   display: none;
 }
 
@@ -123,19 +197,16 @@
   text-align: right;
 }
 
-#content table.data tr.details td {
-  padding: 6px;
-}
-
-#content table.data th {
-}
+#content table.data th {}
 
 #content table.data td {
   border-top: 1px dotted #d2bfa3;
   white-space: nowrap;
 }
 
-#content table.data tr.details td {
+#content table.data tr.details td,
+#content table.data tr.download-form td {
+  padding: 6px;
   border-top: 1px dotted #e6dfd4;
 }
 
@@ -154,4 +225,12 @@
 #content table.data a.link:hover,
 #content table.data span.link:hover {
   background-color: #564832;
+}
+
+#content table.data a.download-link {
+  color: #333;
+  text-decoration: none;
+}
+#content table.data a.download-link:hover {
+  text-decoration: underline;
 }

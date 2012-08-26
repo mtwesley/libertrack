@@ -10,17 +10,18 @@ $path = array_filter(explode('/', $uri));
 <html lang="en">
   <head>
     <title>SGS &middot; LiberFor | Documents</title>
+    <link rel="shortcut icon" href="/favicon.png" />
     <link type="text/css" href="/css/layout.css" rel="stylesheet" />
     <link type="text/css" href="/css/style.css" rel="stylesheet" />
     <link type="text/css" href="/css/effects.css" rel="stylesheet" />
     <script type="text/javascript" src="/js/jquery-1.8.0.min.js"></script>
     <script type="text/javascript" src="/js/jquery-ui-1.8.23.min.js"></script>
-    <script type="text/javascript" src="/js/effects.js"></script>
+   <!--  <script type="text/javascript" src="/js/effects.js"></script> -->
     <style type="text/css">
       body {
-          font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
-          font-size: 11px;
-          color: #333;
+        font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
+        font-size: 11px;
+        color: #333;
       }
 
       #container a, #container a:visited {
@@ -28,7 +29,7 @@ $path = array_filter(explode('/', $uri));
         color: #333;
       }
       #container a:hover {
-        background: #ddd;
+        text-decoration: underline;
       }
 
       img {
@@ -45,33 +46,37 @@ $path = array_filter(explode('/', $uri));
         border-collapse: collapse;
       }
 
-      tr, td, th {
+      tr {
+        text-align: left;
+      }
+
+      th {
+        background-color: #cfdfad;
+      }
+
+      td {
+        background-color: #eff1e1;
+      }
+
+      td, th {
         padding: 4px 6px;
         text-align: left;
       }
 
       td a, th a {
-        display: block;
-        height: 100%;
         margin: 0;
         padding: 0;
+        display: block;
+        height: 100%;
       }
 
-      tr:hover, th:hover {
-        background: #dddddd;
-      }
-
-      th {
-        background: #f3f3f3;
-        text-align: left;
-      }
-
-      th a {
-        color: #333333;
+      th a, th a:hover {
+        text-decoration: none;
       }
 
       .dirlink {
         font-weight: bold;
+        text-transform: capitalize;
       }
 
       .row_header .col_icon {
@@ -83,26 +88,19 @@ $path = array_filter(explode('/', $uri));
         width: 24px;
       }
 
-      .col_name {
-        padding-left: 5px;
-        width: 350px;
-      }
+      .col_name {}
 
       .col_date {
-        padding-right: 5px;
         display: none;
       }
 
-      .row_header .col_size {
-        padding-right: 5px;
-      }
+      .row_header .col_size {}
 
       .row_parentdir {
         display: none;
       }
 
       .col_size {
-        padding-right: 5px;
         display: none;
       }
 
@@ -169,11 +167,12 @@ $path = array_filter(explode('/', $uri));
           container.style.display = 'block';
       }
 
-      if (window['addEventListener']) {
-          window.addEventListener("load", init, false);
-      } else if (window['attachEvent']) {
-          window.attachEvent("onload", init);
-      }
+      $(function() {
+        init();
+        $(".dirlink").each(function() {
+          $(this).text($(this).text().replace(/\/$/, ''));
+        });
+      });
     </script>
   </head>
   <body>
@@ -241,7 +240,7 @@ $path = array_filter(explode('/', $uri));
                       LiberFor
                     </span>
                       <span class="divider"> | </span>
-                    <span class="sub">File Management</span>
+                    <span class="sub">Documents</span>
                       </a>
                   </div>
                 </div>

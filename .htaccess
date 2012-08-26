@@ -14,7 +14,7 @@ ReadmeName /indices/footer.php
 DefaultIcon /indices/icons/text.png
 
 AddIcon /indices/icons/blank.gif        ^^BLANKICON^^
-AddIcon /indices/icons/dir.png          ^^DIRECTORY^^
+AddIcon /indices/icons/folder.png       ^^DIRECTORY^^
 
 AddIcon /indices/icons/back.png         ..
 AddIcon /indices/icons/comp.png         .comp
@@ -32,6 +32,11 @@ AddIcon /indices/icons/ps.png           .ps
 AddIcon /indices/icons/sound.png        .mp3 .wav .m4a
 AddIcon /indices/icons/text.png         .csv .txt .text .html .htm
 AddIcon /indices/icons/xls.png          .xls
+
+AddType application/octet-stream .csv
+AddType application/octet-stream .xls
+AddType application/octet-stream .xlsx
+AddType application/octet-stream .pdf
 
 # Turn on URL rewriting
 RewriteEngine On

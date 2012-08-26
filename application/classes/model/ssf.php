@@ -104,7 +104,7 @@ class Model_SSF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('J'.$row, $this->fda_remarks);
   }
 
-  public function export_headers($excel, $values, $headers = TRUE) {
+  public function export_headers($excel, $args, $headers = TRUE) {
     if ($headers) {
       $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
       $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
@@ -138,9 +138,70 @@ class Model_SSF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('L12', "Barcode Check");
     }
 
-    $excel->getActiveSheet()->SetCellValue('B2', $this->site->name.'/'.$this->block->name);
+    $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name.'/'.$this->block->name);
     $excel->getActiveSheet()->SetCellValue('H2', $this->operator->tin);
-    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($values['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
+    $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
+    $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
+    $excel->getActiveSheet()->SetCellValue('B7', ''); // north/south from previous
+    $excel->getActiveSheet()->SetCellValue('B8', ''); // west from previous
+    $excel->getActiveSheet()->SetCellValue('B9', ''); // date entered
+    $excel->getActiveSheet()->SetCellValue('H9', ''); // entered by
+    $excel->getActiveSheet()->SetCellValue('B10', ''); // date checked
+    $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
+  }
+
+  public function download_data($values, $excel, $row) {
+    $excel->getActiveSheet()->SetCellValue('A'.$row, $values['barcode']);
+    $excel->getActiveSheet()->SetCellValue('B'.$row, $values['tree_map_number']);
+    $excel->getActiveSheet()->SetCellValue('C'.$row, $values['survey_line']);
+    $excel->getActiveSheet()->SetCellValue('D'.$row, $values['cell_number']);
+    $excel->getActiveSheet()->SetCellValue('E'.$row, $values['species_code']);
+    $excel->getActiveSheet()->SetCellValue('F'.$row, $values['diameter']);
+    $excel->getActiveSheet()->SetCellValue('G'.$row, $values['height']);
+    $excel->getActiveSheet()->SetCellValue('H'.$row, $values['is_requested']);
+    $excel->getActiveSheet()->SetCellValue('I'.$row, $values['is_fda_approved']);
+    $excel->getActiveSheet()->SetCellValue('J'.$row, $values['fda_remarks']);
+  }
+
+  public function download_headers($values, $excel, $args, $headers = TRUE) {
+    if ($headers) {
+      $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
+      $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
+      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
+      $excel->getActiveSheet()->SetCellValue('G2', 'Holder TIN:');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Date Surveyed:');
+      $excel->getActiveSheet()->SetCellValue('G3', 'Enumerator:');
+      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 corners of the block map:');
+      $excel->getActiveSheet()->SetCellValue('E4', 'Easting');
+      $excel->getActiveSheet()->SetCellValue('G4', 'Northing');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter  0 meter)');
+      $excel->getActiveSheet()->SetCellValue('A6', 'East from origin');
+      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from previous');
+      $excel->getActiveSheet()->SetCellValue('A8', 'West from previous');
+      $excel->getActiveSheet()->SetCellValue('A9', 'Date entered');
+      $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
+      $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
+      $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
+      $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
+      $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
+      $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
+      $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
+      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter Class Number (cm)');
+      $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
+      $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
+      $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
+      $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
+      $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
+      $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
+      $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
+      $excel->getActiveSheet()->SetCellValue('L12', "Barcode Check");
+    }
+
+    $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name'].'/'.$values['block_name']);
+    $excel->getActiveSheet()->SetCellValue('H2', $values['operator_tin']);
+    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
     $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
     $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
     $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
@@ -165,6 +226,21 @@ class Model_SSF extends SGS_Form_ORM {
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
           break;
+        case 'operator_tin':
+          $args = array(
+            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
+          );
+          $suggest = SGS::suggest_operator($values[$field], $args, 'tin');
+          break;
+        case 'site_name':
+          $args = array(
+            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
+          );
+          $suggest = SGS::suggest_site($values[$field], $args, 'name');
+          break;
+        case 'species_code':
+          $suggest = SGS::suggest_species($values[$field], array(), 'code');
+          break;
       }
       if ($suggest) $suggestions[$field] = $suggest;
     }
@@ -179,34 +255,32 @@ class Model_SSF extends SGS_Form_ORM {
       $duplicate = NULL;
       switch ($field) {
         case 'barcode':
-          $duplicate = DB::select('id')
+          $query = DB::select('id')
             ->from($this->_table_name)
-            ->where('barcode_id', '=', SGS::lookup_barcode($values[$field]))
-            ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
-            ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
-            ->and_where('block_id', '=', SGS::lookup_block($values['site_name'], $values['block_name']))
-            ->execute()
-            ->get('id');
+            ->where($field.'_id', '=', $val = SGS::lookup_barcode($values[$field]) ? $val : NULL);
+
+          if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
+          if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
+          if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
+          $duplicate = $query->execute()->get('id');
           break;
       }
       if ($duplicate) $duplicates[$field] = $duplicate;
     }
 
     // everything else
-    $id = DB::select('id')
+    $query = DB::select('id')
       ->from($this->_table_name)
       ->where('survey_line', '=', $values['survey_line'])
-      ->and_where('cell_number', '=', $values['cell_number'])
-      ->and_where('tree_map_number', '=', $values['tree_map_number'])
-      ->and_where('species_code', '=', $values['species_code'])
-      ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
-      ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
-      ->and_where('block_id', '=', SGS::lookup_block($values['site_name'], $values['block_name']))
-      ->execute()
-      ->get('id');
+      ->and_where('cell_number', '=', (int) $values['cell_number'])
+      ->and_where('tree_map_number', '=', (int) $values['tree_map_number']);
 
-    if ($id) $duplicates[] = $id;
+    if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
+    if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
+    if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
+    if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
 
+    if ($duplicate = $query->execute()->get('id')) $duplicates[] = $duplicate;
     return $duplicates;
   }
 
@@ -233,7 +307,8 @@ class Model_SSF extends SGS_Form_ORM {
       'cell_number'     => array(array('not_empty'),
                                  array('is_positive_int')),
       'tree_map_number' => array(array('not_empty'),
-                                 array('is_positive_int')),
+                                 array('is_positive_int'),
+                                 array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'diameter'        => array(array('not_empty'),
                                  array('is_measurement_int')),
       'height'          => array(array('not_empty'),

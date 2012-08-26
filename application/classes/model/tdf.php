@@ -121,39 +121,94 @@ class Model_TDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('M'.$row, $this->comment);
   }
 
-  public function export_headers($excel, $values, $headers = TRUE) {
+  public function export_headers($excel, $args, $headers = TRUE) {
     if ($headers) {
-    $excel->getActiveSheet()->SetCellValue('C1', 'Tree Felling & Stump Registration');
-    $excel->getActiveSheet()->SetCellValue('K1', 'SOP10-5'); // don't know
-    $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
-    $excel->getActiveSheet()->SetCellValue('F2', 'Holder TIN:');
-    $excel->getActiveSheet()->SetCellValue('A3', 'Date Registered:');
-    $excel->getActiveSheet()->SetCellValue('F3', 'Log Measurer:');
-    $excel->getActiveSheet()->SetCellValue('F4', 'Signed:');
-    $excel->getActiveSheet()->SetCellValue('A5', 'Date Entered in to CoCIS:');
-    $excel->getActiveSheet()->SetCellValue('F5', 'Entered By:');
-    $excel->getActiveSheet()->SetCellValue('A6', 'Block Map Cell');
-    $excel->getActiveSheet()->SetCellValue('C6', 'Tree Barcode');
-    $excel->getActiveSheet()->SetCellValue('D6', 'Species Code');
-    $excel->getActiveSheet()->SetCellValue('E6', 'Felled Tree Barcode');
-    $excel->getActiveSheet()->SetCellValue('F6', 'Diameter (cm underbark to the nearest cm)');
-    $excel->getActiveSheet()->SetCellValue('J6', 'Length (m) to the nearest 0.1m');
-    $excel->getActiveSheet()->SetCellValue('K6', 'Stump Barcode');
-    $excel->getActiveSheet()->SetCellValue('L6', 'Action');
-    $excel->getActiveSheet()->SetCellValue('M6', 'Comment');
-    $excel->getActiveSheet()->SetCellValue('F7', 'Butt end');
-    $excel->getActiveSheet()->SetCellValue('H7', 'Top');
-    $excel->getActiveSheet()->SetCellValue('A8', 'Survey Line');
-    $excel->getActiveSheet()->SetCellValue('B8', 'Distance Number');
-    $excel->getActiveSheet()->SetCellValue('F8', 'Max');
-    $excel->getActiveSheet()->SetCellValue('G8', 'Min');
-    $excel->getActiveSheet()->SetCellValue('H8', 'Max');
-    $excel->getActiveSheet()->SetCellValue('I8', 'Min');
+      $excel->getActiveSheet()->SetCellValue('C1', 'Tree Felling & Stump Registration');
+      $excel->getActiveSheet()->SetCellValue('K1', 'SOP10-5'); // don't know
+      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
+      $excel->getActiveSheet()->SetCellValue('F2', 'Holder TIN:');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Date Registered:');
+      $excel->getActiveSheet()->SetCellValue('F3', 'Log Measurer:');
+      $excel->getActiveSheet()->SetCellValue('F4', 'Signed:');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Date Entered in to CoCIS:');
+      $excel->getActiveSheet()->SetCellValue('F5', 'Entered By:');
+      $excel->getActiveSheet()->SetCellValue('A6', 'Block Map Cell');
+      $excel->getActiveSheet()->SetCellValue('C6', 'Tree Barcode');
+      $excel->getActiveSheet()->SetCellValue('D6', 'Species Code');
+      $excel->getActiveSheet()->SetCellValue('E6', 'Felled Tree Barcode');
+      $excel->getActiveSheet()->SetCellValue('F6', 'Diameter (cm underbark to the nearest cm)');
+      $excel->getActiveSheet()->SetCellValue('J6', 'Length (m) to the nearest 0.1m');
+      $excel->getActiveSheet()->SetCellValue('K6', 'Stump Barcode');
+      $excel->getActiveSheet()->SetCellValue('L6', 'Action');
+      $excel->getActiveSheet()->SetCellValue('M6', 'Comment');
+      $excel->getActiveSheet()->SetCellValue('F7', 'Butt end');
+      $excel->getActiveSheet()->SetCellValue('H7', 'Top');
+      $excel->getActiveSheet()->SetCellValue('A8', 'Survey Line');
+      $excel->getActiveSheet()->SetCellValue('B8', 'Distance Number');
+      $excel->getActiveSheet()->SetCellValue('F8', 'Max');
+      $excel->getActiveSheet()->SetCellValue('G8', 'Min');
+      $excel->getActiveSheet()->SetCellValue('H8', 'Max');
+      $excel->getActiveSheet()->SetCellValue('I8', 'Min');
     }
 
-    $excel->getActiveSheet()->SetCellValue('B2', $this->site->name);
-    $excel->getActiveSheet()->SetCellValue('G2', $operator->tin);
-    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($values['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name);
+    $excel->getActiveSheet()->SetCellValue('G2', $this->operator->tin);
+    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G3', ''); // log measurer
+    $excel->getActiveSheet()->SetCellValue('G4', ''); // signed
+    $excel->getActiveSheet()->SetCellValue('B5', ''); // date entered into CoCIS
+    $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
+  }
+
+  public function download_data($values, $excel, $row) {
+    $excel->getActiveSheet()->SetCellValue('A'.$row, $values['survey_line']);
+    $excel->getActiveSheet()->SetCellValue('B'.$row, $values['cell_number']);
+    $excel->getActiveSheet()->SetCellValue('C'.$row, $values['tree_barcode']);
+    $excel->getActiveSheet()->SetCellValue('D'.$row, $values['species_code']);
+    $excel->getActiveSheet()->SetCellValue('E'.$row, $values['barcode']);
+    $excel->getActiveSheet()->SetCellValue('F'.$row, $values['bottom_max']);
+    $excel->getActiveSheet()->SetCellValue('G'.$row, $values['bottom_min']);
+    $excel->getActiveSheet()->SetCellValue('H'.$row, $values['top_max']);
+    $excel->getActiveSheet()->SetCellValue('I'.$row, $values['top_min']);
+    $excel->getActiveSheet()->SetCellValue('J'.$row, $values['length']);
+    $excel->getActiveSheet()->SetCellValue('K'.$row, $values['stump_barcode']);
+    $excel->getActiveSheet()->SetCellValue('L'.$row, $values['action']);
+    $excel->getActiveSheet()->SetCellValue('M'.$row, $values['comment']);
+  }
+
+  public function download_headers($values, $excel, $args, $headers = TRUE) {
+    if ($headers) {
+      $excel->getActiveSheet()->SetCellValue('C1', 'Tree Felling & Stump Registration');
+      $excel->getActiveSheet()->SetCellValue('K1', 'SOP10-5'); // don't know
+      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
+      $excel->getActiveSheet()->SetCellValue('F2', 'Holder TIN:');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Date Registered:');
+      $excel->getActiveSheet()->SetCellValue('F3', 'Log Measurer:');
+      $excel->getActiveSheet()->SetCellValue('F4', 'Signed:');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Date Entered in to CoCIS:');
+      $excel->getActiveSheet()->SetCellValue('F5', 'Entered By:');
+      $excel->getActiveSheet()->SetCellValue('A6', 'Block Map Cell');
+      $excel->getActiveSheet()->SetCellValue('C6', 'Tree Barcode');
+      $excel->getActiveSheet()->SetCellValue('D6', 'Species Code');
+      $excel->getActiveSheet()->SetCellValue('E6', 'Felled Tree Barcode');
+      $excel->getActiveSheet()->SetCellValue('F6', 'Diameter (cm underbark to the nearest cm)');
+      $excel->getActiveSheet()->SetCellValue('J6', 'Length (m) to the nearest 0.1m');
+      $excel->getActiveSheet()->SetCellValue('K6', 'Stump Barcode');
+      $excel->getActiveSheet()->SetCellValue('L6', 'Action');
+      $excel->getActiveSheet()->SetCellValue('M6', 'Comment');
+      $excel->getActiveSheet()->SetCellValue('F7', 'Butt end');
+      $excel->getActiveSheet()->SetCellValue('H7', 'Top');
+      $excel->getActiveSheet()->SetCellValue('A8', 'Survey Line');
+      $excel->getActiveSheet()->SetCellValue('B8', 'Distance Number');
+      $excel->getActiveSheet()->SetCellValue('F8', 'Max');
+      $excel->getActiveSheet()->SetCellValue('G8', 'Min');
+      $excel->getActiveSheet()->SetCellValue('H8', 'Max');
+      $excel->getActiveSheet()->SetCellValue('I8', 'Min');
+    }
+
+    $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name']);
+    $excel->getActiveSheet()->SetCellValue('G2', $values['operator_tin']);
+    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
     $excel->getActiveSheet()->SetCellValue('G3', ''); // log measurer
     $excel->getActiveSheet()->SetCellValue('G4', ''); // signed
     $excel->getActiveSheet()->SetCellValue('B5', ''); // date entered into CoCIS
@@ -174,6 +229,21 @@ class Model_TDF extends SGS_Form_ORM {
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
           break;
+        case 'operator_tin':
+          $args = array(
+            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
+          );
+          $suggest = SGS::suggest_operator($values[$field], $args, 'tin');
+          break;
+        case 'site_name':
+          $args = array(
+            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
+          );
+          $suggest = SGS::suggest_site($values[$field], $args, 'name');
+          break;
+        case 'species_code':
+          $suggest = SGS::suggest_species($values[$field], array(), 'code');
+          break;
       }
       $suggestions[$field] = $suggest;
     }
@@ -190,33 +260,31 @@ class Model_TDF extends SGS_Form_ORM {
         case 'barcode':
         case 'tree_barcode':
         case 'stump_barcode':
-          $duplicate = DB::select('id')
+          $query = DB::select('id')
             ->from($this->_table_name)
-            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field]))
-            ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
-            ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
-            ->and_where('block_id', '=', SGS::lookup_block($values['site_name'], $values['block_name']))
-            ->execute()
-            ->get('id');
+            ->where($field.'_id', '=', $val = SGS::lookup_barcode($values[$field]) ? $val : NULL);
+
+          if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
+          if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
+          if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
+
+          if ($duplicate = $query->execute()->get('id')) $duplicates[$field] = $duplicate;
           break;
       }
-      if ($duplicate) $duplicates[$field] = $duplicate;
     }
 
     // everything else
-    $id = DB::select('id')
+    $query = DB::select('id')
       ->from($this->_table_name)
       ->where('survey_line', '=', $values['survey_line'])
-      ->and_where('cell_number', '=', $values['cell_number'])
-      ->and_where('species_code', '=', $values['species_code'])
-      ->and_where('operator_id', '=', SGS::lookup_operator($values['operator_tin']))
-      ->and_where('site_id', '=', SGS::lookup_site($values['site_name']))
-      ->and_where('block_id', '=', SGS::lookup_block($values['site_name'], $values['block_name']))
-      ->execute()
-      ->get('id');
+      ->and_where('cell_number', '=', (int) $values['cell_number']);
 
-    if ($id) $duplicates[] = $id;
+    if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
+    if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
+    if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
+    if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
 
+    if ($duplicate = $query->execute()->get('id')) $duplicates[] = $duplicate;
     return $duplicates;
   }
 

@@ -40,11 +40,17 @@ $scripts[] = 'jquery-1.8.0.min';
 $scripts[] = 'jquery-ui-1.8.23.min';
 $scripts[] = 'effects';
 
+foreach (array_filter(explode('/', $path)) as $item) {
+  $class_arr[] = $item;
+  $classes['body'][] = implode('-', $class_arr);
+}
+
 ?><!DOCTYPE html>
 <html lang="en">
   <head>
     <?php echo $head; ?>
     <title>SGS &middot; LiberFor <?php if ($title): ?> | <?php echo $title; ?><?php endif; ?></title>
+    <link rel="shortcut icon" href="/favicon.png" />
     <style type="text/css">
       body {
         font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;

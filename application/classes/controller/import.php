@@ -63,7 +63,7 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_list($id = NULL) {
-    if (!Request::$current->query('page')) Session::instance()->delete('pagination.files');
+    if (!Request::$current->query('page')) Session::instance()->delete('pagination.file.list');
     if ($id) {
       Session::instance()->delete('pagination.csv');
 
@@ -89,33 +89,31 @@ class Controller_Import extends Controller {
         ->execute()
         ->as_array('id', 'name');
 
-      $form = Formo::form(array('attr' => array('action' => URL::site('import/files'))))
-        ->add_group('form_type', 'select', SGS::$form_type, NULL, array(
+      $form = Formo::form()
+        ->add_group('operation_type', 'select', SGS::$form_type, NULL, array(
           'label' => 'Type',
-          'required' => TRUE
         ))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
         ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
-        ->add('search', 'submit', 'Search');
+        ->add('search', 'submit', 'Filter');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
-        Session::instance()->delete('pagination.files');
+        Session::instance()->delete('pagination.file.list');
 
-        $operation_type = $form->form_type->val();
+        $operation_type = $form->operation_type->val();
         $operator_id    = $form->operator_id->val();
         $site_id        = $form->site_id->val();
         $block_id       = $form->block_id->val();
 
-        $files = ORM::factory('file')
-          ->where('operation', '=', 'I')
-          ->and_where('operation_type', '=', $operation_type);
+        $files = ORM::factory('file')->where('operation', '=', 'I');
 
-        if ($operator_id) $files->and_where('operator_id', 'IN', (array) $operator_id);
-        if ($site_id)     $files->and_where('site_id', 'IN', (array) $site_id);
-        if ($block_id)    $files->and_where('block_id', 'IN', (array) $block_id);
+        if ($operation_type) $files->and_where('operation_type', '=', (string) $operation_type);
+        if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
+        if ($site_id)        $files->and_where('site_id', 'IN', (array) $site_id);
+        if ($block_id)       $files->and_where('block_id', 'IN', (array) $block_id);
 
-        Session::instance()->set('pagination.csv', array(
+        Session::instance()->set('pagination.file.list', array(
           'form_type'   => $operation_type,
           'operator_id' => $operator_id,
           'site_id'     => $site_id,
@@ -125,11 +123,11 @@ class Controller_Import extends Controller {
         $search = TRUE;
       }
       else {
-        if ($settings = Session::instance()->get('pagination.files')) {
-          $operation_type = $settings['form_type'];
-          $operator_id    = $settings['operator_id'];
-          $site_id        = $settings['site_id'];
-          $block_id       = $settings['block_id'];
+        if ($settings = Session::instance()->get('pagination.file.list')) {
+          $form->operation_type->val($operation_type = $settings['form_type']);
+          $form->operator_id->val($operator_id = $settings['operator_id']);
+          $form->site_id->val($site_id = $settings['site_id']);
+          $form->block_id->val($block_id = $settings['block_id']);
         }
 
         $files = ORM::factory('file')
@@ -144,7 +142,7 @@ class Controller_Import extends Controller {
       if ($files) {
         $clone = clone($files);
         $pagination = Pagination::factory(array(
-          'items_per_page' => 50,
+          'items_per_page' => 20,
           'total_items' => $clone->find_all()->count()));
 
         $files = $files
@@ -155,12 +153,16 @@ class Controller_Import extends Controller {
       }
     }
 
-    if ($files) $table = View::factory('files')
-      ->set('classes', array('has-pagination'))
-      ->set('mode', 'import')
-      ->set('files', $files)
-      ->render();
-    else Notify::msg('No files found.');
+    if ($files) {
+      $table = View::factory('files')
+        ->set('classes', array('has-pagination'))
+        ->set('mode', 'import')
+        ->set('files', $files)
+        ->render();
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' file found');
+      else Notify::msg($pagination->total_items.' files found');
+    }
+    else Notify::msg('No files found');
 
     if ($form) $content .= $form->render();
     $content .= $table;
@@ -171,53 +173,125 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_review($id = NULL) {
+    if (!Request::$current->query('page')) Session::instance()->delete('pagination.file.review');
     if (!$id) $id = $this->request->param('id');
 
     $file = ORM::factory('file', $id);
 
-    // pending
-    $pending = $file->csv
-      ->where('status', '=', 'P')
+    $csvs = $file->csv
+      ->order_by('status')
+      ->order_by('timestamp', 'desc');
+
+    $form = Formo::form()
+      ->add_group('status', 'checkboxes', SGS::$status, NULL, array('label' => 'Status'))
+      ->add('search', 'submit', 'Filter');
+
+    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      Session::instance()->delete('pagination.file.review');
+
+      $status = $form->status->val();
+      if ($status) $csvs->and_where('status', 'IN', (array) $status);
+
+      Session::instance()->set('pagination.file.review', array('status' => $status));
+    }
+    else {
+      if ($settings = Session::instance()->get('pagination.file.review')) {
+        $form->status->val($status = $settings['status']);
+      }
+
+      if ($status) $csvs->and_where('status', 'IN', (array) $status);
+    }
+
+    $clone = clone($csvs);
+    $pagination = Pagination::factory(array(
+      'items_per_page' => 50,
+      'total_items' => $clone->find_all()->count()));
+
+    $csvs = $csvs
+      ->offset($pagination->offset)
+      ->limit($pagination->items_per_page)
       ->find_all()
       ->as_array();
 
-    // accepted
-    $accepted = $file->csv
-      ->where('status', '=', 'A')
-      ->find_all()
-      ->as_array();
+    if ($csvs) {
+      $table = View::factory('csvs')
+        ->set('classes', array('has-pagination'))
+        ->set('mode', 'import')
+        ->set('csvs', $csvs)
+        ->set('fields', SGS_Form_ORM::get_fields($file->operation_type, TRUE))
+        ->render();
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
+      else Notify::msg($pagination->total_items.' records found');
+    }
+    else Notify::msg('No records found');
 
-    // rejected
-    $rejected = $file->csv
-      ->where('status', '=', 'R')
-      ->find_all()
-      ->as_array();
-
-    if ($pending) $table .= View::factory('csvs')
-      ->set('title', 'Pending')
-      ->set('csvs', $pending)
-      ->set('fields', SGS_Form_ORM::get_fields($file->operation_type, TRUE))
-      ->render();
-    else Notify::msg('No pending records found.');
-
-    if ($accepted) $table .= View::factory('csvs')
-      ->set('title', 'Accepted')
-      ->set('csvs', $accepted)
-      ->set('fields', SGS_Form_ORM::get_fields($file->operation_type, TRUE))
-      ->render();
-    else Notify::msg('No accepted records found.');
-
-    if ($rejected) $table .= View::factory('csvs')
-      ->set('title', 'Rejected')
-      ->set('csvs', $rejected)
-      ->set('fields', SGS_Form_ORM::get_fields($file->operation_type, TRUE))
-      ->render();
-    else Notify::msg('No rejected records found.');
-
+    if ($form) $content .= $form->render();
     $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
+  }
+
+  private function handle_file_download($id = NULL) {
+    if (!$id) $id = $this->request->param('id');
+
+    $file = ORM::factory('file', $id);
+
+    $status = is_array($_POST['status']) ? $_POST['status'] : array();
+    $type   = (isset($_POST['type']) and in_array($_POST['type'], array('csv', 'xls'))) ? $_POST['type'] : 'xls';
+    $name   = isset($_POST['name']) ? $_POST['name'] : NULL;
+
+    $csvs   = $file->csv;
+    if ($status) $csvs->where('status', 'IN', $status);
+    $csvs = $csvs->find_all()->as_array();
+
+    switch ($type) {
+      case 'csv':
+        $excel = new PHPExcel();
+        $excel->setActiveSheetIndex(0);
+        $writer = new PHPExcel_Writer_CSV($excel);
+        $headers = TRUE;
+        break;
+      case 'xls':
+        $filename = APPPATH.'/templates/'.$file->operation_type.'.xls';
+        try {
+          $reader = new PHPExcel_Reader_Excel5;
+          if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
+          $excel = $reader->load($filename);
+        } catch (Exception $e) {
+          Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
+        }
+        $excel->setActiveSheetIndex(0);
+        $writer = new PHPExcel_Writer_Excel2007($excel);
+      $headers = FALSE;
+        break;
+    }
+
+    if ($excel) {
+      // data
+      $create_date = 0;
+      $row   = Model_SSF::PARSE_START;
+      $model = ORM::factory($file->operation_type);
+
+      foreach ($csvs as $csv) {
+        $model->download_data($csv->values, $excel, $row);
+        if (strtotime($csv->values['create_date']) > strtotime($create_date)) $create_date = $csv->values['create_date'];
+        $row++;
+      }
+
+      // headers
+      $model->download_headers($csv->values, $excel, array(
+        'create_date' => $create_date ? $create_date : $create_date = SGS::date ('now', SGS::PGSQL_DATE_FORMAT)
+      ), $headers);
+
+      // file
+      $tempname  = tempnam(sys_get_temp_dir(), strtolower($file->operation_type).'_download_').'.'.$type;
+      $fullname  = $name ? $name.'.'.$type : substr($file->name, 0, strrpos($file->name, '.')).'.'.$type;
+
+      $writer->save($tempname);
+      $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
+    }
   }
 
   private function handle_file_process($id = NULL) {
@@ -367,30 +441,21 @@ class Controller_Import extends Controller {
         ->execute()
         ->as_array('id', 'name');
 
-      $form = Formo::form(array('attr' => array('action' => URL::site('import/data'))))
-        ->add_group('form_type', 'select', SGS::$form_type, NULL, array(
-          'label' => 'Data',
-          'required' => TRUE
-        ))
-        ->add_group('status', 'checkboxes', array(
-          'P' => 'Pending',
-          'A' => 'Accepted',
-          'R' => 'Rejected',
-        ), NULL, array(
-          'label'    => 'Status',
-          'required' => TRUE
-        ))
+      $form = Formo::form()
+        ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Type', 'required' => TRUE))
+        ->add_group('status', 'checkboxes', SGS::$status, array_keys(SGS::$status), array('label' => 'Status', 'required' => TRUE))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
         ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
-        ->add('search', 'submit', 'Search');
+        ->add('search', 'submit', 'Search')
+        ->add('download_csv', 'submit', 'Download '.SGS::$file_type['csv'])
+        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls']);
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
         Session::instance()->delete('pagination.csv');
 
-        $form_type = $form->form_type->val();
-        $status    = $form->status->val();
-
+        $form_type   = $form->form_type->val();
+        $status      = $form->status->val();
         $operator_id = $form->operator_id->val();
         $site_id     = $form->site_id->val();
         $block_id    = $form->block_id->val();
@@ -398,12 +463,72 @@ class Controller_Import extends Controller {
         $csvs = ORM::factory('csv')
           ->where('operation', '=', 'I')
           ->and_where('form_type', '=', $form_type)
-          ->and_where('status', 'IN', $status)
           ->order_by('timestamp', 'desc');
 
+        if ($status)      $csvs->and_where('status', 'IN', (array) $status);
         if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
+
+        if ($_POST['download_xls'] or $_POST['download_csv']) {
+          $site     = ORM::factory('site', (int) $site_id);
+          $operator = ORM::factory('operator', (int) $operator_id);
+          $block    = ORM::factory('block', (int) $block_id);
+
+          $csvs = $csvs->find_all()->as_array();
+
+          if ($_POST['download_csv']) {
+            $ext = 'csv';
+            $excel = new PHPExcel();
+            $excel->setActiveSheetIndex(0);
+            $writer = new PHPExcel_Writer_CSV($excel);
+            $headers = TRUE;
+          }
+          else {
+            $ext = 'xls';
+            $filename = APPPATH.'/templates/'.$form_type.'.xls';
+            try {
+              $reader = new PHPExcel_Reader_Excel5;
+              if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
+              $excel = $reader->load($filename);
+            } catch (Exception $e) {
+              Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
+            }
+            $excel->setActiveSheetIndex(0);
+            $writer = new PHPExcel_Writer_Excel2007($excel);
+            $headers = FALSE;
+          }
+
+          if ($excel) {
+            // data
+            $create_date = 0;
+            $row   = Model_SSF::PARSE_START;
+            $model = ORM::factory($form_type);
+
+            foreach ($csvs as $csv) {
+              $model->download_data($csv->values, $excel, $row);
+              if (strtotime($csv->values['create_date']) > strtotime($create_date)) $create_date = $csv->values['create_date'];
+              $row++;
+            }
+
+            // headers
+            $model->download_headers($csv->values, $excel, array(
+              'create_date' => $create_date ? $create_date : $create_date = SGS::date ('now', SGS::PGSQL_DATE_FORMAT)
+            ), $headers);
+
+            // file
+            $tempname  = tempnam(sys_get_temp_dir(), strtolower($form_type).'_download_').'.'.$type;
+
+            switch ($form_type) {
+              case 'SSF': $fullname = ($site->name ? $site->name.'_' : '').'SSF'.($block->name ? '_'.$block->name : '').'.'.$ext; break;
+              case 'TDF': $fullname = ($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext; break;
+              case 'LDF': $fullname = ($site->name ? $site->name.'_' : '').'LDF_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext; break;
+            }
+
+            $writer->save($tempname);
+            $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
+          }
+        }
 
         Session::instance()->set('pagination.csv', array(
           'form_type'   => $form_type,
@@ -416,17 +541,21 @@ class Controller_Import extends Controller {
         $search = TRUE;
       }
       elseif ($settings = Session::instance()->get('pagination.csv')) {
-        $form_type   = $settings['form_type'];
-        $status      = $settings['status'];
-        $operator_id = $settings['operator_id'];
-        $site_id     = $settings['site_id'];
-        $block_id    = $settings['block_id'];
+        $form->form_type->val($form_type = $settings['form_type']);
+        $form->status->val($status = $settings['status']);
+        $form->operator_id->val($operator_id = $settings['operator_id']);
+        $form->site_id->val($site_id = $settings['site_id']);
+        $form->block_id->val($block_id = $settings['block_id']);
 
         $csvs = ORM::factory('csv')
           ->where('operation', '=', 'I')
           ->and_where('form_type', '=', $form_type)
-          ->and_where('status', 'IN', $status)
           ->order_by('timestamp', 'desc');
+
+        if ($status)      $csvs->and_where('status', 'IN', (array) $status);
+        if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
+        if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
+        if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
       }
 
       if ($csvs) {
@@ -443,13 +572,17 @@ class Controller_Import extends Controller {
       }
     }
 
-    if ($csvs) $table = View::factory('csvs')
-      ->set('classes', array('has-pagination'))
-      ->set('mode', 'import')
-      ->set('csvs', $csvs)
-      ->set('fields', SGS_Form_ORM::get_fields($form_type, TRUE))
-      ->render();
-    elseif ($search) Notify::msg('Search returned an empty set of results.');
+    if ($csvs) {
+      $table = View::factory('csvs')
+        ->set('classes', array('has-pagination'))
+        ->set('mode', 'import')
+        ->set('csvs', $csvs)
+        ->set('fields', SGS_Form_ORM::get_fields($form_type, TRUE))
+        ->render();
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
+      else Notify::msg($pagination->total_items.' records found');
+    }
+    elseif ($search) Notify::msg('No records found');
 
     if ($form) $content .= $form->render();
     $content .= $table;
@@ -561,51 +694,71 @@ class Controller_Import extends Controller {
                 $file->block_id    = $csv->block_id;
                 $file->save();
 
+                $tmpname = $import['tmp_name'];
+                switch ($file->operation_type) {
+                  case 'SSF':
+                    $newdir = implode(DIRECTORY_SEPARATOR, array(
+                      'import',
+                      $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
+                      $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN',
+                      $block_name = $file->block->name ? $file->block->name : 'UNKNOWN'
+                    ));
+                    $newname = $site_name.'_SSF_'.$block_name.'.'.$ext;
+                    break;
+
+                  case 'TDF':
+                    $newdir = implode(DIRECTORY_SEPARATOR, array(
+                      'import',
+                      $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
+                      $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN',
+                      $block_name = $file->block->name ? $file->block->name : 'UNKNOWN'
+                    ));
+                    $newname = $site_name.'_TDF_'.$block_name.'_'.Date::formatted_time(SGS::date($csv->create_date), 'Y_m_d').'.'.$ext;
+                    break;
+
+                  case 'LDF':
+                    $newdir = implode(DIRECTORY_SEPARATOR, array(
+                      'import',
+                      $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
+                      $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN'
+                    ));
+                    $newname = $site_name.'_LDF_'.Date::formatted_time(SGS::date($csv->create_date), 'Y_m_d').'.'.$ext;
+                    break;
+                }
+
+                if ($newname !== $file->name) {
+                  $name_changed = TRUE;
+                  $name_changed_properties = TRUE;
+                }
+
+                $version = 0;
+                while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+                  $newname = substr($newname, 0, strrpos($newname, '.'.$ext)).'_'.($version++).'.'.$ext;
+                  $name_changed = TRUE;
+                  $name_changed_duplicate = TRUE;
+                }
+
+                if ($name_changed) Notify::msg('Local file name has been changed from "'.$file->name.'" to "'.$newname.'"', 'warning', TRUE);
+                if ($name_changed_duplicate) Notify::msg('Local file name has been changed from due to an already existing file with the same name.', 'warning', TRUE);
+                if ($name_changed_properties) Notify::msg('Local file name has been changed due to detected properties of the file, such as operator TIN, site name, and block name.', 'warning', TRUE);
+
+                if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+                  Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error', TRUE);
+                  throw new Exeption();
+                }
+                if (!(rename($tmpname, DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname) and chmod(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname, 0777))) {
+                  throw new Exception();
+                  Notify::msg('Sorry, cannot create document. Check file operation capabilities with the site administrator and try again.', 'error', TRUE);
+                }
+
                 try {
-                  $tmpname = $import['tmp_name'];
-                  switch ($file->operation_type) {
-                    case 'SSF':
-                      if (!($file->operator->tin && $file->site->name and $file->operation_type)) throw new Exception();
-                      $newdir = DOCPATH.implode(DIRECTORY_SEPARATOR, array(
-                        'import',
-                        $file->operator->tin,
-                        $file->site->name,
-                        $file->operation_type,
-                        $file->block->name
-                      ));
-                      $newname = $newdir.DIRECTORY_SEPARATOR.$file->site->name.'_SSF_'.$file->block->name.'.'.$ext;
-                      break;
-
-                    case 'TDF':
-                      if (!($file->operator->tin && $file->site->name and $file->operation_type)) throw new Exception();
-                      $newdir = DOCPATH.implode(DIRECTORY_SEPARATOR, array(
-                        'import',
-                        $file->operator->tin,
-                        $file->site->name,
-                        $file->operation_type,
-                        $file->block->name
-                      ));
-                      $newname = $newdir.DIRECTORY_SEPARATOR.$file->site->name.'_TDF_'.$file->block->name.'_'.Date::formatted_time(SGS::date($csv->create_date), 'Y_m_d').'.'.$ext;
-                      break;
-
-                    case 'LDF':
-                      if (!($file->operator->tin && $file->site->name and $file->operation_type)) throw new Exception();
-                      $newdir = DOCPATH.implode(DIRECTORY_SEPARATOR, array(
-                        'import',
-                        $file->operator->tin,
-                        $file->site->name,
-                        $file->operation_type
-                      ));
-                      $newname = $newdir.DIRECTORY_SEPARATOR.$file->site->name.'_LDF_'.Date::formatted_time(SGS::date($csv->create_date), 'Y_m_d').'.'.$ext;
-                      break;
-                  }
-                  if (!is_dir($newdir)) mkdir($newdir, 0777, TRUE);
-                  if (!(rename($tmpname, $newname) and chmod($newname, 0777))) throw new Exception();
-                } catch (Exception $e) {
-                  Notify::msg('Sorry, unable to store uploaded file', 'error');
+                  $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+                  $file->save();
+                } catch (Excpetion $e) {
+                  Notify::msg('Sorry, unable to save file path.', 'error', TRUE);
                 }
               } catch (Exception $e) {
-                Notify::msg('Sorry, unable to save file properties.', 'error');
+                Notify::msg('Sorry, unable to save file properties.', 'error', TRUE);
               }
             }
           }
@@ -635,6 +788,7 @@ class Controller_Import extends Controller {
     switch ($command) {
       case 'review': return self::handle_file_review($id);
       case 'process': return self::handle_file_process($id);
+      case 'download': return self::handle_file_download($id);
 
       default:
       case 'list': return self::handle_file_list($id);

@@ -1,4 +1,5 @@
-<table class="data">
+<?php $classes[] = 'data'; ?>
+<table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <th>TIN</th>
     <th>Name</th>

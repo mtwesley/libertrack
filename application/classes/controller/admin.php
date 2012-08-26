@@ -10,9 +10,9 @@ class Controller_Admin extends Controller {
   public function action_operators() {
     $id = $this->request->param('id');
 
-    $model = ORM::factory('operator', $id);
-    $form = Formo::form()
-      ->orm('load', $model, array('sites', 'user_id', 'timestamp'), true)
+    $operator = ORM::factory('operator', $id);
+    $form = Formo::form(array('attr' => array('style' => 'display: none;')))
+      ->orm('load', $operator, array('sites', 'user_id', 'timestamp'), true)
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Operator' : 'Add a New Operator'
       ));
@@ -20,11 +20,11 @@ class Controller_Admin extends Controller {
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
       try {
         if ($id) {
-          $model->update();
+          $operator->update();
           Notify::msg('Operator successfully updated.', 'success', TRUE);
         }
         else  {
-          $model->save();
+          $operator->save();
           Notify::msg('Operator successfully added.', 'success', TRUE);
         }
         $this->request->redirect('admin/operators');
@@ -37,16 +37,29 @@ class Controller_Admin extends Controller {
     }
 
     if ($id === null) {
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 20,
+        'total_items' => $operator->find_all()->count()));
+
       $operators = ORM::factory('operator')
+        ->order_by('name')
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page)
         ->find_all()
         ->as_array();
 
       $table .= View::factory('operators')
+        ->set('classes', array('has-pagination'))
         ->set('operators', $operators);
+
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' operator found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' operators found');
+      else Notify::msg('No operators found');
     }
 
-    $content .= $form->render();
+    $content .= SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -55,9 +68,9 @@ class Controller_Admin extends Controller {
   public function action_sites() {
     $id = $this->request->param('id');
 
-    $model = ORM::factory('site', $id);
-    $form = Formo::form()
-      ->orm('load', $model, array('blocks', 'printjobs', 'invoices', 'user_id', 'timestamp'), true)
+    $site = ORM::factory('site', $id);
+    $form = Formo::form(array('attr' => array('style' => 'display: none;')))
+      ->orm('load', $site, array('blocks', 'printjobs', 'invoices', 'user_id', 'timestamp'), true)
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Site' : 'Add a New Site'
       ));
@@ -65,11 +78,11 @@ class Controller_Admin extends Controller {
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
       try {
         if ($id) {
-          $model->update();
+          $site->update();
           Notify::msg('Site successfully updated.', 'success', TRUE);
         }
         else {
-          $model->save();
+          $site->save();
           Notify::msg('Site successfully added.', 'success', TRUE);
         }
         $this->request->redirect('admin/sites');
@@ -81,16 +94,29 @@ class Controller_Admin extends Controller {
     }
 
     if ($id === null) {
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 20,
+        'total_items' => $site->find_all()->count()));
+
       $sites = ORM::factory('site')
+        ->order_by('name')
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page)
         ->find_all()
         ->as_array();
 
       $table .= View::factory('sites')
+        ->set('classes', array('has-pagination'))
         ->set('sites', $sites);
+
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' site found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' sites found');
+      else Notify::msg('No sites found');
     }
 
-    $content .= $form->render();
+    $content .= SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -99,9 +125,9 @@ class Controller_Admin extends Controller {
   public function action_blocks() {
     $id = $this->request->param('id');
 
-    $model = ORM::factory('block', $id);
-    $form = Formo::form()
-      ->orm('load', $model, array('user_id', 'timestamp'), true)
+    $block = ORM::factory('block', $id);
+    $form = Formo::form(array('attr' => array('style' => 'display: none;')))
+      ->orm('load', $block, array('user_id', 'timestamp'), true)
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Block' : 'Add a New Block'
       ))
@@ -110,11 +136,11 @@ class Controller_Admin extends Controller {
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
       try {
         if ($id) {
-          $model->update();
+          $block->update();
           Notify::msg('Block successfully updated.', 'success', TRUE);
         }
         else {
-          $model->save();
+          $block->save();
           Notify::msg('Block successfully added.', 'success', TRUE);
         }
         $this->request->redirect('admin/blocks');
@@ -126,16 +152,29 @@ class Controller_Admin extends Controller {
     }
 
     if ($id === null) {
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 20,
+        'total_items' => $block->find_all()->count()));
+
       $blocks = ORM::factory('block')
+        ->order_by('name')
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page)
         ->find_all()
         ->as_array();
 
       $table = View::factory('blocks')
+        ->set('classes', array('has-pagination'))
         ->set('blocks', $blocks);
+
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' block found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' blocks found');
+      else Notify::msg('No blocks found');
     }
 
-    $content .= $form->render();
+    $content .= SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -151,17 +190,28 @@ class Controller_Admin extends Controller {
     }
 
     if ($id) {
-      $printjobs = ORM::factory('printjob')
-        ->and_where('id', '=', $id)
-        ->find_all()
-        ->as_array();
+      $printjob = ORM::factory('printjob', $id);
+      $printjobs = array($printjob);
 
       if ($command == 'barcodes') {
-        $printjob = reset($printjobs);
-        $barcodes = $printjob->barcodes->find_all()->as_array();
+        $pagination = Pagination::factory(array(
+          'items_per_page' => 50,
+          'total_items' => $printjob->barcodes->find_all()->count()));
+
+        $barcodes = $printjob->barcodes
+          ->offset($pagination->offset)
+          ->limit($pagination->items_per_page)
+          ->order_by('timestamp')
+          ->find_all()
+          ->as_array();
+
+        if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' barcode found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' barcodes found');
+        else Notify::msg('No barcodes found');
       }
 
     } else {
+      $printjob = ORM::factory('printjob');
       $form = Formo::form()
         ->orm('load', $printjob, array('site_id'))
         ->add('import[]', 'file', array(
@@ -169,11 +219,11 @@ class Controller_Admin extends Controller {
           'required' => TRUE,
           'attr'  => array('multiple' => 'multiple')
         ))
-        ->add('save', 'submit', 'Upload Print Job');
+        ->add('save', 'submit', 'Upload');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
         $barcode_success = 0;
-        $barcode_errors = 0;
+        $barcode_error = 0;
 
         $num_files = count(reset($_FILES['import']));
         for ($j = 0; $j < $num_files; $j++) {
@@ -214,12 +264,12 @@ class Controller_Admin extends Controller {
               $matches = array();
               preg_match('/Print\sJob\:\s*(\d+).*/', $array[2], $matches);
 
-              $printjob = ORM::factory('printjob');
-              $printjob->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
-              $printjob->number = $matches[1];
+              $_printjob = clone($printjob);
+              $_printjob->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
+              $_printjob->number = $matches[1];
 
               try {
-                $printjob->save();
+                $_printjob->save();
               } catch (Exception $e) {
                 Notify::msg('Sorry, print job failed to be saved. Please try again.', 'error', TRUE);
               }
@@ -229,16 +279,16 @@ class Controller_Admin extends Controller {
               $count = count($array);
               for ($i = $start; $i < ($count - 1); $i++) {
                 $line = $array[$i];
-                if (! $data = $printjob->parse_txt($line, $array)) continue;
+                if (! $data = $_printjob->parse_txt($line, $array)) continue;
 
                 $barcode = ORM::factory('barcode');
-                $barcode->printjob = $printjob;
+                $barcode->printjob = $_printjob;
                 $barcode->barcode = $data['barcode'];
                 try {
                   $barcode->save();
                   $barcode_success++;
                 } catch (Exception $e) {
-                  $barcode_errors++;
+                  $barcode_error++;
                 }
               }
             }
@@ -250,21 +300,33 @@ class Controller_Admin extends Controller {
         $this->request->redirect('admin/printjobs');
       }
 
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 20,
+        'total_items' => ORM::factory('printjob')->find_all()->count()));
+
       $printjobs = ORM::factory('printjob')
+        ->order_by('number')
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page)
         ->find_all()
         ->as_array();
 
-      $display = TRUE;
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' print job found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' print jobs found');
+      else Notify::msg('No print jobs found');
     }
 
-    if ($printjobs) $table .= View::factory('printjobs')
-      ->set('printjobs', $printjobs);
-
     if ($barcodes)  $table .= View::factory('barcodes')
+      ->set('classes', array('has-pagination'))
       ->set('barcodes', $barcodes);
+
+    elseif ($printjobs) $table .= View::factory('printjobs')
+      ->set('classes', array('has-pagination'))
+      ->set('printjobs', $printjobs);
 
     if ($form) $content .= $form->render();
     $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -273,9 +335,9 @@ class Controller_Admin extends Controller {
   public function action_species() {
     $id = $this->request->param('id');
 
-    $model = ORM::factory('species', $id);
-    $form = Formo::form()
-      ->orm('load', $model, array('user_id', 'timestamp'), true)
+    $species = ORM::factory('species', $id);
+    $form = Formo::form(array('attr' => array('style' => 'display: none;')))
+      ->orm('load', $species, array('user_id', 'timestamp'), true)
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Species' : 'Add a New Species'
       ));
@@ -283,11 +345,11 @@ class Controller_Admin extends Controller {
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
       try {
         if ($id) {
-          $model->update();
+          $species->update();
           Notify::msg('Species successfully updated.', 'success', TRUE);
         }
         else {
-          $model->save();
+          $species->save();
           Notify::msg('Species successfully added.', 'success', TRUE);
         }
         $this->request->redirect('admin/species');
@@ -299,16 +361,28 @@ class Controller_Admin extends Controller {
     }
 
     if ($id === null) {
-      $sites = ORM::factory('species')
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 20,
+        'total_items' => $species->find_all()->count()));
+
+      $speciess = ORM::factory('species')
+        ->order_by('trade_name')
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page)
         ->find_all()
         ->as_array();
 
       $table .= View::factory('species')
-        ->set('species', $sites);
+        ->set('classes', array('has-pagination'))
+        ->set('species', $speciess);
+
+      if ($pagination->total_items) Notify::msg($pagination->total_items.' species found');
+      else Notify::msg('No species found');
     }
 
-    $content .= $form->render();
+    $content .= SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
