@@ -2,7 +2,7 @@
 
 class Model_Printjob extends ORM {
 
-  const PARSE_START = 7;
+  const PARSE_START = 0;
 
   protected $_object_plural = 'printjobs';
 
@@ -43,10 +43,10 @@ class Model_Printjob extends ORM {
 
     $number = $matches[1];
 
-    return (trim($line)) ? array(
+    return (Valid::is_barcode($barcode = trim($line))) ? array(
       'printjob_number' => $number,
-      'barcode'         => trim($line),
-    ) : null;
+      'barcode'         => $barcode,
+    ) : NULL;
   }
 
   public function rules()
