@@ -738,9 +738,15 @@ class Controller_Import extends Controller {
                   $name_changed_duplicate = TRUE;
                 }
 
-                if ($name_changed) Notify::msg('Local file name has been changed from "'.$file->name.'" to "'.$newname.'"', 'warning', TRUE);
-                if ($name_changed_duplicate) Notify::msg('Local file name has been changed from due to an already existing file with the same name.', 'warning', TRUE);
-                if ($name_changed_properties) Notify::msg('Local file name has been changed due to detected properties of the file, such as operator TIN, site name, and block name.', 'warning', TRUE);
+                if ($name_changed) {
+                  $msg = 'Local file name has been changed from "'.$file->name.'" to "'.$newname.'"';
+                  $due = array();
+                  if ($name_changed_duplicate) $due[] = 'an already existing file with the same name';
+                  if ($name_changed_properties) $due[] = 'detected properties of the file';
+                  if ($due) $msg .= ' due to '.implode(' and ', $due);
+                  $msg .= '.';
+                  Notify::msg($msg, 'warning', TRUE);
+                }
 
                 if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
                   Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error', TRUE);

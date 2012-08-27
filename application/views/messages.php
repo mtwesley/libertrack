@@ -17,7 +17,7 @@
   }
 
   #messages .warning {
-    color: #ceb121;
+    color: #a5890b;
     border-top-color: #efe9b7;
     background-color: #f8f5e1;
     background-image: url('/images/warning.png');
