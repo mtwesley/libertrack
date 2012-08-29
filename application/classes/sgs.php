@@ -499,11 +499,11 @@ class SGS {
   public static function parse_site_and_block_info($text)
   {
     $matches = array();
-    preg_match('/((([A-Z]+)\/)?([A-Z1-9\s-_]+)?)(\/([A-Z1-9]+))?/', $text, $matches);
+    preg_match('/((RESOURCE\sAREA\/)?(([A-Z]+)\/)?([A-Z1-9\s-_]+)?)(\/([A-Z1-9]+))?/', $text, $matches);
 
     return array(
-      'site_name'  => $matches[4],
-      'block_name' => $matches[6]
+      'site_name'  => $matches[5],
+      'block_name' => $matches[7]
     );
   }
 
