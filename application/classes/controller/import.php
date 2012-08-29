@@ -647,6 +647,11 @@ class Controller_Import extends Controller {
           }
 
           if ($excel && ($form_type = self::detect_form_type($excel))) {
+            $form_model = ORM::factory($form_type);
+
+            // detect file properties
+            $start = constant('Model_'.$form_type.'::PARSE_START');
+            $properties = $form_model->parse_csv($excel[$start], $excel);
 
             // upload file
             $file = ORM::factory('file');
@@ -657,18 +662,12 @@ class Controller_Import extends Controller {
             $file->operation_type = $form_type;
             $file->content_md5    = md5_file($import['tmp_name']);
 
-            // parse CSV
-            $form_model = ORM::factory($form_type);
-
-            // detect file properties
-            $start = constant('Model_'.$form_type.'::PARSE_START');
-            $properties = reset($form_model->parse_csv($excel[$start], $excel));
+            if (isset($properties['operator_tin'])) $file->operator = SGS::lookup_operator($properties['operator_tin']);
+            if (isset($properties['site_name']))    $file->site = SGS::lookup_site($properties['site_name']);
+            if (isset($properties['block_name']))   $file->block = SGS::lookup_block($properties['site_name'], $properties['block_name']);
+            if (isset($properties['create_date']))  $create_date = $properties['create_date'];
 
             try {
-              if (isset($properties->operator_id)) $file->operator_id = $properties->operator_id;
-              if (isset($properties->site_id))     $file->site_id = $properties->site_id;
-              if (isset($properties->block_id))    $file->block_id = $properties->block_id;
-              $create_date = $properties->create_date;
               $file->save();
 
               $tmpname = $import['tmp_name'];
@@ -681,7 +680,7 @@ class Controller_Import extends Controller {
                     $file->block->name
                   ));
                   if (!($file->operator->name and $file->site->name and $file->block->name and $file->operation_type)) {
-                    Notify::msg('Sorry, cannot detect required properties of the file.', 'error', TRUE);
+                    Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
                   $newname = $file->site->name.'_SSF_'.$file->block->name.'.'.$ext;
@@ -695,7 +694,7 @@ class Controller_Import extends Controller {
                     $file->block->name
                   ));
                   if (!($file->operator->name and $file->site->name and $file->block->name and $file->operation_type)) {
-                    Notify::msg('Sorry, cannot detect required properties of the file.', 'error', TRUE);
+                    Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
                   $newname = $file->site->name.'_TDF_'.$file->block->name.'_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
@@ -708,7 +707,7 @@ class Controller_Import extends Controller {
                     $file->operation_type
                   ));
                   if (!($file->operator->name and $file->site->name and $file->operation_type)) {
-                    Notify::msg('Sorry, cannot detect required properties of the file.', 'error', TRUE);
+                    Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
                   $newname = $file->site->name.'_LDF_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
@@ -756,7 +755,11 @@ class Controller_Import extends Controller {
               }
 
             } catch (Exception $e) {
-              try { $file->delete(); } catch (Exception $f) {}
+              try {
+                $file->delete();
+              } catch (Exception $f) {
+                Notify::msg('Sorry, attempting to delete an non-existing file failed.', 'warning', TRUE);
+              }
               Notify::msg('Sorry, unable to save uploaded file.', 'error', TRUE);
             }
 
