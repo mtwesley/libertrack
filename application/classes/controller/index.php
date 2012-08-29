@@ -7,7 +7,7 @@ class Controller_Index extends Controller {
     $this->response->body($view);
   }
 
-  public functino action_login() {
-    
+  public function action_login() {
+
   }
 }
