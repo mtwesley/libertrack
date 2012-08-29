@@ -12,6 +12,13 @@ class Model_User extends Model_Auth_User {
     'files' => array(),
     'csv' => array(),
     'invoices' => array(),
+		'user_tokens' => array(
+      'model' => 'user_token'
+    ),
+		'roles'       => array(
+      'model'   => 'role',
+      'through' => 'roles_users'
+    ),
   );
 
 }

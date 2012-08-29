@@ -421,7 +421,7 @@ class SGS {
     }
   }
 
-  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 10, $offset = 0)
+  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 20, $offset = 0)
   {
     $table  = 'barcodes';
     $model  = 'barcode';
@@ -533,6 +533,12 @@ class SGS {
       $value = trim($value);
     }
     return $array;
+  }
+
+  public static function barcodify($string) {
+    $string = preg_replace('/[^0123456789ACEFHJKLMNPRYXW]/', '', $string);
+    if (strlen($string) > 8) $string = substr($string, 0, 8).'-'.substr($string, 8);
+    return $string;
   }
 
   public static function render_classes($classes)

@@ -78,7 +78,7 @@ class Model_LDF extends SGS_Form_ORM {
 
       case 'barcode':
       case 'parent_barcode':
-        $this->$key = SGS::lookup_barcode($value); break;
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;

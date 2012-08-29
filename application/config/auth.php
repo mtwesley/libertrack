@@ -1,9 +1,9 @@
 <?php
 
 return array(
-	'driver'       => 'file',
+	'driver'       => 'orm',
 	'hash_method'  => 'md5',
-	'hash_key'     => NULL,
+	'hash_key'     => (string) md5('sgs'),
 	'lifetime'     => 1209600,
 	'session_type' => 'database',
 	'session_key'  => 'auth_user',

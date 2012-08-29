@@ -160,7 +160,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_barcode($value)
   {
-    return (bool) ((!is_numeric($value)) AND self::is_varchar($value) AND preg_match('/^[0-9A-Z]{8}(-[0-9A-Z]{4})?$/', (string) $value));
+    return (bool) ((!is_numeric($value)) AND self::is_varchar($value) AND preg_match('/^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$/', (string) $value));
   }
 
   public static function is_barcode_type($value)

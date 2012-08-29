@@ -78,7 +78,7 @@ class Model_SSF extends SGS_Form_ORM {
         $this->block = SGS::lookup_block($data['site_name'], $value); break;
 
       case 'barcode':
-        $this->$key = SGS::lookup_barcode($value); break;
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;
@@ -307,8 +307,7 @@ class Model_SSF extends SGS_Form_ORM {
       'cell_number'     => array(array('not_empty'),
                                  array('is_positive_int')),
       'tree_map_number' => array(array('not_empty'),
-                                 array('is_positive_int'),
-                                 array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
+                                 array('is_positive_int')),
       'diameter'        => array(array('not_empty'),
                                  array('is_measurement_int')),
       'height'          => array(array('not_empty'),

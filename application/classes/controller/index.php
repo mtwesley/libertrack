@@ -6,4 +6,8 @@ class Controller_Index extends Controller {
     $view = View::factory('main');
     $this->response->body($view);
   }
+
+  public functino action_login() {
+    
+  }
 }

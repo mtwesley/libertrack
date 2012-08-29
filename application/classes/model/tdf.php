@@ -91,7 +91,7 @@ class Model_TDF extends SGS_Form_ORM {
       case 'barcode':
       case 'tree_barcode':
       case 'stump_barcode':
-        $this->$key = SGS::lookup_barcode($value);
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
         break;
 
       case 'species_code':

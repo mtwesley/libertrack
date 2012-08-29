@@ -159,8 +159,8 @@ class Controller_Export extends Controller {
             Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
           }
           $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_Excel2007($excel);
-        $headers = FALSE;
+          $writer = new PHPExcel_Writer_Excel2005($excel);
+          $headers = FALSE;
           break;
       }
 
@@ -242,6 +242,7 @@ class Controller_Export extends Controller {
         case 'csv':
           $excel = new PHPExcel();
           $excel->setActiveSheetIndex(0);
+          $writer = new PHPExcel_Writer_CSV($excel);
           $headers = TRUE;
           break;
         case 'xls':
@@ -254,6 +255,7 @@ class Controller_Export extends Controller {
             Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
           }
           $excel->setActiveSheetIndex(0);
+          $writer = new PHPExcel_Writer_Excel2005($excel);
           $headers = FALSE;
           break;
       }
@@ -276,8 +278,7 @@ class Controller_Export extends Controller {
         // file
         $tempname  = tempnam(sys_get_temp_dir(), 'tdf_').'.'.$type;
         $fullname  = $site->name.'_TDF_'.$block->name.'_'.Date::formatted_time('now', 'Y_m_d').'.'.$type;
-        $objWriter = new PHPExcel_Writer_CSV($excel);
-        $objWriter->save($tempname);
+        $writer->save($tempname);
 
         $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
       }
@@ -333,6 +334,7 @@ class Controller_Export extends Controller {
         case 'csv':
           $excel = new PHPExcel();
           $excel->setActiveSheetIndex(0);
+          $writer = new PHPExcel_Writer_CSV($excel);
           $headers = TRUE;
           break;
         case 'xls':
@@ -345,6 +347,7 @@ class Controller_Export extends Controller {
             Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
           }
           $excel->setActiveSheetIndex(0);
+          $writer = new PHPExcel_Writer_Excel2005($excel);
           $headers = FALSE;
           break;
       }
@@ -366,9 +369,8 @@ class Controller_Export extends Controller {
 
         // file
         $tempname  = tempnam(sys_get_temp_dir(), 'ldf_').'.csv';
-        $fullname  = $site->name.'_LDF_'.Date::formatted_time('now', 'Y_m_d').'.csv';
-        $objWriter = new PHPExcel_Writer_CSV($excel);
-        $objWriter->save($tempname);
+        $fullname  = $site->name.'_LDF_'.Date::formatted_time('now', 'Y_m_d').'.'.$type;
+        $writer->save($tempname);
 
         $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
       }

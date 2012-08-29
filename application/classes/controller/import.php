@@ -263,7 +263,7 @@ class Controller_Import extends Controller {
           Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
         }
         $excel->setActiveSheetIndex(0);
-        $writer = new PHPExcel_Writer_Excel2007($excel);
+        $writer = new PHPExcel_Writer_Excel5($excel);
       $headers = FALSE;
         break;
     }
@@ -495,7 +495,7 @@ class Controller_Import extends Controller {
               Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
             }
             $excel->setActiveSheetIndex(0);
-            $writer = new PHPExcel_Writer_Excel2007($excel);
+            $writer = new PHPExcel_Writer_Excel5($excel);
             $headers = FALSE;
           }
 
@@ -657,20 +657,107 @@ class Controller_Import extends Controller {
             $file->operation_type = $form_type;
             $file->content_md5    = md5_file($import['tmp_name']);
 
+            // parse CSV
+            $form_model = ORM::factory($form_type);
+
+            // detect file properties
+            $start = constant('Model_'.$form_type.'::PARSE_START');
+            $properties = reset($form_model->parse_csv($excel[$start], $excel));
 
             try {
+              if (isset($properties->operator_id)) $file->operator_id = $properties->operator_id;
+              if (isset($properties->site_id))     $file->site_id = $properties->site_id;
+              if (isset($properties->block_id))    $file->block_id = $properties->block_id;
+              $create_date = $properties->create_date;
               $file->save();
-              Notify::msg($file->name.' document successfully uploaded.', 'success', TRUE);
-            } catch (ORM_Validation_Exception $e) {
-              foreach ($e->errors('') as $err) Notify::msg($err, 'error', TRUE);
+
+              $tmpname = $import['tmp_name'];
+              switch ($file->operation_type) {
+                case 'SSF':
+                  $newdir = implode(DIRECTORY_SEPARATOR, array(
+                    'import',
+                    $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
+                    $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN',
+                    $block_name = $file->block->name ? $file->block->name : 'UNKNOWN'
+                  ));
+                  if (!($file->operator->name and $file->site->name and $file->block->name and $file->operation_type)) {
+                    $file->delete();
+                    throw new Exception();
+                  }
+                  $newname = $site_name.'_SSF_'.$block_name.'.'.$ext;
+                  break;
+
+                case 'TDF':
+                  $newdir = implode(DIRECTORY_SEPARATOR, array(
+                    'import',
+                    $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
+                    $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN',
+                    $block_name = $file->block->name ? $file->block->name : 'UNKNOWN'
+                  ));
+                  if (!($operation_type and $site_name and $block_name)) {
+                    $file->delete();
+                    throw new Exception();
+                  }
+                  $newname = $site_name.'_TDF_'.$block_name.'_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
+                  break;
+
+                case 'LDF':
+                  $newdir = implode(DIRECTORY_SEPARATOR, array(
+                    'import',
+                    $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
+                    $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN'
+                  ));
+                  $newname = $site_name.'_LDF_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
+                  break;
+              }
+
+              if ($newname !== $file->name) {
+                $name_changed = TRUE;
+                $name_changed_properties = TRUE;
+              }
+
+              $version = 0;
+              while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+                $newname = substr($newname, 0, strrpos($newname, '.'.$ext)).'_'.($version++).'.'.$ext;
+                $name_changed = TRUE;
+                $name_changed_duplicate = TRUE;
+              }
+
+              if ($name_changed) {
+                $msg = 'Uploaded file name has been changed from "'.$file->name.'" to "'.$newname.'"';
+                $due = array();
+                if ($name_changed_duplicate) $due[] = 'an already existing file with the same name';
+                if ($name_changed_properties) $due[] = 'detected properties of the file';
+                if ($due) $msg .= ' due to '.implode(' and ', $due);
+                $msg .= '.';
+                Notify::msg($msg, 'warning', TRUE);
+              }
+
+              if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+                Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error', TRUE);
+                throw new Exeption();
+              }
+              if (!(rename($tmpname, DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname) and chmod(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname, 0777))) {
+                throw new Exception();
+                Notify::msg('Sorry, cannot create document. Check file operation capabilities with the site administrator and try again.', 'error', TRUE);
+              }
+
+              $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+              
+              try {
+                $file->save();
+                Notify::msg($file->name.' successfully uploaded.', 'success', TRUE);
+              } catch (ORM_Validation_Exception $e) {
+                foreach ($e->errors('') as $err) Notify::msg($err, 'error', TRUE);
+              }
+
+            } catch (Exception $e) {
+              Notify::msg('Sorry, unable to save uploaded file.', 'error', TRUE);
             }
 
             if ($file->id) {
-              // parse CSV
-              $form_model = ORM::factory($form_type);
-              $start = constant('Model_'.$form_type.'::PARSE_START');
-              $count = count($excel);
-              for ($i = $start; $i <= $count; $i++) {
+              // parse csv
+              for ($i = $start; $i <= count($excel); $i++) {
                 $row = $excel[$i];
                 if ( ! $data = $form_model->parse_csv($row, $excel)) continue;
 
@@ -686,85 +773,6 @@ class Controller_Import extends Controller {
                 } catch (Exception $e) {
                   $csv_error++;
                 }
-              }
-
-              try {
-                $file->operator_id = $csv->operator_id;
-                $file->site_id     = $csv->site_id;
-                $file->block_id    = $csv->block_id;
-                $file->save();
-
-                $tmpname = $import['tmp_name'];
-                switch ($file->operation_type) {
-                  case 'SSF':
-                    $newdir = implode(DIRECTORY_SEPARATOR, array(
-                      'import',
-                      $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
-                      $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN',
-                      $block_name = $file->block->name ? $file->block->name : 'UNKNOWN'
-                    ));
-                    $newname = $site_name.'_SSF_'.$block_name.'.'.$ext;
-                    break;
-
-                  case 'TDF':
-                    $newdir = implode(DIRECTORY_SEPARATOR, array(
-                      'import',
-                      $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
-                      $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN',
-                      $block_name = $file->block->name ? $file->block->name : 'UNKNOWN'
-                    ));
-                    $newname = $site_name.'_TDF_'.$block_name.'_'.Date::formatted_time(SGS::date($csv->create_date), 'Y_m_d').'.'.$ext;
-                    break;
-
-                  case 'LDF':
-                    $newdir = implode(DIRECTORY_SEPARATOR, array(
-                      'import',
-                      $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
-                      $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN'
-                    ));
-                    $newname = $site_name.'_LDF_'.Date::formatted_time(SGS::date($csv->create_date), 'Y_m_d').'.'.$ext;
-                    break;
-                }
-
-                if ($newname !== $file->name) {
-                  $name_changed = TRUE;
-                  $name_changed_properties = TRUE;
-                }
-
-                $version = 0;
-                while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
-                  $newname = substr($newname, 0, strrpos($newname, '.'.$ext)).'_'.($version++).'.'.$ext;
-                  $name_changed = TRUE;
-                  $name_changed_duplicate = TRUE;
-                }
-
-                if ($name_changed) {
-                  $msg = 'Local file name has been changed from "'.$file->name.'" to "'.$newname.'"';
-                  $due = array();
-                  if ($name_changed_duplicate) $due[] = 'an already existing file with the same name';
-                  if ($name_changed_properties) $due[] = 'detected properties of the file';
-                  if ($due) $msg .= ' due to '.implode(' and ', $due);
-                  $msg .= '.';
-                  Notify::msg($msg, 'warning', TRUE);
-                }
-
-                if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
-                  Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error', TRUE);
-                  throw new Exeption();
-                }
-                if (!(rename($tmpname, DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname) and chmod(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname, 0777))) {
-                  throw new Exception();
-                  Notify::msg('Sorry, cannot create document. Check file operation capabilities with the site administrator and try again.', 'error', TRUE);
-                }
-
-                try {
-                  $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
-                  $file->save();
-                } catch (Excpetion $e) {
-                  Notify::msg('Sorry, unable to save file path.', 'error', TRUE);
-                }
-              } catch (Exception $e) {
-                Notify::msg('Sorry, unable to save file properties.', 'error', TRUE);
               }
             }
           }

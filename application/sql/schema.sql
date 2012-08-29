@@ -306,8 +306,6 @@ create table ssf_data (
   constraint ssf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
   constraint ssf_data_species_id_fkey foreign key (species_id) references species (id),
   constraint ssf_data_user_id_fkey foreign key (user_id) references users (id),
-
-  constraint ssf_data_unique_tree_map_number unique(site_id,block_id,survey_line,cell_number,tree_map_number)
 );
 
 create table tdf_data (
