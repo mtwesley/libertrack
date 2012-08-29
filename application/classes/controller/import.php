@@ -681,7 +681,7 @@ class Controller_Import extends Controller {
                     $file->block->name
                   ));
                   if (!($file->operator->name and $file->site->name and $file->block->name and $file->operation_type)) {
-                    Notif::msg('Sorry, cannot detect required properties of the file.', 'error');
+                    Notify::msg('Sorry, cannot detect required properties of the file.', 'error', TRUE);
                     throw new Exception();
                   }
                   $newname = $file->site->name.'_SSF_'.$file->block->name.'.'.$ext;
@@ -695,7 +695,7 @@ class Controller_Import extends Controller {
                     $file->block->name
                   ));
                   if (!($file->operator->name and $file->site->name and $file->block->name and $file->operation_type)) {
-                    Notif::msg('Sorry, cannot detect required properties of the file.', 'error');
+                    Notify::msg('Sorry, cannot detect required properties of the file.', 'error', TRUE);
                     throw new Exception();
                   }
                   $newname = $file->site->name.'_TDF_'.$file->block->name.'_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
@@ -708,7 +708,7 @@ class Controller_Import extends Controller {
                     $file->operation_type
                   ));
                   if (!($file->operator->name and $file->site->name and $file->operation_type)) {
-                    Notif::msg('Sorry, cannot detect required properties of the file.', 'error');
+                    Notify::msg('Sorry, cannot detect required properties of the file.', 'error', TRUE);
                     throw new Exception();
                   }
                   $newname = $file->site->name.'_LDF_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
