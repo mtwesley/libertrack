@@ -676,38 +676,42 @@ class Controller_Import extends Controller {
                 case 'SSF':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
                     'import',
-                    $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
-                    $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN',
-                    $block_name = $file->block->name ? $file->block->name : 'UNKNOWN'
+                    $file->site->name,
+                    $file->operation_type,
+                    $file->block->name
                   ));
                   if (!($file->operator->name and $file->site->name and $file->block->name and $file->operation_type)) {
-                    $file->delete();
+                    Notif::msg('Sorry, cannot detect required properties of the file.', 'error');
                     throw new Exception();
                   }
-                  $newname = $site_name.'_SSF_'.$block_name.'.'.$ext;
+                  $newname = $file->site->name.'_SSF_'.$file->block->name.'.'.$ext;
                   break;
 
                 case 'TDF':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
                     'import',
-                    $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
-                    $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN',
-                    $block_name = $file->block->name ? $file->block->name : 'UNKNOWN'
+                    $file->site->name,
+                    $file->operation_type,
+                    $file->block->name
                   ));
-                  if (!($operation_type and $site_name and $block_name)) {
-                    $file->delete();
+                  if (!($file->operator->name and $file->site->name and $file->block->name and $file->operation_type)) {
+                    Notif::msg('Sorry, cannot detect required properties of the file.', 'error');
                     throw new Exception();
                   }
-                  $newname = $site_name.'_TDF_'.$block_name.'_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
+                  $newname = $file->site->name.'_TDF_'.$file->block->name.'_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
                   break;
 
                 case 'LDF':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
                     'import',
-                    $site_name = $file->site->name ? $file->site->name : 'UNKNOWN',
-                    $operation_type = $file->operation_type ? $file->operation_type : 'UNKNOWN'
+                    $file->site->name,
+                    $file->operation_type
                   ));
-                  $newname = $site_name.'_LDF_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
+                  if (!($file->operator->name and $file->site->name and $file->operation_type)) {
+                    Notif::msg('Sorry, cannot detect required properties of the file.', 'error');
+                    throw new Exception();
+                  }
+                  $newname = $file->site->name.'_LDF_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
                   break;
               }
 
@@ -743,7 +747,7 @@ class Controller_Import extends Controller {
               }
 
               $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
-              
+
               try {
                 $file->save();
                 Notify::msg($file->name.' successfully uploaded.', 'success', TRUE);
@@ -752,6 +756,7 @@ class Controller_Import extends Controller {
               }
 
             } catch (Exception $e) {
+              try { $file->delete(); } catch (Exception $f) {}
               Notify::msg('Sorry, unable to save uploaded file.', 'error', TRUE);
             }
 
