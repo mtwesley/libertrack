@@ -290,7 +290,7 @@ class Controller_Export extends Controller {
 
         // file
         $tempname  = tempnam(sys_get_temp_dir(), 'tdf_').'.'.$type;
-        $fullname  = $site->name.'_TDF_'.$block->name.'_'.Date::formatted_time('now', 'Y_m_d').'.'.$type;
+        $fullname  = $site->name.'_TDF_'.$block->name.'_'.Date::formatted_time('now', 'm_d_Y').'.'.$type;
         $writer->save($tempname);
 
         $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
@@ -382,7 +382,7 @@ class Controller_Export extends Controller {
 
         // file
         $tempname  = tempnam(sys_get_temp_dir(), 'ldf_').'.csv';
-        $fullname  = $site->name.'_LDF_'.Date::formatted_time('now', 'Y_m_d').'.'.$type;
+        $fullname  = $site->name.'_LDF_'.Date::formatted_time('now', 'm_d_Y').'.'.$type;
         $writer->save($tempname);
 
         $this->response->send_file($tempname, $fullname, array('delete' => TRUE));

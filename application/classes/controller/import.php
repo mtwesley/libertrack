@@ -536,8 +536,8 @@ class Controller_Import extends Controller {
 
             switch ($form_type) {
               case 'SSF': $fullname = ($site->name ? $site->name.'_' : '').'SSF'.($block->name ? '_'.$block->name : '').'.'.$ext; break;
-              case 'TDF': $fullname = ($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext; break;
-              case 'LDF': $fullname = ($site->name ? $site->name.'_' : '').'LDF_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext; break;
+              case 'TDF': $fullname = ($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').Date::formatted_time(SGS::date($create_date), 'm_d_Y').'.'.$ext; break;
+              case 'LDF': $fullname = ($site->name ? $site->name.'_' : '').'LDF_'.Date::formatted_time(SGS::date($create_date), 'm_d_Y').'.'.$ext; break;
             }
 
             $writer->save($tempname);
@@ -712,7 +712,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = $file->site->name.'_TDF_'.$file->block->name.'_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
+                  $newname = $file->site->name.'_TDF_'.$file->block->name.'_'.Date::formatted_time(SGS::date($create_date), 'm_d_Y').'.'.$ext;
                   break;
 
                 case 'LDF':
@@ -725,7 +725,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = $file->site->name.'_LDF_'.Date::formatted_time(SGS::date($create_date), 'Y_m_d').'.'.$ext;
+                  $newname = $file->site->name.'_LDF_'.Date::formatted_time(SGS::date($create_date), 'm_d_Y').'.'.$ext;
                   break;
               }
 
