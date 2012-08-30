@@ -1,6 +1,10 @@
 
-insert into roles (name, description) values ('login', 'Basic user');
-insert into roles (name, description) values ('admin', 'Administrative user');
+insert into roles (name, description) values ('login', 'Login');
+insert into roles (name, description) values ('data', 'Data Entry');
+insert into roles (name, description) values ('analysis', 'Data Analysis');
+insert into roles (name, description) values ('reports', 'Reporting');
+insert into roles (name, description) values ('management', 'Project Management');
+insert into roles (name, description) values ('admin', 'Administration');
 
 -- users
 

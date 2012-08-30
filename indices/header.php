@@ -371,10 +371,11 @@ $path = array_filter(explode('/', $uri));
                     <li class=""><a href="/">Home</a></li>
                     <li class=""><a href="/import">Import</a></li>
                     <li class=""><a href="/export">Export</a></li>
-                    <li class=""><a href="/">Analysis, Checks, and Queries</a></li>
-                    <li class=""><a href="/">Reports</a></li>
+                    <!-- <li class=""><a href="/">Analysis, Checks, and Queries</a></li> -->
+                    <!-- <li class=""><a href="/">Reports</a></li> -->
                     <li class="active"><a href="/">Documents</a></li>
                     <li class=""><a href="/admin">Administration</a></li>
+                    <li style="float: right; margin-right: 25px;"><a href="/admin">Logout</a></li>
                   </ul>
                 </div>
                 <!-- Center container -->

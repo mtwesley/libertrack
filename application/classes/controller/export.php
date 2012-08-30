@@ -2,6 +2,19 @@
 
 class Controller_Export extends Controller {
 
+  public function before() {
+    parent::before();
+
+    if (!Auth::instance()->logged_in()) {
+      Notify::msg('Please login.', NULL, TRUE);
+      $this->request->redirect('login');
+    }
+    elseif (!Auth::instance()->logged_in('data')) {
+      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['data'].' privileges.', NULL, TRUE);
+      $this->request->redirect();
+    }
+  }
+
   private function handle_file_list() {
     $files = ORM::factory('file')
       ->where('operation', '=', 'E')

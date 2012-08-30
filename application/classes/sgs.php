@@ -13,6 +13,9 @@ class SGS {
   public static $path = array(
     'index'           => 'Home',
 
+    'login'           => 'Login',
+    'logout'          => 'Logout',
+
     'documents'       => 'Documents',
 
     'import'          => 'Import',
@@ -35,8 +38,9 @@ class SGS {
     'admin/sites'     => 'Site Configuration',
     'admin/blocks'    => 'Block Registration',
     'admin/species'   => 'Species Configuration',
-    'admin/printjobs' => 'Print Job Management',
+    'admin/printjobs' => 'Print Job and Barcode Management',
     'admin/barcodes'  => 'Barcode Management',
+    'admin/users'     => 'User Management',
 
     'analysis'        => 'Analysis, Checks, and Queries',
     'analysis/ssf'    => 'Stock Survey Form',
@@ -121,6 +125,15 @@ class SGS {
       'is_status'            => '":field" must be either (P)ending, (A)ctive or (R)ejected',
       'is_coc_status'        => '":field" must be a CoC status (for example, "Pending")',
     )
+  );
+
+  public static $roles = array(
+    'login'      => 'Login',
+    'data'       => 'Data Entry',
+    'analysis'   => 'Data Analysis',
+    'reports'    => 'Reporting',
+    'admin'      => 'Aministration',
+    'management' => 'Project Management'
   );
 
   public static $file_type = array(
@@ -237,12 +250,12 @@ class SGS {
     if ($text !== $fix = preg_replace('/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/', '$2-$1-$3', trim($text))) return $fix;
   }
 
-  public static function date($date, $format = SGS::DATE_FORMAT, $fix = TRUE)
+  public static function date($date = 'now', $format = SGS::DATE_FORMAT, $fix = TRUE)
   {
     try {
       $d = Date::formatted_time($date, $format);
     } catch (Exception $e) {
-      $d = date($format, strtotime($date));
+      $d = date($format, is_numeric($date) ? $date : strtotime($date));
     }
 
     if (Valid::is_date($d)) return $d;
@@ -250,7 +263,7 @@ class SGS {
     else return $d;
   }
 
-  public static function datetime($datetime, $format = SGS::DATETIME_FORMAT, $fix = TRUE)
+  public static function datetime($datetime = 'now', $format = SGS::DATETIME_FORMAT, $fix = TRUE)
   {
     try {
       $dt = Date::formatted_time($datetime, $format);
@@ -539,6 +552,10 @@ class SGS {
     $string = preg_replace('/[^0123456789ACEFHJKLMNPRYXW]/', '', $string);
     if (strlen($string) > 8) $string = substr($string, 0, 8).'-'.substr($string, 8);
     return $string;
+  }
+
+  public static function implodify($array) {
+    return implode(' and ', array_filter(array_merge(array(implode(', ', array_slice($array, 0, -1))), array_slice($array, -1))));
   }
 
   public static function render_classes($classes)

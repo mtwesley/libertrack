@@ -98,7 +98,7 @@ Kohana::$config->attach(new Config_File);
  * Enable modules. Modules are referenced by a relative or absolute path.
  */
 Kohana::modules(array(
-	// 'auth'      => MODPATH.'auth',         // Basic authentication
+	'auth'         => MODPATH.'auth',         // Basic authentication
 	// 'cache'     => MODPATH.'cache',        // Caching with multiple backends
 	// 'codebench' => MODPATH.'codebench',    // Benchmarking tool
 	'database'     => MODPATH.'database',     // Database access
@@ -117,6 +117,17 @@ Kohana::modules(array(
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
+Route::set('login', 'login')
+  ->defaults(array(
+    'controller' => 'index',
+    'action'     => 'login'
+  ));
+Route::set('logout', 'logout')
+  ->defaults(array(
+    'controller' => 'index',
+    'action'     => 'logout'
+  ));
+
 Route::set('main', '<controller>(/<action>(/<id>)(/<command>))');
 
 Route::set('default', '(<controller>(/<action>(/<id>)))')
@@ -124,3 +135,10 @@ Route::set('default', '(<controller>(/<action>(/<id>)))')
 		'controller' => 'index',
 		'action'     => 'index',
 	));
+
+/**
+ * Set some defaults
+ */
+Session::$default = 'database';
+Cookie::$domain   = 'sgs';
+Cookie::$salt     = (string) md5('sgs');

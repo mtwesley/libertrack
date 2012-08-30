@@ -16,8 +16,8 @@ return array(
     'group'     => 'default',
     'table'     => 'sessions',
     'columns' => array(
-      'session_id'  => 'id',
-      'last_active' => 'last_active',
+      'session_id'  => 'cookie',
+      'last_active' => 'to_timestamp',
       'contents'    => 'contents'
     ),
   ),

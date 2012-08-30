@@ -31,6 +31,11 @@ if (!$command && !is_numeric($id)) {
     text-transform: uppercase;
   }
 
+  #navigation .primary li.right {
+    float: right;
+    margin-right: 25px;
+  }
+
   #navigation .primary li a {
     padding: 7px 0 6px;
     color: #555;
@@ -123,13 +128,32 @@ if (!$command && !is_numeric($id)) {
 </style>
 <div id="navigation">
   <ul class="nav primary">
+    <?php if (Auth::instance()->logged_in()): ?>
     <li class="<?php if ($primary == 'index')     echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('index')); ?></li>
+
+    <?php if (Auth::instance()->logged_in('data')): ?>
     <li class="<?php if ($primary == 'import')    echo 'active'; ?>"><?php echo HTML::anchor('import', SGS::title('import')); ?></li>
     <li class="<?php if ($primary == 'export')    echo 'active'; ?>"><?php echo HTML::anchor('export', SGS::title('export')); ?></li>
-    <li class="<?php if ($primary == 'analysis')  echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('analysis')); ?></li>
-    <li class="<?php if ($primary == 'reports')   echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('reports')); ?></li>
     <li class="<?php if ($primary == 'documents') echo 'active'; ?>"><?php echo HTML::anchor('documents', SGS::title('documents')); ?></li>
+    <?php endif; ?>
+
+    <?php if (Auth::instance()->logged_in('analysis')): ?>
+    <li class="<?php if ($primary == 'analysis')  echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('analysis')); ?></li>
+    <?php endif; ?>
+
+    <?php if (Auth::instance()->logged_in('reports')): ?>
+    <li class="<?php if ($primary == 'reports')   echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('reports')); ?></li>
+    <?php endif; ?>
+
+    <?php if (Auth::instance()->logged_in('admin')): ?>
     <li class="<?php if ($primary == 'admin')     echo 'active'; ?>"><?php echo HTML::anchor('admin', SGS::title('admin')); ?></li>
+    <?php endif; ?>
+
+    <li class="<?php if ($secondary == 'logout')  echo 'active'; ?> right"><?php echo HTML::anchor('logout', SGS::title('logout')); ?></li>
+
+    <?php else: ?>
+    <li class="<?php if ($secondary == 'login')   echo 'active'; ?>"><?php echo HTML::anchor('login', SGS::title('login')); ?></li>
+    <?php endif; ?>
   </ul>
 
 
@@ -141,6 +165,7 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'blocks')    echo 'active'; ?>"><?php echo HTML::anchor('admin/blocks', SGS::title('admin/blocks')); ?></li>
     <li class="<?php if ($secondary == 'species')   echo 'active'; ?>"><?php echo HTML::anchor('admin/species', SGS::title('admin/species')); ?></li>
     <li class="<?php if ($secondary == 'printjobs') echo 'active'; ?>"><?php echo HTML::anchor('admin/printjobs', SGS::title('admin/printjobs')); ?></li>
+    <li class="<?php if ($secondary == 'users')     echo 'active'; ?>"><?php echo HTML::anchor('admin/users', SGS::title('admin/users')); ?></li>
 
     <?php elseif ($primary == 'import'): ?>
     <li class="<?php if ($secondary == 'upload') echo 'active'; ?>"><?php echo HTML::anchor('import/upload', SGS::title('import/upload')); ?></li>

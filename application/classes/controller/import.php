@@ -2,6 +2,21 @@
 
 class Controller_Import extends Controller {
 
+  public function before() {
+    parent::before();
+
+    if (!Auth::instance()->logged_in()) {
+      Notify::msg('Please login.', NULL, TRUE);
+      $this->request->redirect('login');
+    }
+    elseif (!Auth::instance()->logged_in('data')) {
+      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['data'].' privileges.', NULL, TRUE);
+      $this->request->redirect();
+    }
+
+    Session::instance('database')->write();
+  }
+
   private static function cleanup_errors($errors) {
     foreach ($errors as $field => $error) {
       $array  = explode('.', $error);

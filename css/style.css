@@ -47,6 +47,7 @@
 }
 
 #content form p.input input,
+#content form p.password input,
 #content form p.submit input,
 #content form p.select select {
   font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
@@ -55,7 +56,10 @@
 }
 
 #content form p.input {}
-#content form p.input input {
+#content form p.password {}
+
+#content form p.input input,
+#content form p.password input {
   padding: 4px;
   border: none;
   width: 400px;

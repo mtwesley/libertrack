@@ -188,4 +188,8 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_char($value) AND preg_match('/^[PESLAHN]$/', (string) $value));
   }
 
+  public static function is_username($value)
+  {
+    return (bool) (self::is_char($value) AND preg_match('/^[0-9A-Za-z_]{3,24}$/', (string) $value));
+  }
 }

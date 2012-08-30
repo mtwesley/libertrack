@@ -81,19 +81,21 @@ create table roles (
 create table users (
   id serial,
   email d_text_short unique,
+  name d_text_medium unique,
   username d_username unique not null,
   password d_password not null,
-  logins d_measurement_int not null default 0,
-  last_login d_int,
+  last_timestamp d_timestamp,
+  timestamp d_timestamp default current_timestamp not null,
 
   constraint users_pkey primary key (id)
 );
 
 create table roles_users (
-  user_id d_int,
-  role_id d_int,
+  id serial not null,
+  user_id d_int not null,
+  role_id d_int not null,
 
-  constraint roles_users_pkey primary key (user_id, role_id),
+  constraint roles_users_pkey primary key (id),
   constraint roles_users_user_id_fkey foreign key (user_id) references users (id),
   constraint roles_users_role_id_fkey foreign key (role_id) references roles (id)
 );
@@ -112,10 +114,10 @@ create table user_tokens (
 
 create table sessions (
   id bigserial not null,
-  user_id d_id not null,
+  cookie d_text_short unique,
+  user_id d_id,
   ip_address d_ip_address not null,
   user_agent d_text_medium,
-  last_active d_int not null,
   contents d_text_long not null,
   from_timestamp d_timestamp not null,
   to_timestamp d_timestamp not null,
