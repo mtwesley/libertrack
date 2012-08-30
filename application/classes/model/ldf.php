@@ -45,9 +45,9 @@ class Model_LDF extends SGS_Form_ORM {
   {
     extract(SGS::parse_site_and_block_info($csv[2][B]));
     $data = array(
-      'parent_barcode' => $row[A],
+      'parent_barcode' => SGS::barcodify($row[A]),
       'species_code'   => $row[B],
-      'barcode'        => $row[C],
+      'barcode'        => SGS::barcodify($row[C]),
       'bottom_max'     => $row[D],
       'bottom_min'     => $row[E],
       'top_max'        => $row[F],

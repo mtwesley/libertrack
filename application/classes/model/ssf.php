@@ -43,7 +43,7 @@ class Model_SSF extends SGS_Form_ORM {
   {
     extract(SGS::parse_site_and_block_info($csv[2][B]));
     $data = array(
-      'barcode'           => $row[A],
+      'barcode'           => SGS::barcodify($row[A]),
       'tree_map_number'   => $row[B],
       'survey_line'       => $row[C],
       'cell_number'       => $row[D],

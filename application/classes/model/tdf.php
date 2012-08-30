@@ -53,15 +53,15 @@ class Model_TDF extends SGS_Form_ORM {
     $data = array(
       'survey_line'       => $row[A],
       'cell_number'       => $row[B],
-      'tree_barcode'      => $row[C],
+      'tree_barcode'      => SGS::barcodify($row[C]),
       'species_code'      => $row[D],
-      'barcode'           => $row[E],
+      'barcode'           => SGS::barcodify($row[E]),
       'bottom_max'        => $row[F],
       'bottom_min'        => $row[G],
       'top_max'           => $row[H],
       'top_min'           => $row[I],
       'length'            => $row[J],
-      'stump_barcode'     => $row[K],
+      'stump_barcode'     => SGS::barcodify($row[K]),
       'action'            => $row[L],
       'comment'           => $row[M],
     );
