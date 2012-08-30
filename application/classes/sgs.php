@@ -252,6 +252,8 @@ class SGS {
 
   public static function date($date = 'now', $format = SGS::DATE_FORMAT, $fix = TRUE)
   {
+    if ($test = self::internationalify($date)) $date = $test;
+
     try {
       $d = Date::formatted_time($date, $format);
     } catch (Exception $e) {
@@ -265,6 +267,8 @@ class SGS {
 
   public static function datetime($datetime = 'now', $format = SGS::DATETIME_FORMAT, $fix = TRUE)
   {
+    if ($test = self::internationalify($date)) $date = $test;
+
     try {
       $dt = Date::formatted_time($datetime, $format);
     } catch (Exception $e) {
@@ -556,6 +560,21 @@ class SGS {
 
   public static function implodify($array) {
     return implode(' and ', array_filter(array_merge(array(implode(', ', array_slice($array, 0, -1))), array_slice($array, -1))));
+  }
+
+  public static function internationalify($string)
+  {
+    $matches = array();
+    preg_match('/(\d{1,2})[\-\/](\d{1,2})[\-\/](\d{2,4})/', $string, $matches);
+
+    if (!($matches[1] and $matches[2] and $matches[3])) return FALSE;
+
+    if (strlen($matches[1]) == 1) $matches[1] = '0'.$matches[1];
+    if (strlen($matches[2]) == 1) $matches[2] = '0'.$matches[2];
+    if (strlen($matches[3]) == 2) $matches[3] = '20'.$matches[3];
+
+    if ($matches[2] > 12) return $matches[3].'-'.$matches[2].'-'.$matches[1];
+    else return $matches[3].'-'.$matches[1].'-'.$matches[2];
   }
 
   public static function render_classes($classes)
