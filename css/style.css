@@ -212,6 +212,7 @@
 #content table.data tr.download-form td {
   padding: 6px;
   border-top: 1px dotted #e6dfd4;
+  white-space: normal;
 }
 
 #content table.data a.link,

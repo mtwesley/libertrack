@@ -158,8 +158,9 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_char($value) AND preg_match('/^[ABC]$/', (string) $value));
   }
 
-  public static function is_barcode($value)
+  public static function is_barcode($value, $barcodify = FALSE)
   {
+    if ($barcodify) $value = SGS::barcodify($value);
     return (bool) ((!is_numeric($value)) AND self::is_varchar($value) AND preg_match('/^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$/', (string) $value));
   }
 

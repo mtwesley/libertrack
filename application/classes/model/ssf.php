@@ -336,7 +336,7 @@ class Model_SSF extends SGS_Form_ORM {
                                 array('is_block_name'),
                                 array('is_existing_block', array(':validation', 'site_name', 'block_name'))),
       'barcode'        => array(array('not_empty'),
-                                array('is_barcode'),
+                                array('is_barcode', array(':value', TRUE)),
                                 array('is_existing_barcode')),
       'species_code'   => array(array('not_empty'),
                                 array('is_species_code'),

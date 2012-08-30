@@ -9,7 +9,7 @@ alter table users drop column logins;
 
 -- sessions
 
-alter table sessiosn add column cookie d_text_short unique;
+alter table sessions add column cookie d_text_short unique;
 alter table sessions alter column user_id drop not null;
 alter table sessions drop column last_active;
 

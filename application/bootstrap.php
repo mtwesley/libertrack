@@ -140,5 +140,5 @@ Route::set('default', '(<controller>(/<action>(/<id>)))')
  * Set some defaults
  */
 Session::$default = 'database';
-Cookie::$domain   = 'sgs';
+Cookie::$domain   = FALSE;
 Cookie::$salt     = (string) md5('sgs');
