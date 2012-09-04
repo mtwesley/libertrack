@@ -48,4 +48,24 @@ class Model_CSV extends ORM {
     }
   }
 
+  public function save(Validation $validation = NULL) {
+    if (!$this->_original_values['form_data_id']) parent::save($validation);
+    else Notify::msg('Imported data accepted as form data cannot be saved. You must first delete the related form data.', 'error');
+  }
+
+  public function update(Validation $validation = NULL) {
+    if (!$this->_original_values['form_data_id']) parent::update($validation);
+    else Notify::msg('Imported data accepted as form data cannot be updated. You must first delete the related form data.', 'error');
+  }
+
+  public function create(Validation $validation = NULL) {
+    if (!$this->_original_values['form_data_id']) parent::create($validation);
+    else Notify::msg('Imported data accepted as form data cannot be re-created. You must first delete the related form data.', 'error');
+  }
+
+  public function delete() {
+    if (!$this->_original_values['form_data_id']) return parent::delete();
+    else Notify::msg('Imported data accepted as form data cannot be deleted. You must first delete the related form data.', 'error');
+  }
+
 }

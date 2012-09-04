@@ -67,7 +67,7 @@ class Model_TDF extends SGS_Form_ORM {
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'    => $csv[3][B],
+      'create_date'    => SGS::date($csv[3][B]),
       'operator_tin'   => $csv[2][G],
       'site_name'      => $site_name,
       'block_name'     => $block_name,
@@ -151,7 +151,7 @@ class Model_TDF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('I8', 'Min');
     }
 
-    $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name);
+    $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name.'/'.$this->block->name);
     $excel->getActiveSheet()->SetCellValue('G2', $this->operator->tin);
     $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
     $excel->getActiveSheet()->SetCellValue('G3', ''); // log measurer
@@ -206,7 +206,7 @@ class Model_TDF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('I8', 'Min');
     }
 
-    $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name']);
+    $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name'].'/'.$values['block_name']);
     $excel->getActiveSheet()->SetCellValue('G2', $values['operator_tin']);
     $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
     $excel->getActiveSheet()->SetCellValue('G3', ''); // log measurer
@@ -306,7 +306,8 @@ class Model_TDF extends SGS_Form_ORM {
       'species_id'       => array(array('not_empty')),
       'barcode_id'       => array(array('not_empty'),
                                   array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
-      'tree_barcode_id'  => array(array('not_empty')),
+      'tree_barcode_id'  => array(array('not_empty'),
+                                  array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'stump_barcode_id' => array(array('not_empty'),
                                   array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'survey_line'      => array(array('not_empty'),

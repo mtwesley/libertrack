@@ -462,6 +462,9 @@ class SGS {
       $query_args[] = array('join' => array('operators'));
       $query_args[] = array('on' => array('sites.operator_id', '=', 'operators.id'));
     }
+    if (strlen($barcode) >= 10) $query_args[] = array('where' => array(DB::expr('character_length(barcodes.barcode)'), '=', 13));
+    else $query_args[] = array('where' => array(DB::expr('character_length(barcodes.barcode)'), '=', 8));
+
     return self::suggest($barcode, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
   }
 
@@ -494,6 +497,7 @@ class SGS {
       $query_args[] = array('join' => array('operators'));
       $query_args[] = array('on' => array('sites.operator_id', '=', 'operators.id'));
     }
+
     return self::suggest($name, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
   }
 
@@ -505,6 +509,7 @@ class SGS {
     $fields = 'code';
 
     $query_args = array();
+
     return self::suggest($code, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
   }
 

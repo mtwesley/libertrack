@@ -53,7 +53,7 @@ class Model_SSF extends SGS_Form_ORM {
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'     => $csv[3][B],
+      'create_date'     => SGS::date($csv[3][B]),
       'operator_tin'    => $csv[2][H],
       'site_name'       => $site_name,
       'block_name'      => $block_name,
@@ -262,10 +262,10 @@ class Model_SSF extends SGS_Form_ORM {
           if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
           if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
           if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
-          $duplicate = $query->execute()->get('id');
+
+          if ($duplicate = $query->execute()->get('id')) $duplicates[$field] = $duplicate;
           break;
       }
-      if ($duplicate) $duplicates[$field] = $duplicate;
     }
 
     // everything else

@@ -37,7 +37,7 @@
       <?php endif; ?>
     </td>
   </tr>
-  <?php if ($csv->errors or $csv->suggestions): ?>
+  <?php if ($csv->errors or $csv->suggestions or $csv->duplicates): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td colspan="<?php echo (count($fields) + 3); ?>">
       <?php
@@ -50,6 +50,12 @@
           if ($csv->suggestions) echo View::factory('suggestions')
             ->set('fields', $fields)
             ->set('suggestions', $csv->suggestions)
+            ->render();
+      ?>
+      <?php
+          if ($csv->duplicates) echo View::factory('duplicates')
+            ->set('fields', $fields)
+            ->set('duplicates', $csv->duplicates)
             ->render();
       ?>
     </td>

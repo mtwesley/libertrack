@@ -8,7 +8,7 @@ insert into roles (name, description) values ('admin', 'Administration');
 
 -- users
 
-insert into users (username, password) values('sgs', md5('5gSu8z_'));
+insert into users (1, name, username, password) values(id, 'sgs', md5('5gSu8z_'));
 
 -- roles for users
 

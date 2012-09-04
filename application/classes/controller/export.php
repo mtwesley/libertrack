@@ -161,6 +161,7 @@ class Controller_Export extends Controller {
           $excel->setActiveSheetIndex(0);
           $writer = new PHPExcel_Writer_CSV($excel);
           $headers = TRUE;
+          $mime_type = 'text/csv';
           break;
         case 'xls':
           $filename = APPPATH.'/templates/SSF.xls';
@@ -173,6 +174,7 @@ class Controller_Export extends Controller {
           }
           $excel->setActiveSheetIndex(0);
           $writer = new PHPExcel_Writer_Excel2005($excel);
+          $mime_type = 'application/vnd.ms-excel';
           $headers = FALSE;
           break;
       }
@@ -197,7 +199,7 @@ class Controller_Export extends Controller {
         $fullname  = $site->name.'_SSF_'.$block->name.'.'.$type;
         $writer->save($tempname);
 
-        $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
+        $this->response->send_file($tempname, $fullname, array('mime_type' => $mime_type, 'delete' => TRUE));
       }
     }
 
@@ -257,6 +259,7 @@ class Controller_Export extends Controller {
           $excel->setActiveSheetIndex(0);
           $writer = new PHPExcel_Writer_CSV($excel);
           $headers = TRUE;
+          $mime_type = 'text/csv';
           break;
         case 'xls':
           $filename = APPPATH.'/templates/SSF.xls';
@@ -270,6 +273,7 @@ class Controller_Export extends Controller {
           $excel->setActiveSheetIndex(0);
           $writer = new PHPExcel_Writer_Excel2005($excel);
           $headers = FALSE;
+          $mime_type = 'application/vnd.ms-excel';
           break;
       }
 
@@ -293,7 +297,7 @@ class Controller_Export extends Controller {
         $fullname  = $site->name.'_TDF_'.$block->name.'_'.Date::formatted_time('now', 'm_d_Y').'.'.$type;
         $writer->save($tempname);
 
-        $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
+        $this->response->send_file($tempname, $fullname, array('mime_type' => $mime_type, 'delete' => TRUE));
       }
     }
 
@@ -349,6 +353,7 @@ class Controller_Export extends Controller {
           $excel->setActiveSheetIndex(0);
           $writer = new PHPExcel_Writer_CSV($excel);
           $headers = TRUE;
+          $mime_type = 'text/csv';
           break;
         case 'xls':
           $filename = APPPATH.'/templates/SSF.xls';
@@ -362,6 +367,7 @@ class Controller_Export extends Controller {
           $excel->setActiveSheetIndex(0);
           $writer = new PHPExcel_Writer_Excel2005($excel);
           $headers = FALSE;
+          $mime_type = 'application/vnd.ms-excel';
           break;
       }
 
@@ -385,7 +391,7 @@ class Controller_Export extends Controller {
         $fullname  = $site->name.'_LDF_'.Date::formatted_time('now', 'm_d_Y').'.'.$type;
         $writer->save($tempname);
 
-        $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
+        $this->response->send_file($tempname, $fullname, array('mime_type' => $mime_type, 'delete' => TRUE));
       }
     }
 

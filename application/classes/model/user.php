@@ -30,6 +30,7 @@ class Model_User extends Model_Auth_User {
       'roles'          => array(
         'orm_primary_val' => 'description',
         'label'           => 'Privileges',
+        'attr'            => array('class' => 'listed')
       ),
       'username' => array('label' => 'Username'),
       'password' => array(

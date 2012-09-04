@@ -19,7 +19,7 @@
 </style>
 <?php if ($errors): ?>
 <div class="details-errors">
-  <strong>Processing Errors:</strong>
+  <strong>Errors:</strong>
   <ul>
     <?php foreach ($errors as $field => $error): ?>
     <li><?php echo SGS::errorfy($error); ?></li>

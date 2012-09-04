@@ -81,6 +81,18 @@
   width: 410px;
 }
 
+#content form p.checkboxes {}
+#content form p.checkboxes span.field {
+/*  position: relative;
+  top: -21px;*/
+}
+#content form p.checkboxes span.checkbox {
+/*  margin-left: 170px;
+  display: block;
+  clear: left;*/
+  white-space: nowrap;
+}
+
 #content form p span.error-message {
   margin-left: 590px;
   padding: 5px 8px;

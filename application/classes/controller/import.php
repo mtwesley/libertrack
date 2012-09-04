@@ -14,7 +14,7 @@ class Controller_Import extends Controller {
       $this->request->redirect();
     }
 
-    Session::instance('database')->write();
+    Session::instance()->write();
   }
 
   private static function cleanup_errors($errors) {
@@ -53,10 +53,10 @@ class Controller_Import extends Controller {
 
       if ($duplicates) $csv->status = 'U';
       else $csv->status = 'R';
-
     } else {
-      $csv->errors = NULL;
-      $csv->suggestions = NULL;
+      $csv->errors       = NULL;
+      $csv->suggestions  = NULL;
+      $csv->duplicates   = NULL;
       $csv->form_data_id = $form_model->id;
       $csv->status = 'A';
     }
@@ -187,6 +187,28 @@ class Controller_Import extends Controller {
     $this->response->body($view);
   }
 
+  private function handle_file_delete($id) {
+    $file = ORM::factory('file', $id);
+
+    $form = Formo::form()
+      ->add('confirm', 'submit', 'Filter', array(
+        'label' => 'Are you sure you want to delete this file?'
+      ));
+
+    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      try {
+        $file->delete();
+      } catch (Exception $e) {
+        Notify::msg("Cannot delete file.");
+      }
+    }
+
+    if ($form) $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
   private function handle_file_review($id = NULL) {
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.file.review');
     if (!$id) $id = $this->request->param('id');
@@ -267,6 +289,7 @@ class Controller_Import extends Controller {
         $excel->setActiveSheetIndex(0);
         $writer = new PHPExcel_Writer_CSV($excel);
         $headers = TRUE;
+        $mime_type = 'text/csv';
         break;
       case 'xls':
         $filename = APPPATH.'/templates/'.$file->operation_type.'.xls';
@@ -279,14 +302,19 @@ class Controller_Import extends Controller {
         }
         $excel->setActiveSheetIndex(0);
         $writer = new PHPExcel_Writer_Excel5($excel);
-      $headers = FALSE;
+        $headers = FALSE;
+        $mime_type = 'application/vnd.ms-excel';
         break;
     }
 
     if ($excel) {
       // data
       $create_date = 0;
-      $row   = Model_SSF::PARSE_START;
+      switch ($file->operation_type) {
+        case 'SSF': $row = Model_SSF::PARSE_START; break;
+        case 'TDF': $row = Model_TDF::PARSE_START; break;
+        case 'LDF': $row = Model_LDF::PARSE_START; break;
+      }
       $model = ORM::factory($file->operation_type);
 
       foreach ($csvs as $csv) {
@@ -305,7 +333,7 @@ class Controller_Import extends Controller {
       $fullname  = $name ? $name.'.'.$type : substr($file->name, 0, strrpos($file->name, '.')).'.'.$type;
 
       $writer->save($tempname);
-      $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
+      $this->response->send_file($tempname, $fullname, array('mime_type' => $mime_type, 'delete' => TRUE));
     }
   }
 
@@ -498,6 +526,7 @@ class Controller_Import extends Controller {
             $excel->setActiveSheetIndex(0);
             $writer = new PHPExcel_Writer_CSV($excel);
             $headers = TRUE;
+            $mime_type = 'text/csv';
           }
           else {
             $ext = 'xls';
@@ -512,12 +541,17 @@ class Controller_Import extends Controller {
             $excel->setActiveSheetIndex(0);
             $writer = new PHPExcel_Writer_Excel5($excel);
             $headers = FALSE;
+            $mime_type = 'application/vnd.ms-excel';
           }
 
           if ($excel) {
             // data
             $create_date = 0;
-            $row   = Model_SSF::PARSE_START;
+            switch ($form_type) {
+              case 'SSF': $row = Model_SSF::PARSE_START; break;
+              case 'TDF': $row = Model_TDF::PARSE_START; break;
+              case 'LDF': $row = Model_LDF::PARSE_START; break;
+            }
             $model = ORM::factory($form_type);
 
             foreach ($csvs as $csv) {
@@ -541,7 +575,7 @@ class Controller_Import extends Controller {
             }
 
             $writer->save($tempname);
-            $this->response->send_file($tempname, $fullname, array('delete' => TRUE));
+            $this->response->send_file($tempname, $fullname, array('mime_type' => $mime_type, 'delete' => TRUE));
           }
         }
 
@@ -826,6 +860,7 @@ class Controller_Import extends Controller {
       case 'review': return self::handle_file_review($id);
       case 'process': return self::handle_file_process($id);
       case 'download': return self::handle_file_download($id);
+      case 'delete': return self::handle_file_delete($id);
 
       default:
       case 'list': return self::handle_file_list($id);

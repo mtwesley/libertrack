@@ -60,7 +60,7 @@ class Model_LDF extends SGS_Form_ORM {
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'    => $csv[3][B],
+      'create_date'    => SGS::date($csv[3][B]),
       'operator_tin'   => $csv[4][B],
       'site_name'      => $site_name,
     ) + $data);
@@ -239,7 +239,6 @@ class Model_LDF extends SGS_Form_ORM {
       $duplicate = NULL;
       switch ($field) {
         case 'barcode':
-        case 'parent_barcode':
           $query = DB::select('id')
             ->from($this->_table_name)
             ->where($field.'_id', '=', $val = SGS::lookup_barcode($values[$field]) ? $val : NULL);
@@ -273,8 +272,7 @@ class Model_LDF extends SGS_Form_ORM {
       'species_id'         => array(array('not_empty')),
       'barcode_id'         => array(array('not_empty'),
                                     array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
-      'parent_barcode_id'  => array(array('not_empty'),
-                                    array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
+      'parent_barcode_id'  => array(array('not_empty')),
       'invoice_id'         => array(),
       'top_min'            => array(array('not_empty'),
                                     array('is_measurement_int')),

@@ -84,6 +84,7 @@ create table users (
   name d_text_medium unique,
   username d_username unique not null,
   password d_password not null,
+  is_deleted d_bool default false not null,
   last_timestamp d_timestamp,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -96,8 +97,8 @@ create table roles_users (
   role_id d_int not null,
 
   constraint roles_users_pkey primary key (id),
-  constraint roles_users_user_id_fkey foreign key (user_id) references users (id),
-  constraint roles_users_role_id_fkey foreign key (role_id) references roles (id)
+  constraint roles_users_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint roles_users_role_id_fkey foreign key (role_id) references roles (id) on update cascade on delete cascade
 );
 
 create table user_tokens (
@@ -109,7 +110,7 @@ create table user_tokens (
   expires d_int not null,
 
   constraint user_tokens_pkey primary key (id),
-  constraint user_tokens_user_id_fkey foreign key (user_id) references users (id)
+  constraint user_tokens_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table sessions (
@@ -123,7 +124,7 @@ create table sessions (
   to_timestamp d_timestamp not null,
 
   constraint sessions_pkey primary key (id),
-  constraint sessions_user_id_fkey foreign key (user_id) references users (id)
+  constraint sessions_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table species (
@@ -133,11 +134,12 @@ create table species (
   botanic_name d_text_short unique,
   trade_name d_text_short unique,
   fob_price d_money not null,
+  is_deleted d_bool default false not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
   constraint species_pkey primary key (id),
-  constraint species_user_id_fkey foreign key (user_id) references users (id)
+  constraint species_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table operators (
@@ -148,11 +150,12 @@ create table operators (
   address d_text_medium,
   email d_text_short,
   phone d_text_short,
+  is_deleted d_bool default false not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
   constraint operators_pkey primary key (id),
-  constraint operators_user_id_fkey foreign key (user_id) references users (id)
+  constraint operators_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table sites (
@@ -160,24 +163,26 @@ create table sites (
   type d_site_type not null,
   name d_site_name unique not null,
   operator_id d_id not null,
+  is_deleted d_bool default false not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
   constraint sites_pkey primary key (id),
-  constraint sites_operator_id foreign key (operator_id) references operators (id),
-  constraint sites_user_id_fkey foreign key (user_id) references users (id)
+  constraint sites_operator_id foreign key (operator_id) references operators (id) on update cascade on delete cascade,
+  constraint sites_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table blocks (
   id bigserial not null,
   site_id d_id not null,
   name d_block_name not null,
+  is_deleted d_bool default false not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
   constraint blocks_pkey primary key (id),
-  constraint blocks_site_id_fkey foreign key (site_id) references sites (id),
-  constraint blocks_user_id_fkey foreign key (user_id) references users (id),
+  constraint blocks_site_id_fkey foreign key (site_id) references sites (id) on update cascade on delete cascade,
+  constraint blocks_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
   constraint blocks_unique_site_name unique(site_id,name)
 );
@@ -191,24 +196,24 @@ create table printjobs (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint printjobs_pkey primary key (id),
-  constraint printjobs_site_id_fkey foreign key (site_id) references sites (id),
-  constraint printjobs_user_id_fkey foreign key (user_id) references users (id)
+  constraint printjobs_site_id_fkey foreign key (site_id) references sites (id) on update cascade on delete cascade,
+  constraint printjobs_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table barcodes (
   id bigserial not null,
   barcode d_barcode unique not null,
   type d_barcode_type default 'P' not null,
-  parent_id d_id,
+  parent_id d_id default null,
   printjob_id d_id not null,
   is_locked d_bool default false not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
   constraint barcodes_pkey primary key (id),
-  constraint barcodes_parent_id_fkey foreign key (parent_id) references barcodes (id),
-  constraint barcodes_printjob_id_fkey foreign key (printjob_id) references printjobs (id),
-  constraint barcodes_user_id_fkey foreign key (user_id) references users (id)
+  constraint barcodes_parent_id_fkey foreign key (parent_id) references barcodes (id) on update cascade on delete set null,
+  constraint barcodes_printjob_id_fkey foreign key (printjob_id) references printjobs (id) on update cascade on delete cascade,
+  constraint barcodes_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table barcode_hops_cached (
@@ -217,8 +222,8 @@ create table barcode_hops_cached (
   hops d_positive_int not null,
 
   constraint barcode_hops_cached_pkey primary key (barcode_id, parent_id),
-  constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
-  constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id)
+  constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
+  constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade
 );
 
 create table files (
@@ -238,7 +243,7 @@ create table files (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint files_pkey primary key (id),
-  constraint files_user_id_fkey foreign key (user_id) references users (id)
+  constraint files_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table csv (
@@ -260,9 +265,9 @@ create table csv (
   status d_status default 'P' not null,
 
   constraint csv_pkey primary key (id),
-  constraint csv_file_id_fkey foreign key (file_id) references files (id),
-  constraint csv_other_csv_id_fkey foreign key (other_csv_id) references csv (id),
-  constraint csv_user_id_fkey foreign key (user_id) references users (id)
+  constraint csv_file_id_fkey foreign key (file_id) references files (id) on update cascade on delete cascade,
+  constraint csv_other_csv_id_fkey foreign key (other_csv_id) references csv (id) on update cascade on delete set null,
+  constraint csv_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table invoices (
@@ -278,8 +283,8 @@ create table invoices (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint invoices_pkey primary key (id),
-  constraint invoices_site_id_fkey foreign key (site_id) references sites (id),
-  constraint invoices_user_id_fkey foreign key (user_id) references users (id)
+  constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade on delete cascade,
+  constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table ssf_data (
@@ -302,12 +307,12 @@ create table ssf_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint ssf_data_pkey primary key (id),
-  constraint ssf_data_site_id_fkey foreign key (site_id) references sites (id),
-  constraint ssf_data_operator_id_fkey foreign key (operator_id) references operators (id),
-  constraint ssf_data_block_id_fkey foreign key (block_id) references blocks (id),
-  constraint ssf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
-  constraint ssf_data_species_id_fkey foreign key (species_id) references species (id),
-  constraint ssf_data_user_id_fkey foreign key (user_id) references users (id),
+  constraint ssf_data_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
+  constraint ssf_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
+  constraint ssf_data_block_id_fkey foreign key (block_id) references blocks (id) on update cascade,
+  constraint ssf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
+  constraint ssf_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
+  constraint ssf_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 );
 
 create table tdf_data (
@@ -316,7 +321,7 @@ create table tdf_data (
   operator_id d_id not null,
   block_id d_id not null,
   barcode_id d_id unique not null,
-  tree_barcode_id d_id not null,
+  tree_barcode_id d_id unique not null,
   stump_barcode_id d_id unique not null,
   species_id d_id not null,
   survey_line d_survey_line not null,
@@ -334,14 +339,14 @@ create table tdf_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint tdf_data_pkey primary key (id),
-  constraint tdf_data_site_id_fkey foreign key (site_id) references sites (id),
-  constraint tdf_data_operator_id_fkey foreign key (operator_id) references operators (id),
-  constraint tdf_data_block_id_fkey foreign key (block_id) references blocks (id),
-  constraint tdf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
-  constraint tdf_data_tree_barcode_id_fkey foreign key (tree_barcode_id) references barcodes (id),
-  constraint tdf_data_stump_barcode_id_fkey foreign key (stump_barcode_id) references barcodes (id),
-  constraint tdf_data_species_id_fkey foreign key (species_id) references species (id),
-  constraint tdf_data_user_id_fkey foreign key (user_id) references users (id)
+  constraint tdf_data_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
+  constraint tdf_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
+  constraint tdf_data_block_id_fkey foreign key (block_id) references blocks (id) on update cascade,
+  constraint tdf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
+  constraint tdf_data_tree_barcode_id_fkey foreign key (tree_barcode_id) references barcodes (id) on update cascade,
+  constraint tdf_data_stump_barcode_id_fkey foreign key (stump_barcode_id) references barcodes (id) on update cascade,
+  constraint tdf_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
+  constraint tdf_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table ldf_data (
@@ -366,13 +371,13 @@ create table ldf_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint ldf_data_pkey primary key (id),
-  constraint ldf_data_site_id_fkey foreign key (site_id) references sites (id),
-  constraint ldf_data_operator_id_fkey foreign key (operator_id) references operators (id),
-  constraint ldf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
-  constraint ldf_data_parent_barcode_id_fkey foreign key (parent_barcode_id) references barcodes (id),
-  constraint ldf_data_species_id_fkey foreign key (species_id) references species (id),
-  constraint ldf_data_invoice_id_fkey foreign key (invoice_id) references invoices (id),
-  constraint ldf_data_user_id_fkey foreign key (user_id) references users (id)
+  constraint ldf_data_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
+  constraint ldf_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
+  constraint ldf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
+  constraint ldf_data_parent_barcode_id_fkey foreign key (parent_barcode_id) references barcodes (id) on update cascade,
+  constraint ldf_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
+  constraint ldf_data_invoice_id_fkey foreign key (invoice_id) references invoices (id) on update cascade,
+  constraint ldf_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table mif_data (
@@ -392,10 +397,10 @@ create table mif_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint mif_data_pkey primary key (id),
-  constraint mif_data_operator_id_fkey foreign key (operator_id) references operators (id),
-  constraint mif_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
-  constraint mif_data_species_id_fkey foreign key (species_id) references species (id),
-  constraint mif_data_user_id_fkey foreign key (user_id) references users (id)
+  constraint mif_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
+  constraint mif_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
+  constraint mif_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
+  constraint mif_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table mof_data (
@@ -414,10 +419,10 @@ create table mof_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint mof_data_pkey primary key (id),
-  constraint mof_data_operator_id_fkey foreign key (operator_id) references operators (id),
-  constraint mof_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
-  constraint mof_data_species_id_fkey foreign key (species_id) references species (id),
-  constraint mof_data_user_id_fkey foreign key (user_id) references users (id)
+  constraint mof_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
+  constraint mof_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
+  constraint mof_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
+  constraint mof_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table specs_data (
@@ -437,10 +442,10 @@ create table specs_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint specs_data_pkey primary key (id),
-  constraint specs_data_operator_id_fkey foreign key (operator_id) references operators (id),
-  constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
-  constraint specs_data_species_id_fkey foreign key (species_id) references species (id),
-  constraint specs_data_user_id_fkey foreign key (user_id) references users (id)
+  constraint specs_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
+  constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
+  constraint specs_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
+  constraint specs_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table epr_data (
@@ -454,9 +459,9 @@ create table epr_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint epr_data_pkey primary key (id),
-  constraint epr_data_operator_id_fkey foreign key (operator_id) references operators (id),
-  constraint epr_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id),
-  constraint epr_data_user_id_fkey foreign key (user_id) references users (id)
+  constraint epr_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
+  constraint epr_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
+  constraint epr_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table revisions (
@@ -468,7 +473,7 @@ create table revisions (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint revisions_pkey primary key (id),
-  constraint revisions_user_id_fkey foreign key (user_id) references users (id)
+  constraint revisions_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 
@@ -840,6 +845,19 @@ end
 $$ language 'plpgsql';
 
 
+create function csv_integrity()
+  returns trigger as
+$$
+begin
+  if old.form_data_id is not null then
+    raise exception 'Imported data integrity violation';
+  end if;
+
+  return new;
+end
+$$ language 'plpgsql';
+
+
 -- triggers
 
 create trigger t_barcodes_hops
@@ -876,3 +894,8 @@ create trigger t_sites_parse_type
   before insert or update on sites
   for each row
   execute procedure sites_parse_type();
+
+create trigger t_csv_integrity
+  before update on csv
+  for each row
+  execute procedure csv_integrity();
