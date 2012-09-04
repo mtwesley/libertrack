@@ -49,26 +49,26 @@ class Model_TDF extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    extract(SGS::parse_site_and_block_info($csv[2][B]));
+    extract(SGS::parse_site_and_block_info(trim($csv[2][B])));
     $data = array(
-      'survey_line'       => $row[A],
-      'cell_number'       => $row[B],
-      'tree_barcode'      => SGS::barcodify($row[C]),
-      'species_code'      => $row[D],
-      'barcode'           => SGS::barcodify($row[E]),
-      'bottom_max'        => $row[F],
-      'bottom_min'        => $row[G],
-      'top_max'           => $row[H],
-      'top_min'           => $row[I],
-      'length'            => $row[J],
-      'stump_barcode'     => SGS::barcodify($row[K]),
-      'action'            => $row[L],
-      'comment'           => $row[M],
+      'survey_line'       => trim($row[A]),
+      'cell_number'       => trim($row[B]),
+      'tree_barcode'      => SGS::barcodify(trim($row[C])),
+      'species_code'      => trim($row[D]),
+      'barcode'           => SGS::barcodify(trim($row[E])),
+      'bottom_max'        => trim($row[F]),
+      'bottom_min'        => trim($row[G]),
+      'top_max'           => trim($row[H]),
+      'top_min'           => trim($row[I]),
+      'length'            => trim($row[J]),
+      'stump_barcode'     => SGS::barcodify(trim($row[K])),
+      'action'            => trim($row[L]),
+      'comment'           => trim($row[M]),
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'    => SGS::date($csv[3][B]),
-      'operator_tin'   => $csv[2][G],
+      'create_date'    => SGS::date(trim($csv[3][B])),
+      'operator_tin'   => trim($csv[2][G]),
       'site_name'      => $site_name,
       'block_name'     => $block_name,
     ) + $data);

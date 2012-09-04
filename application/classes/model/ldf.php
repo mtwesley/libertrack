@@ -43,25 +43,25 @@ class Model_LDF extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    extract(SGS::parse_site_and_block_info($csv[2][B]));
+    extract(SGS::parse_site_and_block_info(trim($csv[2][B])));
     $data = array(
-      'parent_barcode' => SGS::barcodify($row[A]),
-      'species_code'   => $row[B],
-      'barcode'        => SGS::barcodify($row[C]),
-      'bottom_max'     => $row[D],
-      'bottom_min'     => $row[E],
-      'top_max'        => $row[F],
-      'top_min'        => $row[G],
-      'length'         => $row[H],
-      'volume'         => $row[I],
-      'action'         => $row[J],
-      'comment'        => $row[K],
-      // 'coc_status'     => $row[L],
+      'parent_barcode' => SGS::barcodify(trim($row[A])),
+      'species_code'   => trim($row[B]),
+      'barcode'        => SGS::barcodify(trim($row[C])),
+      'bottom_max'     => trim($row[D]),
+      'bottom_min'     => trim($row[E]),
+      'top_max'        => trim($row[F]),
+      'top_min'        => trim($row[G]),
+      'length'         => trim($row[H]),
+      'volume'         => trim($row[I]),
+      'action'         => trim($row[J]),
+      'comment'        => trim($row[K]),
+      // 'coc_status'     => trim($row[L]),
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'    => SGS::date($csv[3][B]),
-      'operator_tin'   => $csv[4][B],
+      'create_date'    => SGS::date(trim($csv[3][B])),
+      'operator_tin'   => trim($csv[4][B]),
       'site_name'      => $site_name,
     ) + $data);
   }

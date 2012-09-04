@@ -41,26 +41,26 @@ class Model_SSF extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    extract(SGS::parse_site_and_block_info($csv[2][B]));
+    extract(SGS::parse_site_and_block_info(trim($csv[2][B])));
     $data = array(
-      'barcode'           => SGS::barcodify($row[A]),
-      'tree_map_number'   => $row[B],
-      'survey_line'       => $row[C],
-      'cell_number'       => $row[D],
-      'species_code'      => $row[E],
-      'diameter'          => $row[F],
-      'height'            => $row[G],
+      'barcode'           => SGS::barcodify(trim($row[A])),
+      'tree_map_number'   => trim($row[B]),
+      'survey_line'       => trim($row[C]),
+      'cell_number'       => trim($row[D]),
+      'species_code'      => trim($row[E]),
+      'diameter'          => trim($row[F]),
+      'height'            => trim($row[G]),
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'     => SGS::date($csv[3][B]),
-      'operator_tin'    => $csv[2][H],
+      'create_date'     => SGS::date(trim($csv[3][B])),
+      'operator_tin'    => trim($csv[2][H]),
       'site_name'       => $site_name,
       'block_name'      => $block_name,
     ) + $data + array(
-      'is_requested'    => $row[H] == 'NO' ? 'NO' : 'YES',
-      'is_fda_approved' => $row[I] == 'NO' ? 'NO' : 'YES',
-      'fda_remarks'     => $row[J],
+      'is_requested'    => trim($row[H]) == 'NO' ? 'NO' : 'YES',
+      'is_fda_approved' => trim($row[I]) == 'NO' ? 'NO' : 'YES',
+      'fda_remarks'     => trim($row[J]),
     ));
   }
 
