@@ -69,6 +69,29 @@ class Controller_Import extends Controller {
     }
   }
 
+  private static function delete_csv($csv) {
+    if ($csv->form_type and $csv->form_data_id) {
+      $data = ORM::factory($csv->form_type, $csv->form_data_id);
+      try {
+        if ($data->loaded()) $data->delete();
+//        $csv->form_type    = NULL;
+//        $csv->form_data_id = NULL;
+//        $csv->save();
+//        $csv = ORM::factory('CSV', $csv->id);
+      } catch (Exception $e) {
+        return FALSE;
+      }
+    }
+
+    try {
+      $csv->delete();
+    } catch (Exception $e) {
+      return FALSE;
+    }
+
+    return TRUE;
+  }
+
   private static function detect_form_type($excel) {
     if     (strpos(strtoupper($excel[1][D]), 'STOCK SURVEY FORM') !== false) return 'SSF';
     elseif (strpos(strtoupper($excel[1][C]), 'TREE FELLING')      !== false) return 'TDF';
@@ -189,18 +212,35 @@ class Controller_Import extends Controller {
 
   private function handle_file_delete($id) {
     $file = ORM::factory('file', $id);
+    if (!$file->loaded()) {
+      Notify::msg('No file found.', 'warning', TRUE);
+      $this->request->redirect('import/files');
+    }
 
+    Notify::msg('Deleting this file will delete all imported data and related form data.', 'warning');
     $form = Formo::form()
-      ->add('confirm', 'submit', 'Filter', array(
-        'label' => 'Are you sure you want to delete this file?'
-      ));
+      ->add('confirm', 'text', 'Are you sure you want to delete this file?')
+      ->add('delete', 'submit', 'Delete');
+
+    $success = 0;
+    $error   = 0;
 
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
-      try {
-        $file->delete();
-      } catch (Exception $e) {
-        Notify::msg("Cannot delete file.");
+      foreach ($file->csv->find_all()->as_array() as $csv) {
+        if (self::delete_csv($csv)) $success++;
+        else $error++;
       }
+
+      if ($success) Notify::msg($success.' records deleted.', 'success', TRUE);
+      if ($error)   Notify::msg($error.' records failed to be deleted.', 'error', TRUE);
+
+//      try {
+        $file->delete();
+//      } catch (Exception $e) {
+//        Notify::msg('Sorry, unable to delete file.', 'error', TRUE);
+//      }
+
+      $this->request->redirect('import/files');
     }
 
     if ($form) $content .= $form->render();
@@ -214,6 +254,10 @@ class Controller_Import extends Controller {
     if (!$id) $id = $this->request->param('id');
 
     $file = ORM::factory('file', $id);
+    if (!$file->loaded()) {
+      Notify::msg('No file found.', 'warning', TRUE);
+      $this->request->redirect('import/files');
+    }
 
     $csvs = $file->csv
       ->order_by('status')
@@ -339,8 +383,13 @@ class Controller_Import extends Controller {
 
   private function handle_file_process($id = NULL) {
     set_time_limit(0);
+
     if (!$id) $id = $this->request->param('id');
     $file = ORM::factory('file', $id);
+    if (!$file->loaded()) {
+      Notify::msg('No file found.', 'warning', TRUE);
+      $this->request->redirect('import/files');
+    }
 
     // pending
     $pending = $file->csv
@@ -450,6 +499,33 @@ class Controller_Import extends Controller {
 
     $content .= $form->render();
     $content .= $table;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_csv_delete($id) {
+    $id = $this->request->param('id');
+    $csv = ORM::factory('csv', $id);
+    if (!$csv->loaded()) {
+      Notify::msg('No data found.', 'warning', TRUE);
+      $this->request->redirect('import/data');
+    }
+
+    if ($csv->status == 'A') Notify::msg('Deleting this data will delete related form data.', 'warning');
+
+    $form = Formo::form()
+      ->add('confirm', 'text', 'Are you sure you want to delete this data?')
+      ->add('delete', 'submit', 'Delete');
+
+    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      if (self::delete_csv($csv)) Notify::msg('Data successfully deleted.', 'success', TRUE);
+      else Notify::msg('Data failed to be deleted.', 'error', TRUE);
+
+      $this->request->redirect('import/data');
+    }
+
+    $content .= $form->render();
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -858,9 +934,9 @@ class Controller_Import extends Controller {
 
     switch ($command) {
       case 'review': return self::handle_file_review($id);
+      case 'delete': return self::handle_file_delete($id);
       case 'process': return self::handle_file_process($id);
       case 'download': return self::handle_file_download($id);
-      case 'delete': return self::handle_file_delete($id);
 
       default:
       case 'list': return self::handle_file_list($id);
@@ -878,6 +954,7 @@ class Controller_Import extends Controller {
 
     switch ($command) {
       case 'edit':    return self::handle_csv_edit($id);
+      case 'delete': return self::handle_csv_delete($id);
       case 'process': return self::handle_csv_process($id);
 
       default:

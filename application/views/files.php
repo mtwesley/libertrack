@@ -88,8 +88,10 @@ $classes[] = 'data';
 
     <td class="links">
       <?php if (in_array($file->operation, array('I','E'))) echo HTML::anchor(strtolower(SGS::value($file->operation, 'operation', 'U')).'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
+
       <?php if ($mode == 'import'): ?>
       <?php echo HTML::anchor('import/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('import/files/'.$file->id.'/delete', 'Delete', array('class' => 'link')); ?>
       <span class="link toggle-download-form">Download</span>
       <?php endif; ?>
     </td>

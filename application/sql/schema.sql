@@ -265,7 +265,7 @@ create table csv (
   status d_status default 'P' not null,
 
   constraint csv_pkey primary key (id),
-  constraint csv_file_id_fkey foreign key (file_id) references files (id) on update cascade on delete cascade,
+  constraint csv_file_id_fkey foreign key (file_id) references files (id) on update cascade,
   constraint csv_other_csv_id_fkey foreign key (other_csv_id) references csv (id) on update cascade on delete set null,
   constraint csv_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
@@ -283,7 +283,7 @@ create table invoices (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint invoices_pkey primary key (id),
-  constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade on delete cascade,
+  constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
   constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
@@ -845,18 +845,18 @@ end
 $$ language 'plpgsql';
 
 
-create function csv_integrity()
-  returns trigger as
-$$
-begin
-  if old.form_data_id is not null then
-    raise exception 'Imported data integrity violation';
-  end if;
-
-  return new;
-end
-$$ language 'plpgsql';
-
+-- create function csv_integrity()
+--   returns trigger as
+-- $$
+-- begin
+--   if old.form_data_id is not null then
+--     raise exception 'Imported data integrity violation';
+--   end if;
+--
+--   return new;
+-- end
+-- $$ language 'plpgsql';
+--
 
 -- triggers
 
@@ -895,7 +895,7 @@ create trigger t_sites_parse_type
   for each row
   execute procedure sites_parse_type();
 
-create trigger t_csv_integrity
-  before update on csv
-  for each row
-  execute procedure csv_integrity();
+-- create trigger t_csv_integrity
+--   before update on csv
+--   for each row
+--   execute procedure csv_integrity();
