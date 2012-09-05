@@ -312,7 +312,7 @@ create table ssf_data (
   constraint ssf_data_block_id_fkey foreign key (block_id) references blocks (id) on update cascade,
   constraint ssf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint ssf_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
-  constraint ssf_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint ssf_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table tdf_data (
