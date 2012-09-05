@@ -673,12 +673,12 @@ $$
 begin
   if tg_op = 'INSERT' then
     if new.parent_id is not null then
-      perform rebuild_barcode_hops(new.barcode_id);
+      perform rebuild_barcode_hops(new.id);
     end if;
   elseif tg_op = 'UPDATE' then
     if old.parent_id <> new.parent_id then
       delete from barcode_hops_cached where barcode_id = old.barcode_id;
-      perform rebuild_barcode_hops(new.barcode_id);
+      perform rebuild_barcode_hops(new.id);
     end if;
   elseif tg_op = 'DELETE' then
     delete from barcode_hops_cached where barcode_id = old.barcode_id;

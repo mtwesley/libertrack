@@ -31,12 +31,10 @@
     <td class="links">
       <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
       <?php if (in_array($csv->status, array('P', 'R', 'U'))) echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
-
       <?php if (in_array($csv->status, array('P', 'R'))): ?>
       <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
       <?php endif; ?>
-      
+      <?php echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
       <?php if ($csv->errors or $csv->suggestions): ?>
       <span class="link toggle-details">Details</span>
       <?php endif; ?>

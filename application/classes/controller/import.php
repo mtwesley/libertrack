@@ -234,11 +234,16 @@ class Controller_Import extends Controller {
       if ($success) Notify::msg($success.' records deleted.', 'success', TRUE);
       if ($error)   Notify::msg($error.' records failed to be deleted.', 'error', TRUE);
 
-//      try {
+      try {
+        $filename = DOCROOT.preg_replace('/^\//', '', $file->path);
+        if (is_file($filename) and file_exists($filename)) {
+          if (!unlink($filename)) Notify::msg('Unable to delete local file. Check file access capabilities with the site administrator and try again.', 'warning', TRUE);
+        }
         $file->delete();
-//      } catch (Exception $e) {
-//        Notify::msg('Sorry, unable to delete file.', 'error', TRUE);
-//      }
+        Notify::msg('File deleted.', 'success', TRUE);
+      } catch (Exception $e) {
+        Notify::msg('Sorry, unable to delete file.', 'error', TRUE);
+      }
 
       $this->request->redirect('import/files');
     }
