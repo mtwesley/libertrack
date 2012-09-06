@@ -47,7 +47,7 @@ class Controller_Import extends Controller {
       $suggestions = $form_model->make_suggestions($csv->values, $errors);
       $duplicates  = $form_model->find_duplicates($csv->values, $errors);
 
-      $csv->errors      = self::cleanup_errors($errors);
+      $csv->errors      = self::cleanup_errors($form_model->validate_data($csv->values, 'pretty_errors'));
       $csv->suggestions = $suggestions;
       $csv->duplicates  = $duplicates;
 
@@ -699,6 +699,9 @@ class Controller_Import extends Controller {
           ->limit($pagination->items_per_page)
           ->find_all()
           ->as_array();
+
+        if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
+        else Notify::msg($pagination->total_items.' records found');
       }
     }
 
@@ -709,8 +712,6 @@ class Controller_Import extends Controller {
         ->set('csvs', $csvs)
         ->set('fields', SGS_Form_ORM::get_fields($form_type, TRUE))
         ->render();
-      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
-      else Notify::msg($pagination->total_items.' records found');
     }
     elseif ($search) Notify::msg('No records found');
 

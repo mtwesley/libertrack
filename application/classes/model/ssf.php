@@ -53,7 +53,7 @@ class Model_SSF extends SGS_Form_ORM {
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'     => SGS::date(trim($csv[3][B])),
+      'create_date'     => SGS::date(trim($csv[3][B]), SGS::US_DATE_FORMAT),
       'operator_tin'    => trim($csv[2][H]),
       'site_name'       => $site_name,
       'block_name'      => $block_name,
@@ -353,6 +353,28 @@ class Model_SSF extends SGS_Form_ORM {
       default:
         return parent::__get($column);
     }
+  }
+
+  public function rules()
+  {
+    return array(
+      'site_id'         => 'Site',
+      'operator_id'     => 'Operator',
+      'block_id'        => 'Block',
+      'species_id'      => 'Species',
+      'barcode_id'      => self::$fields['barcode'],
+      'survey_line'     => self::$fields['survey_line'],
+      'cell_number'     => self::$fields['cell_number'],
+      'tree_map_number' => self::$fields['tree_map_number'],
+      'diameter'        => self::$fields['diameter'],
+      'height'          => self::$fields['height'],
+      'is_requested'    => self::$fields['is_requested'],
+      'is_fda_approved' => self::$fields['is_fda_approved'],
+      'fda_remarks'     => self::$fields['fda_remarks'],
+      'create_date'     => self::$fields['create_date'],
+      'user_id'         => self::$fields['user_id'],
+      'timestamp'       => self::$fields['timestamp'],
+    );
   }
 
 }

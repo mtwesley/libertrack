@@ -67,7 +67,7 @@ class Model_TDF extends SGS_Form_ORM {
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'    => SGS::date(trim($csv[3][B])),
+      'create_date'    => SGS::date(trim($csv[3][B]), SGS::US_DATE_FORMAT),
       'operator_tin'   => trim($csv[2][G]),
       'site_name'      => $site_name,
       'block_name'     => $block_name,
@@ -219,8 +219,15 @@ class Model_TDF extends SGS_Form_ORM {
     $suggestions = array();
     foreach ($errors as $field => $error) {
       switch ($field) {
-        case 'barcode':
         case 'tree_barcode':
+          $args = array(
+            'barcodes.type' => array('P', 'S'),
+            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
+            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
+          );
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
+          break;
+        case 'barcode':
         case 'stump_barcode':
           $args = array(
             'barcodes.type' => array('P'),
@@ -306,8 +313,7 @@ class Model_TDF extends SGS_Form_ORM {
       'species_id'       => array(array('not_empty')),
       'barcode_id'       => array(array('not_empty'),
                                   array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
-      'tree_barcode_id'  => array(array('not_empty'),
-                                  array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
+      'tree_barcode_id'  => array(array('not_empty')),
       'stump_barcode_id' => array(array('not_empty'),
                                   array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'survey_line'      => array(array('not_empty'),
@@ -326,7 +332,6 @@ class Model_TDF extends SGS_Form_ORM {
                                   array('is_measurement_float')),
       'action'           => array(),
       'comment'          => array(),
-      // 'coc_status'       => array(),
       'create_date'      => array(array('not_empty'),
                                   array('is_date')),
       'user_id'          => array(),
@@ -357,6 +362,28 @@ class Model_TDF extends SGS_Form_ORM {
       'species_code'   => array(array('not_empty'),
                                 array('is_species_code'),
                                 array('is_existing_species'))
+    );
+  }
+
+  public function labels()
+  {
+    return array(
+      'site_id'          => 'Site',
+      'operator_id'      => 'Operator',
+      'block_id'         => 'Block',
+      'species_id'       => 'Species',
+      'barcode_id'       => self::$fields['barcode'],
+      'tree_barcode_id'  => self::$fields['tree_barcode'],
+      'stump_barcode_id' => self::$fields['stump_barcode'],
+      'survey_line'      => self::$fields['survey_line'],
+      'cell_number'      => self::$fields['cell_number'],
+      'top_min'          => self::$fields['top_min'],
+      'top_max'          => self::$fields['top_max'],
+      'bottom_min'       => self::$fields['bottom_min'],
+      'bottom_max'       => self::$fields['bottom_max'],
+      'length'           => self::$fields['length'],
+      'action'           => self::$fields['action'],
+      'comment'          => self::$fields['comment'],
     );
   }
 

@@ -19,7 +19,6 @@ class Model_LDF extends SGS_Form_ORM {
     'volume'         => 'Volume',
     'action'         => 'Action',
     'comment'        => 'Comment',
-    // 'coc_status'     => 'CoC Status',
   );
 
   protected $_table_name = 'ldf_data';
@@ -56,11 +55,10 @@ class Model_LDF extends SGS_Form_ORM {
       'volume'         => trim($row[I]),
       'action'         => trim($row[J]),
       'comment'        => trim($row[K]),
-      // 'coc_status'     => trim($row[L]),
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'    => SGS::date(trim($csv[3][B])),
+      'create_date'    => SGS::date(trim($csv[3][B]), SGS::US_DATE_FORMAT),
       'operator_tin'   => trim($csv[4][B]),
       'site_name'      => $site_name,
     ) + $data);
@@ -103,7 +101,6 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('I'.$row, $this->volume);
     $excel->getActiveSheet()->SetCellValue('J'.$row, $this->action);
     $excel->getActiveSheet()->SetCellValue('K'.$row, $this->comment);
-//    $excel->getActiveSheet()->SetCellValue('L'.$count, $this->coc_status);
   }
 
   public function export_headers($excel, $args, $headers = TRUE) {
@@ -156,7 +153,6 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('I'.$row, $values['volume']);
     $excel->getActiveSheet()->SetCellValue('J'.$row, $values['action']);
     $excel->getActiveSheet()->SetCellValue('K'.$row, $values['comment']);
-//    $excel->getActiveSheet()->SetCellValue('L'.$count, $values['coc_status']);
   }
 
   public function download_headers($values, $excel, $args, $headers = TRUE) {
@@ -202,9 +198,16 @@ class Model_LDF extends SGS_Form_ORM {
     foreach ($errors as $field => $error) {
       switch ($field) {
         case 'barcode':
-        case 'parent_barcode':
           $args = array(
             'barcodes.type' => array('P'),
+            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
+            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
+          );
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
+          break;
+        case 'parent_barcode':
+          $args = array(
+            'barcodes.type' => array('P', 'F', 'L'),
             'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
@@ -287,7 +290,6 @@ class Model_LDF extends SGS_Form_ORM {
                                     array('is_measurement_float')),
       'action'             => array(),
       'comment'            => array(),
-      // 'coc_status'         => array(),
       'create_date'        => array(array('not_empty'),
                                     array('is_date')),
       'user_id'            => array(),
@@ -312,6 +314,27 @@ class Model_LDF extends SGS_Form_ORM {
       'species_code'      => array(array('not_empty'),
                                    array('is_species_code'),
                                    array('is_existing_species'))
+    );
+  }
+
+  public function labels()
+  {
+    return array(
+      'site_id'            => 'Site',
+      'operator_id'        => 'Operator',
+      'species_id'         => 'Species',
+      'barcode_id'         => self::$fields['barcode'],
+      'parent_barcode_id'  => self::$fields['parent_barcode'],
+      'invoice_id'         => self::$fields['invoice'],
+      'top_min'            => self::$fields['top_min'],
+      'top_max'            => self::$fields['top_max'],
+      'bottom_min'         => self::$fields['bottom_min'],
+      'bottom_max'         => self::$fields['bottom_max'],
+      'length'             => self::$fields['length'],
+      'volume'             => self::$fields['volume'],
+      'action'             => self::$fields['action'],
+      'comment'            => self::$fields['comment'],
+      'create_date'        => self::$fields['create_date'],
     );
   }
 
