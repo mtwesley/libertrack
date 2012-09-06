@@ -207,6 +207,7 @@ create table barcodes (
   parent_id d_id default null,
   printjob_id d_id not null,
   is_locked d_bool default false not null,
+  coc_status d_coc_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -333,7 +334,6 @@ create table tdf_data (
   length d_measurement_float not null,
   action d_text_long,
   comment d_text_long,
-  coc_status d_coc_status default 'P' not null,
   create_date d_date not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -365,7 +365,6 @@ create table ldf_data (
   volume d_measurement_float not null,
   action d_text_long,
   comment d_text_long,
-  coc_status d_coc_status default 'P' not null,
   create_date d_date not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -495,6 +494,7 @@ create index barcodes_printjob_id on barcodes (id,printjob_id);
 create index barcodes_parent_id on barcodes (id,parent_id);
 create index barcodes_type on barcodes (id,type);
 create index barcodes_is_locked on barcodes (id,is_locked);
+create index barcodes_coc_status on barcodes (id,coc_status);
 
 create index invoices_site_id on invoices (id,site_id);
 create index invoices_reference_number on invoices (id,reference_number);
@@ -526,7 +526,6 @@ create index ldf_data_barcode_id on ldf_data (id,barcode_id);
 create index ldf_data_parent_barcode_id on ldf_data (id,parent_barcode_id);
 create index ldf_data_species_id on ldf_data (id,species_id);
 create index ldf_data_invoice_id on ldf_data (id,invoice_id);
-create index ldf_data_coc_status on ldf_data (id,coc_status);
 create index ldf_data_volume on ldf_data (id,volume);
 
 create index mif_data_operator_id on mif_data (id,operator_id);
@@ -899,22 +898,22 @@ create trigger t_barcodes_hops
   execute procedure barcodes_hops();
 
 create trigger t_ssf_data_update_barcodes
-  after insert or update on ssf_data
+  after insert or update or delete on ssf_data
   for each row
   execute procedure ssf_data_update_barcodes();
 
 create trigger t_tdf_data_update_barcodes
-  after insert or update on tdf_data
+  after insert or update or delete on tdf_data
   for each row
   execute procedure tdf_data_update_barcodes();
 
 create trigger t_ldf_data_update_barcodes
-  after insert or update on ldf_data
+  after insert or update or delete on ldf_data
   for each row
   execute procedure ldf_data_update_barcodes();
 
 create trigger t_mof_data_update_barcodes
-  after insert or update on mof_data
+  after insert or update or delete on mof_data
   for each row
   execute procedure mof_data_update_barcodes();
 
