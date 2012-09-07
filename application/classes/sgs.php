@@ -42,7 +42,7 @@ class SGS {
     'admin/barcodes'  => 'Barcode Management',
     'admin/users'     => 'User Management',
 
-    'analysis'        => 'Analysis, Checks, and Queries',
+    'analysis'        => 'Analysis',
     'analysis/ssf'    => 'Stock Survey Form',
     'analysis/tdf'    => 'Tree Data Form',
     'analysis/ldf'    => 'Log Data Form',
