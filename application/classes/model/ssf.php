@@ -4,6 +4,8 @@ class Model_SSF extends SGS_Form_ORM {
 
   const PARSE_START = 13;
 
+  public static $type = 'SSF';
+
   public static $fields = array(
     'create_date'     => 'Date Surveyed',
     'operator_tin'    => 'Operator TIN',
@@ -355,7 +357,7 @@ class Model_SSF extends SGS_Form_ORM {
     }
   }
 
-  public function rules()
+  public function labels()
   {
     return array(
       'site_id'         => 'Site',

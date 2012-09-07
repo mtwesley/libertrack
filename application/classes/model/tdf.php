@@ -4,6 +4,8 @@ class Model_TDF extends SGS_Form_ORM {
 
   const PARSE_START = 9;
 
+  public static $type = 'TDF';
+
   public static $fields = array(
     'create_date'    => 'Date Registered',
     'operator_tin'   => 'Operator TIN',
