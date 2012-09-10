@@ -8,7 +8,7 @@
   div.nav {
     margin: 1em 1em 0 0;
     padding: 1em;
-    border: 1px solid #ccc;
+    border: 2px solid #ccc;
     float: left;
   }
 

@@ -2,8 +2,8 @@
   #messages {}
 
   #messages .message {
-    margin: 10px 0;
-    padding: 6px 15px 6px 28px;
+    margin: 5px 0;
+    padding: 4px 15px 4px 25px;
     border-top: 2px solid;
   }
 
@@ -12,17 +12,22 @@
     border-top-color: #f38284;
     background-color: #fcdfe0;
     background-image: url('/images/error.png');
-    background-position: 5px 4px;
+    background-position: 4px 2px;
     background-repeat: no-repeat;
   }
 
-  #messages .warning {
+  #messages .warning,
+  #messages .locked {
     color: #a5890b;
     border-top-color: #efe9b7;
     background-color: #f8f5e1;
     background-image: url('/images/warning.png');
-    background-position: 5px 4px;
+    background-position: 4px 2px;
     background-repeat: no-repeat;
+  }
+
+  #messages .locked {
+    background-image: url('/images/locked.png');
   }
 
   #messages .success {
@@ -30,7 +35,7 @@
     border-top-color: #99c494;
     background-color: #dde5c5;
     background-image: url('/images/success.png');
-    background-position: 5px 4px;
+    background-position: 4px 2px;
     background-repeat: no-repeat;
   }
 
@@ -39,7 +44,7 @@
     border-top-color: #b0d1ff;
     background-color: #e3efff;
     background-image: url('/images/info.png');
-    background-position: 5px 4px;
+    background-position: 4px 2px;
     background-repeat: no-repeat;
   }
 </style>

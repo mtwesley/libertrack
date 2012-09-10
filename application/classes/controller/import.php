@@ -10,7 +10,7 @@ class Controller_Import extends Controller {
       $this->request->redirect('login');
     }
     elseif (!Auth::instance()->logged_in('data')) {
-      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['data'].' privileges.', NULL, TRUE);
+      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['data'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }
 
@@ -28,6 +28,36 @@ class Controller_Import extends Controller {
     return $errors;
   }
 
+  private static function csv_edit_in_place($array) {
+    $edit = ORM::factory('CSV', $array['id']);
+
+    $url  = $array['url'];
+
+    unset($array['id']);
+    unset($array['url']);
+    unset($array['form_name']);
+    unset($array['save']);
+
+    $edit->values = $array;
+    $edit->status = 'P';
+    try {
+      $edit->save();
+      $updated = true;
+    } catch (Exception $e) {
+      Notify::msg('Sorry, update failed. Please try again.', 'error');
+    }
+
+    if ($updated) {
+      $result = self::process_csv($edit);
+      if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
+      elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
+      elseif ($result == 'U') Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE);
+      else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
+    }
+
+    $this->request->redirect($url);
+  }
+
   private static function process_csv($csv) {
     $errors    = array();
     $form_type = strtolower($csv->form_type);
@@ -35,7 +65,7 @@ class Controller_Import extends Controller {
     $form_model = ORM::factory($form_type);
     $form_model->parse_data($csv->values);
 
-    if (!$errors = $form_model->validate_data($csv->values, 'errors')) {
+    if (!$errors = $form_model->validate_data($csv->values, $csv->form_type, 'errors')) {
       try {
         $form_model->save();
       } catch (ORM_Validation_Exception $e) {
@@ -47,7 +77,7 @@ class Controller_Import extends Controller {
       $suggestions = $form_model->make_suggestions($csv->values, $errors);
       $duplicates  = $form_model->find_duplicates($csv->values, $errors);
 
-      $csv->errors      = self::cleanup_errors($form_model->validate_data($csv->values, 'pretty_errors'));
+      $csv->errors      = self::cleanup_errors($form_model->validate_data($csv->values, $csv->form_type, 'pretty_errors'));
       $csv->suggestions = $suggestions;
       $csv->duplicates  = $duplicates;
 
@@ -198,7 +228,7 @@ class Controller_Import extends Controller {
         ->set('files', $files)
         ->render();
       if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' file found');
-      else Notify::msg($pagination->total_items.' files found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' files found');
     }
     else Notify::msg('No files found');
 
@@ -255,6 +285,10 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_review($id = NULL) {
+    if ($_POST['form_name'] == 'csv_edit_form') {
+      self::csv_edit_in_place($_POST);
+    }
+
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.file.review');
     if (!$id) $id = $this->request->param('id');
 
@@ -269,7 +303,7 @@ class Controller_Import extends Controller {
       ->order_by('timestamp', 'desc');
 
     $form = Formo::form()
-      ->add_group('status', 'checkboxes', SGS::$status, NULL, array('label' => 'Status'))
+      ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
       ->add('search', 'submit', 'Filter');
 
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
@@ -307,9 +341,9 @@ class Controller_Import extends Controller {
         ->set('fields', SGS_Form_ORM::get_fields($file->operation_type, TRUE))
         ->render();
       if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
-      else Notify::msg($pagination->total_items.' records found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
+      else Notify::msg('No records found');
     }
-    else Notify::msg('No records found');
 
     if ($form) $content .= $form->render();
     $content .= $table;
@@ -537,6 +571,10 @@ class Controller_Import extends Controller {
   }
 
   private function handle_csv_list($id = NULL, $form_type = NULL) {
+    if ($_POST['form_name'] == 'csv_edit_form') {
+      self::csv_edit_in_place($_POST);
+    }
+
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.csv');
     if ($id) {
       Session::instance()->delete('pagination.csv');
@@ -567,7 +605,7 @@ class Controller_Import extends Controller {
 
       $form = Formo::form()
         ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Type', 'required' => TRUE))
-        ->add_group('status', 'checkboxes', SGS::$status, array_keys(SGS::$status), array('label' => 'Status', 'required' => TRUE))
+        ->add_group('status', 'checkboxes', SGS::$csv_status, array_keys(SGS::$csv_status), array('label' => 'Status', 'required' => TRUE))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
         ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
@@ -668,7 +706,6 @@ class Controller_Import extends Controller {
           'status'      => $status,
         ));
 
-        $search = TRUE;
       }
       elseif ($settings = Session::instance()->get('pagination.csv')) {
         $form->form_type->val($form_type = $settings['form_type']);
@@ -701,7 +738,8 @@ class Controller_Import extends Controller {
           ->as_array();
 
         if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
-        else Notify::msg($pagination->total_items.' records found');
+        elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
+        else Notify::msg('No records found');
       }
     }
 
@@ -713,7 +751,6 @@ class Controller_Import extends Controller {
         ->set('fields', SGS_Form_ORM::get_fields($form_type, TRUE))
         ->render();
     }
-    elseif ($search) Notify::msg('No records found');
 
     if ($form) $content .= $form->render();
     $content .= $table;

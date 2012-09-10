@@ -48,6 +48,28 @@ class Model_CSV extends ORM {
     }
   }
 
+  public function get_form() {
+    $form = Formo::form();
+    $url  = Request::current()->url().($_GET['page'] ? '?page='.$_GET['page'] : '?page=1');
+    foreach (SGS_Form_ORM::get_fields($this->form_type) as $key => $value) {
+      $form->add(array(
+        'alias' => $key,
+        'value' => $this->values[$key],
+        'label' => $value
+      ));
+    }
+    $form->add('id', 'hidden', $this->id);
+    $form->add('url', 'hidden', $url);
+    $form->add('form_name', 'hidden', 'csv_edit_form');
+    $form->add(array(
+      'alias'  => 'save',
+      'driver' => 'submit',
+      'value'  => 'Save'
+    ));
+
+    return $form;
+  }
+
 //  public function save(Validation $validation = NULL) {
 //    if ($this->form_data_id and $this->_original_values['form_data_id']) Notify::msg('Imported data accepted as form data cannot be saved. You must first delete the related form data.', 'error', TRUE);
 //    else parent::save($validation);

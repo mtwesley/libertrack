@@ -297,13 +297,9 @@ class Model_TDF extends SGS_Form_ORM {
     return $duplicates;
   }
 
-  public static function fields($display = FALSE)
+  public static function fields()
   {
-    foreach (self::$fields as $key => $value) switch ($key) {
-      default:
-        $fields[$key] = $value;
-    }
-    return $fields;
+    return (array) self::$fields;
   }
 
   public function rules()
@@ -384,8 +380,8 @@ class Model_TDF extends SGS_Form_ORM {
       'bottom_min'       => self::$fields['bottom_min'],
       'bottom_max'       => self::$fields['bottom_max'],
       'length'           => self::$fields['length'],
-      'action'           => self::$fields['action'],
-      'comment'          => self::$fields['comment'],
+//      'action'           => self::$fields['action'],
+//      'comment'          => self::$fields['comment'],
     );
   }
 

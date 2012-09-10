@@ -259,13 +259,9 @@ class Model_LDF extends SGS_Form_ORM {
     return $duplicates;
   }
 
-  public static function fields($display = FALSE)
+  public static function fields()
   {
-    foreach (self::$fields as $key => $value) switch ($key) {
-      default:
-        $fields[$key] = $value;
-    }
-    return $fields;
+    return (array) self::$fields;
   }
 
   public function rules()
@@ -335,8 +331,8 @@ class Model_LDF extends SGS_Form_ORM {
       'length'             => self::$fields['length'],
       'volume'             => self::$fields['volume'],
       'action'             => self::$fields['action'],
-      'comment'            => self::$fields['comment'],
-      'create_date'        => self::$fields['create_date'],
+//      'comment'            => self::$fields['comment'],
+//      'create_date'        => self::$fields['create_date'],
     );
   }
 

@@ -10,7 +10,7 @@ class Controller_Admin extends Controller {
       $this->request->redirect('login');
     }
     elseif (!Auth::instance()->logged_in('admin')) {
-      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['admin'].' privileges.', NULL, TRUE);
+      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['admin'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }
   }

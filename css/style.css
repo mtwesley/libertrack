@@ -9,8 +9,8 @@
 }
 
 .toggle-form {
-  margin: 10px 0;
-  padding: 6px 6px;
+  margin: 5px 0;
+  padding: 4px 4px;
   border-top: 2px solid #ffb685;
   background-color: #ffd6ba;
   font-weight: bold;
@@ -21,8 +21,8 @@
 }
 
 #content form {
-  margin: 10px 0;
-  padding: 2px 6px;
+  margin: 5px 0;
+  padding: 2px 4px;
   border-top: 2px solid #ffb685;
   background-color: #ffd6ba;
   clear: both;
@@ -40,7 +40,7 @@
 #content form span.field {}
 
 #content form p {
-  margin: 6px auto;
+  margin: 4px auto;
   padding: 0 300px;
   clear: both;
   position: relative;
@@ -114,7 +114,7 @@
 }
 
 #content table.data {
-  margin: 10px 0;
+  margin: 5px 0;
   width: 100%;
   border-collapse: collapse;
   border-top: 2px solid #d2bfa3;
@@ -132,7 +132,7 @@
 #content table.data form span.field {}
 
 #content table.data form p {
-  margin: 6px auto;
+  margin: 4px auto;
   padding: 0 300px;
   clear: both;
   position: relative;
@@ -199,14 +199,16 @@
 }
 
 #content table.data tr.details,
+#content table.data tr.edit,
 #content table.data tr.download-form {
   display: none;
 }
 
 #content table.data th,
 #content table.data td {
-  padding: 4px 6px;
+  padding: 2px 4px;
   text-align: left;
+  height: 23px;
 }
 
 #content table.data td.links {
@@ -222,14 +224,14 @@
 
 #content table.data tr.details td,
 #content table.data tr.download-form td {
-  padding: 6px;
+  padding: 4px;
   border-top: 1px dotted #e6dfd4;
   white-space: normal;
 }
 
 #content table.data a.link,
 #content table.data span.link {
-  padding: 3px 6px;
+  padding: 2px 4px;
   display: inline-block;
   color: #eee8df;
   font-size: 9px;

@@ -16,7 +16,7 @@ if (!$command && !is_numeric($id)) {
   #navigation .primary {
     margin: 0;
     padding: 0;
-    height: 28px;
+    height: 26px;
     width: 100%;
     background-color: #e4e4e4;
     list-style-type: none;
@@ -37,7 +37,7 @@ if (!$command && !is_numeric($id)) {
   }
 
   #navigation .primary li a {
-    padding: 7px 0 6px;
+    padding: 5px 0 4px;
     color: #555;
     text-decoration: none;
     line-height: 26px;
@@ -71,7 +71,7 @@ if (!$command && !is_numeric($id)) {
 
   #navigation .secondary li {
     margin: 0;
-    padding: 6px 10px 0;
+    padding: 4px 10px 0;
   }
 
   #navigation .secondary li a {
@@ -133,12 +133,15 @@ if (!$command && !is_numeric($id)) {
 
     <?php if (Auth::instance()->logged_in('data')): ?>
     <li class="<?php if ($primary == 'import')    echo 'active'; ?>"><?php echo HTML::anchor('import', SGS::title('import')); ?></li>
-    <li class="<?php if ($primary == 'export')    echo 'active'; ?>"><?php echo HTML::anchor('export', SGS::title('export')); ?></li>
-    <li class="<?php if ($primary == 'documents') echo 'active'; ?>"><?php echo HTML::anchor('documents', SGS::title('documents')); ?></li>
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('analysis')): ?>
-    <li class="<?php if ($primary == 'analysis')  echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('analysis')); ?></li>
+    <li class="<?php if ($primary == 'analysis')  echo 'active'; ?>"><?php echo HTML::anchor('analysis', SGS::title('analysis')); ?></li>
+    <?php endif; ?>
+
+    <?php if (Auth::instance()->logged_in('data')): ?>
+    <li class="<?php if ($primary == 'export')    echo 'active'; ?>"><?php echo HTML::anchor('export', SGS::title('export')); ?></li>
+    <li class="<?php if ($primary == 'documents') echo 'active'; ?>"><?php echo HTML::anchor('documents', SGS::title('documents')); ?></li>
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('reports')): ?>

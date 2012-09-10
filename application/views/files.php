@@ -101,7 +101,7 @@ $classes[] = 'data';
     <td colspan="<?php echo ($mode == 'import') ? 11 : 10; ?>">
       <?php
         echo Formo::form(array('attr' => array('action' => '/import/files/'.$file->id.'/download')))
-          ->add_group('status', 'checkboxes', SGS::$status, array_keys(SGS::$status), array(
+          ->add_group('status', 'checkboxes', SGS::$csv_status, array_keys(SGS::$csv_status), array(
             'label'    => 'Status',
             'required' => TRUE,
           ))

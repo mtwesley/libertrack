@@ -10,7 +10,7 @@ class Controller_Export extends Controller {
       $this->request->redirect('login');
     }
     elseif (!Auth::instance()->logged_in('data')) {
-      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['data'].' privileges.', NULL, TRUE);
+      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['data'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }
   }

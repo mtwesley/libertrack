@@ -6,7 +6,7 @@
   }
 
   #title {
-    padding: 10px;
+    padding: 5px 10px;
   }
 
   #title .sgs {

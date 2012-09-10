@@ -286,13 +286,9 @@ class Model_SSF extends SGS_Form_ORM {
     return $duplicates;
   }
 
-  public static function fields($display = FALSE)
+  public static function fields()
   {
-    foreach (self::$fields as $key => $value) switch ($key) {
-      default:
-        $fields[$key] = $value;
-    }
-    return $fields;
+    return (array) self::$fields;
   }
 
   public function rules()
@@ -374,8 +370,8 @@ class Model_SSF extends SGS_Form_ORM {
       'is_fda_approved' => self::$fields['is_fda_approved'],
       'fda_remarks'     => self::$fields['fda_remarks'],
       'create_date'     => self::$fields['create_date'],
-      'user_id'         => self::$fields['user_id'],
-      'timestamp'       => self::$fields['timestamp'],
+//      'user_id'         => self::$fields['user_id'],
+//      'timestamp'       => self::$fields['timestamp'],
     );
   }
 

@@ -2,8 +2,8 @@
 
 class SGS {
 
-  const DATE_FORMAT = 'j F Y';
-  const DATETIME_FORMAT = 'j F Y H:i';
+  const DATE_FORMAT = 'j M Y';
+  const DATETIME_FORMAT = 'j M Y H:i';
 
   const PGSQL_DATE_FORMAT = 'Y-m-d';
   const PGSQL_DATETIME_FORMAT = 'Y-m-d H:i:s';
@@ -194,12 +194,19 @@ class SGS {
     'R' => 'Sawnmill Timber'
   );
 
-  public static $status = array(
+  public static $csv_status = array(
     'P' => 'Pending',
     'A' => 'Accpeted',
     'R' => 'Rejected',
-    'D' => 'Deleted',
+//    'D' => 'Deleted',
     'U' => 'Duplicated'
+  );
+
+  public static $data_status = array(
+    'P' => 'Pending',
+    'A' => 'Accpeted',
+    'R' => 'Rejected',
+//    'D' => 'Deleted',
   );
 
   public static $coc_status = array(

@@ -57,7 +57,9 @@ create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value 
 
 create domain d_block_name as character varying(7) check (value ~ E'^[A-Z]{1,4}[0-9]{1,3}$');
 
-create domain d_status as character(1) check (value ~ E'^[PARDU]$');
+create domain d_csv_status as character(1) check (value ~ E'^[PARDU]$');
+
+create domain d_data_status as character(1) check (value ~ E'^[PARD]$');
 
 create domain d_coc_status as character(1) check (value ~ E'^[PIHEZYALZ]$');
 
@@ -261,9 +263,9 @@ create table csv (
   errors d_text_long,
   suggestions d_text_long,
   duplicates d_text_long,
+  status d_csv_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
-  status d_status default 'P' not null,
 
   constraint csv_pkey primary key (id),
   constraint csv_file_id_fkey foreign key (file_id) references files (id) on update cascade,
@@ -304,6 +306,7 @@ create table ssf_data (
   is_fda_approved d_bool default true not null,
   fda_remarks d_text_long,
   create_date d_date not null,
+  status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -335,6 +338,7 @@ create table tdf_data (
   action d_text_long,
   comment d_text_long,
   create_date d_date not null,
+  status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -366,6 +370,7 @@ create table ldf_data (
   action d_text_long,
   comment d_text_long,
   create_date d_date not null,
+  status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -392,6 +397,7 @@ create table mif_data (
   bottom_max d_measurement_int not null,
   length d_measurement_float not null,
   volume d_measurement_float not null,
+  status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -414,6 +420,7 @@ create table mof_data (
   length d_measurement_float not null,
   grade d_grade not null,
   volume d_measurement_float not null,
+  status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -437,6 +444,7 @@ create table specs_data (
   length d_measurement_float not null,
   grade d_grade not null,
   volume d_measurement_float not null,
+  status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -454,6 +462,7 @@ create table epr_data (
   proposed_loading_date d_date not null,
   barcode_id d_id unique not null,
   barcode_type d_barcode_type not null,
+  status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -501,6 +510,7 @@ create index invoices_reference_number on invoices (id,reference_number);
 
 create index files_operation on files (id,operation);
 
+create index csv_status on csv (id,status);
 create index csv_file_id on csv (id,file_id);
 create index csv_operation on csv (id,operation);
 create index csv_other_csv_id on csv (id,other_csv_id);
@@ -511,6 +521,7 @@ create index ssf_data_operator_id on ssf_data (id,operator_id);
 create index ssf_data_block_id on ssf_data (id,block_id);
 create index ssf_data_barcode_id on ssf_data (id,barcode_id);
 create index ssf_data_species_id on ssf_data (id,species_id);
+create index ssf_data_status on ssf_data (id,status);
 
 create index tdf_data_site_id on tdf_data (id,site_id);
 create index tdf_data_operator_id on tdf_data (id,operator_id);
@@ -519,6 +530,7 @@ create index tdf_data_barcode_id on tdf_data (id,barcode_id);
 create index tdf_data_tree_barcode_id on tdf_data (id,tree_barcode_id);
 create index tdf_data_stump_barcode_id on tdf_data (id,stump_barcode_id);
 create index tdf_data_species_id on tdf_data (id,species_id);
+create index tdf_data_status on tdf_data (id,status);
 
 create index ldf_data_site_id on ldf_data (id,site_id);
 create index ldf_data_operator_id on ldf_data (id,operator_id);
@@ -527,12 +539,14 @@ create index ldf_data_parent_barcode_id on ldf_data (id,parent_barcode_id);
 create index ldf_data_species_id on ldf_data (id,species_id);
 create index ldf_data_invoice_id on ldf_data (id,invoice_id);
 create index ldf_data_volume on ldf_data (id,volume);
+create index ldf_data_status on ldf_data (id,status);
 
 create index mif_data_operator_id on mif_data (id,operator_id);
 create index mif_data_barcode_id on mif_data (id,barcode_id);
 create index mif_data_species_id on mif_data (id,species_id);
 create index mif_data_batch_number on mif_data (id,batch_number);
 create index mif_data_volume on mif_data (id,volume);
+create index mif_data_status on mif_data (id,status);
 
 create index mof_data_operator_id on mof_data (id,operator_id);
 create index mof_data_barcode_id on mof_data (id,barcode_id);
@@ -540,17 +554,20 @@ create index mof_data_species_id on mof_data (id,species_id);
 create index mof_data_batch_number on mof_data (id,batch_number);
 create index mof_data_volume on mof_data (id,volume);
 create index mof_data_grade on mof_data (id,grade);
+create index mof_data_status on mof_data (id,status);
 
 create index specs_data_operator_id on specs_data (id,operator_id);
 create index specs_data_barcode_id on specs_data (id,barcode_id);
 create index specs_data_species_id on specs_data (id,species_id);
 create index specs_data_volume on specs_data (id,volume);
 create index specs_data_grade on specs_data (id,grade);
+create index specs_data_status on specs_data (id,status);
 
 create index epr_data_operator_id on epr_data (id,operator_id);
 create index epr_data_barcode_id on epr_data (id,barcode_id);
 create index epr_data_barcode_type on epr_data (id,barcode_type);
 create index epr_data_request_number on epr_data (id,request_number);
+create index epr_data_status on epr_data (id,status);
 
 create index revisions_form_type_data_id on revisions (id,form_type,form_data_id);
 

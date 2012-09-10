@@ -30,16 +30,30 @@
     <?php endforeach; ?>
     <td class="links">
       <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
-      <?php if (in_array($csv->status, array('P', 'R', 'U'))) echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
-      <?php if (in_array($csv->status, array('P', 'R'))): ?>
+
+      <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
+      <?php echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
+      <span class="link toggle-edit">EIP</span>
+      <?php endif; ?>
+
+      <?php if ($mode == 'import') echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
+
+      <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R'))): ?>
       <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?>
       <?php endif; ?>
-      <?php echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
+
       <?php if ($csv->errors or $csv->suggestions): ?>
       <span class="link toggle-details">Details</span>
       <?php endif; ?>
     </td>
   </tr>
+  <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>
+  <tr class="edit <?php echo $odd ? 'odd' : 'even'; ?>">
+    <td colspan="<?php echo (count($fields) + 3); ?>">
+      <?php echo $csv->get_form(); ?>
+    </td>
+  </tr>
+  <?php endif; ?>
   <?php if ($csv->errors or $csv->suggestions or $csv->duplicates): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td colspan="<?php echo (count($fields) + 3); ?>">

@@ -111,3 +111,18 @@ alter table tdf_data drop column coc_status;
 alter table ldf_data drop column coc_status;
 
 
+-- status
+
+create domain d_csv_status as character(1) check (value ~ E'^[PARDU]$');
+create domain d_data_status as character(1) check (value ~ E'^[PARD]$');
+
+alter table csv alter column status type d_csv_status;
+
+alter table ssf_data add column status d_data_status default 'P' not null;
+alter table tdf_data add column status d_data_status default 'P' not null;
+alter table ldf_data add column status d_data_status default 'P' not null;
+alter table mof_data add column status d_data_status default 'P' not null;
+alter table mif_data add column status d_data_status default 'P' not null;
+alter table specs_data add column status d_data_status default 'P' not null;
+alter table epr_data add column status d_data_status default 'P' not null;
+

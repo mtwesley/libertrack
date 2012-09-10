@@ -8,8 +8,8 @@
     list-style-type: none;
   }
   .details-duplicates ul li {
-    margin: 6px 6px 6px 0;
-    padding: 3px 6px;
+    margin: 4px 4px 4px 0;
+    padding: 2px 4px;
     display: block;
     float: left;
     color: #ae3636;
