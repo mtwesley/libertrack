@@ -55,7 +55,7 @@ class Controller_Import extends Controller {
       else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
     }
 
-    $this->request->redirect($url);
+    Request::current()->redirect($url);
   }
 
   private static function process_csv($csv) {
