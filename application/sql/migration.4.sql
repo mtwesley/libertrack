@@ -83,7 +83,7 @@ end
 $$ language 'plpgsql';
 
 
-create function mof_data_update_barcodes()
+create or replace function mof_data_update_barcodes()
   returns trigger as
 $$
 begin
