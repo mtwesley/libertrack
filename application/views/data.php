@@ -35,6 +35,11 @@ $classes[] = 'data';
           case 'block_id': echo $record->block->name; break;
           case 'species_id': echo $record->species->code.' / '.$record->species->trade_name; break;
 
+          case 'barcode_id':
+          case 'tree_barcode_id':
+          case 'stump_barcode_id':
+          case 'parent_barcode_id': echo ORM::factory('barcode', $record->$key)->barcode; break;
+
           // dates
           case 'create_date': echo SGS::date($record->$key); break;
 

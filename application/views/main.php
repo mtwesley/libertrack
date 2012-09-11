@@ -35,6 +35,12 @@ if ($right)         $classes['body'][] = 'sidebar-right';
 $styles[] = 'layout';
 $styles[] = 'style';
 $styles[] = 'effects';
+$styles[] = 'main';
+$styles[] = 'top';
+$styles[] = 'messages';
+$styles[] = 'navigation';
+$styles[] = 'pagination';
+$styles[] = 'csv';
 
 $scripts[] = 'jquery-1.8.0.min';
 $scripts[] = 'jquery-ui-1.8.23.min';
@@ -51,13 +57,6 @@ foreach (array_filter(explode('/', $path)) as $item) {
     <?php echo $head; ?>
     <title>SGS &middot; LiberFor <?php if ($title): ?> | <?php echo $title; ?><?php endif; ?></title>
     <link rel="shortcut icon" href="/favicon.png" />
-    <style type="text/css">
-      body {
-        font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
-        font-size: 11px;
-        color: #333;
-      }
-    </style>
     <?php echo SGS::render_styles($styles); ?>
     <?php echo SGS::render_scripts($scripts); ?>
   </head>

@@ -55,39 +55,6 @@ for ($i = $n7; $i <= $n8; $i++)
 }
 
 ?>
-<style type="text/css">
-  .pagination {
-    background-color: #f5f2ed;
-  }
-
-  .pagination a,
-  .pagination a:visited,
-  .pagination span {
-    color: #412e18;
-    padding: 4px 10px;
-    display: block;
-    float: left;
-    border-right: 2px solid #fff;
-    cursor: pointer;
-  }
-
-  .pagination a {
-    text-decoration: none;
-  }
-  .pagination span {}
-
-  .pagination a:hover,
-  .pagination span:hover {
-    background-color: #eee8df;
-  }
-
-  .pagination a:hover {}
-
-  .pagination span.active {
-    background-color: #eee8df;
-    font-weight: bold;
-  }
-</style>
 <div class="pagination">
 
 	<?php if ($first_page !== FALSE): ?>

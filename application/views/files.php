@@ -1,25 +1,6 @@
 <?php
-
 $classes[] = 'data';
-
 ?>
-<style type="text/css">
-  .pending {
-    color: #aa7700;
-  }
-
-  .accepted {
-    color: #008200;
-  }
-
-  .rejected {
-    color: #990000;
-  }
-
-  .duplicated {
-    color: #0066cc;
-  }
-</style>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <th></th>

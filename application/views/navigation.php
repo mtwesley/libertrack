@@ -12,120 +12,6 @@ if (!$command && !is_numeric($id)) {
 }
 
 ?>
-<style type="text/css">
-  #navigation .primary {
-    margin: 0;
-    padding: 0;
-    height: 26px;
-    width: 100%;
-    background-color: #e4e4e4;
-    list-style-type: none;
-  }
-
-  #navigation .primary li {
-    margin: 0;
-    padding: 0 0 0 25px;
-    width: auto;
-    float: left;
-    display: block;
-    text-transform: uppercase;
-  }
-
-  #navigation .primary li.right {
-    float: right;
-    margin-right: 25px;
-  }
-
-  #navigation .primary li a {
-    padding: 5px 0 4px;
-    color: #555;
-    text-decoration: none;
-    line-height: 26px;
-  }
-
-  #navigation .primary li a:hover {
-    color: #333;
-    border-bottom: 2px solid #aaa;
-    cursor: pointer;
-  }
-
-  #navigation .primary li.active a {
-    color: #333;
-    cursor: default;
-    font-weight: bold;
-    border-bottom: 2px solid #000;
-  }
-
-  #navigation .primary li.active a:hover {
-    border-bottom: 2px solid #f60;
-  }
-
-
-  #navigation .secondary {
-    margin: 0;
-    padding: 4px 0;
-    list-style-type: none;
-    text-align: left;
-    background-color: #fafafa;
-  }
-
-  #navigation .secondary li {
-    margin: 0;
-    padding: 4px 10px 0;
-  }
-
-  #navigation .secondary li a {
-    background: transparent url('/images/list_off.gif') left center no-repeat;
-    padding-left: 15px;
-    text-align: left;
-    text-decoration: none;
-    color: #555;
-  }
-
-  #navigation .secondary li a:hover {
-    background: transparent url('/images/list_on.gif') left center no-repeat;
-    color: #333;
-  }
-
-  #navigation .secondary li.active a {
-    background: transparent url('/images/list_active.gif') left center no-repeat;
-    color: #000;
-  }
-
-  #navigation .secondary li.active a:hover {
-    background: transparent url('/images/list_orange.gif') left center no-repeat;
-    cursor: default;
-  }
-
-  #navigation .secondary li .commands {
-    margin: 0;
-    padding: 0 16px;
-    list-style-type: none;
-  }
-  #navigation .secondary li .commands li {}
-  #navigation .secondary li .commands li a {
-    background: transparent url('/images/list_off.gif') left center no-repeat;
-    padding-left: 15px;
-    text-align: left;
-    text-decoration: none;
-    color: #555;
-    cursor: pointer;
-  }
-  #navigation .secondary li .commands li a:hover {
-    background: transparent url('/images/list_on.gif') left center no-repeat;
-    color: #333;
-    cursor: pointer;
-  }
-  #navigation .secondary li .commands li.active a {
-    background: transparent url('/images/list_active.gif') left center no-repeat;
-    color: #000;
-  }
-  #navigation .secondary li .commands li.active a:hover {
-    background: transparent url('/images/list_orange.gif') left center no-repeat;
-    cursor: default;
-  }
-
-</style>
 <div id="navigation">
   <ul class="nav primary">
     <?php if (Auth::instance()->logged_in()): ?>
@@ -173,11 +59,18 @@ if (!$command && !is_numeric($id)) {
     <?php elseif ($primary == 'import'): ?>
     <li class="<?php if ($secondary == 'upload') echo 'active'; ?>"><?php echo HTML::anchor('import/upload', SGS::title('import/upload')); ?></li>
     <li class="<?php if ($secondary == 'files')  echo 'active'; ?>"><?php echo HTML::anchor('import/files', SGS::title('import/files')); ?></li>
-    <li class="<?php if ($secondary == 'data')   echo 'active'; ?>"><?php echo HTML::anchor('import/data', SGS::title('import/data')); ?></li>
+    <li class="<?php if ($secondary == 'data')   echo 'active'; ?>"><?php echo HTML::anchor('import/data', SGS::title('import/data')); ?>
+      <?php if ($secondary == 'data'): ?>
+      <ul class="nav commands">
+        <li class="<?php if ($command == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('import/data/ssf', SGS::title('import/data/ssf')); ?></li>
+        <li class="<?php if ($command == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('import/data/tdf', SGS::title('import/data/tdf')); ?></li>
+        <li class="<?php if ($command == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('import/data/ldf', SGS::title('import/data/ldf')); ?></li>
+      </ul>
+      <?php endif; ?>
+    </li>
 
     <?php elseif ($primary == 'export'): ?>
-    <li class="<?php if ($secondary == 'download') echo 'active'; ?>">
-      <?php echo HTML::anchor('export/download', SGS::title('export/download')); ?>
+    <li class="<?php if ($secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('export/download', SGS::title('export/download')); ?>
       <?php if ($secondary == 'download'): ?>
       <ul class="nav commands">
         <li class="<?php if ($command == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('export/download/ssf', SGS::title('export/download/ssf')); ?></li>
@@ -186,6 +79,7 @@ if (!$command && !is_numeric($id)) {
       </ul>
       <?php endif; ?>
     </li>
+
     <li class="<?php if ($secondary == 'files')    echo 'active'; ?>"><?php echo HTML::anchor('export/files', SGS::title('export/files')); ?></li>
     <li class="<?php if ($secondary == 'data')     echo 'active'; ?>"><?php echo HTML::anchor('export/data', SGS::title('export/data')); ?></li>
 

@@ -1,12 +1,24 @@
+
+/* Colors */
+
 .pending {
-
+  color: #aa7700;
 }
+
 .accepted {
-
+  color: #008200;
 }
+
 .rejected {
-
+  color: #990000;
 }
+
+.duplicated {
+  color: #0066cc;
+}
+
+
+/* Forms */
 
 .toggle-form {
   margin: 5px 0;
@@ -82,14 +94,8 @@
 }
 
 #content form p.checkboxes {}
-#content form p.checkboxes span.field {
-/*  position: relative;
-  top: -21px;*/
-}
+#content form p.checkboxes span.field {}
 #content form p.checkboxes span.checkbox {
-/*  margin-left: 170px;
-  display: block;
-  clear: left;*/
   white-space: nowrap;
 }
 
@@ -112,6 +118,9 @@
   background-image: url('/images/err_msg_arrow.gif');
   background-repeat: no-repeat;
 }
+
+
+/* Tables */
 
 #content table.data {
   margin: 5px 0;

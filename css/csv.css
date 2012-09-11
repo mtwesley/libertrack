@@ -1,0 +1,59 @@
+.details-duplicates,
+.details-errors,
+.details-suggestion {
+  margin: 7px 0 3px;
+}
+
+.details-duplicates ul,
+.details-errors ul,
+.details-suggestion ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.details-duplicates ul li,
+.details-errors ul li,
+.details-suggestion ul li {
+  margin: 4px 4px 4px 0;
+  padding: 2px 4px;
+  display: block;
+  float: left;
+}
+
+.details-duplicates ul li {
+  color: #ae3636;
+  border: 1px dotted #f38284;
+  background-color: #fcdfe0;
+}
+
+.details-errors ul li {
+  color: #ae3636;
+  border: 1px dotted #f38284;
+  background-color: #fcdfe0;
+}
+
+.details-suggestion ul li {
+  color: #4a96ff;
+  border: 1px dotted #b0d1ff;
+  background-color: #e3efff;
+}
+
+.details-suggestions {}
+.details-suggestion {}
+
+.details-suggestion strong {
+  padding-right: 20px;
+}
+
+.details-suggestion .suggest ul li {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.details-suggestion .suggest ul li:hover {
+  text-decoration: underline;
+}
+
+.details-suggestion li.more {}
+.details-suggestion li.more a {}
