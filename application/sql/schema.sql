@@ -39,7 +39,7 @@ create domain d_species_class as character(1) check (value ~ E'^[ABC]$');
 
 create domain d_site_type as character(3) check (value ~ E'^[A-Z]{3}$');
 
-create domain d_site_name as character varying(10) check (value ~ E'^[A-Z]{3}[\\s_-]*[A-Z1-9]{1,10}$');
+create domain d_site_name as character varying(10) check (value ~ E'^[A-Z]{3}[\\s_-]*[A-Z0-9]{1,10}$');
 
 create domain d_operator_tin as bigint check (value > 0);
 
@@ -307,6 +307,7 @@ create table ssf_data (
   fda_remarks d_text_long,
   create_date d_date not null,
   status d_data_status default 'P' not null,
+  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -339,6 +340,7 @@ create table tdf_data (
   comment d_text_long,
   create_date d_date not null,
   status d_data_status default 'P' not null,
+  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -371,6 +373,7 @@ create table ldf_data (
   comment d_text_long,
   create_date d_date not null,
   status d_data_status default 'P' not null,
+  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -398,6 +401,7 @@ create table mif_data (
   length d_measurement_float not null,
   volume d_measurement_float not null,
   status d_data_status default 'P' not null,
+  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -421,6 +425,7 @@ create table mof_data (
   grade d_grade not null,
   volume d_measurement_float not null,
   status d_data_status default 'P' not null,
+  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -445,6 +450,7 @@ create table specs_data (
   grade d_grade not null,
   volume d_measurement_float not null,
   status d_data_status default 'P' not null,
+  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -463,6 +469,7 @@ create table epr_data (
   barcode_id d_id unique not null,
   barcode_type d_barcode_type not null,
   status d_data_status default 'P' not null,
+  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -812,7 +819,7 @@ begin
 
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
     if new.barcode_id is not null then
-      update barcodes set type = 'L' where barcodes.id = new.barcode_id;
+      update barcodes set type = 'F' where barcodes.id = new.barcode_id;
 
       if new.tree_barcode_id is not null then
         update barcodes set parent_id = new.tree_barcode_id where barcodes.id = new.barcode_id;
@@ -885,7 +892,7 @@ $$
   declare x_site text[];
 begin
   if new.name is not null then
-    select regexp_matches(new.name::text, E'^([A-Z]{3})([\\s_-]*[A-Z1-9]{1,10})?$') into x_site;
+    select regexp_matches(new.name::text, E'^([A-Z]{3})([\\s_-]*[A-Z0-9]{1,10})?$') into x_site;
     new.type = x_site[1];
   end if;
 

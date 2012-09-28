@@ -10,7 +10,7 @@ $$
   declare x_site text[];
 begin
   if new.name is not null then
-    select regexp_matches(new.name::text, E'^([A-Z]{3})([\\s_-]*[A-Z1-9]{1,10})?$') into x_site;
+    select regexp_matches(new.name::text, E'^([A-Z]{3})([\\s_-]*[A-Z0-9]{1,10})?$') into x_site;
     new.type = x_site[1];
   end if;
 
@@ -40,8 +40,8 @@ drop domain d_site_reference;
 
 -- values
 
-update sites set "name" = substring("name" from E'^[A-Z]+\/([A-Z1-9\\s_-]+)$');
+update sites set "name" = substring("name" from E'^[A-Z]+\/([A-Z0-9\\s_-]+)$');
 
 -- add check
 
-alter domain d_site_name add check (value ~ E'^[A-Z]{3}[\\s_-]*[A-Z1-9]{1,10}$');
+alter domain d_site_name add check (value ~ E'^[A-Z]{3}[\\s_-]*[A-Z0-9]{1,10}$');

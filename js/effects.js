@@ -1,7 +1,11 @@
 $(function() {
 
-  $(".toggle-details").click(function() {
+  $("body.import .toggle-details").click(function() {
     $(this).parent().parent("tr").next("tr.edit").next("tr.details").toggle();
+  });
+
+  $("body.analysis .toggle-details").click(function() {
+    $(this).parent().parent("tr").next("tr.details").toggle();
   });
 
   $(".toggle-edit").click(function() {

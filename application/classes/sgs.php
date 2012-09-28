@@ -10,6 +10,9 @@ class SGS {
 
   const US_DATE_FORMAT = 'm/d/Y';
 
+  const TDF_HEIGHT_TOLERANCE   = 10;
+  const TDF_DIAMETER_TOLERANCE = 10;
+
   public static $path = array(
     'index'           => 'Home',
 
@@ -23,6 +26,10 @@ class SGS {
     'import/files'    => 'File Management',
     'import/data'     => 'Data Management',
 
+    'import/data/ssf' => 'Stock Survey Form',
+    'import/data/tdf' => 'Tree Data Form',
+    'import/data/ldf' => 'Log Data Form',
+
     'export'          => 'Export',
     'export/download' => 'Download Documents',
     'export/files'    => 'File Management',
@@ -32,20 +39,25 @@ class SGS {
     'export/download/tdf' => 'Tree Data Form',
     'export/download/ldf' => 'Log Data Form',
 
-    'admin'           => 'Administration',
-    'admin/files'     => 'File Management',
-    'admin/operators' => 'Operator Configuration',
-    'admin/sites'     => 'Site Configuration',
+    'admin'           => 'Configuration',
+//    'admin/files'     => 'File Management',
+    'admin/operators' => 'Operator Registration',
+    'admin/sites'     => 'Site Registration',
     'admin/blocks'    => 'Block Registration',
     'admin/species'   => 'Species Configuration',
-    'admin/printjobs' => 'Print Job and Barcode Management',
-    'admin/barcodes'  => 'Barcode Management',
-    'admin/users'     => 'User Management',
+
+    'barcodes'          => 'Barcodes',
+    'barcodes/upload'   => 'Upload Print Jobs',
+    'barcodes/download' => 'Download Print Jobs and Masterlist',
+
+    'users'           => 'Users',
 
     'analysis'        => 'Analysis',
     'analysis/ssf'    => 'Stock Survey Form',
     'analysis/tdf'    => 'Tree Data Form',
     'analysis/ldf'    => 'Log Data Form',
+
+    'checks'          => 'Checks and Queries',
 
     'reports'         => 'Reports',
     'reports/ssf'     => 'Stock Survey Form',
@@ -257,9 +269,9 @@ class SGS {
     if ($text !== $fix = preg_replace('/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/', '$2-$1-$3', trim($text))) return $fix;
   }
 
-  public static function date($date = 'now', $format = SGS::DATE_FORMAT, $fix = TRUE)
+  public static function date($date = 'now', $format = SGS::DATE_FORMAT, $fix = TRUE, $is_us_date = FALSE)
   {
-    if ($test = self::internationalify($date)) $date = $test;
+    if ($is_us_date AND ($test = self::internationalify($date))) $date = $test;
 
     try {
       $d = Date::formatted_time($date, $format);
@@ -272,9 +284,9 @@ class SGS {
     else return $d;
   }
 
-  public static function datetime($datetime = 'now', $format = SGS::DATETIME_FORMAT, $fix = TRUE)
+  public static function datetime($datetime = 'now', $format = SGS::DATETIME_FORMAT, $fix = TRUE, $is_us_date = FALSE)
   {
-    if ($test = self::internationalify($date)) $date = $test;
+    if ($is_us_date AND ($test = self::internationalify($date))) $date = $test;
 
     try {
       $dt = Date::formatted_time($datetime, $format);
@@ -453,17 +465,14 @@ class SGS {
     $fields = 'barcode';
 
     $query_args = array();
-    if ($args['sites.id'] or $args['operators.id']) {
+    if ($args['operators.id']) {
       $query_args[] = array('join' => array('printjobs'));
       $query_args[] = array('on' => array('barcodes.printjob_id', '=', 'printjobs.id'));
       $query_args[] = array('join' => array('sites'));
       $query_args[] = array('on' => array('printjobs.site_id', '=', 'sites.id'));
-      unset($args['sites.id']);
-    }
-    if ($args['operators.id']) {
       $query_args[] = array('join' => array('operators'));
       $query_args[] = array('on' => array('sites.operator_id', '=', 'operators.id'));
-      unset($args['operators.id']);
+//      unset($args['operators.id']);
     }
     if (strlen($barcode) >= 10) $query_args[] = array('where' => array(DB::expr('character_length(barcodes.barcode)'), '=', 13));
     else $query_args[] = array('where' => array(DB::expr('character_length(barcodes.barcode)'), '=', 8));
@@ -482,7 +491,7 @@ class SGS {
     if ($args['sites.id']) {
       $query_args[] = array('join' => array('sites'));
       $query_args[] = array('on' => array('operators.id', '=', 'sites.operator_id'));
-      unset($args['sites.id']);
+//      unset($args['sites.id']);
     }
     return self::suggest($tin, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
   }
@@ -500,7 +509,7 @@ class SGS {
     if ($args['operators.id']) {
       $query_args[] = array('join' => array('operators'));
       $query_args[] = array('on' => array('sites.operator_id', '=', 'operators.id'));
-      unset($args['operators.id']);
+//      unset($args['operators.id']);
     }
 
     return self::suggest($name, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
@@ -526,7 +535,7 @@ class SGS {
   public static function parse_site_and_block_info($text)
   {
     $matches = array();
-    preg_match('/((RESOURCE\sAREA\/)?(([A-Z]+)\/)?([A-Z1-9\s-_]+)?)(\/([A-Z1-9]+))?/', $text, $matches);
+    preg_match('/((RESOURCE\sAREA\/)?(([A-Z]+)\/)?([A-Z0-9\s-_]+)?)(\/([A-Z0-9]+))?/', $text, $matches);
 
     return array(
       'site_name'  => $matches[5],

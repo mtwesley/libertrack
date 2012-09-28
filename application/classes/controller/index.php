@@ -5,7 +5,7 @@ class Controller_Index extends Controller {
   public function action_index() {
     if (!Auth::instance()->logged_in()) {
       Notify::msg('Please login.', NULL, TRUE);
-      $this->request->redirect('login');
+      $this->request->redirect('login?destination='.$this->request->uri());
     }
 
     $view = View::factory('main');
@@ -33,10 +33,10 @@ class Controller_Index extends Controller {
       if (Auth::instance()->login($username, $password)) {
         $user = Auth::instance()->get_user();
 
-        if ($user->last_timestamp) Notify::msg('Welcome back, '.$user->name.'.', NULL, TRUE);
+        if ($user->last_timestamp AND !$_GET['destination']) Notify::msg('Welcome back, '.$user->name.'.', NULL, TRUE);
         else Notify::msg('Welcome to the LiberFor database.');
 
-        $this->request->redirect();
+        $this->request->redirect($_GET['destination'] ? $_GET['destination'] : NULL);
       }
       else {
         Notify::msg('Invalid username and password combination. Please try again.', 'error');

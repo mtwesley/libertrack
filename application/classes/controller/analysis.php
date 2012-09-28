@@ -7,7 +7,7 @@ class Controller_Analysis extends Controller {
 
     if (!Auth::instance()->logged_in()) {
       Notify::msg('Please login.', NULL, TRUE);
-      $this->request->redirect('login');
+      $this->request->redirect('login?destination='.$this->request->uri());
     }
     elseif (!Auth::instance()->logged_in('analysis')) {
       Notify::msg('Sorry, access denied. You must have '.SGS::$roles['analysis'].' privileges.', 'locked', TRUE);
@@ -120,6 +120,71 @@ class Controller_Analysis extends Controller {
     if ($form) $content .= $form->render();
     $content .= $table;
     $content .= $pagination;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_data_edit($id) {
+    $id = $this->request->param('id');
+
+    $csv = ORM::factory('csv', $id);
+    if ($csv->status == 'A') {
+      Notify::msg('Sorry, import data that has already been processed and accepted cannot be edited. Please edit the form data instead.', 'warning', TRUE);
+      $this->request->redirect('import/data/'.$id.'/list');
+    }
+
+    $form_type = $csv->form_type;
+    $fields    = SGS_Form_ORM::get_fields($form_type);
+
+    $form = Formo::form();
+    foreach ($fields as $key => $value) {
+      $form->add(array(
+        'alias' => $key,
+        'value' => $csv->values[$key],
+        'label' => $value
+      ));
+    }
+    $form->add(array(
+      'alias'  => 'save',
+      'driver' => 'submit',
+      'value'  => 'Save'
+    ));
+
+    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      foreach ($csv->values as $key => $value) {
+        if ($form->$key) $data[$key] = $form->$key->val();
+      }
+
+      $csv->values = $data;
+      $csv->status = 'P';
+      try {
+        $csv->save();
+        $updated = true;
+      } catch (Exception $e) {
+        Notify::msg('Sorry, update failed. Please try again.', 'error');
+      }
+
+      if ($updated) {
+        $result = self::process_csv($csv);
+        if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
+        elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
+        elseif ($result == 'U') Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE);
+        else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
+      }
+
+      $this->request->redirect('import/data/'.$csv->id);
+    }
+
+    $csvs = array($csv);
+    $table = View::factory('csvs')
+      ->set('mode', 'import')
+      ->set('csvs', $csvs)
+      ->set('fields', SGS_Form_ORM::get_fields($csv->form_type))
+      ->render();
+
+    $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

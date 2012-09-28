@@ -12,7 +12,8 @@
     <td><?php echo $printjob->site->operator->name; ?></td>
     <td><?php echo $printjob->site->name; ?></td>
     <td class="links">
-      <?php echo HTML::anchor('admin/printjobs/'.$printjob->id.'/barcodes', 'View Barcodes', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('barcodes/'.$printjob->id.'/list', 'List Barcodes', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('barcodes/'.$printjob->id.'/download', 'Download', array('class' => 'link')); ?>
     </td>
   </tr>
   <?php endforeach; ?>

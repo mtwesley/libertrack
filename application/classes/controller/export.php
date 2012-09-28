@@ -7,7 +7,7 @@ class Controller_Export extends Controller {
 
     if (!Auth::instance()->logged_in()) {
       Notify::msg('Please login.', NULL, TRUE);
-      $this->request->redirect('login');
+      $this->request->redirect('login?destination='.$this->request->uri());
     }
     elseif (!Auth::instance()->logged_in('data')) {
       Notify::msg('Sorry, access denied. You must have '.SGS::$roles['data'].' privileges.', 'locked', TRUE);
@@ -45,7 +45,7 @@ class Controller_Export extends Controller {
     if ($csvs) $table .= View::factory('csvs')
       ->set('title', 'Pending')
       ->set('csvs', $csvs)
-      ->set('fields', SGS_Form_ORM::get_fields($file->operation_type, TRUE))
+      ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
       ->render();
     else Notify::msg('No records found.');
 
@@ -101,7 +101,7 @@ class Controller_Export extends Controller {
     if ($csvs) $table = View::factory('csvs')
       ->set('mode', 'import')
       ->set('csvs', $csvs)
-      ->set('fields', SGS_Form_ORM::get_fields($form_type, TRUE))
+      ->set('fields', SGS_Form_ORM::get_fields($form_type))
       ->render();
     elseif ($display) Notify::msg('Search returned an empty set of results.');
 

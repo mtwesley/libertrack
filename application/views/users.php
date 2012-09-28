@@ -39,10 +39,10 @@
     <td><?php echo $total_logins; ?></td>
     <td><?php echo $currently_logged_in; ?></td>
     <td><?php echo $last_activity; ?></td>
-    <td><?php echo SGS::implodify($user->roles->find_all()->as_array(NULL, 'description')); ?></td>
+    <td class="wrap-normal"><?php echo SGS::implodify($user->roles->find_all()->as_array(NULL, 'description')); ?></td>
     <td class="links">
-      <?php echo HTML::anchor('admin/users/'.$user->id.'/edit', 'Edit', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('admin/users/'.$user->id.'/password', 'Change Password', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('users/'.$user->id.'/edit', 'Edit', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('users/'.$user->id.'/password', 'Change Password', array('class' => 'link')); ?>
     </td>
   </tr>
   <?php endforeach; ?>

@@ -40,7 +40,7 @@ $classes[] = 'data';
       ?>
     </td>
     <td><?php echo Num::unbytes($file->size, 0); ?></td>
-    <td><?php echo SGS::datetime($file->timestamp); ?></td>
+    <td><?php echo SGS::date($file->timestamp); ?></td>
     <td><?php echo $file->operator->name; ?></td>
     <td><?php echo $file->site->name; ?></td>
     <td><?php echo $file->block->name; ?></td>

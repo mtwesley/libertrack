@@ -4,11 +4,13 @@ insert into roles (name, description) values ('data', 'Data Entry');
 insert into roles (name, description) values ('analysis', 'Data Analysis');
 insert into roles (name, description) values ('reports', 'Reporting');
 insert into roles (name, description) values ('management', 'Project Management');
-insert into roles (name, description) values ('admin', 'Administration');
+insert into roles (name, description) values ('admin', 'Site and Operator Configuration');
+insert into roles (name, description) values ('users', 'User Management');
+insert into roles (name, description) values ('barcodes', 'Barcode Management');
 
 -- users
 
-insert into users (1, name, username, password) values(id, 'sgs', md5('5gSu8z_'));
+insert into users (id, name, username, password) values(1, 'SGS', 'sgs', md5('5gSu8z_'));
 
 -- roles for users
 

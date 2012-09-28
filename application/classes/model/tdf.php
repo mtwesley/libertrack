@@ -69,7 +69,7 @@ class Model_TDF extends SGS_Form_ORM {
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'    => SGS::date(trim($csv[3][B]), SGS::US_DATE_FORMAT),
+      'create_date'    => SGS::date(trim($csv[3][B]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'operator_tin'   => trim($csv[2][G]),
       'site_name'      => $site_name,
       'block_name'     => $block_name,
@@ -162,7 +162,7 @@ class Model_TDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
   }
 
-  public function download_data($values, $excel, $row) {
+  public function download_data($values, $errors, $suggestions, $duplicates, $excel, $row) {
     $excel->getActiveSheet()->SetCellValue('A'.$row, $values['survey_line']);
     $excel->getActiveSheet()->SetCellValue('B'.$row, $values['cell_number']);
     $excel->getActiveSheet()->SetCellValue('C'.$row, $values['tree_barcode']);
@@ -176,6 +176,24 @@ class Model_TDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('K'.$row, $values['stump_barcode']);
     $excel->getActiveSheet()->SetCellValue('L'.$row, $values['action']);
     $excel->getActiveSheet()->SetCellValue('M'.$row, $values['comment']);
+
+    if ($errors) {
+      $excel->getActiveSheet()->SetCellValue('O'.$row, implode(" \n", (array) $errors));
+      $excel->getActiveSheet()->getStyle('O'.$row)->getAlignment()->setWrapText(true);
+    }
+
+    if ($suggestions) {
+      $text = array();
+      foreach ($suggestions as $field => $suggestion) {
+        $text[] = 'Suggested values for '.self::$fields[$field].': '.implode(', ', $suggestion);
+      }
+      $excel->getActiveSheet()->SetCellValue('P'.$row, implode(" \n", (array) $text));
+      $excel->getActiveSheet()->getStyle('P'.$row)->getAlignment()->setWrapText(true);
+    }
+
+    if ($duplicates) {
+      $excel->getActiveSheet()->SetCellValue('Q'.$row, 'Duplicate found');
+    }
   }
 
   public function download_headers($values, $excel, $args, $headers = TRUE) {
@@ -224,7 +242,6 @@ class Model_TDF extends SGS_Form_ORM {
         case 'tree_barcode':
           $args = array(
             'barcodes.type' => array('P', 'S'),
-            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
@@ -233,7 +250,6 @@ class Model_TDF extends SGS_Form_ORM {
         case 'stump_barcode':
           $args = array(
             'barcodes.type' => array('P'),
-            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
@@ -285,7 +301,7 @@ class Model_TDF extends SGS_Form_ORM {
     // everything else
     $query = DB::select('id')
       ->from($this->_table_name)
-      ->where('survey_line', '=', $values['survey_line'])
+      ->where('survey_line', '=', (int) $values['survey_line'])
       ->and_where('cell_number', '=', (int) $values['cell_number']);
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
@@ -295,6 +311,52 @@ class Model_TDF extends SGS_Form_ORM {
 
     if ($duplicate = $query->execute()->get('id')) $duplicates[] = $duplicate;
     return $duplicates;
+  }
+
+  public function run_checks() {
+    $errors = array();
+
+    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match barcode';
+    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match site';
+    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'Site inconsistent -- does not match barcode';
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'Site inconsistent -- does not match operator';
+    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $errors['block'][] = 'Block inconsistent -- does not match barcode';
+    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $errors['block'][] = 'Block inconsistent -- does not match site';
+
+    switch ($this->barcode->type) {
+      case 'F': break;
+      case 'P': $errors['barcode'][] = 'Felled tree barcode has not been assigned'; break;
+      default: $errors['barcode'][] = 'Felled tree barcode is of the wrong type'; break;
+    }
+
+    switch ($this->tree_barcode->type) {
+      case 'T': break;
+      case 'P': $errors['tree_barcode'][] = 'Tree barcode has not been assigned'; break;
+      default: $errors['tree_barcode'][] = 'Tree barcode is of the wrong type'; break;
+    }
+
+    switch ($this->stump_barcode->type) {
+      case 'S': break;
+      case 'P': $errors['stump_barcode'][] = 'Stump barcode has not been assigned'; break;
+      default: $errors['stump_barcode'][] = 'Stump barcode is of the wrong type'; break;
+    }
+
+    $ssf = ORM::factory('SSF')
+      ->where('barcode_id', '=', $this->tree_barcode->id)
+      ->find();
+
+    if ($ssf->loaded()) {
+      if (!Valid::meets_tolerance($this->length, $ssf->height, SGS::TDF_HEIGHT_TOLERANCE)) $errors['length'][] = 'Felled tree length not within tolerance to match standing tree';
+      if (!Valid::meets_tolerance(($this->bottom_min + $this->bottom_max) / 2, $ssf->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
+        $errors['bottom_min'][] = 'Felled tree diameter not within tolerance to match standing tree';
+        $errors['bottom_max'][] = 'Felled tree diameter not within tolerance to match standing tree';
+      }
+      if (!($this->species->class == $ssf->species->class)) $errors['species'][] = 'Felled tree species class does not match standing tree';
+      if (!($this->cell_number == $ssf->cell_number)) $errors['cell_number'][] = 'Felled tree cell number does not match standing tree';
+      if (!($this->survey_line == $ssf->survey_line)) $errors['survey_line'][] = 'Felled tree survey line does not match standing tree';
+    } else $errors['barcode'][] = 'No data found for standing tree';
+
+    return $errors;;
   }
 
   public static function fields()
@@ -333,7 +395,7 @@ class Model_TDF extends SGS_Form_ORM {
       'create_date'      => array(array('not_empty'),
                                   array('is_date')),
       'user_id'          => array(),
-      'timestamp'        => array()
+      'timestamp'        => array(),
     );
   }
 
@@ -366,8 +428,9 @@ class Model_TDF extends SGS_Form_ORM {
   public function labels()
   {
     return array(
-      'site_id'          => 'Site',
+      'create_date'      => self::$fields['create_date'],
       'operator_id'      => 'Operator',
+      'site_id'          => 'Site',
       'block_id'         => 'Block',
       'species_id'       => 'Species',
       'barcode_id'       => self::$fields['barcode'],
@@ -380,9 +443,31 @@ class Model_TDF extends SGS_Form_ORM {
       'bottom_min'       => self::$fields['bottom_min'],
       'bottom_max'       => self::$fields['bottom_max'],
       'length'           => self::$fields['length'],
-//      'action'           => self::$fields['action'],
-//      'comment'          => self::$fields['comment'],
+      'action'           => self::$fields['action'],
+      'comment'          => self::$fields['comment'],
+//      'user_id'         => self::$fields['user_id'],
+//      'timestamp'       => self::$fields['timestamp'],
     );
+  }
+
+  public function set($column, $value) {
+    switch ($column) {
+      case 'errors':
+        if ($value) $value = is_string($value) ? $value : serialize($value);
+        else $value = NULL;
+      default:
+        parent::set($column, $value);
+    }
+  }
+
+  public function __get($column) {
+    switch ($column) {
+      case 'errors':
+        $value = parent::__get($column);
+        return is_string($value) ? unserialize($value) : $value;
+      default:
+        return parent::__get($column);
+    }
   }
 
 }

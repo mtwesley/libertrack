@@ -3,7 +3,9 @@
   <strong>Errors:</strong>
   <ul>
     <?php foreach ($errors as $field => $error): ?>
-    <li><?php echo SGS::errorfy($error); ?></li>
+    <?php foreach ((array) $error as $err): ?>
+    <li><?php echo SGS::errorfy($err); ?></li>
+    <?php endforeach; ?>
     <?php endforeach; ?>
   </ul>
 </div>

@@ -7,7 +7,7 @@ class Controller_Import extends Controller {
 
     if (!Auth::instance()->logged_in()) {
       Notify::msg('Please login.', NULL, TRUE);
-      $this->request->redirect('login');
+      $this->request->redirect('login?destination='.$this->request->uri());
     }
     elseif (!Auth::instance()->logged_in('data')) {
       Notify::msg('Sorry, access denied. You must have '.SGS::$roles['data'].' privileges.', 'locked', TRUE);
@@ -133,7 +133,7 @@ class Controller_Import extends Controller {
   private function handle_file_list($id = NULL) {
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.file.list');
     if ($id) {
-      Session::instance()->delete('pagination.csv');
+      Session::instance()->delete('pagination.file.list');
 
       $files = ORM::factory('file')
         ->where('operation', '=', 'I')
@@ -158,9 +158,7 @@ class Controller_Import extends Controller {
         ->as_array('id', 'name');
 
       $form = Formo::form()
-        ->add_group('operation_type', 'select', SGS::$form_type, NULL, array(
-          'label' => 'Type',
-        ))
+        ->add_group('operation_type', 'checkboxes', SGS::$form_type, NULL, array('label' => 'Type'))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
         ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
@@ -176,7 +174,7 @@ class Controller_Import extends Controller {
 
         $files = ORM::factory('file')->where('operation', '=', 'I');
 
-        if ($operation_type) $files->and_where('operation_type', '=', (string) $operation_type);
+        if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
         if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)        $files->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)       $files->and_where('block_id', 'IN', (array) $block_id);
@@ -201,7 +199,7 @@ class Controller_Import extends Controller {
         $files = ORM::factory('file')
           ->where('operation', '=', 'I');
 
-        if ($operation_type) $files->and_where('operation_type', '=', $operation_type);
+        if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
         if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)        $files->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)       $files->and_where('block_id', 'IN', (array) $block_id);
@@ -216,6 +214,7 @@ class Controller_Import extends Controller {
         $files = $files
           ->offset($pagination->offset)
           ->limit($pagination->items_per_page)
+          ->order_by('timestamp', 'desc')
           ->find_all()
           ->as_array();
       }
@@ -322,23 +321,23 @@ class Controller_Import extends Controller {
       if ($status) $csvs->and_where('status', 'IN', (array) $status);
     }
 
-    $clone = clone($csvs);
-    $pagination = Pagination::factory(array(
-      'items_per_page' => 50,
-      'total_items' => $clone->find_all()->count()));
-
-    $csvs = $csvs
-      ->offset($pagination->offset)
-      ->limit($pagination->items_per_page)
-      ->find_all()
-      ->as_array();
-
     if ($csvs) {
+      $clone = clone($csvs);
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 50,
+        'total_items' => $clone->find_all()->count()));
+
+      $csvs = $csvs
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page)
+        ->find_all()
+        ->as_array();
+
       $table = View::factory('csvs')
         ->set('classes', array('has-pagination'))
         ->set('mode', 'import')
         ->set('csvs', $csvs)
-        ->set('fields', SGS_Form_ORM::get_fields($file->operation_type, TRUE))
+        ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
         ->render();
       if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
       elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
@@ -401,7 +400,7 @@ class Controller_Import extends Controller {
       $model = ORM::factory($file->operation_type);
 
       foreach ($csvs as $csv) {
-        $model->download_data($csv->values, $excel, $row);
+        $model->download_data($csv->values, $csv->errors, $csv->suggestions, $csv->duplicates, $excel, $row);
         if (strtotime($csv->values['create_date']) > strtotime($create_date)) $create_date = $csv->values['create_date'];
         $row++;
       }
@@ -466,7 +465,7 @@ class Controller_Import extends Controller {
     }
 
     $form_type = $csv->form_type;
-    $fields    = SGS_Form_ORM::get_fields($form_type, TRUE);
+    $fields    = SGS_Form_ORM::get_fields($form_type);
 
     $csv->status = 'P';
     $result = self::process_csv($csv);
@@ -488,7 +487,7 @@ class Controller_Import extends Controller {
     }
 
     $form_type = $csv->form_type;
-    $fields    = SGS_Form_ORM::get_fields($form_type, TRUE);
+    $fields    = SGS_Form_ORM::get_fields($form_type);
 
     $form = Formo::form();
     foreach ($fields as $key => $value) {
@@ -533,7 +532,7 @@ class Controller_Import extends Controller {
     $table = View::factory('csvs')
       ->set('mode', 'import')
       ->set('csvs', $csvs)
-      ->set('fields', SGS_Form_ORM::get_fields($csv->form_type, TRUE))
+      ->set('fields', SGS_Form_ORM::get_fields($csv->form_type))
       ->render();
 
     $content .= $form->render();
@@ -570,7 +569,7 @@ class Controller_Import extends Controller {
     $this->response->body($view);
   }
 
-  private function handle_csv_list($id = NULL, $form_type = NULL) {
+  private function handle_csv_list($form_type = NULL, $id = NULL) {
     if ($_POST['form_name'] == 'csv_edit_form') {
       self::csv_edit_in_place($_POST);
     }
@@ -587,7 +586,7 @@ class Controller_Import extends Controller {
 
       $form_type = reset($csvs)->form_type;
     }
-    else {
+    elseif ($form_type) {
       $operator_ids = DB::select('id', 'name')
         ->from('operators')
         ->execute()
@@ -604,28 +603,28 @@ class Controller_Import extends Controller {
         ->as_array('id', 'name');
 
       $form = Formo::form()
-        ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Type', 'required' => TRUE))
-        ->add_group('status', 'checkboxes', SGS::$csv_status, array_keys(SGS::$csv_status), array('label' => 'Status', 'required' => TRUE))
+//        ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Type', 'required' => TRUE))
+        ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status', 'required' => TRUE))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
         ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
-        ->add('search', 'submit', 'Search')
-        ->add('download_csv', 'submit', 'Download '.SGS::$file_type['csv'])
-        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls']);
+        ->add('search', 'submit', 'Filter');
+//        ->add('download_csv', 'submit', 'Download '.SGS::$file_type['csv'])
+//        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls']);
+
+      $csvs = ORM::factory('csv')
+        ->where('operation', '=', 'I')
+        ->and_where('form_type', '=', $form_type)
+        ->order_by('timestamp', 'desc');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
         Session::instance()->delete('pagination.csv');
 
-        $form_type   = $form->form_type->val();
+//        $form_type   = $form->form_type->val();
         $status      = $form->status->val();
         $operator_id = $form->operator_id->val();
         $site_id     = $form->site_id->val();
         $block_id    = $form->block_id->val();
-
-        $csvs = ORM::factory('csv')
-          ->where('operation', '=', 'I')
-          ->and_where('form_type', '=', $form_type)
-          ->order_by('timestamp', 'desc');
 
         if ($status)      $csvs->and_where('status', 'IN', (array) $status);
         if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
@@ -699,7 +698,7 @@ class Controller_Import extends Controller {
         }
 
         Session::instance()->set('pagination.csv', array(
-          'form_type'   => $form_type,
+//          'form_type'   => $form_type,
           'operator_id' => $operator_id,
           'site_id'     => $site_id,
           'block_id'    => $block_id,
@@ -708,16 +707,16 @@ class Controller_Import extends Controller {
 
       }
       elseif ($settings = Session::instance()->get('pagination.csv')) {
-        $form->form_type->val($form_type = $settings['form_type']);
+//        $form->form_type->val($form_type = $settings['form_type']);
         $form->status->val($status = $settings['status']);
         $form->operator_id->val($operator_id = $settings['operator_id']);
         $form->site_id->val($site_id = $settings['site_id']);
         $form->block_id->val($block_id = $settings['block_id']);
 
-        $csvs = ORM::factory('csv')
-          ->where('operation', '=', 'I')
-          ->and_where('form_type', '=', $form_type)
-          ->order_by('timestamp', 'desc');
+//        $csvs = ORM::factory('csv')
+//          ->where('operation', '=', 'I')
+//          ->and_where('form_type', '=', $form_type)
+//          ->order_by('timestamp', 'desc');
 
         if ($status)      $csvs->and_where('status', 'IN', (array) $status);
         if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
@@ -748,7 +747,7 @@ class Controller_Import extends Controller {
         ->set('classes', array('has-pagination'))
         ->set('mode', 'import')
         ->set('csvs', $csvs)
-        ->set('fields', SGS_Form_ORM::get_fields($form_type, TRUE))
+        ->set('fields', SGS_Form_ORM::get_fields($form_type))
         ->render();
     }
 
@@ -814,7 +813,10 @@ class Controller_Import extends Controller {
             Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
           }
 
-          if ($excel && ($form_type = self::detect_form_type($excel))) {
+          if (!($form_type = self::detect_form_type($excel))) {
+            Notify::msg('Sorry, form type cannot be determined from the uploaded file. Please check the form title for errors and try again.', 'error', TRUE);
+          }
+          elseif ($excel) {
             $form_model = ORM::factory($form_type);
 
             // detect file properties
@@ -861,6 +863,7 @@ class Controller_Import extends Controller {
                     $file->operation_type,
                     $file->block->name
                   ));
+
                   if (!($file->operator->name and $file->site->name and $file->block->name and $file->operation_type)) {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
@@ -996,12 +999,16 @@ class Controller_Import extends Controller {
     }
 
     switch ($command) {
-      case 'edit':    return self::handle_csv_edit($id);
-      case 'delete': return self::handle_csv_delete($id);
-      case 'process': return self::handle_csv_process($id);
+      case 'edit': return self::handle_csv_edit(NULL, $id);
+      case 'delete': return self::handle_csv_delete(NULL, $id);
+      case 'process': return self::handle_csv_process(NULL, $id);
+
+      case 'ssf': return self::handle_csv_list('SSF');
+      case 'tdf': return self::handle_csv_list('TDF');
+      case 'ldf': return self::handle_csv_list('LDF');
 
       default:
-      case 'list':    return self::handle_csv_list($id);
+      case 'list': return self::handle_csv_list(NULL, $id);
     }
   }
 

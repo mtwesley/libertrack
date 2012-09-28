@@ -60,7 +60,7 @@ class Model_LDF extends SGS_Form_ORM {
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'    => SGS::date(trim($csv[3][B]), SGS::US_DATE_FORMAT),
+      'create_date'    => SGS::date(trim($csv[3][B]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'operator_tin'   => trim($csv[4][B]),
       'site_name'      => $site_name,
     ) + $data);
@@ -143,7 +143,7 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
   }
 
-  public function download_data($values, $excel, $row) {
+  public function download_data($values, $errors, $suggestions, $duplicates, $excel, $row) {
     $excel->getActiveSheet()->SetCellValue('A'.$row, $values['parent_barcode']);
     $excel->getActiveSheet()->SetCellValue('B'.$row, $values['species_code']);
     $excel->getActiveSheet()->SetCellValue('C'.$row, $values['barcode']);
@@ -155,6 +155,24 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('I'.$row, $values['volume']);
     $excel->getActiveSheet()->SetCellValue('J'.$row, $values['action']);
     $excel->getActiveSheet()->SetCellValue('K'.$row, $values['comment']);
+
+    if ($errors) {
+      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" \n", (array) $errors));
+      $excel->getActiveSheet()->getStyle('M'.$row)->getAlignment()->setWrapText(true);
+    }
+
+    if ($suggestions) {
+      $text = array();
+      foreach ($suggestions as $field => $suggestion) {
+        $text[] = 'Suggested values for '.self::$fields[$field].': '.implode(', ', $suggestion);
+      }
+      $excel->getActiveSheet()->SetCellValue('N'.$row, implode(" \n", (array) $text));
+      $excel->getActiveSheet()->getStyle('N'.$row)->getAlignment()->setWrapText(true);
+    }
+
+    if ($duplicates) {
+      $excel->getActiveSheet()->SetCellValue('O'.$row, 'Duplicate found');
+    }
   }
 
   public function download_headers($values, $excel, $args, $headers = TRUE) {
@@ -202,7 +220,6 @@ class Model_LDF extends SGS_Form_ORM {
         case 'barcode':
           $args = array(
             'barcodes.type' => array('P'),
-            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
@@ -210,7 +227,6 @@ class Model_LDF extends SGS_Form_ORM {
         case 'parent_barcode':
           $args = array(
             'barcodes.type' => array('P', 'F', 'L'),
-            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
@@ -257,6 +273,45 @@ class Model_LDF extends SGS_Form_ORM {
     }
 
     return $duplicates;
+  }
+
+  public function run_checks() {
+    $errors = array();
+
+    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match barcode';
+    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match site';
+    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'Site inconsistent -- does not match barcode';
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'Site inconsistent -- does not match operator';
+
+    switch ($this->barcode->type) {
+      case 'L': break;
+      case 'P': $errors['barcode'][] = 'New cross cut barcode has not been assigned'; break;
+      default: $errors['barcode'][] = 'New cross cut barcode is of the wrong type'; break;
+    }
+
+    switch ($this->parent_barcode->type) {
+      case 'F': $parent_form_type = 'TDF'; break;
+      case 'L': $parent_form_type = 'LDF'; break;
+      case 'P': $errors['barcode'][] = 'Original log barcode has not been assigned'; break;
+      default: $errors['barcode'][] = 'Original log barcode is of the wrong type'; break;
+    }
+
+    $parent = ORM::factory($parent_form_type)
+      ->where('barcode_id', '=', $this->parent_barcode->id)
+      ->find();
+
+    if ($parent->loaded()) {
+      if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_HEIGHT_TOLERANCE)) $errors['length'][] = 'Felled tree length not within tolerance to match standing tree';
+      if (!Valid::meets_tolerance(($this->bottom_min + $this->bottom_max) / 2, $parent->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
+        $errors['bottom_min'][] = 'Felled tree diameter not within tolerance to match standing tree';
+        $errors['bottom_max'][] = 'Felled tree diameter not within tolerance to match standing tree';
+      }
+      if (!($this->species->class == $parent->species->class)) $errors['species'][] = 'Felled tree species class does not match standing tree';
+      if (!($this->cell_number == $parent->cell_number)) $errors['cell_number'][] = 'Felled tree cell number does not match standing tree';
+      if (!($this->survey_line == $parent->survey_line)) $errors['survey_line'][] = 'Felled tree survey line does not match standing tree';
+    } else $errors['barcode'][] = 'No data found for standing tree';
+
+    return $errors;;
   }
 
   public static function fields()
@@ -318,8 +373,9 @@ class Model_LDF extends SGS_Form_ORM {
   public function labels()
   {
     return array(
-      'site_id'            => 'Site',
+      'create_date'        => self::$fields['create_date'],
       'operator_id'        => 'Operator',
+      'site_id'            => 'Site',
       'species_id'         => 'Species',
       'barcode_id'         => self::$fields['barcode'],
       'parent_barcode_id'  => self::$fields['parent_barcode'],
@@ -331,9 +387,30 @@ class Model_LDF extends SGS_Form_ORM {
       'length'             => self::$fields['length'],
       'volume'             => self::$fields['volume'],
       'action'             => self::$fields['action'],
-//      'comment'            => self::$fields['comment'],
-//      'create_date'        => self::$fields['create_date'],
+      'comment'            => self::$fields['comment'],
+//      'user_id'         => self::$fields['user_id'],
+//      'timestamp'       => self::$fields['timestamp'],
     );
+  }
+
+  public function set($column, $value) {
+    switch ($column) {
+      case 'errors':
+        if ($value) $value = is_string($value) ? $value : serialize($value);
+        else $value = NULL;
+      default:
+        parent::set($column, $value);
+    }
+  }
+
+  public function __get($column) {
+    switch ($column) {
+      case 'errors':
+        $value = parent::__get($column);
+        return is_string($value) ? unserialize($value) : $value;
+      default:
+        return parent::__get($column);
+    }
   }
 
 }

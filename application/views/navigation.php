@@ -14,20 +14,20 @@ if (!$command && !is_numeric($id)) {
 ?>
 <div id="navigation">
   <ul class="nav primary">
+    <li class="<?php if ($secondary == 'logout')  echo 'active'; ?> right"><?php echo HTML::anchor('logout', SGS::title('logout')); ?></li>
+
     <?php if (Auth::instance()->logged_in()): ?>
     <li class="<?php if ($primary == 'index')     echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('index')); ?></li>
 
     <?php if (Auth::instance()->logged_in('data')): ?>
     <li class="<?php if ($primary == 'import')    echo 'active'; ?>"><?php echo HTML::anchor('import', SGS::title('import')); ?></li>
+    <li class="<?php if ($primary == 'export')    echo 'active'; ?>"><?php echo HTML::anchor('export', SGS::title('export')); ?></li>
+    <li class="<?php if ($primary == 'documents') echo 'active'; ?>"><?php echo HTML::anchor('documents', SGS::title('documents')); ?></li>
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('analysis')): ?>
     <li class="<?php if ($primary == 'analysis')  echo 'active'; ?>"><?php echo HTML::anchor('analysis', SGS::title('analysis')); ?></li>
-    <?php endif; ?>
-
-    <?php if (Auth::instance()->logged_in('data')): ?>
-    <li class="<?php if ($primary == 'export')    echo 'active'; ?>"><?php echo HTML::anchor('export', SGS::title('export')); ?></li>
-    <li class="<?php if ($primary == 'documents') echo 'active'; ?>"><?php echo HTML::anchor('documents', SGS::title('documents')); ?></li>
+    <li class="<?php if ($primary == 'checks')  echo 'active'; ?>"><?php echo HTML::anchor('checks', SGS::title('checks')); ?></li>
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('reports')): ?>
@@ -38,7 +38,13 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($primary == 'admin')     echo 'active'; ?>"><?php echo HTML::anchor('admin', SGS::title('admin')); ?></li>
     <?php endif; ?>
 
-    <li class="<?php if ($secondary == 'logout')  echo 'active'; ?> right"><?php echo HTML::anchor('logout', SGS::title('logout')); ?></li>
+    <?php if (Auth::instance()->logged_in('barcodes')): ?>
+    <li class="<?php if ($primary == 'barcodes')     echo 'active'; ?>"><?php echo HTML::anchor('barcodes', SGS::title('barcodes')); ?></li>
+    <?php endif; ?>
+
+    <?php if (Auth::instance()->logged_in('users')): ?>
+    <li class="<?php if ($primary == 'users')     echo 'active'; ?>"><?php echo HTML::anchor('users', SGS::title('users')); ?></li>
+    <?php endif; ?>
 
     <?php else: ?>
     <li class="<?php if ($secondary == 'login')   echo 'active'; ?>"><?php echo HTML::anchor('login', SGS::title('login')); ?></li>
@@ -53,8 +59,6 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'sites')     echo 'active'; ?>"><?php echo HTML::anchor('admin/sites', SGS::title('admin/sites')); ?></li>
     <li class="<?php if ($secondary == 'blocks')    echo 'active'; ?>"><?php echo HTML::anchor('admin/blocks', SGS::title('admin/blocks')); ?></li>
     <li class="<?php if ($secondary == 'species')   echo 'active'; ?>"><?php echo HTML::anchor('admin/species', SGS::title('admin/species')); ?></li>
-    <li class="<?php if ($secondary == 'printjobs') echo 'active'; ?>"><?php echo HTML::anchor('admin/printjobs', SGS::title('admin/printjobs')); ?></li>
-    <li class="<?php if ($secondary == 'users')     echo 'active'; ?>"><?php echo HTML::anchor('admin/users', SGS::title('admin/users')); ?></li>
 
     <?php elseif ($primary == 'import'): ?>
     <li class="<?php if ($secondary == 'upload') echo 'active'; ?>"><?php echo HTML::anchor('import/upload', SGS::title('import/upload')); ?></li>
@@ -87,6 +91,11 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/ssf', SGS::title('analysis/ssf')); ?></li>
     <li class="<?php if ($secondary == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/tdf', SGS::title('analysis/tdf')); ?></li>
     <li class="<?php if ($secondary == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/ldf', SGS::title('analysis/ldf')); ?></li>
+
+    <?php elseif ($primary == 'barcodes'): ?>
+    <li class="<?php if ($secondary == 'upload') echo 'active'; ?>"><?php echo HTML::anchor('barcodes/upload', SGS::title('barcodes/upload')); ?></li>
+    <li class="<?php if ($secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('barcodes/download', SGS::title('barcodes/download')); ?></li>
+
     <?php endif; ?>
   </ul>
 

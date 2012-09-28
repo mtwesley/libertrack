@@ -94,7 +94,16 @@
 }
 
 #content form p.checkboxes {}
-#content form p.checkboxes span.field {}
+
+#content form p.checkboxes span.field {
+/*
+  margin-left: 165px;
+  margin-top: -20px;
+  display: inline-block;
+  clear: left;
+*/
+}
+
 #content form p.checkboxes span.checkbox {
   white-space: nowrap;
 }
@@ -204,6 +213,12 @@
 }
 
 #content table.data tr.even {
+/*  background-color: #eee8df;*/
+  background-color: #f0ede8;
+}
+
+#content table.data tr.odd:hover,
+#content table.data tr.even:hover {
   background-color: #eee8df;
 }
 
@@ -238,6 +253,10 @@
   white-space: normal;
 }
 
+#content table.data td.wrap-normal {
+  white-space: normal;
+}
+
 #content table.data a.link,
 #content table.data span.link {
   padding: 2px 4px;
@@ -262,3 +281,4 @@
 #content table.data a.download-link:hover {
   text-decoration: underline;
 }
+

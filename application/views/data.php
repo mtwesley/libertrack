@@ -1,9 +1,6 @@
 <?php
-
 $fields = ORM::factory($form_type)->labels();
-
 $classes[] = 'data';
-
 ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
@@ -57,13 +54,13 @@ $classes[] = 'data';
       <?php if (in_array($record->status, array('P', 'R'))): ?>
       <?php echo HTML::anchor('import/data/'.$record->id.'/process', 'Process', array('class' => 'link')); ?>
       <?php endif; ?>
-      <?php echo HTML::anchor('import/data/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
-      <?php if ($record->errors or $record->suggestions): ?>
+      <?php echo HTML::anchor('analysis/data/'.$record->id.'/delete', 'Delete', array('class' => 'link')); */ ?>
+      <?php if ($record->errors): ?>
       <span class="link toggle-details">Details</span>
-      <?php endif; */ ?>
+      <?php endif; ?>
     </td>
   </tr>
-  <?php /* if ($record->errors or $record->suggestions or $record->duplicates): ?>
+  <?php if ($record->errors): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td colspan="<?php echo (count($fields) + 3); ?>">
       <?php
@@ -72,20 +69,8 @@ $classes[] = 'data';
             ->set('errors', $record->errors)
             ->render();
       ?>
-      <?php
-          if ($record->suggestions) echo View::factory('suggestions')
-            ->set('fields', $fields)
-            ->set('suggestions', $record->suggestions)
-            ->render();
-      ?>
-      <?php
-          if ($record->duplicates) echo View::factory('duplicates')
-            ->set('fields', $fields)
-            ->set('duplicates', $record->duplicates)
-            ->render();
-      ?>
     </td>
   </tr>
-  <?php endif; */ ?>
+  <?php endif; ?>
   <?php endforeach; ?>
 </table>

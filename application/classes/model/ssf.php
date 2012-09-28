@@ -55,7 +55,7 @@ class Model_SSF extends SGS_Form_ORM {
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'     => SGS::date(trim($csv[3][B]), SGS::US_DATE_FORMAT),
+      'create_date'     => SGS::date(trim($csv[3][B]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'operator_tin'    => trim($csv[2][H]),
       'site_name'       => $site_name,
       'block_name'      => $block_name,
@@ -137,7 +137,6 @@ class Model_SSF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
       $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
       $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
-      $excel->getActiveSheet()->SetCellValue('L12', "Barcode Check");
     }
 
     $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name.'/'.$this->block->name);
@@ -154,7 +153,7 @@ class Model_SSF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
   }
 
-  public function download_data($values, $excel, $row) {
+  public function download_data($values, $errors, $suggestions, $duplicates, $excel, $row) {
     $excel->getActiveSheet()->SetCellValue('A'.$row, $values['barcode']);
     $excel->getActiveSheet()->SetCellValue('B'.$row, $values['tree_map_number']);
     $excel->getActiveSheet()->SetCellValue('C'.$row, $values['survey_line']);
@@ -165,6 +164,24 @@ class Model_SSF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('H'.$row, $values['is_requested']);
     $excel->getActiveSheet()->SetCellValue('I'.$row, $values['is_fda_approved']);
     $excel->getActiveSheet()->SetCellValue('J'.$row, $values['fda_remarks']);
+
+    if ($errors) {
+      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $errors));
+      $excel->getActiveSheet()->getStyle('L'.$row)->getAlignment()->setWrapText(true);
+    }
+
+    if ($suggestions) {
+      $text = array();
+      foreach ($suggestions as $field => $suggestion) {
+        $text[] = 'Suggested values for '.self::$fields[$field].': '.implode(', ', $suggestion);
+      }
+      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" \n", (array) $text));
+      $excel->getActiveSheet()->getStyle('M'.$row)->getAlignment()->setWrapText(true);
+    }
+
+    if ($duplicates) {
+      $excel->getActiveSheet()->SetCellValue('N'.$row, 'Duplicate found');
+    }
   }
 
   public function download_headers($values, $excel, $args, $headers = TRUE) {
@@ -198,7 +215,6 @@ class Model_SSF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
       $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
       $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
-      $excel->getActiveSheet()->SetCellValue('L12', "Barcode Check");
     }
 
     $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name'].'/'.$values['block_name']);
@@ -223,7 +239,6 @@ class Model_SSF extends SGS_Form_ORM {
         case 'barcode':
           $args = array(
             'barcodes.type' => array('P'),
-            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
@@ -273,7 +288,7 @@ class Model_SSF extends SGS_Form_ORM {
     // everything else
     $query = DB::select('id')
       ->from($this->_table_name)
-      ->where('survey_line', '=', $values['survey_line'])
+      ->where('survey_line', '=', (int) $values['survey_line'])
       ->and_where('cell_number', '=', (int) $values['cell_number'])
       ->and_where('tree_map_number', '=', (int) $values['tree_map_number']);
 
@@ -284,6 +299,25 @@ class Model_SSF extends SGS_Form_ORM {
 
     if ($duplicate = $query->execute()->get('id')) $duplicates[] = $duplicate;
     return $duplicates;
+  }
+
+  public function run_checks() {
+    $errors = array();
+
+    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match tree barcode';
+    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match site';
+    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'Site inconsistent -- does not match tree barcode';
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'Site inconsistent -- does not match operator';
+    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $errors['block'][] = 'Block inconsistent -- does not match tree barcode';
+    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $errors['block'][] = 'Block inconsistent -- does not match site';
+
+    switch ($this->barcode->type) {
+      case 'T': break;
+      case 'P': $errors['barcode'][] = 'Tree barcode has not been assigned'; break;
+      default: $errors['barcode'][] = 'Tree barcode is of the wrong type'; break;
+    }
+
+    return $errors;
   }
 
   public static function fields()
@@ -342,22 +376,12 @@ class Model_SSF extends SGS_Form_ORM {
     );
   }
 
-  public function __get($column) {
-    switch ($column) {
-      case 'is_requested':
-      case 'is_fda_approved':
-        return parent::__get($column) == 't' ? TRUE : FALSE;
-
-      default:
-        return parent::__get($column);
-    }
-  }
-
   public function labels()
   {
     return array(
-      'site_id'         => 'Site',
+      'create_date'     => self::$fields['create_date'],
       'operator_id'     => 'Operator',
+      'site_id'         => 'Site',
       'block_id'        => 'Block',
       'species_id'      => 'Species',
       'barcode_id'      => self::$fields['barcode'],
@@ -369,10 +393,33 @@ class Model_SSF extends SGS_Form_ORM {
       'is_requested'    => self::$fields['is_requested'],
       'is_fda_approved' => self::$fields['is_fda_approved'],
       'fda_remarks'     => self::$fields['fda_remarks'],
-      'create_date'     => self::$fields['create_date'],
 //      'user_id'         => self::$fields['user_id'],
 //      'timestamp'       => self::$fields['timestamp'],
     );
+  }
+
+  public function set($column, $value) {
+    switch ($column) {
+      case 'errors':
+        if ($value) $value = is_string($value) ? $value : serialize($value);
+        else $value = NULL;
+      default:
+        parent::set($column, $value);
+    }
+  }
+
+  public function __get($column) {
+    switch ($column) {
+      case 'is_requested':
+      case 'is_fda_approved':
+        return parent::__get($column) == 't' ? TRUE : FALSE;
+
+      case 'errors':
+        $value = parent::__get($column);
+        return is_string($value) ? unserialize($value) : $value;
+      default:
+        return parent::__get($column);
+    }
   }
 
 }
