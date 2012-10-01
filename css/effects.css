@@ -10,7 +10,7 @@
 }
 
 .eip-form input {
-  margin: 0;
+  margin: 0 0 0 -1px;
   padding: 0;
   border: none;
   background-color: transparent;
