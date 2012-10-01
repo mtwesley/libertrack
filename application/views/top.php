@@ -3,7 +3,7 @@
   <span class="main">
     <span class="sgs">SGS</span>
     <span class="dot"> · </span>
-    LiberFor
+    Liber<span class="green">Track</span>
   </span>
   <?php if ($title): ?>
   <span class="divider"> | </span>

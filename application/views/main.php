@@ -17,7 +17,7 @@ clear-block:
 clear:
  * left
  * bottom
-/128.151.244.179/xc-6.x-1.2/
+
 **/
 
 if (!$path)  $path  = Request::$current->url();
@@ -44,6 +44,7 @@ $styles[] = 'csv';
 
 $scripts[] = 'jquery-1.8.0.min';
 $scripts[] = 'jquery-ui-1.8.23.min';
+$scripts[] = 'jquery-jeditable.min';
 $scripts[] = 'effects';
 
 foreach (array_filter(explode('/', $path)) as $item) {
@@ -55,7 +56,7 @@ foreach (array_filter(explode('/', $path)) as $item) {
 <html lang="en">
   <head>
     <?php echo $head; ?>
-    <title>SGS &middot; LiberFor <?php if ($title): ?> | <?php echo $title; ?><?php endif; ?></title>
+    <title>SGS &middot; LiberTrack <?php if ($title): ?> | <?php echo $title; ?><?php endif; ?></title>
     <link rel="shortcut icon" href="/favicon.png" />
     <?php echo SGS::render_styles($styles); ?>
     <?php echo SGS::render_scripts($scripts); ?>

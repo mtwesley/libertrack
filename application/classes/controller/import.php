@@ -837,6 +837,8 @@ class Controller_Import extends Controller {
             if (isset($properties['block_name']))   $file->block = SGS::lookup_block($properties['site_name'], $properties['block_name']);
             if (isset($properties['create_date']))  $create_date = $properties['create_date'];
 
+//            die(Debug::vars(array($file, $properties)));
+
             try {
               $file->save();
 
@@ -863,7 +865,6 @@ class Controller_Import extends Controller {
                     $file->operation_type,
                     $file->block->name
                   ));
-
                   if (!($file->operator->name and $file->site->name and $file->block->name and $file->operation_type)) {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
@@ -922,9 +923,11 @@ class Controller_Import extends Controller {
                 $file->save();
                 Notify::msg($file->name.' successfully uploaded.', 'success', TRUE);
               } catch (ORM_Validation_Exception $e) {
-                foreach ($e->errors('') as $err) Notify::msg($err, 'error', TRUE);
+                foreach ($e->errors('') as $err) Notify::msg(SGS::errorfy($err).' ('.$file->name.')', 'error', TRUE);
               }
 
+            } catch (ORM_Validation_Exception $e) {
+                foreach ($e->errors('') as $err) Notify::msg(SGS::errorfy($err).' ('.$file->name.')', 'error', TRUE);
             } catch (Exception $e) {
               try {
                 $file->delete();

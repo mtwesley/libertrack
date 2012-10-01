@@ -1,15 +1,11 @@
 $(function() {
 
   $("body.import .toggle-details").click(function() {
-    $(this).parent().parent("tr").next("tr.edit").next("tr.details").toggle();
+    $(this).parent().parent("tr").next("tr.details").toggle();
   });
 
   $("body.analysis .toggle-details").click(function() {
     $(this).parent().parent("tr").next("tr.details").toggle();
-  });
-
-  $(".toggle-edit").click(function() {
-    $(this).parent().parent("tr").next("tr.edit").toggle();
   });
 
   $(".toggle-download-form").click(function() {
@@ -23,6 +19,14 @@ $(function() {
 
   $(".details-suggestion .suggest li").click(function() {
     $("input[name="+$(this).attr("class")+"]").val($(this).text());
+  });
+
+  $('body.import .csv-eip').editable('/ajax/csv', {
+    cssclass : 'eip-form',
+    event : 'dblclick',
+    id : 'id',
+    name : 'data',
+    placeholder : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
   });
 
 });

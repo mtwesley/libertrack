@@ -135,7 +135,7 @@
   margin: 5px 0;
   width: 100%;
   border-collapse: collapse;
-  border-top: 2px solid #d2bfa3;
+  border-top: 2px solid #d9c7ad;
 }
 
 #content table.data form {
@@ -205,7 +205,7 @@
 #content table.data tr {}
 
 #content table.data tr.head {
-  background-color: #e1d5c4;
+  background-color: #e5dbcc;
 }
 
 #content table.data tr.odd {
@@ -242,7 +242,7 @@
 #content table.data th {}
 
 #content table.data td {
-  border-top: 1px dotted #d2bfa3;
+  border-top: 1px dotted #d9c7ad;
   white-space: nowrap;
 }
 

@@ -26,14 +26,18 @@
     </td>
     <td><?php echo $csv->form_type; ?></td>
     <?php foreach ($fields as $key => $name): ?>
-    <td><?php echo $csv->values[$key]; ?></td>
+    <td>
+      <div class="<?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"
+           id="<?php echo implode('-', array('csv', $csv->id, $key)); ?>">
+        <?php echo $csv->values[$key]; ?>
+      </div>
+    </td>
     <?php endforeach; ?>
     <td class="links">
       <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
 
       <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
       <?php echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
-      <span class="link toggle-edit">EIP</span>
       <?php endif; ?>
 
       <?php if ($mode == 'import') echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
@@ -47,13 +51,6 @@
       <?php endif; ?>
     </td>
   </tr>
-  <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>
-  <tr class="edit <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td colspan="<?php echo (count($fields) + 3); ?>">
-      <?php echo $csv->get_form(); ?>
-    </td>
-  </tr>
-  <?php endif; ?>
   <?php if ($csv->errors or $csv->suggestions or $csv->duplicates): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td colspan="<?php echo (count($fields) + 3); ?>">

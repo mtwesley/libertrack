@@ -33,8 +33,9 @@ class Controller_Index extends Controller {
       if (Auth::instance()->login($username, $password)) {
         $user = Auth::instance()->get_user();
 
-        if ($user->last_timestamp AND !$_GET['destination']) Notify::msg('Welcome back, '.$user->name.'.', NULL, TRUE);
-        else Notify::msg('Welcome to the LiberFor database.');
+        if (!$_GET['destination'])
+        if ($user->last_timestamp) Notify::msg('Welcome back, '.$user->name.'.', NULL, TRUE);
+        else Notify::msg('Welcome to LiberTrack', NULL, TRUE);
 
         $this->request->redirect($_GET['destination'] ? $_GET['destination'] : NULL);
       }

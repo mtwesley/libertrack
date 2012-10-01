@@ -257,7 +257,7 @@ class Controller_Barcodes extends Controller {
         $text = "% Total barcodes: ".count($barcodes);
         if ($id) $text .= "\n% Print Job: ".$id;
         $text .= "\n% Requested by: ".Auth::instance()->get_user()->name;
-        $text .= "\n% Role: LiberFor, Barcode Management";
+        $text .= "\n% Role: LiberTrack, Barcode Management";
         $text .= "\n% Requested from IP: ".Request::$client_ip;
         $text .= "\n% Generated at: ".SGS::datetime('now', 'm/d/Y H:i:s T,(\G\M\TP)');
 
