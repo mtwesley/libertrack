@@ -28,9 +28,7 @@
     <?php foreach ($fields as $key => $name): ?>
     <td>
       <div class="<?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"
-           id="<?php echo implode('-', array('csv', $csv->id, $key)); ?>">
-        <?php echo $csv->values[$key]; ?>
-      </div>
+           id="<?php echo implode('-', array('csv', $csv->id, $key)); ?>"><?php echo trim($csv->values[$key]); ?></div>
     </td>
     <?php endforeach; ?>
     <td class="links">
