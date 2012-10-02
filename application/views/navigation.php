@@ -14,9 +14,9 @@ if (!$command && !is_numeric($id)) {
 ?>
 <div id="navigation">
   <ul class="nav primary">
+    <?php if (Auth::instance()->logged_in()): ?>
     <li class="<?php if ($secondary == 'logout')  echo 'active'; ?> right"><?php echo HTML::anchor('logout', SGS::title('logout')); ?></li>
 
-    <?php if (Auth::instance()->logged_in()): ?>
     <li class="<?php if ($primary == 'index')     echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('index')); ?></li>
 
     <?php if (Auth::instance()->logged_in('data')): ?>
