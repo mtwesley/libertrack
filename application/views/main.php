@@ -45,6 +45,7 @@ $styles[] = 'csv';
 $scripts[] = 'jquery-1.8.0.min';
 $scripts[] = 'jquery-ui-1.8.23.min';
 $scripts[] = 'jquery-jeditable.min';
+$scripts[] = 'jquery-bpopup.min';
 $scripts[] = 'effects';
 
 foreach (array_filter(explode('/', $path)) as $item) {
