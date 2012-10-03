@@ -415,22 +415,22 @@ class SGS {
         foreach ($strs as $str) {
           if (strlen($str) >= $min_length) {
             $query = call_user_func_array(array('DB', 'select'), array_merge(array(array($table.'.id', 'id')), (array) $fields))
-              ->from($table)
-              ->offset($offset)
-              ->limit($limit);
+              ->from($table);
             if ($similarity) {
-              $query->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"));
+              $query = $query->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"))
+                ->offset($offset)
+                ->limit($limit);
             }
             else {
-              $query->where(DB::expr("regexp_replace(upper($match::text), E'[^0-9A-Z]', '')"), 'LIKE', '%'.preg_replace('/[^0-9A-Z]/', '', strtoupper($str)).'%');
+              $query = $query->where(DB::expr("regexp_replace(upper($match::text), E'[^0-9A-Z]', '')"), 'LIKE', '%'.preg_replace('/[^0-9A-Z]/', '', strtoupper($str)).'%');
             }
 
             foreach ((array) $query_args as $_query_args) {
-              foreach ($_query_args as $key => $value) call_user_func_array(array($query, $key), $value);
+              foreach ($_query_args as $key => $value) $query = call_user_func_array(array($query, $key), $value);
             }
 
-            foreach (array_filter((array) $args) as $key => $value) if ($value) $query->and_where($key, 'IN', (array) $value);
-            if ($ids) $query->and_where($table.'.id', 'NOT IN', $ids);
+            foreach (array_filter((array) $args) as $key => $value) if ($value) $query = $query->and_where($key, 'IN', (array) $value);
+            if ($ids) $query = $query->and_where($table.'.id', 'NOT IN', $ids);
 
             foreach ($query->execute() as $result) {
               $count++;
