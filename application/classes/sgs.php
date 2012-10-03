@@ -389,7 +389,7 @@ class SGS {
   {
     try {
       DB::query(Database::SELECT, "SELECT similarity('a'::text, 'a'::text)");
-      $similiarty = TRUE;
+      $similarity = TRUE;
     } catch (Exception $e) {
       $similarity = FALSE;
     }
