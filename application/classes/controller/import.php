@@ -837,8 +837,6 @@ class Controller_Import extends Controller {
             if (isset($properties['block_name']))   $file->block = SGS::lookup_block($properties['site_name'], $properties['block_name']);
             if (isset($properties['create_date']))  $create_date = $properties['create_date'];
 
-//            die(Debug::vars(array($file, $properties)));
-
             try {
               $file->save();
 
