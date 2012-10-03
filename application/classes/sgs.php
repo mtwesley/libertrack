@@ -401,7 +401,7 @@ class SGS {
     $grab     = 0;
     $max_grab = strlen($search);
 
-    while ($grab < $max_grab) {
+    if (strlen($search) > $min_length) while ($grab < $max_grab) {
       $left = 0;
       $right = $grab;
 
