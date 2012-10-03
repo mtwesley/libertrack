@@ -47,8 +47,10 @@ class SGS {
     'admin/species'   => 'Species Configuration',
 
     'barcodes'          => 'Barcodes',
+
+    'barcodes/index'    => 'Barcode Management',
     'barcodes/upload'   => 'Upload Print Jobs',
-    'barcodes/download' => 'Download Print Jobs and Masterlist',
+    'barcodes/download' => 'Download Print Jobs',
 
     'users'           => 'Users',
 
