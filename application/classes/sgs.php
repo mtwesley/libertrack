@@ -414,17 +414,15 @@ class SGS {
 
         foreach ($strs as $str) {
           if (strlen($str) >= $min_length) {
+            $query = call_user_func_array(array('DB', 'select'), array_merge(array(array($table.'.id', 'id')), (array) $fields))
+              ->from($table)
+              ->offset($offset)
+              ->limit($limit);
             if ($similarity) {
-              $query = DB::select('id')
-                ->from($table)
-                ->offset($offset)
-                ->limit($limit)
-                ->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"));
+              $query->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"));
             }
             else {
-              $query = call_user_func_array(array('DB', 'select'), array_merge(array(array($table.'.id', 'id')), (array) $fields))
-                ->from($table)
-                ->where(DB::expr("regexp_replace(upper($match::text), E'[^0-9A-Z]', '')"), 'LIKE', '%'.preg_replace('/[^0-9A-Z]/', '', strtoupper($str)).'%');
+              $query->where(DB::expr("regexp_replace(upper($match::text), E'[^0-9A-Z]', '')"), 'LIKE', '%'.preg_replace('/[^0-9A-Z]/', '', strtoupper($str)).'%');
             }
 
             foreach ((array) $query_args as $_query_args) {
