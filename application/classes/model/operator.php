@@ -12,7 +12,8 @@ class Model_Operator extends ORM {
 
   public function formo() {
     $array = array(
-      'id' => array('render' => FALSE)
+      'id'         => array('render' => FALSE),
+      'is_deleted' => array('render' => FALSE),
     );
     foreach (self::fields() as $field => $label) {
       $array[$field]['label'] = $label;
