@@ -16,6 +16,12 @@ insert into users (id, name, username, password) values(1, 'SGS', 'sgs', md5('5g
 
 insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('login'));
 insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('admin'));
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('data'));
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('analysis'));
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('reports'));
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('management'));
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('users'));
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('barcodes'));
 
 -- species
 

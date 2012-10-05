@@ -47,6 +47,8 @@ create domain d_survey_line as numeric(2) check ((value > 0) and (value <= 20));
 
 create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR)$');
 
+create domain d_duplicate_type as character(1) check (value ~ E'^[FP]$');
+
 create domain d_grade as character(1) check (value ~ E'^[ABC]$');
 
 create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
@@ -73,7 +75,7 @@ create domain d_oid as oid;
 -- tables
 
 create table roles (
-  id serial,
+  id bigserial,
   name d_text_short unique not null,
   description d_text_long not null,
 
@@ -81,7 +83,7 @@ create table roles (
 );
 
 create table users (
-  id serial,
+  id bigserial,
   email d_text_short unique,
   name d_text_medium unique,
   username d_username unique not null,
@@ -94,7 +96,7 @@ create table users (
 );
 
 create table roles_users (
-  id serial not null,
+  id bigserial not null,
   user_id d_int not null,
   role_id d_int not null,
 
@@ -104,7 +106,7 @@ create table roles_users (
 );
 
 create table user_tokens (
-  id serial,
+  id bigserial,
   user_id d_int not null,
   user_agent d_text_short not null,
   token d_text_short unique not null,
@@ -271,6 +273,24 @@ create table csv (
   constraint csv_file_id_fkey foreign key (file_id) references files (id) on update cascade,
   constraint csv_other_csv_id_fkey foreign key (other_csv_id) references csv (id) on update cascade on delete set null,
   constraint csv_user_id_fkey foreign key (user_id) references users (id) on update cascade
+);
+
+create table csv_errors (
+  csv_id d_id not null,
+  field d_text_short not null,
+  error d_text_short not null,
+
+  constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade
+);
+
+create table csv_duplicates (
+  csv_id d_id not null,
+  duplicate_csv_id d_id not null,
+  type d_duplicate_type not null,
+
+  constraint csv_duplicates_pkey primary key (csv_id,duplicate_csv_id),
+  constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
+  constraint csv_duplicates_duplicate_csv_id_fkey foreign key (duplicate_csv_id) references csv (id) on update cascade on delete cascade
 );
 
 create table invoices (
@@ -479,6 +499,13 @@ create table epr_data (
   constraint epr_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
+create table errors (
+  form_type d_form_type not null,
+  form_data_id d_id not null,
+  field d_text_short not null,
+  error d_text_short not null,
+);
+
 create table revisions (
   id bigserial not null,
   form_type d_form_type not null,
@@ -489,6 +516,13 @@ create table revisions (
 
   constraint revisions_pkey primary key (id),
   constraint revisions_user_id_fkey foreign key (user_id) references users (id) on update cascade
+);
+
+create table settings (
+  key d_text_short not null,
+  value d_text_long,
+
+  constraint settings_pkey primary key (key)
 );
 
 
@@ -522,6 +556,13 @@ create index csv_file_id on csv (id,file_id);
 create index csv_operation on csv (id,operation);
 create index csv_other_csv_id on csv (id,other_csv_id);
 create index csv_form_type_data_id on csv (id,form_type,form_data_id);
+
+create index csv_errors_field on csv_errors (csv_id,field);
+create index csv_errors_error on csv_errors (csv_id,error);
+
+create index csv_duplicates_duplicate_csv_id on csv_duplicates (csv_id,duplicate_csv_id);
+create index csv_duplicates_csv_id_type on csv_duplicates (csv_id,type);
+create index csv_duplicates_duplicate_csv_id_type on csv_duplicates (duplicate_csv_id,type);
 
 create index ssf_data_site_id on ssf_data (id,site_id);
 create index ssf_data_operator_id on ssf_data (id,operator_id);
@@ -575,6 +616,10 @@ create index epr_data_barcode_id on epr_data (id,barcode_id);
 create index epr_data_barcode_type on epr_data (id,barcode_type);
 create index epr_data_request_number on epr_data (id,request_number);
 create index epr_data_status on epr_data (id,status);
+
+create index errors_form_type_data_id on errors (form_type,form_data_id);
+create index errors_field on errors (form_type,form_data_id,field);
+create index errors_errors on errors (form_type,form_data_id,error);
 
 create index revisions_form_type_data_id on revisions (id,form_type,form_data_id);
 
