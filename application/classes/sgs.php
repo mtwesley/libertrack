@@ -438,8 +438,8 @@ class SGS {
               if ($offset < $count && $return) $fetches[$count] = $return ? $result[$return] : $result['id'];
               if ($match_exact && $search == $result[is_array($match) ? reset($match) : $match]) break 4;
               if ($limit && ($count == $limit)) break 4;
-              if ($similarity) break 4;
             }
+            if ($similarity) break 3;
           }
         }
 
