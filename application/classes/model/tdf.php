@@ -64,16 +64,17 @@ class Model_TDF extends SGS_Form_ORM {
       'top_min'           => trim($row[I]),
       'length'            => trim($row[J]),
       'stump_barcode'     => SGS::barcodify(trim($row[K])),
-      'action'            => trim($row[L]),
-      'comment'           => trim($row[M]),
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'    => SGS::date(trim($csv[3][B] ?: $csv[3][C] ?: $csv[3][D] ?: $csv[3][E]), SGS::US_DATE_FORMAT, TRUE, TRUE),
+      'create_date'    => SGS::date(trim($csv[3][B] ?: $csv[3][C] ?: $csv[3][D] ?: $csv[3][E]), SGS::US_DATE_FORMAT, TRUE, TRUE), // SGS::date(trim($csv[3][B] ?: $csv[3][C] ?: $csv[3][D] ?: $csv[3][E]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'operator_tin'   => trim($csv[2][G] ?: $csv[2][H] ?: $csv[2][I] ?: $csv[2][J] ?: $csv[2][K]),
       'site_name'      => $site_name,
       'block_name'     => $block_name,
-    ) + $data);
+    ) + $data + array(
+      'action'            => trim($row[L]),
+      'comment'           => trim($row[M]),
+    ));
   }
 
   public function parse_data($data)

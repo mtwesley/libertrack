@@ -2,6 +2,8 @@ $(function() {
 
   $("body.import .toggle-details").click(function() {
     $(this).parent().parent("tr").next("tr.details").toggle();
+    $(this).parent().parent("tr").next("tr.details").children("td.loading").load('/ajax/details?id='+$(this).attr('id').match(/csv-(\d+)-details/)[1]);
+    $(this).parent().parent("tr").next("tr.details").children("td.loading").removeClass('loading');
   });
 
   $("body.analysis .toggle-details").click(function() {
@@ -21,12 +23,16 @@ $(function() {
     $("input[name="+$(this).attr("class")+"]").val($(this).text());
   });
 
-  $('body.import .csv-eip').editable('/ajax/csv', {
+  $("body.import .csv-eip").editable("/ajax/csv", {
     cssclass : 'eip-form',
     event : 'dblclick',
     id : 'id',
     name : 'data',
     placeholder : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
   });
+
+  $("#messages .message .close").click(function() {
+    $(this).parent(".message").hide();
+  })
 
 });

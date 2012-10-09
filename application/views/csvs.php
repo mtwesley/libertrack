@@ -1,19 +1,50 @@
-<?php $classes[] = 'data'; ?>
+<?php
+
+$classes[] = 'data';
+
+$options = array(
+  'table'   => TRUE,
+  'rows'    => TRUE,
+  'details' => TRUE,
+  'header'  => ($operator or $site or $block) ? TRUE : FALSE
+) + (array) $options;
+
+$header_columns = 0;
+
+?>
 <?php if ($title): ?>
 <p><strong><?php echo $title; ?>:</strong></p>
 <?php endif; ?>
 
+<?php if ($options['table']): ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <th></th>
-    <th>Type</th>
-    <?php foreach ($fields as $name): ?>
+    <th></th>
+    <?php foreach ($fields as $field => $name): ?>
+    <?php
+      if ($options['header']) switch ($field):
+        case 'create_date':
+        case 'operator_tin':
+        case 'operator_id':
+        case 'site_name':
+        case 'site_id':
+        case 'block_name':
+        case 'block_id':
+          $header_columns++;
+          continue 2;
+      endswitch;
+    ?>
     <th><?php echo $name; ?></th>
     <?php endforeach; ?>
     <th class="links"></th>
   </tr>
+<?php endif; // table ?>
   <?php foreach ($csvs as $csv): ?>
-  <tr class="<?php print SGS::odd_even($odd); ?>">
+  <?php if ($options['rows']): ?>
+  <?php $errors = $csv->get_errors(); ?>
+  <tr id="csv-<?php echo $csv->id; ?>" class="<?php print SGS::odd_even($odd); ?>">
+    <td><span class="data-type"><?php echo $csv->form_type; ?></span></td>
     <td>
       <?php
         switch ($csv->status):
@@ -24,11 +55,22 @@
         endswitch;
       ?>
     </td>
-    <td><?php echo $csv->form_type; ?></td>
-    <?php foreach ($fields as $key => $name): ?>
-    <td>
+    <?php foreach ($fields as $field => $name): ?>
+    <?php
+      if ($options['header']) switch ($field):
+        case 'create_date':
+        case 'operator_tin':
+        case 'operator_id':
+        case 'site_name':
+        case 'site_id':
+        case 'block_name':
+        case 'block_id':
+          continue 2;
+      endswitch;
+    ?>
+    <td class="<?php if ($errors[$field]): ?>error<?php endif; ?>">
       <div class="<?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"
-           id="<?php echo implode('-', array('csv', $csv->id, $key)); ?>"><?php echo trim($csv->values[$key]); ?></div>
+           id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>"><?php echo trim($csv->values[$field]); ?></div>
     </td>
     <?php endforeach; ?>
     <td class="links">
@@ -44,34 +86,20 @@
       <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?>
       <?php endif; ?>
 
-      <?php if ($csv->errors or $csv->suggestions): ?>
-      <span class="link toggle-details">Details</span>
+      <?php if ($errors): ?>
+      <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
       <?php endif; ?>
     </td>
   </tr>
-  <?php if ($csv->errors or $csv->suggestions or $csv->duplicates): ?>
+  <?php endif; // rows ?>
+  <?php if ($options['details']): ?>
+  <?php if ($csv->get_errors()): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td colspan="<?php echo (count($fields) + 3); ?>">
-      <?php
-          if ($csv->errors) echo View::factory('errors')
-            ->set('fields', $fields)
-            ->set('errors', $csv->errors)
-            ->render();
-      ?>
-      <?php
-          if ($csv->suggestions) echo View::factory('suggestions')
-            ->set('fields', $fields)
-            ->set('suggestions', $csv->suggestions)
-            ->render();
-      ?>
-      <?php
-          if ($csv->duplicates) echo View::factory('duplicates')
-            ->set('fields', $fields)
-            ->set('duplicates', $csv->duplicates)
-            ->render();
-      ?>
-    </td>
+    <td class="loading" colspan="<?php echo (count($fields) + 3 - $header_columns); ?>">&nbsp;</td>
   </tr>
-  <?php endif; ?>
+  <?php endif; // get_errors ?>
+  <?php endif; // details ?>
   <?php endforeach; ?>
+<?php if ($options['table']): ?>
 </table>
+<?php endif; ?>

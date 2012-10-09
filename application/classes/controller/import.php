@@ -17,119 +17,6 @@ class Controller_Import extends Controller {
     Session::instance()->write();
   }
 
-  private static function cleanup_errors($errors) {
-    foreach ($errors as $field => $error) {
-      $array  = explode('.', $error);
-      $type   = array_pop($array);
-      $source = array_pop($array);
-      $errors[$field ? $field : $source] = $type;
-    }
-
-    return $errors;
-  }
-
-  private static function csv_edit_in_place($array) {
-    $edit = ORM::factory('CSV', $array['id']);
-
-    $url  = $array['url'];
-
-    unset($array['id']);
-    unset($array['url']);
-    unset($array['form_name']);
-    unset($array['save']);
-
-    $edit->values = $array;
-    $edit->status = 'P';
-    try {
-      $edit->save();
-      $updated = true;
-    } catch (Exception $e) {
-      Notify::msg('Sorry, update failed. Please try again.', 'error');
-    }
-
-    if ($updated) {
-      $result = self::process_csv($edit);
-      if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
-      elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
-      elseif ($result == 'U') Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE);
-      else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
-    }
-
-    Request::current()->redirect($url);
-  }
-
-  private static function process_csv($csv) {
-    $errors    = array();
-    $form_type = strtolower($csv->form_type);
-
-    $form_model = ORM::factory($form_type);
-    $form_model->parse_data($csv->values);
-
-    if (!$errors = $form_model->validate_data($csv->values, $csv->form_type, 'errors')) {
-      try {
-        $form_model->save();
-      } catch (ORM_Validation_Exception $e) {
-        $errors = $e->errors('');
-      }
-    }
-
-    if ($errors) {
-      $suggestions = $form_model->make_suggestions($csv->values, $errors);
-      $duplicates  = $form_model->find_duplicates($csv->values, $errors);
-
-      $csv->errors      = self::cleanup_errors($form_model->validate_data($csv->values, $csv->form_type, 'pretty_errors'));
-      $csv->suggestions = $suggestions;
-      $csv->duplicates  = $duplicates;
-
-      if ($duplicates) $csv->status = 'U';
-      else $csv->status = 'R';
-    } else {
-      $csv->errors       = NULL;
-      $csv->suggestions  = NULL;
-      $csv->duplicates   = NULL;
-      $csv->form_data_id = $form_model->id;
-      $csv->status = 'A';
-    }
-
-    try {
-      $csv->save();
-      return $csv->status;
-    } catch (Exception $e) {
-      return FALSE;
-    }
-  }
-
-  private static function delete_csv($csv) {
-    if ($csv->form_type and $csv->form_data_id) {
-      $data = ORM::factory($csv->form_type, $csv->form_data_id);
-      try {
-        if ($data->loaded()) $data->delete();
-//        $csv->form_type    = NULL;
-//        $csv->form_data_id = NULL;
-//        $csv->save();
-//        $csv = ORM::factory('CSV', $csv->id);
-      } catch (Exception $e) {
-        return FALSE;
-      }
-    }
-
-    try {
-      $csv->delete();
-    } catch (Exception $e) {
-      return FALSE;
-    }
-
-    return TRUE;
-  }
-
-  private static function detect_form_type($excel) {
-    if     (strpos(strtoupper($excel[1][D]), 'STOCK SURVEY FORM') !== false) return 'SSF';
-    elseif (strpos(strtoupper($excel[1][C]), 'TREE FELLING')      !== false) return 'TDF';
-    elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA FORM')     !== false) return 'LDF';
-
-    else Notify::msg('Unknown template format.', 'error');
-  }
-
   private function handle_file_list($id = NULL) {
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.file.list');
     if ($id) {
@@ -256,8 +143,13 @@ class Controller_Import extends Controller {
 
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
       foreach ($file->csv->find_all()->as_array() as $csv) {
-        if (self::delete_csv($csv)) $success++;
-        else $error++;
+        try {
+          $csv->delete();
+          if ($csv->loaded()) throw new Exception();
+          $success++;
+        } catch (Exception $e) {
+          $error++;
+        }
       }
 
       if ($success) Notify::msg($success.' records deleted.', 'success', TRUE);
@@ -284,10 +176,6 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_review($id = NULL) {
-    if ($_POST['form_name'] == 'csv_edit_form') {
-      self::csv_edit_in_place($_POST);
-    }
-
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.file.review');
     if (!$id) $id = $this->request->param('id');
 
@@ -441,11 +329,13 @@ class Controller_Import extends Controller {
     $failure    = 0;
 
     foreach ($pending as $csv) {
-      $result = self::process_csv($csv);
-      if     ($result == 'A') $accepted++;
-      elseif ($result == 'R') $rejected++;
-      elseif ($result == 'U') $duplicated++;
-      else    $failure++;
+      $csv->process();
+      switch ($csv->status) {
+        case 'A': $accepted++; break;
+        case 'R': $rejected++; break;
+        case 'U': $duplicated++; break;
+        default:  $failure++;
+      }
     }
 
     if ($accepted) Notify::msg($accepted.' records accepted as form data.', 'success', TRUE);
@@ -468,11 +358,13 @@ class Controller_Import extends Controller {
     $fields    = SGS_Form_ORM::get_fields($form_type);
 
     $csv->status = 'P';
-    $result = self::process_csv($csv);
-    if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
-    elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
-    elseif ($result == 'U') Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE);
-    else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
+    $csv->process();
+    switch ($csv->status) {
+      case 'A': Notify::msg('Updated data accepted as form data.', 'success', TRUE); break;
+      case 'R': Notify::msg('Updated data rejected as form data.', 'error', TRUE); break;
+      case 'U': Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE); break;
+      default:  Notify::msg('Updated data failed to be processed.', 'error', TRUE);
+    }
 
     $this->request->redirect('import/data/'.$id);
   }
@@ -518,11 +410,13 @@ class Controller_Import extends Controller {
       }
 
       if ($updated) {
-        $result = self::process_csv($csv);
-        if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
-        elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
-        elseif ($result == 'U') Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE);
-        else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
+        $csv->process();
+        switch ($csv->status) {
+          case 'A': Notify::msg('Updated data accepted as form data.', 'success', TRUE); break;
+          case 'R': Notify::msg('Updated data rejected as form data.', 'error', TRUE); break;
+          case 'U': Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE); break;
+          default:  Notify::msg('Updated data failed to be processed.', 'error', TRUE);
+        }
       }
 
       $this->request->redirect('import/data/'.$csv->id);
@@ -557,8 +451,13 @@ class Controller_Import extends Controller {
       ->add('delete', 'submit', 'Delete');
 
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
-      if (self::delete_csv($csv)) Notify::msg('Data successfully deleted.', 'success', TRUE);
-      else Notify::msg('Data failed to be deleted.', 'error', TRUE);
+      try {
+        $csv->delete();
+        if ($csv->loaded()) throw new Exception();
+        Notify::msg('Data successfully deleted.', 'success', TRUE);
+      } catch (Exception $e) {
+        Notify::msg('Data failed to be deleted.', 'error', TRUE);
+      }
 
       $this->request->redirect('import/data');
     }
@@ -570,10 +469,6 @@ class Controller_Import extends Controller {
   }
 
   private function handle_csv_list($form_type = NULL, $id = NULL) {
-    if ($_POST['form_name'] == 'csv_edit_form') {
-      self::csv_edit_in_place($_POST);
-    }
-
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.csv');
     if ($id) {
       Session::instance()->delete('pagination.csv');
@@ -813,10 +708,12 @@ class Controller_Import extends Controller {
             Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
           }
 
-          if (!($form_type = self::detect_form_type($excel))) {
-            Notify::msg('Sorry, form type cannot be determined from the uploaded file. Please check the form title for errors and try again.', 'error', TRUE);
-          }
-          elseif ($excel) {
+          if     (strpos(strtoupper($excel[1][D]), 'STOCK SURVEY FORM') !== false) $form_type = 'SSF';
+          elseif (strpos(strtoupper($excel[1][C]), 'TREE FELLING')      !== false) $form_type = 'TDF';
+          elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA FORM')     !== false) $form_type = 'LDF';
+          else   Notify::msg('Sorry, form type cannot be determined from the uploaded file. Please check the form title for errors and try again.', 'error', TRUE);
+
+          if ($form_type) {
             $form_model = ORM::factory($form_type);
 
             // detect file properties
@@ -884,6 +781,7 @@ class Controller_Import extends Controller {
                   break;
               }
 
+              $newname = preg_replace('/\W/', '_', $newname);
               if ($newname !== $file->name) {
                 $name_changed = TRUE;
                 $name_changed_properties = TRUE;

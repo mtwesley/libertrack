@@ -28,4 +28,19 @@ class Controller_Ajax extends Controller {
 
     $this->response->body($value);
   }
+
+  public function action_details() {
+    $id = $this->request->query('id');
+
+    $csv   = ORM::factory('CSV', $id);
+    $model = ORM::factory($csv->form_type, $csv->form_data_id);
+
+    $fields = SGS_Form_ORM::get_fields($csv->form_type) + $model->labels();
+
+    $view = View::factory('details')
+      ->set('errors', $csv->get_errors())
+      ->set('fields', $fields);
+
+    $this->response->body($view);
+  }
 }

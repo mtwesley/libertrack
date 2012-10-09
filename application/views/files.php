@@ -20,6 +20,7 @@ $classes[] = 'data';
   </tr>
   <?php foreach ($files as $file): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
+    <td><span class="data-type"><?php echo $file->operation_type; ?></span></td>
     <td>
       <?php
         $info = pathinfo($file->name);
@@ -32,7 +33,6 @@ $classes[] = 'data';
         endswitch;
       ?>
     </td>
-    <td><?php echo $file->operation_type; ?></td>
     <td>
       <?php
         if ($file->path) echo HTML::anchor($file->path, $file->name, array('title' => 'Download', 'class' => 'download-link'));

@@ -47,7 +47,7 @@ create domain d_survey_line as numeric(2) check ((value > 0) and (value <= 20));
 
 create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR)$');
 
-create domain d_duplicate_type as character(1) check (value ~ E'^[FP]$');
+create domain d_duplicate_type as character(1) check (value ~ E'^[BP]$');
 
 create domain d_grade as character(1) check (value ~ E'^[ABC]$');
 
@@ -222,11 +222,12 @@ create table barcodes (
 );
 
 create table barcode_hops_cached (
+  id bigserial not null,
   barcode_id d_id not null,
   parent_id d_id not null,
-  hops d_positive_int not null,
+  hops d_measurement_int not null,
 
-  constraint barcode_hops_cached_pkey primary key (barcode_id, parent_id),
+  constraint barcode_hops_cached_pkey primary key (id),
   constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
   constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade
 );
@@ -262,9 +263,7 @@ create table csv (
   site_id d_id,
   block_id d_id,
   values d_text_long,
-  errors d_text_long,
-  suggestions d_text_long,
-  duplicates d_text_long,
+  content_md5 d_text_short not null,
   status d_csv_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -276,21 +275,27 @@ create table csv (
 );
 
 create table csv_errors (
+  id bigserial not null,
   csv_id d_id not null,
   field d_text_short not null,
   error d_text_short not null,
+  params d_text_long,
 
+  constraint csv_errors_pkey primary key (id),
   constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade
 );
 
 create table csv_duplicates (
+  id bigserial not null,
   csv_id d_id not null,
   duplicate_csv_id d_id not null,
-  type d_duplicate_type not null,
+  field d_text_short,
 
-  constraint csv_duplicates_pkey primary key (csv_id,duplicate_csv_id),
+  constraint csv_duplicates_pkey primary key (id),
   constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
-  constraint csv_duplicates_duplicate_csv_id_fkey foreign key (duplicate_csv_id) references csv (id) on update cascade on delete cascade
+  constraint csv_duplicates_duplicate_csv_id_fkey foreign key (duplicate_csv_id) references csv (id) on update cascade on delete cascade,
+
+  constraint csv_duplicates_check check (csv_id < duplicate_csv_id)
 );
 
 create table invoices (
@@ -327,7 +332,6 @@ create table ssf_data (
   fda_remarks d_text_long,
   create_date d_date not null,
   status d_data_status default 'P' not null,
-  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -360,7 +364,6 @@ create table tdf_data (
   comment d_text_long,
   create_date d_date not null,
   status d_data_status default 'P' not null,
-  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -393,7 +396,6 @@ create table ldf_data (
   comment d_text_long,
   create_date d_date not null,
   status d_data_status default 'P' not null,
-  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -421,7 +423,6 @@ create table mif_data (
   length d_measurement_float not null,
   volume d_measurement_float not null,
   status d_data_status default 'P' not null,
-  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -445,7 +446,6 @@ create table mof_data (
   grade d_grade not null,
   volume d_measurement_float not null,
   status d_data_status default 'P' not null,
-  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -470,7 +470,6 @@ create table specs_data (
   grade d_grade not null,
   volume d_measurement_float not null,
   status d_data_status default 'P' not null,
-  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -489,7 +488,6 @@ create table epr_data (
   barcode_id d_id unique not null,
   barcode_type d_barcode_type not null,
   status d_data_status default 'P' not null,
-  errors d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -500,10 +498,14 @@ create table epr_data (
 );
 
 create table errors (
+  id bigserial not null,
   form_type d_form_type not null,
   form_data_id d_id not null,
   field d_text_short not null,
   error d_text_short not null,
+  params d_text_long,
+
+  constraint errors_pkey primary key (id)
 );
 
 create table revisions (
@@ -546,6 +548,8 @@ create index barcodes_type on barcodes (id,type);
 create index barcodes_is_locked on barcodes (id,is_locked);
 create index barcodes_coc_status on barcodes (id,coc_status);
 
+create index barcode_hops_cached_parent_id on barcode_hops_cached (barcode_id,parent_id);
+
 create index invoices_site_id on invoices (id,site_id);
 create index invoices_reference_number on invoices (id,reference_number);
 
@@ -561,8 +565,8 @@ create index csv_errors_field on csv_errors (csv_id,field);
 create index csv_errors_error on csv_errors (csv_id,error);
 
 create index csv_duplicates_duplicate_csv_id on csv_duplicates (csv_id,duplicate_csv_id);
-create index csv_duplicates_csv_id_type on csv_duplicates (csv_id,type);
-create index csv_duplicates_duplicate_csv_id_type on csv_duplicates (duplicate_csv_id,type);
+create index csv_duplicates_csv_id_type on csv_duplicates (csv_id,field);
+create index csv_duplicates_duplicate_csv_id_type on csv_duplicates (duplicate_csv_id,field);
 
 create index ssf_data_site_id on ssf_data (id,site_id);
 create index ssf_data_operator_id on ssf_data (id,operator_id);

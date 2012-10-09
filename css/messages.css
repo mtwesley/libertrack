@@ -6,6 +6,17 @@
   border-top: 2px solid;
 }
 
+#messages .message .close {
+  margin: -1px -10px 0 0;
+  padding: 2px 5px;
+  display: block;
+  float: right;
+  font-size: 9px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+}
+
 #messages .error {
   color: #ae3636;
   border-top-color: #f38284;
@@ -15,18 +26,39 @@
   background-repeat: no-repeat;
 }
 
+#messages .error .close {
+  background-color: #f38284;
+}
+
+#messages .error .close:hover {
+  background-color: #ae3636;
+}
+
 #messages .warning,
 #messages .locked {
   color: #a5890b;
   border-top-color: #efe9b7;
   background-color: #f8f5e1;
-  background-image: url('/images/warning.png');
   background-position: 4px 2px;
   background-repeat: no-repeat;
 }
 
+#messages .warning {
+  background-image: url('/images/warning.png');
+}
+
 #messages .locked {
   background-image: url('/images/locked.png');
+}
+
+#messages .warning .close,
+#messages .locked .close {
+  background-color: #efe9b7;
+}
+
+#messages .warning .close:hover,
+#messages .locked .close:hover {
+  background-color: #a5890b;
 }
 
 #messages .success {
@@ -38,6 +70,14 @@
   background-repeat: no-repeat;
 }
 
+#messages .success .close {
+  background-color: #99c494;
+}
+
+#messages .success .close:hover {
+  background-color: #63922d;
+}
+
 #messages .notice {
   color: #4a96ff;
   border-top-color: #b0d1ff;
@@ -46,3 +86,12 @@
   background-position: 4px 2px;
   background-repeat: no-repeat;
 }
+
+#messages .notice .close {
+  background-color: #b0d1ff;
+}
+
+#messages .notice .close:hover {
+  background-color: #4a96ff;
+}
+

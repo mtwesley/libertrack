@@ -102,7 +102,7 @@ class SGS {
       'url'           => '":field" must be a URL',
 
       // additional messages
-      'is_unique'            => '":field" must be unique among :param1, possible duplicate found',
+      'is_unique'            => '":field" must be unique',
       'is_existing_barcode'  => '":field" must be an existing barcode',
       'is_existing_operator' => '":field" does not reference an existing operator',
       'is_existing_site'     => '":field" does not reference and existing site',
@@ -278,11 +278,11 @@ class SGS {
     try {
       $d = Date::formatted_time($date, $format);
     } catch (Exception $e) {
-      $d = date($format, is_numeric($date) ? $date : strtotime($date));
+      $d = date($format, is_int($date) ? $date : strtotime($date));
     }
 
     if (Valid::is_date($d)) return $d;
-    elseif ($fix) return self::date(self::fix_date($date), $pgsql, FALSE);
+    elseif ($fix) return self::date(self::fix_date($date), $format, FALSE, FALSE);
     else return $d;
   }
 
@@ -293,11 +293,11 @@ class SGS {
     try {
       $dt = Date::formatted_time($datetime, $format);
     } catch (Exception $e) {
-      $dt = date($format, strtotime($datetime));
+      $dt = date($format, is_int($datetime) ? $datetime : strtotime($datetime));
     }
 
     if ($dt) return $dt;
-    elseif ($fix) self::date(self::fix_date($dt), $pgsql, FALSE);
+    elseif ($fix) self::date(self::fix_date($dt), $format, FALSE, FALSE);
   }
 
   public static function db_range($from = NULL, $to = NULL)
@@ -527,9 +527,10 @@ class SGS {
     return self::suggest($code, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
   }
 
-  public static function decode_error($field, $error)
+  public static function decode_error($field, $error, $values = array())
   {
-    return self::$errors[$field][$error] ? self::$errors[$field][$error] : self::$errors['all'][$error];
+    $message = self::$errors[$field][$error] ? self::$errors[$field][$error] : self::$errors['all'][$error];
+    return strtr($message, $values);
   }
 
   public static function parse_site_and_block_info($text)
@@ -592,8 +593,8 @@ class SGS {
     if (strlen($matches[2]) == 1) $matches[2] = '0'.$matches[2];
     if (strlen($matches[3]) == 2) $matches[3] = '20'.$matches[3];
 
-    if ($matches[2] > 12) return $matches[3].'-'.$matches[2].'-'.$matches[1];
-    else return $matches[3].'-'.$matches[1].'-'.$matches[2];
+    if ($matches[2] > 12) return $matches[3].'-'.$matches[1].'-'.$matches[2];
+    else return $matches[3].'-'.$matches[2].'-'.$matches[1];
   }
 
   public static function render_classes($classes)

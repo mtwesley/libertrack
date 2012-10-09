@@ -55,15 +55,16 @@ class Model_LDF extends SGS_Form_ORM {
       'top_min'        => trim($row[G]),
       'length'         => trim($row[H]),
       'volume'         => trim($row[I]),
-      'action'         => trim($row[J]),
-      'comment'        => trim($row[K]),
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
       'create_date'    => SGS::date(trim($csv[3][B] ?: $csv[3][C] ?: $csv[3][D] ?: $csv[3][E]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'operator_tin'   => trim($csv[4][B] ?: $csv[4][C] ?: $csv[4][D] ?: $csv[4][E]),
       'site_name'      => $site_name,
-    ) + $data);
+    ) + $data + array(
+      'action'         => trim($row[J]),
+      'comment'        => trim($row[K]),
+    ));
   }
 
   public function parse_data($data)

@@ -18,3 +18,26 @@
   font-size: 11px;
   color: #f48f32;
 }
+
+#content table.data tr.details td.loading {
+  height: 75px;
+  background-image: url("/images/loading_large.gif");
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#content table.data td.loading {
+  height: 16px;
+  background-image: url("/images/loading_small.gif");
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#content table.data td.loading a.link,
+#content table.data td.loading span.link,
+#content table.data td.loading a.link:hover,
+#content table.data td.loading span.link:hover {
+  color: transparent;
+  background-color: transparent;
+}
+

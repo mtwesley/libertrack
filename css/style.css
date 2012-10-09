@@ -208,10 +208,7 @@
   background-color: #e5dbcc;
 }
 
-#content table.data tr.odd {
-  background-color: #f0ede8;
-}
-
+#content table.data tr.odd,
 #content table.data tr.even {
 /*  background-color: #eee8df;*/
   background-color: #f0ede8;
@@ -220,6 +217,13 @@
 #content table.data tr.odd:hover,
 #content table.data tr.even:hover {
   background-color: #eee8df;
+}
+
+#content table.data tr.odd.details:hover,
+#content table.data tr.even.details:hover,
+#content table.data tr.odd.download-form:hover,
+#content table.data tr.even.download-form:hover {
+  background-color: #f0ede8;
 }
 
 #content table.data tr.details,
@@ -246,10 +250,24 @@
   white-space: nowrap;
 }
 
+#content table.data td span.data-type {
+  padding: 2px 4px;
+  background-color: #e5dbcc;
+  color: #86704e;
+  font-size: 9px;
+  font-weight: bold;
+}
+
+#content table.data td.error {
+  color: #ae3636;
+  font-weight: bold;
+}
+
 #content table.data tr.details td,
 #content table.data tr.download-form td {
-  padding: 4px;
-  border-top: 1px dotted #e6dfd4;
+  padding: 0 4px;
+  border-top: none;
+  /* border-top: 1px dotted #e6dfd4; */
   white-space: normal;
 }
 

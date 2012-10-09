@@ -5,7 +5,7 @@ class Controller_Index extends Controller {
   public function action_index() {
     if (!Auth::instance()->logged_in()) {
       Notify::msg('Please login.', NULL, TRUE);
-      $this->request->redirect('login?destination='.$this->request->uri());
+      $this->request->redirect('login');
     }
 
     $view = View::factory('main');

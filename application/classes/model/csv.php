@@ -21,15 +21,21 @@ class Model_CSV extends ORM {
     switch ($column) {
       case 'values':
         if (is_array($value)) {
+          // set properties
           $this->operator_id = ($operator_id = SGS::lookup_operator($value['operator_tin'], TRUE)) ? $operator_id : NULL;
           $this->site_id     = ($site_id     = SGS::lookup_site($value['site_name'], TRUE)) ? $site_id : NULL;
           $this->block_id    = ($block_id    = SGS::lookup_block($value['site_name'], $value['block_name'], TRUE)) ? $block_id : NULL;
+
+          // set md5
+          $_value = $value;
+          sort($_value);
+          ksort($_value);
+          $this->content_md5 = md5(serialize($_value));
+
+          // prepare for db
+          $value = serialize($value);
         }
-      case 'errors':
-      case 'suggestions':
-      case 'duplicates':
-        if ($value) $value = is_string($value) ? $value : serialize($value);
-        else $value = NULL;
+        else if (!is_string($value)) $value = NULL;
       default:
         parent::set($column, $value);
     }
@@ -38,9 +44,6 @@ class Model_CSV extends ORM {
   public function __get($column) {
     switch ($column) {
       case 'values':
-      case 'errors':
-      case 'suggestions':
-      case 'duplicates':
         $value = parent::__get($column);
         return is_string($value) ? unserialize($value) : $value;
       default:
@@ -48,46 +51,127 @@ class Model_CSV extends ORM {
     }
   }
 
-  public function get_form() {
-    $form = Formo::form();
-    $url  = Request::current()->url().($_GET['page'] ? '?page='.$_GET['page'] : '?page=1');
-    foreach (SGS_Form_ORM::get_fields($this->form_type) as $key => $value) {
-      $form->add(array(
-        'alias' => $key,
-        'value' => $this->values[$key],
-        'label' => $value
-      ));
+  public function delete() {
+    if ($this->form_type and $this->form_data_id) {
+      $data = ORM::factory($csv->form_type, $csv->form_data_id);
+      if ($data->loaded()) $data->delete();
     }
-    $form->add('id', 'hidden', $this->id);
-    $form->add('url', 'hidden', $url);
-    $form->add('form_name', 'hidden', 'csv_edit_form');
-    $form->add(array(
-      'alias'  => 'save',
-      'driver' => 'submit',
-      'value'  => 'Save'
-    ));
 
-    return $form;
+    parent::delete();
   }
 
-//  public function save(Validation $validation = NULL) {
-//    if ($this->form_data_id and $this->_original_values['form_data_id']) Notify::msg('Imported data accepted as form data cannot be saved. You must first delete the related form data.', 'error', TRUE);
-//    else parent::save($validation);
-//  }
-//
-//  public function update(Validation $validation = NULL) {
-//    if ($this->form_data_id and $this->_original_values['form_data_id']) Notify::msg('Imported data accepted as form data cannot be updated. You must first delete the related form data.', 'error', TRUE);
-//    else parent::update($validation);
-//  }
-//
-//  public function create(Validation $validation = NULL) {
-//    if ($this->form_data_id and $this->_original_values['form_data_id']) Notify::msg('Imported data accepted as form data cannot be re-created. You must first delete the related form data.', 'error', TRUE);
-//    else parent::create($validation);
-//  }
-//
-//  public function delete() {
-//    if ($this->form_data_id and $this->_original_values['form_data_id']) Notify::msg('Imported data accepted as form data cannot be deleted. You must first delete the related form data.', 'error');
-//    else return parent::delete();
-//  }
+  public function process() {
+    $errors     = array();
+    $duplicates = array();
+
+    $this->unset_errors();
+    $this->unset_duplicates();
+
+    $model = ORM::factory($this->form_type);
+    $model->parse_data($this->values);
+
+    $validation = new Validation($this->values);
+    foreach ($model->other_rules() as $field => $set) $validation->rules($field, $set);
+
+    if (!$errors = $validation->errors()) {
+      try {
+        $model->save();
+      } catch (ORM_Validation_Exception $e) {
+        $errors = $e->errors();
+      }
+    }
+
+    if ($errors) foreach ($errors as $field => $array) {
+      list($error, $params) = $array;
+
+      $params = array_filter($params);
+      foreach (array_keys($params) as $key) if (is_object($params[$key])) unset($params[$key]);
+
+      if ($error == 'is_unique') {
+        $duplicates[$field] = DB::select('csv.id')
+          ->from('csv')
+          ->join($params[0])
+          ->on('form_data_id', '=', $params[0].'.id')
+          ->where($params[0].'.'.$params[1], '=', $params[2])
+          ->execute()
+          ->get('csv.id');
+      }
+
+      $this->set_error($field, $error);
+    }
+
+    foreach (DB::select('id')
+      ->from('csv')
+      ->where('content_md5', '=', $this->content_md5)
+      ->and_where('id', '!=', $this->id)
+      ->execute() as $dup) $duplicates[] = $dup['id'];
+
+    if ($duplicates) foreach ($duplicates as $field => $duplicate_csv_id) {
+      $this->set_duplicate($duplicate_csv_id, is_int($field) ? NULL : $field);
+    }
+
+    if ($duplicates)  $this->status = 'D';
+    else if ($errors) $this->status = 'R';
+    else {
+      $this->status       = 'A';
+      $this->form_data_id = $model->id;
+    }
+
+    $this->save();
+  }
+
+  public function get_errors($args = array()) {
+    $query = DB::select()
+      ->from('csv_errors')
+      ->where('csv_id', '=', $this->id);
+    foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
+    foreach ($query->execute() as $result) $errors[$result['field']][] = $result['error'];
+    return (array) $errors;
+  }
+
+  public function unset_errors($args = array()) {
+    $query = DB::delete('csv_errors')
+      ->where('csv_id', '=', $this->id);
+    foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
+    $query->execute();
+  }
+
+  public function set_error($field, $error) {
+    DB::insert('csv_errors', array('csv_id', 'field', 'error'))
+      ->values(array($this->id, $field, $error))
+      ->execute();
+  }
+
+  public function get_duplicates($args = array()) {
+    $query = DB::select()
+      ->from('csv_duplicates')
+      ->where('csv_id', '=', $this->id);
+    foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
+    foreach ($query->execute() as $result) $duplicates[$result['field'] ? $result['field'] : 'all'][] = $result['duplicate_csv_id'];
+
+    $query = DB::select()
+      ->from('csv_duplicates')
+      ->where('duplicate_csv_id', '=', $this->id);
+    foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
+    foreach ($query->execute() as $result) $duplicates[$result['field'] ? $result['field'] : 'all'][] = $result['csv_id'];
+
+    return (array) $duplicates;
+  }
+
+  public function unset_duplicates($args = array()) {
+    $query = DB::delete('csv_duplicates')
+      ->where('csv_id', '=', $this->id)
+      ->or_where('duplicate_csv_id', '=', $this->id);
+    foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
+    $query->execute();
+  }
+
+  public function set_duplicate($duplicate_csv_id, $field = NULL) {
+    $ids = array($this->id, $duplicate_csv_id);
+    DB::insert('csv_duplicates', array('csv_id', 'duplicate_csv_id', 'field'))
+      ->values(array(min($ids), max($ids), $field))
+      ->execute();
+  }
+
 
 }
