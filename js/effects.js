@@ -2,8 +2,13 @@ $(function() {
 
   $("body.import .toggle-details").click(function() {
     $(this).parent().parent("tr").next("tr.details").toggle();
-    $(this).parent().parent("tr").next("tr.details").children("td.loading").load('/ajax/details?id='+$(this).attr('id').match(/csv-(\d+)-details/)[1]);
-    $(this).parent().parent("tr").next("tr.details").children("td.loading").removeClass('loading');
+    $(this).parent().parent("tr").next("tr.details").children("td.loading").load(
+      '/ajax/details',
+      {"id": $(this).attr('id').match(/csv-(\d+)-details/)[1]},
+      function() {
+        $(this).removeClass('loading')
+      }
+    );
   });
 
   $("body.analysis .toggle-details").click(function() {
@@ -36,3 +41,9 @@ $(function() {
   })
 
 });
+
+function update_csv(id) {
+  var row = $("csv-"+id);
+  row.attr("id", "csv-"+id+"-deleted");
+  row.after();
+}

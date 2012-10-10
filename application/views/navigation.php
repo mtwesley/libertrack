@@ -16,7 +16,6 @@ if (!$command && !is_numeric($id)) {
   <ul class="nav primary">
     <?php if (Auth::instance()->logged_in()): ?>
     <li class="<?php if ($secondary == 'logout')  echo 'active'; ?> right"><?php echo HTML::anchor('logout', SGS::title('logout')); ?></li>
-
     <li class="<?php if ($primary == 'index')     echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('index')); ?></li>
 
     <?php if (Auth::instance()->logged_in('data')): ?>
@@ -27,7 +26,7 @@ if (!$command && !is_numeric($id)) {
 
     <?php if (Auth::instance()->logged_in('analysis')): ?>
     <li class="<?php if ($primary == 'analysis')  echo 'active'; ?>"><?php echo HTML::anchor('analysis', SGS::title('analysis')); ?></li>
-    <li class="<?php if ($primary == 'checks')  echo 'active'; ?>"><?php echo HTML::anchor('checks', SGS::title('checks')); ?></li>
+    <li class="<?php if ($primary == 'checks')    echo 'active'; ?>"><?php echo HTML::anchor('checks', SGS::title('checks')); ?></li>
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('reports')): ?>
@@ -39,7 +38,7 @@ if (!$command && !is_numeric($id)) {
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('barcodes')): ?>
-    <li class="<?php if ($primary == 'barcodes')     echo 'active'; ?>"><?php echo HTML::anchor('barcodes', SGS::title('barcodes')); ?></li>
+    <li class="<?php if ($primary == 'barcodes')  echo 'active'; ?>"><?php echo HTML::anchor('barcodes', SGS::title('barcodes')); ?></li>
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('users')): ?>
@@ -84,8 +83,8 @@ if (!$command && !is_numeric($id)) {
       <?php endif; ?>
     </li>
 
-    <li class="<?php if ($secondary == 'files')    echo 'active'; ?>"><?php echo HTML::anchor('export/files', SGS::title('export/files')); ?></li>
-    <li class="<?php if ($secondary == 'data')     echo 'active'; ?>"><?php echo HTML::anchor('export/data', SGS::title('export/data')); ?></li>
+    <li class="<?php if ($secondary == 'files') echo 'active'; ?>"><?php echo HTML::anchor('export/files', SGS::title('export/files')); ?></li>
+    <li class="<?php if ($secondary == 'data')  echo 'active'; ?>"><?php echo HTML::anchor('export/data', SGS::title('export/data')); ?></li>
 
     <?php elseif ($primary == 'analysis'): ?>
     <li class="<?php if ($secondary == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/ssf', SGS::title('analysis/ssf')); ?></li>
@@ -93,7 +92,8 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/ldf', SGS::title('analysis/ldf')); ?></li>
 
     <?php elseif ($primary == 'barcodes'): ?>
-    <li class="<?php if ($secondary == 'upload') echo 'active'; ?>"><?php echo HTML::anchor('barcodes/upload', SGS::title('barcodes/upload')); ?></li>
+    <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('barcodes/list', SGS::title('barcodes/list')); ?></li>
+    <li class="<?php if ($secondary == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('barcodes/upload', SGS::title('barcodes/upload')); ?></li>
     <li class="<?php if ($secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('barcodes/download', SGS::title('barcodes/download')); ?></li>
 
     <?php endif; ?>

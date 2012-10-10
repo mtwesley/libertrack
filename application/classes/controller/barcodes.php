@@ -118,6 +118,10 @@ class Controller_Barcodes extends Controller {
     $this->response->body($view);
   }
 
+  function action_list() {
+    return $this->action_index();
+  }
+
   function action_upload() {
     $printjob = ORM::factory('printjob');
 
@@ -163,24 +167,32 @@ class Controller_Barcodes extends Controller {
             $file->save();
             Notify::msg($file->name.' print job successfully uploaded.', 'success', TRUE);
           } catch (ORM_Validation_Exception $e) {
-            foreach ($e->errors('') as $err) Notify::msg($err, 'error');
+            foreach ($e->errors('') as $err) Notify::msg(SGS::errorfy($err), 'error');
           } catch (Exception $e) {
             Notify::msg('Sorry, print job upload failed. Please try again.', 'error');
           }
 
           if ($file->id) {
             // save printjob
-            $matches = array();
-            preg_match('/Print\sJob\:\s*(\d+).*/', $array[2], $matches);
-
             $_printjob = clone($printjob);
             $_printjob->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
-            $_printjob->number = $matches[1];
+            for ($i = 0; $i < 10; $i++) {
+              $matches = array();
+              if (preg_match('/Print\sJob(\sID)?\:\s*(\d+).*/i', $array[$i], $matches)) {
+                $_printjob->number = $matches[2];
+                break;
+              }
+            }
 
             try {
               $_printjob->save();
             } catch (Exception $e) {
               Notify::msg('Sorry, print job failed to be saved. Please try again.', 'error', TRUE);
+              try {
+                $file->delete();
+              } catch (Exception $e) {
+                Notify::msg('Sorry, attempting to delete an non-existing file failed.', 'warning', TRUE);
+              }
             }
 
             // prase barcodes
@@ -206,7 +218,7 @@ class Controller_Barcodes extends Controller {
       if ($barcode_success) Notify::msg($barcode_success.' barcodes successfully parsed.', 'success', TRUE);
       if ($barcode_error) Notify::msg($barcode_error.' barcodes failed to be parsed.', 'error', TRUE);
 
-      $this->request->redirect('barcodes/'.$_printjob->id.'/list');
+      if ($_printjob->loaded()) $this->request->redirect('barcodes/'.$_printjob->id.'/list');
     }
 
     if ($form) $content .= $form->render();

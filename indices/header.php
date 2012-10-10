@@ -188,7 +188,7 @@ $path = array_filter(explode('/', $uri));
                 <div id="top-inner">
                   <style type="text/css">
                     #top {
-                      background-image: url('/images/libertrack.jpg');
+                      background-image: url('/images/libertrack.png');
                       background-repeat: no-repeat;
                       background-position: 1110px 20px;
                     }

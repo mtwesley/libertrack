@@ -47,8 +47,7 @@ class SGS {
     'admin/species'   => 'Species Configuration',
 
     'barcodes'          => 'Barcodes',
-
-    'barcodes/index'    => 'Barcode Management',
+    'barcodes/list'     => 'Manage Barcodes',
     'barcodes/upload'   => 'Upload Print Jobs',
     'barcodes/download' => 'Download Print Jobs',
 
@@ -210,7 +209,7 @@ class SGS {
 
   public static $csv_status = array(
     'P' => 'Pending',
-    'A' => 'Accpeted',
+    'A' => 'Accepted',
     'R' => 'Rejected',
 //    'D' => 'Deleted',
     'U' => 'Duplicated'
@@ -218,7 +217,7 @@ class SGS {
 
   public static $data_status = array(
     'P' => 'Pending',
-    'A' => 'Accpeted',
+    'A' => 'Accepted',
     'R' => 'Rejected',
 //    'D' => 'Deleted',
   );

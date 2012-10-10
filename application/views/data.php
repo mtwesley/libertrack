@@ -55,12 +55,12 @@ $classes[] = 'data';
       <?php echo HTML::anchor('import/data/'.$record->id.'/process', 'Process', array('class' => 'link')); ?>
       <?php endif; ?>
       <?php echo HTML::anchor('analysis/data/'.$record->id.'/delete', 'Delete', array('class' => 'link')); */ ?>
-      <?php if ($record->errors): ?>
+      <?php /* if ($record->errors): ?>
       <span class="link toggle-details">Details</span>
-      <?php endif; ?>
+      <?php endif; */ ?>
     </td>
   </tr>
-  <?php if ($record->errors): ?>
+  <?php /* if ($record->errors): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td colspan="<?php echo (count($fields) + 3); ?>">
       <?php
@@ -71,6 +71,6 @@ $classes[] = 'data';
       ?>
     </td>
   </tr>
-  <?php endif; ?>
+  <?php endif; */ ?>
   <?php endforeach; ?>
 </table>

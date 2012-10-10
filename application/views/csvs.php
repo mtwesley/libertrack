@@ -95,7 +95,7 @@ $header_columns = 0;
   <?php if ($options['details']): ?>
   <?php if ($csv->get_errors()): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td class="loading" colspan="<?php echo (count($fields) + 3 - $header_columns); ?>">&nbsp;</td>
+    <td class="loading" colspan="<?php echo (count($fields) + 3); ?>"></td>
   </tr>
   <?php endif; // get_errors ?>
   <?php endif; // details ?>

@@ -227,7 +227,6 @@
 }
 
 #content table.data tr.details,
-#content table.data tr.edit,
 #content table.data tr.download-form {
   display: none;
 }

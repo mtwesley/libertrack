@@ -19,6 +19,9 @@ class Controller_Analysis extends Controller {
 
   private function handle_data_list($form_type, $id = NULL) {
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.data');
+
+    $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
+
     if ($id) {
       Session::instance()->delete('pagination.data');
 
@@ -31,62 +34,50 @@ class Controller_Analysis extends Controller {
       $form_type = reset($data)->form_type;
     }
     else {
-      $operator_ids = DB::select('id', 'name')
-        ->from('operators')
-        ->execute()
-        ->as_array('id', 'name');
-
       $site_ids = DB::select('id', 'name')
         ->from('sites')
         ->execute()
         ->as_array('id', 'name');
 
-      if (in_array($form_type, array('SSF', 'TDF'))) $block_ids = DB::select('id', 'name')
+      if ($has_block_id) $block_ids = DB::select('id', 'name')
         ->from('blocks')
         ->execute()
         ->as_array('id', 'name');
 
       $form = Formo::form()
-        ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'));
-
-      if (in_array($form_type, array('SSF', 'TDF'))) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'));
-
-      $form = $form->add('search', 'submit', 'Filter');
+      if ($has_block_id) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'));
+      $form = $form
+        ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
+        ->add('search', 'submit', 'Filter');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
         Session::instance()->delete('pagination.data');
+        $site_id  = $form->site_id->val();
+        if ($has_block_id) $block_id = $form->block_id->val;
+        $status   = $form->status->val();
 
-        $operator_id = $form->operator_id->val();
-        $site_id     = $form->site_id->val();
+        $data = ORM::factory($form_type)->order_by('create_date', 'desc');
 
-        if (in_array($form_type, array('SSF', 'TDF'))) $block_id = $form->block_id->val();
-
-        $data = ORM::factory($form_type)->order_by('timestamp', 'desc');
-
-        if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
+        if ($status)      $data->and_where('status', 'IN', (array) $status);
 
         Session::instance()->set('pagination.data', array(
-          'operator_id' => $operator_id,
           'site_id'     => $site_id,
           'block_id'    => $block_id,
           'status'      => $status,
         ));
-
-        $search = TRUE;
       }
       else {
         if ($settings = Session::instance()->get('pagination.data')) {
-          $form->operator_id->val($operator_id = $settings['operator_id']);
           $form->site_id->val($site_id = $settings['site_id']);
-          $form->block_id->val($block_id = $settings['block_id']);
+          if ($has_block_id) $form->block_id->val($block_id = $settings['block_id']);
+          $form->status->val($block_id = $settings['block_id']);
         }
 
         $data = ORM::factory($form_type)->order_by('timestamp', 'desc');
 
-        if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
       }

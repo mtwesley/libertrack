@@ -4,7 +4,7 @@ $classes[] = 'data';
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <th></th>
-    <th>Type</th>
+    <th></th>
     <th>Name</th>
     <th>Size</th>
     <th>Uploaded</th>

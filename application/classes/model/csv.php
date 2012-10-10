@@ -94,7 +94,7 @@ class Model_CSV extends ORM {
           ->on('form_data_id', '=', $params[0].'.id')
           ->where($params[0].'.'.$params[1], '=', $params[2])
           ->execute()
-          ->get('csv.id');
+          ->get('id');
       }
 
       $this->set_error($field, $error);
@@ -110,7 +110,7 @@ class Model_CSV extends ORM {
       $this->set_duplicate($duplicate_csv_id, is_int($field) ? NULL : $field);
     }
 
-    if ($duplicates)  $this->status = 'D';
+    if ($duplicates)  $this->status = 'U';
     else if ($errors) $this->status = 'R';
     else {
       $this->status       = 'A';

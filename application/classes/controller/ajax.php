@@ -30,7 +30,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_details() {
-    $id = $this->request->query('id');
+    $id = $this->request->post('id');
 
     $csv   = ORM::factory('CSV', $id);
     $model = ORM::factory($csv->form_type, $csv->form_data_id);
@@ -42,5 +42,25 @@ class Controller_Ajax extends Controller {
       ->set('fields', $fields);
 
     $this->response->body($view);
+  }
+
+  public function action_update() {
+    $id = $this->request->post('id');
+
+    $csv   = ORM::factory('CSV', $id);
+    $model = ORM::factory($csv->form_type, $csv->form_data_id);
+
+    $fields = SGS_Form_ORM::get_fields($csv->form_type) + $model->labels();
+
+    $this->response->body(View::factory('csvs')
+      ->set('mode', 'import')
+      ->set('csvs', array($csv))
+      ->set('fields', $fields)
+      ->set('options', array(
+        'table'   => FALSE,
+        'details' => FALSE,
+        'header'  => FALSE
+      ))
+      ->render());
   }
 }
