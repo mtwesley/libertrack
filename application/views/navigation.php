@@ -30,7 +30,7 @@ if (!$command && !is_numeric($id)) {
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('reports')): ?>
-    <li class="<?php if ($primary == 'reports')   echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('reports')); ?></li>
+    <li class="<?php if ($primary == 'reports')   echo 'active'; ?>"><?php echo HTML::anchor('reports', SGS::title('reports')); ?></li>
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('admin')): ?>

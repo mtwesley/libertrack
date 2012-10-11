@@ -278,23 +278,24 @@ class Model_LDF extends SGS_Form_ORM {
 
   public function run_checks() {
     $errors = array();
+    $this->unset_errors();
 
-    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match barcode';
-    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match site';
-    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'Site inconsistent -- does not match barcode';
-    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'Site inconsistent -- does not match operator';
+//    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'is_consistent_operator_barcode';
+//    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'is_consistent_operator_site';
+//    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'is_consistent_site_barcode';
+//    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'is_consistent_site_operator';
 
     switch ($this->barcode->type) {
       case 'L': break;
-      case 'P': $errors['barcode'][] = 'New cross cut barcode has not been assigned'; break;
-      default: $errors['barcode'][] = 'New cross cut barcode is of the wrong type'; break;
+      case 'P': $errors['barcode_id'][] = 'is_active_barcode'; break;
+      default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
     }
 
     switch ($this->parent_barcode->type) {
       case 'F': $parent_form_type = 'TDF'; break;
       case 'L': $parent_form_type = 'LDF'; break;
-      case 'P': $errors['barcode'][] = 'Original log barcode has not been assigned'; break;
-      default: $errors['barcode'][] = 'Original log barcode is of the wrong type'; break;
+      case 'P': $errors['parent_barcode_id'][] = 'is_active_barcode'; break;
+      default:  $errors['parent_barcode_id'][] = 'is_valid_barcode'; break;
     }
 
     $parent = ORM::factory($parent_form_type)
@@ -304,15 +305,20 @@ class Model_LDF extends SGS_Form_ORM {
     if ($parent->loaded()) {
       if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_HEIGHT_TOLERANCE)) $errors['length'][] = 'Felled tree length not within tolerance to match standing tree';
       if (!Valid::meets_tolerance(($this->bottom_min + $this->bottom_max) / 2, $parent->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
-        $errors['bottom_min'][] = 'Felled tree diameter not within tolerance to match standing tree';
-        $errors['bottom_max'][] = 'Felled tree diameter not within tolerance to match standing tree';
+        $errors['bottom_min'][] = 'is_within_tolerance';
+        $errors['bottom_max'][] = 'is_within_tolerance';
       }
-      if (!($this->species->class == $parent->species->class)) $errors['species'][] = 'Felled tree species class does not match standing tree';
-      if (!($this->cell_number == $parent->cell_number)) $errors['cell_number'][] = 'Felled tree cell number does not match standing tree';
-      if (!($this->survey_line == $parent->survey_line)) $errors['survey_line'][] = 'Felled tree survey line does not match standing tree';
-    } else $errors['barcode'][] = 'No data found for standing tree';
+      if (!($this->species->class == $parent->species->class)) $errors['species_id'][] = 'is_valid_match_'.strtolower($parent_form_type);
+    } else $errors['barcode'][] = 'is_existing_'.strtolower($parent_form_type);
 
-    return $errors;;
+    if ($errors) {
+      $this->status = 'R';
+      foreach ($errors as $field => $array) {
+        foreach (array_filter(array_unique($array)) as $error) $this->set_error($field, $error);
+      }
+    } else $this->status = 'A';
+
+    $this->save();
   }
 
   public static function fields()

@@ -75,7 +75,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_boolean($value)
   {
-    return (bool) preg_match('/^yes|no|y|n|1|0|true|false$/i', (string) $value);
+    return (bool) preg_match('/^yes|no|y|n|1|0|true|false|t|f$/i', (string) $value);
   }
 
   public static function is_money($value)

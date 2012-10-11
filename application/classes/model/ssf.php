@@ -23,6 +23,12 @@ class Model_SSF extends SGS_Form_ORM {
     'fda_remarks'     => 'FDA Remarks',
   );
 
+  public static $errors = array(
+    'all' => array(
+      'is_active_barcode' => ':field is still pending assignment',
+      'is_valid_barcode'  => ':field is invalid for this data',
+    )
+  );
 
   protected $_table_name = 'ssf_data';
 
@@ -303,21 +309,35 @@ class Model_SSF extends SGS_Form_ORM {
 
   public function run_checks() {
     $errors = array();
+    $this->unset_errors();
 
-    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match tree barcode';
-    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match site';
-    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'Site inconsistent -- does not match tree barcode';
-    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'Site inconsistent -- does not match operator';
-    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $errors['block'][] = 'Block inconsistent -- does not match tree barcode';
-    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $errors['block'][] = 'Block inconsistent -- does not match site';
+//    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'is_consistent_operator_barcode';
+//    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'is_consistent_operator_site';
+//    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'is_consistent_site_barcode';
+//    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'is_consistent_site_operator';
+//    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_barcode';
+//    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_site';
 
     switch ($this->barcode->type) {
       case 'T': break;
-      case 'P': $errors['barcode'][] = 'Tree barcode has not been assigned'; break;
-      default: $errors['barcode'][] = 'Tree barcode is of the wrong type'; break;
+      case 'P': $errors['barcode'][] = 'is_active_barcode'; break;
+      default:  $errors['barcode'][] = 'is_valid_barcode'; break;
     }
 
-    return $errors;
+    if ($errors) {
+      $this->status = 'R';
+      foreach ($errors as $field => $array) {
+        foreach (array_filter(array_unique($array)) as $error) $this->set_error($field, $error);
+      }
+    } else $this->status = 'A';
+
+    $this->save();
+  }
+
+  public static function generate_report($records) {
+    foreach ($records as $id $record)
+
+
   }
 
   public static function fields()

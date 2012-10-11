@@ -41,3 +41,102 @@
   background-color: transparent;
 }
 
+#content form .dpicker {
+
+}
+
+#content form .gldp-default {
+  margin: 4px 0 4px 170px;
+	float:left;
+	background-color:#ccc !important;
+	border:solid 1px #888;
+}
+
+#content form .gldp-default table {
+	border-spacing:1px;
+	border-collapse:inherit;
+}
+
+#content form .gldp-default tr {
+	line-height: 20px;
+}
+
+#content form .gldp-default td {
+	margin:0;
+	padding:0;
+	width: 55px;
+	text-align:center;
+}
+
+#content form .gldp-default-prevnext {
+	font-family:"times new roman";
+	color:#222;
+	cursor:pointer;
+	font-weight:bold;
+}
+
+#content form .gldp-default-monyear {
+	color:#222;
+	font-weight:bold;
+}
+
+#content form .gldp-default-dow {
+	background-color:#f82200;
+	color:#eee;
+	font-weight:bold;
+}
+
+#content form .gldp-default-day {
+	background-color:#fff;
+	color:#222;
+	border:solid 1px #fff;
+	font-weight:bold;
+}
+#content form .gldp-default-day-hover {
+	background-color:#fff;
+	color:#f82200;
+	border:solid 1px #f82200;
+	cursor:pointer;
+	font-weight:bold;
+}
+
+#content form .gldp-default-selected {
+	background-color:#fee;
+	color:#222;
+	border:solid 1px #f82200;
+}
+
+#content form .gldp-default-today {
+	background-color:#f82200;
+	color:#fff;
+	border:solid 1px #f82200;
+	font-weight:bold;
+}
+#content form .gldp-default-today-hover {
+	background-color:#fff;
+	color:#f82200;
+	border:solid 1px #f82200;
+	cursor:pointer;
+	font-weight:bold;
+}
+
+#content form .gldp-default-sat, .gldp-default-sun {
+	background-color:#fff;
+	color:#004f8f;
+	border:solid 1px #fff;
+	font-weight:bold;
+}
+#content form .gldp-default-sat-hover, .gldp-default-sun-hover {
+	background-color:#fff;
+	color:#004f8f;
+	border:solid 1px #f82200;
+	cursor:pointer;
+	font-weight:bold;
+}
+
+#content form .gldp-default-noday {
+	background-color:#fff;
+	border:solid 1px #fff;
+	color:#666;
+	cursor:wait;
+}

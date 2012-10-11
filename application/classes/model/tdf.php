@@ -26,6 +26,18 @@ class Model_TDF extends SGS_Form_ORM {
     'comment'        => 'Comment',
   );
 
+  public static $errors = array(
+    'all' => array(
+      'is_active_barcode'   => ':field is still pending assignment',
+      'is_valid_barcode'    => ':field assignment is invalid type for felled tree data',
+      'is_within_tolerance' => ':field is not within tolerance range',
+      'is_valid_match'      => ':field does not match required value',
+      'is_valid_match_ssf'  => ':field does not match standing tree value',
+      'is_existing'         => 'Requried data not found',
+      'is_existing_ssf'     => 'Standing tree data not fould'
+    )
+  );
+
   protected $_table_name = 'tdf_data';
 
   protected $_belongs_to = array(
@@ -316,30 +328,31 @@ class Model_TDF extends SGS_Form_ORM {
 
   public function run_checks() {
     $errors = array();
+    $this->unset_errors();
 
-    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match barcode';
-    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'Operator inconsistent -- does not match site';
-    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'Site inconsistent -- does not match barcode';
-    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'Site inconsistent -- does not match operator';
-    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $errors['block'][] = 'Block inconsistent -- does not match barcode';
-    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $errors['block'][] = 'Block inconsistent -- does not match site';
+//    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'is_consistent_operator_barcode';
+//    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'is_consistent_operator_site';
+//    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'is_consistent_site_barcode';
+//    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'is_consistent_site_operator';
+//    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_barcode';
+//    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_site';
 
     switch ($this->barcode->type) {
       case 'F': break;
-      case 'P': $errors['barcode'][] = 'Felled tree barcode has not been assigned'; break;
-      default: $errors['barcode'][] = 'Felled tree barcode is of the wrong type'; break;
+      case 'P': $errors['barcode_id'][] = 'is_active_barcode'; break;
+      default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
     }
 
     switch ($this->tree_barcode->type) {
       case 'T': break;
-      case 'P': $errors['tree_barcode'][] = 'Tree barcode has not been assigned'; break;
-      default: $errors['tree_barcode'][] = 'Tree barcode is of the wrong type'; break;
+      case 'P': $errors['tree_barcode_id'][] = 'is_active_barcode'; break;
+      default:  $errors['tree_barcode_id'][] = 'is_valid_barcode'; break;
     }
 
     switch ($this->stump_barcode->type) {
       case 'S': break;
-      case 'P': $errors['stump_barcode'][] = 'Stump barcode has not been assigned'; break;
-      default: $errors['stump_barcode'][] = 'Stump barcode is of the wrong type'; break;
+      case 'P': $errors['stump_barcode_id'][] = 'is_active_barcode'; break;
+      default:  $errors['stump_barcode_id'][] = 'is_valid_barcode'; break;
     }
 
     $ssf = ORM::factory('SSF')
@@ -347,17 +360,24 @@ class Model_TDF extends SGS_Form_ORM {
       ->find();
 
     if ($ssf->loaded()) {
-      if (!Valid::meets_tolerance($this->length, $ssf->height, SGS::TDF_HEIGHT_TOLERANCE)) $errors['length'][] = 'Felled tree length not within tolerance to match standing tree';
+      if (!Valid::meets_tolerance($this->length, $ssf->height, SGS::TDF_HEIGHT_TOLERANCE)) $errors['length'][] = 'is_within_tolerance';
       if (!Valid::meets_tolerance(($this->bottom_min + $this->bottom_max) / 2, $ssf->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
-        $errors['bottom_min'][] = 'Felled tree diameter not within tolerance to match standing tree';
-        $errors['bottom_max'][] = 'Felled tree diameter not within tolerance to match standing tree';
+        $errors['bottom_min'][] = 'is_within_tolerance';
+        $errors['bottom_max'][] = 'is_within_tolerance';
       }
-      if (!($this->species->class == $ssf->species->class)) $errors['species'][] = 'Felled tree species class does not match standing tree';
-      if (!($this->cell_number == $ssf->cell_number)) $errors['cell_number'][] = 'Felled tree cell number does not match standing tree';
-      if (!($this->survey_line == $ssf->survey_line)) $errors['survey_line'][] = 'Felled tree survey line does not match standing tree';
-    } else $errors['barcode'][] = 'No data found for standing tree';
+      if (!($this->species->class == $ssf->species->class)) $errors['species_id'][] = 'is_valid_match_ssf';
+      if (!($this->cell_number == $ssf->cell_number)) $errors['cell_number'][] = 'is_valid_match_ssf';
+      if (!($this->survey_line == $ssf->survey_line)) $errors['survey_line'][] = 'is_valid_match_ssf';
+    } else $errors['barcode_id'][] = 'is_existing_ssf';
 
-    return $errors;;
+    if ($errors) {
+      $this->status = 'R';
+      foreach ($errors as $field => $array) {
+        foreach (array_filter(array_unique($array)) as $error) $this->set_error($field, $error);
+      }
+    } else $this->status = 'A';
+
+    $this->save();
   }
 
   public static function fields()
