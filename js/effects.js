@@ -1,6 +1,6 @@
 $(function() {
 
-  $("body.import .toggle-details").click(function() {
+  $("body.import .toggle-details").live('click', function() {
     $(this).parent().parent("tr").next("tr.details").toggle();
     $(this).parent().parent("tr").next("tr.details").children("td.loading").load(
       '/ajax/details',
@@ -11,11 +11,11 @@ $(function() {
     );
   });
 
-  $("body.analysis .toggle-details").click(function() {
+  $("body.analysis .toggle-details").live('click', function() {
     $(this).parent().parent("tr").next("tr.details").toggle();
   });
 
-  $(".toggle-download-form").click(function() {
+  $(".toggle-download-form").live('click', function() {
     $(this).parent().parent("tr").next("tr.download-form").toggle();
   });
 
@@ -56,7 +56,15 @@ $(function() {
 });
 
 function update_csv(id) {
-  var row = $("csv-"+id);
-  row.attr("id", "csv-"+id+"-deleted");
-  row.after();
+  $("#csv-"+id).addClass('loading');
+  $("#csv-"+id).addClass('loading-small');
+  $("#csv-"+id).attr("id", "csv-"+id+"-deleted");
+  $.post(
+    "/ajax/update",
+    {id: id},
+    function(data) {
+      $("#csv-"+id+"-deleted").replaceWith(data);
+    },
+    "html"
+  );
 }

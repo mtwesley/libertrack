@@ -2,12 +2,12 @@
 
 $classes[] = 'data';
 
-$options = array(
+$options = (array) $options + array(
   'table'   => TRUE,
   'rows'    => TRUE,
   'details' => TRUE,
   'header'  => ($operator or $site or $block) ? TRUE : FALSE
-) + (array) $options;
+);
 
 $header_columns = 0;
 
@@ -95,7 +95,7 @@ $header_columns = 0;
   <?php if ($options['details']): ?>
   <?php if ($csv->get_errors()): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td class="loading" colspan="<?php echo (count($fields) + 3); ?>"></td>
+    <td class="loading" colspan="<?php echo (count($fields) + 3 - $header_columns); ?>"></td>
   </tr>
   <?php endif; // get_errors ?>
   <?php endif; // details ?>

@@ -30,6 +30,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_details() {
+    sleep(1);
     $id = $this->request->post('id');
 
     $csv   = ORM::factory('CSV', $id);
@@ -45,12 +46,13 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_update() {
+    sleep(1);
     $id = $this->request->post('id');
 
     $csv   = ORM::factory('CSV', $id);
     $model = ORM::factory($csv->form_type, $csv->form_data_id);
 
-    $fields = SGS_Form_ORM::get_fields($csv->form_type) + $model->labels();
+    $fields = SGS_Form_ORM::get_fields($csv->form_type);
 
     $this->response->body(View::factory('csvs')
       ->set('mode', 'import')

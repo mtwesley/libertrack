@@ -25,8 +25,8 @@ class Model_SSF extends SGS_Form_ORM {
 
   public static $errors = array(
     'all' => array(
-      'is_active_barcode' => ':field is still pending assignment',
-      'is_valid_barcode'  => ':field is invalid for this data',
+      'is_active_barcode' => ':field must not be pending assignment',
+      'is_valid_barcode'  => ':field must be assigned as a standing tree',
     )
   );
 
@@ -40,6 +40,37 @@ class Model_SSF extends SGS_Form_ORM {
     'species'  => array(),
     'user'     => array(),
   );
+
+  public static function generate_report($records) {
+    $total = count($records);
+
+    $errors   = array();
+    $_records = array();
+    foreach (DB::select('form_data_id', 'field', 'error')
+      ->from('errors')
+      ->where('form_type', '=', self::$type)
+      ->and_where('form_data_id', 'IN', (array) array_keys($records))
+      ->execute()
+      ->as_array() as $result) {
+        $_records[$result['form_data_id']][$result['field']][] = $result['error'];
+        $errors[$result['error']][$result['field']][$result['form_data_id']] = $records[$result['form_data_id']];
+      }
+
+    $fail = count($errors);
+
+    return array(
+      'total'   => $total,
+      'pass'    => $total - $fail,
+      'fail'    => $fail,
+      'records' => $_records,
+      'errors'  => $errors
+    );
+  }
+
+  public static function fields()
+  {
+    return (array) self::$fields;
+  }
 
   protected function _initialize()
   {
@@ -308,6 +339,8 @@ class Model_SSF extends SGS_Form_ORM {
   }
 
   public function run_checks() {
+    if ($this->status != 'P') return;
+
     $errors = array();
     $this->unset_errors();
 
@@ -332,17 +365,6 @@ class Model_SSF extends SGS_Form_ORM {
     } else $this->status = 'A';
 
     $this->save();
-  }
-
-  public static function generate_report($records) {
-    foreach ($records as $id $record)
-
-
-  }
-
-  public static function fields()
-  {
-    return (array) self::$fields;
   }
 
   public function rules()

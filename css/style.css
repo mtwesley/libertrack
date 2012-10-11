@@ -208,17 +208,20 @@
   background-color: #e5dbcc;
 }
 
+#content table.data tr,
 #content table.data tr.odd,
 #content table.data tr.even {
 /*  background-color: #eee8df;*/
   background-color: #f0ede8;
 }
 
+#content table.data tr:hover,
 #content table.data tr.odd:hover,
 #content table.data tr.even:hover {
   background-color: #eee8df;
 }
 
+#content table.data tr.details:hover,
 #content table.data tr.odd.details:hover,
 #content table.data tr.even.details:hover,
 #content table.data tr.odd.download-form:hover,

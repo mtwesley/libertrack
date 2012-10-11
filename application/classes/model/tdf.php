@@ -28,13 +28,13 @@ class Model_TDF extends SGS_Form_ORM {
 
   public static $errors = array(
     'all' => array(
-      'is_active_barcode'   => ':field is still pending assignment',
-      'is_valid_barcode'    => ':field assignment is invalid type for felled tree data',
-      'is_within_tolerance' => ':field is not within tolerance range',
-      'is_valid_match'      => ':field does not match required value',
-      'is_valid_match_ssf'  => ':field does not match standing tree value',
-      'is_existing'         => 'Requried data not found',
-      'is_existing_ssf'     => 'Standing tree data not fould'
+      'is_active_barcode'   => ':field must not be pending assignment',
+      'is_valid_barcode'    => ':field must be assigned as a felled tree',
+      'is_within_tolerance' => ':field must be within tolerance range',
+      'is_valid_match'      => ':field must match required value',
+      'is_valid_match_ssf'  => ':field must match stock survey data for standing tree',
+      'is_existing'         => 'Data must be available',
+      'is_existing_ssf'     => 'Stock survey data must be available for standing tree'
     )
   );
 
@@ -54,6 +54,37 @@ class Model_TDF extends SGS_Form_ORM {
     'species'  => array(),
     'user'     => array(),
   );
+
+  public static function generate_report($records) {
+    $total = count($records);
+
+    $errors   = array();
+    $_records = array();
+    foreach (DB::select('form_data_id', 'field', 'error')
+      ->from('errors')
+      ->where('form_type', '=', self::$type)
+      ->and_where('form_data_id', 'IN', (array) array_keys($records))
+      ->execute()
+      ->as_array() as $result) {
+        $_records[$result['form_data_id']][$result['field']][] = $result['error'];
+        $errors[$result['error']][$result['field']][$result['form_data_id']] = $records[$result['form_data_id']];
+      }
+
+    $fail = count($errors);
+
+    return array(
+      'total'   => $total,
+      'pass'    => $total - $fail,
+      'fail'    => $fail,
+      'records' => $_records,
+      'errors'  => $errors
+    );
+  }
+
+  public static function fields()
+  {
+    return (array) self::$fields;
+  }
 
   protected function _initialize()
   {
@@ -327,6 +358,8 @@ class Model_TDF extends SGS_Form_ORM {
   }
 
   public function run_checks() {
+    if ($this->status != 'P') return;
+
     $errors = array();
     $this->unset_errors();
 
@@ -378,11 +411,6 @@ class Model_TDF extends SGS_Form_ORM {
     } else $this->status = 'A';
 
     $this->save();
-  }
-
-  public static function fields()
-  {
-    return (array) self::$fields;
   }
 
   public function rules()

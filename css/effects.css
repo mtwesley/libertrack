@@ -19,6 +19,33 @@
   color: #f48f32;
 }
 
+.loading-small {
+  height: 16px;
+  background-image: url("/images/loading_small.gif");
+}
+
+.loading-large {
+  height: 75px;
+  background-image: url("/images/loading_large.gif");
+}
+
+.loading-small,
+.loading-large {
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+.loading div,
+.loading span,
+.loading a {
+  color: transparent !important;
+  background-color: transparent !important;
+}
+
+#content table.data tr.loading img.status {
+  display: none;
+}
+
 #content table.data tr.details td.loading {
   height: 75px;
   background-image: url("/images/loading_large.gif");

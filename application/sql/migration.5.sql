@@ -6,21 +6,26 @@ create domain d_duplicate_type as character(1) check (value ~ E'^[BP]$');
 -- tables
 
 create table csv_errors (
+  id bigserial not null,
   csv_id d_id not null,
   field d_text_short not null,
   error d_text_short not null,
   params d_text_long,
+  is_ignored d_bool default false not null,
 
-  constraint csv_errors_pkey primary key (csv_id,field),
-  constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade
+  constraint csv_errors_pkey primary key (id),
+  constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
+
+  constraint csv_errors_unique unique(csv_id,field,error)
 );
 
 create table csv_duplicates (
+  id bigserial not null,
   csv_id d_id not null,
   duplicate_csv_id d_id not null,
   field d_text_short,
 
-  constraint csv_duplicates_pkey primary key (csv_id,duplicate_csv_id),
+  constraint csv_duplicates_pkey primary key (id),
   constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
   constraint csv_duplicates_duplicate_csv_id_fkey foreign key (duplicate_csv_id) references csv (id) on update cascade on delete cascade,
 
@@ -28,11 +33,17 @@ create table csv_duplicates (
 );
 
 create table errors (
+  id bigserial not null,
   form_type d_form_type not null,
   form_data_id d_id not null,
   field d_text_short not null,
   error d_text_short not null,
-  params d_text_long
+  params d_text_long,
+  is_ignored d_bool default false not null,
+
+  constraint errors_pkey primary key (id),
+
+  constraint errors_unique unique(form_type,form_data_id,field,error)
 );
 
 create index csv_errors_field on csv_errors (csv_id,field);

@@ -277,6 +277,8 @@ class Model_LDF extends SGS_Form_ORM {
   }
 
   public function run_checks() {
+    if ($this->status != 'P') return;
+
     $errors = array();
     $this->unset_errors();
 

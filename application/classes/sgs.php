@@ -103,17 +103,17 @@ class SGS {
       // additional messages
       'is_unique'            => ':field must be unique',
       'is_existing_barcode'  => ':field must be an existing barcode',
-      'is_existing_operator' => ':field does not reference an existing operator',
-      'is_existing_site'     => ':field does not reference and existing site',
-      'is_existing_block'    => ':field does not reference an existing block',
-      'is_existing_species'  => ':field does not reference an existing species',
+      'is_existing_operator' => ':field must reference an existing operator',
+      'is_existing_site'     => ':field must reference and existing site',
+      'is_existing_block'    => ':field must reference an existing block',
+      'is_existing_species'  => ':field must reference an existing species',
       'is_int'               => ':field must be a number with no decimal places (for example, "1985")',
       'is_float'             => ':field must be a number (for example, "19.85")',
       'is_char'              => ':field must be exactly one letter (for example, "A")',
       'is_varchar'           => ':field must contain only numbers, letters, and valid characters',
       'is_text_short'        => ':field must be of short-length',
       'is_text_medium'       => ':field must be of medium-length',
-      'is_text_long'         => ':field too long',
+      'is_text_long'         => ':field must be of long-length',
       'is_boolean'           => ':field must be an affirmative (for example, "YES" or "NO")',
       'is_money'             => ':field must be a valid monetary amount in USD with no dollar sign (for example, "10.12")',
       'is_date'              => ':field must be a valid date (for example, "2012-09-27")',
@@ -122,19 +122,19 @@ class SGS {
       'is_measurement_int'   => ':field must be positive number with no decimal places',
       'is_measurement_float' => ':field must be a positive number',
       'is_file_type'         => ':field must be a file mime type (for example, "text/css")',
-      'is_species_code'      => ':field does not match the required species code format',
+      'is_species_code'      => ':field must match the required species code format',
       'is_species_class'     => ':field must be a species class (for example, "A", "B" or "C")',
-      'is_site_name'         => ':field does not match the required site format (for example, "ABC123" or "ABC 123")',
-      'is_operator_tin'      => ':field does not match the required operator TIN format',
+      'is_site_name'         => ':field must match the required site format (for example, "ABC123" or "ABC 123")',
+      'is_operator_tin'      => ':field must match the required operator TIN format',
       'is_survey_line'       => ':field must be a number from 1 to 20',
       'is_operation'         => ':field must be either (I)mport or (E)xport',
       'is_operation_type'    => ':field must be a type of form or print job (for example, "SSF")',
       'is_form_type'         => ':field must not be a type of form (for example, "SSF")',
       'is_grade'             => ':field must not be a grade (for example, "A", "B" or "C")',
-      'is_barcode'           => ':field does not match the required barcode format',
+      'is_barcode'           => ':field must match the required barcode format',
       'is_barcode_type'      => ':field must be a barcode type (for example, "Pending")',
       'is_conversion_factor' => ':field must be a fraction or decimal number between 0 and 1',
-      'is_block_name'        => ':field does not match the required block name format',
+      'is_block_name'        => ':field must match the required block name format',
       'is_status'            => ':field must be either (P)ending, (A)ctive or (R)ejected',
       'is_coc_status'        => ':field must be a CoC status (for example, "Pending")',
     )
@@ -528,8 +528,7 @@ class SGS {
 
   public static function decode_error($field, $error, $values = array(), $errors = array())
   {
-    $message = $errors[$field][$error] ? $errors[$field][$error] : $errors['all'][$error];
-    if (!$message) $message = self::$errors[$field][$error] ? self::$errors[$field][$error] : self::$errors['all'][$error];
+    @$message = $errors[$field][$error] ?: $errors['all'][$error] ?: self::$errors[$field][$error] ?: self::$errors['all'][$error];
     return strtr($message, $values);
   }
 

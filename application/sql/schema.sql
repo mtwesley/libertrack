@@ -280,9 +280,12 @@ create table csv_errors (
   field d_text_short not null,
   error d_text_short not null,
   params d_text_long,
+  is_ignored d_bool default false not null,
 
   constraint csv_errors_pkey primary key (id),
-  constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade
+  constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
+
+  constraint csv_errors_unique unique(csv_id,field,error)
 );
 
 create table csv_duplicates (
@@ -504,8 +507,11 @@ create table errors (
   field d_text_short not null,
   error d_text_short not null,
   params d_text_long,
+  is_ignored d_bool default false not null,
 
-  constraint errors_pkey primary key (id)
+  constraint errors_pkey primary key (id),
+
+  constraint errors_unique unique(form_type,form_data_id,field,error)
 );
 
 create table revisions (
