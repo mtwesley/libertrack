@@ -1,20 +1,24 @@
-<?php if ($suggestions): ?>
 <div class="details-suggestions">
+  <div class="details-suggestions-title">Suggestions</div>
   <?php foreach ($suggestions as $field => $suggestion): ?>
-  <?php if ($suggestion): ?>
   <div class="details-suggestion">
-    <strong>
-      <?php if ($fields[$field]) echo $fields[$field]; ?>
-      Suggestions:
-    </strong>
+    <?php if (count($suggestions) > 1): ?>
+    <strong><?php if ($fields[$field]) echo $fields[$field]; ?>:</strong>
+    <?php endif; ?>
+
     <ul class="suggest">
       <?php foreach ($suggestion as $suggest): ?>
       <li class="<?php echo $field; ?>"><?php echo $suggest; ?></li>
       <?php endforeach; ?>
     </ul>
+    <div class="clear"></div>
   </div>
-  <div class="clear details-suggestion"></div>
-  <?php endif; ?>
   <?php endforeach; ?>
+
+  <?php if (!$suggestions): ?>
+  <div class="details-no-suggestions">
+    Sorry, no suggestions found.
+  </div>
+  <?php endif; ?>
 </div>
-<?php endif; ?>
+

@@ -1,3 +1,14 @@
+editableOptions = {
+  cssclass: 'eip-form',
+  event: 'dblclick',
+  id: 'id',
+  name: 'data',
+  placeholder: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+  callback: function(value, settings) {
+    update_csv($(this).attr('id').match(/csv-(\d+)/)[1]);
+  }
+};
+
 $(function() {
 
   $("body.import .toggle-details").live('click', function() {
@@ -6,6 +17,19 @@ $(function() {
       '/ajax/details',
       {id: $(this).attr('id').match(/csv-(\d+)-details/)[1]},
       function() {
+        $(".details-suggestions-link").live('click', function() {
+          $("#popup").addClass('popup-suggestions');
+          $("#popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
+            $("#popup").bPopup({
+              opacity: 0.8,
+              closeClass: 'popup-close',
+              modalColor: '#fff',
+              onClose: function() {
+                $("#popup").removeClass('popup-suggestions');
+              }
+            });
+          });
+        });
         $(this).removeClass('loading')
       }
     );
@@ -28,13 +52,7 @@ $(function() {
     $("input[name="+$(this).attr("class")+"]").val($(this).text());
   });
 
-  $("body.import .csv-eip").editable("/ajax/csv", {
-    cssclass: 'eip-form',
-    event: 'dblclick',
-    id: 'id',
-    name: 'data',
-    placeholder: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
-  });
+  $("body.import .csv-eip").editable("/ajax/csv", editableOptions);
 
   $("#messages .message .close").click(function() {
     $(this).parent(".message").hide();
@@ -64,6 +82,7 @@ function update_csv(id) {
     {id: id},
     function(data) {
       $("#csv-"+id+"-deleted").replaceWith(data);
+      $("#csv-"+id+" .csv-eip").editable("/ajax/csv", editableOptions);
     },
     "html"
   );

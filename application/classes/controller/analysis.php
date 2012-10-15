@@ -48,7 +48,7 @@ class Controller_Analysis extends Controller {
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'));
       if ($has_block_id) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'));
       $form = $form
-        ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
+        ->add_group('status', 'checkboxes', SGS::$data_status, NULL, array('label' => 'Status'))
         ->add('search', 'submit', 'Filter');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {

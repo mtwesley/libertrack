@@ -166,6 +166,12 @@ foreach (array_filter(explode('/', $path)) as $item) {
       </div>
     </div>
 
+    <!-- Popup -->
+    <div id="popup" class="popup">
+      <div class="popup-text"></div>
+      <div class="popup-close">X</div>
+    </div>
+
     <!-- Closure -->
     <?php echo $closure; ?>
   </body>

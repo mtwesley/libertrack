@@ -204,10 +204,6 @@
 
 #content table.data tr {}
 
-#content table.data tr.head {
-  background-color: #e5dbcc;
-}
-
 #content table.data tr,
 #content table.data tr.odd,
 #content table.data tr.even {
@@ -215,10 +211,18 @@
   background-color: #f0ede8;
 }
 
+#content table.data tr.head {
+  background-color: #e5dbcc;
+}
+
 #content table.data tr:hover,
 #content table.data tr.odd:hover,
 #content table.data tr.even:hover {
   background-color: #eee8df;
+}
+
+#content table.data tr.head:hover {
+  background-color: #e5dbcc;
 }
 
 #content table.data tr.details:hover,
@@ -238,7 +242,7 @@
 #content table.data td {
   padding: 2px 4px;
   text-align: left;
-  height: 23px;
+  height: 18px;
 }
 
 #content table.data td.links {
@@ -248,7 +252,8 @@
 #content table.data th {}
 
 #content table.data td {
-  border-top: 1px dotted #d9c7ad;
+  border-top: 1px dotted #e6dfd4;
+  /* border-top: 1px dotted #d9c7ad; */
   white-space: nowrap;
 }
 
@@ -269,7 +274,7 @@
 #content table.data tr.download-form td {
   padding: 0 4px;
   border-top: none;
-  /* border-top: 1px dotted #e6dfd4; */
+  /* border-bottom: 1px dotted #e6dfd4; */
   white-space: normal;
 }
 

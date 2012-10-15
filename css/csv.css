@@ -15,17 +15,9 @@
 .details-duplicates ul li,
 .details-errors ul li,
 .details-suggestion ul li {
-  margin: 4px 0;
+  margin: 4px 0 0;
   padding: 4px;
   display: block;
-}
-
-.details-errors ul l {
-  float: none;
-}
-
-.details-suggestion ul li {
-  float: left;
 }
 
 .details-duplicates ul li {
@@ -41,26 +33,109 @@
 }
 
 .details-suggestion ul li {
-  color: #4a96ff;
-  border-left: 2px dotted #b0d1ff;
+  margin: 4px 0 0 4px;
+  padding: 3px 5px;
+  background-color: #509aff;
+  color: #fff;
+  /* border-left: 2px solid #b0d1ff; */
+  /* background-color: #e3efff; */
+  float: left;
+  cursor: pointer;
+}
+
+.details-suggestion ul li:hover {
+  background-color: #2f7dea;
+}
+
+.details-suggestion {
+  padding-bottom: 4px;
   background-color: #e3efff;
 }
 
+.details-no-suggestions,
+.details-tip,
+.details-no-tips {
+  margin: 0;
+  padding: 4px;
+}
+
+.details-no-suggestions {
+  color: #4a96ff;
+  /* border-left: 2px solid #b0d1ff; */
+  background-color: #e3efff;
+}
+
+.details-tip,
+.details-no-tips {
+  background-color: #f3e1fd;
+  /* border-left: 2px solid #b377d2; */
+  color: #882db6;
+}
+
+.details-suggestions,
+.details-tips {
+  margin-bottom: 6px;
+}
+
+.details-tips-title,
+.details-suggestions-title {
+  padding: 4px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.details-tips-title {
+  background-color: #b377d2;
+}
+
+.details-suggestions-title {
+  background-color: #7db4ff;
+}
+
 .details-suggestions {}
-.details-suggestion {}
 
 .details-suggestion strong {
   padding-right: 20px;
 }
 
-.details-suggestion .suggest ul li {
-  text-decoration: none;
+.details-suggestion li.more {}
+.details-suggestion li.more a {}
+
+.details-link {
+  margin: 0;
+  padding: 2px 5px;
+  display: block;
+  float: right;
+  font-size: 9px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  background-color: #f38284;
+}
+
+.details-link:hover {
+  background-color: #ae3636;
+}
+
+.popup-suggestions {
+  padding: 28px 4px 4px;
+  width: 600px;
+  background-color: #fff;
+  border: 2px dotted #dedede;
+  position: relative;
+}
+
+.popup-suggestions .popup-close {
+  padding: 2px 5px;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  background-color: #dedede;
+  color: #fff;
+  font-weight: bold;
   cursor: pointer;
 }
 
-.details-suggestion .suggest ul li:hover {
-  text-decoration: underline;
+.popup-suggestions .popup-close:hover {
+  background-color: #ababab;
 }
-
-.details-suggestion li.more {}
-.details-suggestion li.more a {}

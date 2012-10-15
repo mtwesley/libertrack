@@ -13,6 +13,9 @@ class SGS {
   const TDF_HEIGHT_TOLERANCE   = 10;
   const TDF_DIAMETER_TOLERANCE = 10;
 
+  const FEE_SGS_RATE = 0.33;
+  const FEE_GOL_RATE = 0.67;
+
   public static $path = array(
     'index'           => 'Home',
 
@@ -54,16 +57,69 @@ class SGS {
     'users'           => 'Users',
 
     'analysis'        => 'Analysis',
-    'analysis/ssf'    => 'Stock Survey Form',
-    'analysis/tdf'    => 'Tree Data Form',
-    'analysis/ldf'    => 'Log Data Form',
+    'analysis/ssf'    => 'Stock Survey Data',
+    'analysis/tdf'    => 'Tree Data Data',
+    'analysis/ldf'    => 'Log Data Data',
 
-    'checks'          => 'Checks and Queries',
+    'checks'          => 'Run Checks and Queries',
+
+    'invoices'        => 'Invoices',
+    'invoices/st'     => 'Stumpage Invoice',
 
     'reports'         => 'Reports',
-    'reports/ssf'     => 'Stock Survey Form',
-    'reports/tdf'     => 'Tree Data Form',
-    'reports/ldf'     => 'Log Data Form',
+    'reports/ssf'     => 'Stock Survey Reports',
+    'reports/tdf'     => 'Tree Data Reports',
+    'reports/ldf'     => 'Log Data Reports',
+  );
+
+  public static $tips = array(
+    'all' => array(
+      'is_unique' => 'Certain fields must be unique in order to maintain a consistent system
+                      and prevent duplicates from entering the tracability and monitoring
+                      system. If you are reviewing this error, please check if the record
+                      is flagged as a duplicate, and if so, resolve this error by choosing
+                      which of the marked duplicate is the correct data. If the recor is not
+                      flagged as a duplicate, edit the field in question to prevent it from
+                      conflicting with an existing record.',
+      'not_empty' => 'Certain fields are required and cannot be left empty. If you are reviewing
+                      is error, make sure that the field is not empty. In some rare situations,
+                      the field may not be empty, but the "resolved" value may be. For example,
+                      entering "ABC" into a barcode field may result in an empty value since
+                      the format is invalid and the "resolved" barcode cannot be found.',
+    ),
+    'barcode_id' => array(
+      'not_empty' => 'In most situations, when this error occurs with a barcode field, it
+                      means that the barcode has not been registered. You can register a
+                      barcode by either either creating a print job or uploading an existing
+                      print job text file containing the barcode. In some rare situations,
+                      the barcode field may actually be empty.'
+    ),
+    'tree_barcode_id' => array(
+      'not_empty' => 'In most situations, when this error occurs with a barcode field, it
+                      means that the barcode has not been registered. You can register a
+                      barcode by either either creating a print job or uploading an existing
+                      print job text file containing the barcode. In some rare situations,
+                      the barcode field may actually be empty.'
+    ),
+    'stump_barcode_id' => array(
+      'not_empty' => 'In most situations, when this error occurs with a barcode field, it
+                      means that the barcode has not been registered. You can register a
+                      barcode by either either creating a print job or uploading an existing
+                      print job text file containing the barcode. In some rare situations,
+                      the barcode field may actually be empty.'
+    ),
+    'parent_barcode_id' => array(
+      'not_empty' => 'In most situations, when this error occurs with a barcode field, it
+                      means that the barcode has not been registered. You can register a
+                      barcode by either either creating a print job or uploading an existing
+                      print job text file containing the barcode. In some rare situations,
+                      the barcode field may actually be empty.'
+    ),
+    'species_id' => array(
+      'not_empty' => 'In most situations, when this error occurs with a species field, it
+                      means that no species exists for a species code. In some rare situations,
+                      the species field may actually be empty.'
+    ),
   );
 
   public static $errors = array(
@@ -240,6 +296,12 @@ class SGS {
     'D' => 'Data entry clerk'
   );
 
+  public static $species_fee_rate = array(
+    'A' => 0.10,
+    'B' => 0.50,
+    'C' => 0.25
+  );
+
   public static function value($key, $array, $default = NULL)
   {
     if (is_string($array)) $array = self::$$array;
@@ -270,7 +332,7 @@ class SGS {
     if ($text !== $fix = preg_replace('/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/', '$2-$1-$3', trim($text))) return $fix;
   }
 
-  public static function date($date = 'now', $format = SGS::DATE_FORMAT, $fix = TRUE, $is_us_date = FALSE)
+  public static function date($date = 'now', $format = SGS::DATE_FORMAT, $is_us_date = FALSE, $fix = TRUE)
   {
     if ($is_us_date AND ($test = self::internationalify($date))) $date = $test;
 
@@ -285,7 +347,7 @@ class SGS {
     else return $d;
   }
 
-  public static function datetime($datetime = 'now', $format = SGS::DATETIME_FORMAT, $fix = TRUE, $is_us_date = FALSE)
+  public static function datetime($datetime = 'now', $format = SGS::DATETIME_FORMAT, $is_us_date = FALSE, $fix = TRUE)
   {
     if ($is_us_date AND ($test = self::internationalify($date))) $date = $test;
 
@@ -299,12 +361,12 @@ class SGS {
     elseif ($fix) self::date(self::fix_date($dt), $format, FALSE, FALSE);
   }
 
-  public static function db_range($from = NULL, $to = NULL)
+  public static function db_range($from = NULL, $to = NULL, $is_us_date = FALSE, $fix = TRUE)
   {
-    if ($from) $from = self::datetime($from, TRUE);
+    if ($from) $from = self::datetime($from, self::PGSQL_DATETIME_FORMAT, $is_us_date, $fix);
     else $from = '-infinity';
 
-    if ($to) $to = self::datetime($to, TRUE);
+    if ($to) $to = self::datetime($to, self::PGSQL_DATETIME_FORMAT, $is_us_date, $fix);
     else $to = 'infinity';
 
     return array(
@@ -387,7 +449,7 @@ class SGS {
   public static function suggest($search, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset)
   {
     try {
-      DB::query(Database::SELECT, "SELECT similarity('a'::text, 'a'::text)");
+      DB::query(Database::SELECT, "SELECT similarity('a'::text, 'a'::text)")->execute();
       $similarity = TRUE;
     } catch (Exception $e) {
       $similarity = FALSE;
@@ -456,7 +518,7 @@ class SGS {
     }
   }
 
-  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 20, $offset = 0)
+  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 24, $offset = 0)
   {
     $table  = 'barcodes';
     $model  = 'barcode';
@@ -529,7 +591,12 @@ class SGS {
   public static function decode_error($field, $error, $values = array(), $errors = array())
   {
     @$message = $errors[$field][$error] ?: $errors['all'][$error] ?: self::$errors[$field][$error] ?: self::$errors['all'][$error];
-    return strtr($message, $values);
+    return strtr((string) $message, $values);
+  }
+
+  public static function decode_tip($field, $error, $tips = array())
+  {
+    return $tips[$field][$error] ?: $tips['all'][$error] ?: self::$tips[$field][$error] ?: self::$tips['all'][$error];
   }
 
   public static function parse_site_and_block_info($text)
@@ -585,6 +652,8 @@ class SGS {
   {
     $matches = array();
     preg_match('/(\d{1,2})[\-\/](\d{1,2})[\-\/](\d{2,4})/', $string, $matches);
+
+    print_r(Debug::vars(get_defined_vars()));
 
     if (!($matches[1] and $matches[2] and $matches[3])) return FALSE;
 

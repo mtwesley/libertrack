@@ -5,7 +5,7 @@ $classes[] = 'data';
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <th></th>
-    <th>Type</th>
+    <th></th>
     <?php foreach ($fields as $name): ?>
     <th><?php echo $name; ?></th>
     <?php endforeach; ?>
@@ -13,6 +13,7 @@ $classes[] = 'data';
   </tr>
   <?php foreach ($data as $record): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
+    <td><span class="data-type"><?php echo $form_type; ?></span></td>
     <td>
       <?php
         switch ($record->status):
@@ -22,7 +23,6 @@ $classes[] = 'data';
         endswitch;
       ?>
     </td>
-    <td><?php echo $form_type; ?></td>
     <?php foreach ($fields as $key => $name): ?>
     <td>
       <?php

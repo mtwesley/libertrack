@@ -60,22 +60,23 @@ class Model_TDF extends SGS_Form_ORM {
 
     $errors   = array();
     $_records = array();
-    foreach (DB::select('form_data_id', 'field', 'error')
+
+    if ($records) foreach (DB::select('form_data_id', 'field', 'error')
       ->from('errors')
       ->where('form_type', '=', self::$type)
       ->and_where('form_data_id', 'IN', (array) array_keys($records))
       ->execute()
       ->as_array() as $result) {
         $_records[$result['form_data_id']][$result['field']][] = $result['error'];
-        $errors[$result['error']][$result['field']][$result['form_data_id']] = $records[$result['form_data_id']];
-      }
+        $errors[$result['error']][$result['field']][$result['form_data_id']] = $result['form_data_id'];
+    }
 
-    $fail = count($errors);
+    $fail = count($_records);
 
     return array(
       'total'   => $total,
-      'pass'    => $total - $fail,
-      'fail'    => $fail,
+      'passed'  => $total - $fail,
+      'failed'  => $fail,
       'records' => $_records,
       'errors'  => $errors
     );
@@ -358,7 +359,7 @@ class Model_TDF extends SGS_Form_ORM {
   }
 
   public function run_checks() {
-    if ($this->status != 'P') return;
+    if ($this->status == 'A') return;
 
     $errors = array();
     $this->unset_errors();

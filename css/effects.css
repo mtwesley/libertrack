@@ -69,19 +69,19 @@
 }
 
 #content form .dpicker {
-
+  cursor: pointer;
 }
 
 #content form .gldp-default {
-  margin: 4px 0 4px 170px;
-	float:left;
-	background-color:#ccc !important;
-	border:solid 1px #888;
+  margin: 4px 0 4px 166px;
+	float: left;
+	background-color: #ffd6ba !important;
+	border: none;
 }
 
 #content form .gldp-default table {
-	border-spacing:1px;
-	border-collapse:inherit;
+	border-spacing: 3px;
+	border-collapse: inherit;
 }
 
 #content form .gldp-default tr {
@@ -89,81 +89,70 @@
 }
 
 #content form .gldp-default td {
-	margin:0;
-	padding:0;
-	width: 55px;
-	text-align:center;
+	margin: 0;
+	padding: 0;
+	width: 54px;
+	text-align: center;
 }
 
 #content form .gldp-default-prevnext {
-	font-family:"times new roman";
-	color:#222;
-	cursor:pointer;
-	font-weight:bold;
+	color: #333;
+	cursor: pointer;
+	font-weight: bold;
 }
 
 #content form .gldp-default-monyear {
-	color:#222;
-	font-weight:bold;
+	color: #333;
+	font-weight: bold;
+  font-size: 12px;
 }
 
 #content form .gldp-default-dow {
-	background-color:#f82200;
-	color:#eee;
-	font-weight:bold;
+	background-color: #ff7b23;
+	color: #fffaf4;
+	font-weight: bold;
 }
 
-#content form .gldp-default-day {
-	background-color:#fff;
-	color:#222;
-	border:solid 1px #fff;
-	font-weight:bold;
+#content form .gldp-default-day,
+#content form .gldp-default-today {
+	background-color: #fff3eb;
+	color: #333;
+	border: 1px solid #fff3eb;
+	font-weight: bold;
 }
-#content form .gldp-default-day-hover {
-	background-color:#fff;
-	color:#f82200;
-	border:solid 1px #f82200;
-	cursor:pointer;
-	font-weight:bold;
+#content form .gldp-default-day-hover,
+#content form .gldp-default-today-hover {
+	background-color: #fff3eb;
+	color: #333;
+	border: 1px solid #ff9a56;
+	cursor: pointer;
+	font-weight: bold;
 }
 
 #content form .gldp-default-selected {
-	background-color:#fee;
-	color:#222;
-	border:solid 1px #f82200;
-}
-
-#content form .gldp-default-today {
-	background-color:#f82200;
-	color:#fff;
-	border:solid 1px #f82200;
-	font-weight:bold;
-}
-#content form .gldp-default-today-hover {
-	background-color:#fff;
-	color:#f82200;
-	border:solid 1px #f82200;
-	cursor:pointer;
-	font-weight:bold;
+	background-color: #ffb582;
+	color: #fffaf4;
+	border: 1px solid #ff9a56;
+  font-weight: bold;
 }
 
 #content form .gldp-default-sat, .gldp-default-sun {
-	background-color:#fff;
-	color:#004f8f;
-	border:solid 1px #fff;
-	font-weight:bold;
+	background-color: #fff3eb;
+	color: #333;
+	border: 1px solid #fff3eb;
+	font-weight: bold;
 }
 #content form .gldp-default-sat-hover, .gldp-default-sun-hover {
-	background-color:#fff;
-	color:#004f8f;
-	border:solid 1px #f82200;
-	cursor:pointer;
-	font-weight:bold;
+	background-color: #fff3eb;
+	color: #333;
+	border: 1px solid #ff9a56;
+	cursor: pointer;
+	font-weight: bold;
 }
 
 #content form .gldp-default-noday {
-	background-color:#fff;
-	border:solid 1px #fff;
-	color:#666;
-	cursor:wait;
+	background-color: #ffe2Ce;
+	border: 1px solid #ffe2Ce;
+	color: #e6bc9e;
+	cursor: default;
 }

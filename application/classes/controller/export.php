@@ -72,12 +72,8 @@ class Controller_Export extends Controller {
           'label' => 'Data',
           'required' => TRUE
         ))
-        ->add('from', 'input', array(
-          'label' => 'From'
-        ))
-        ->add('to', 'input', array(
-          'label' => 'To'
-        ))
+        ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
         ->add('search', 'submit', 'Search');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
@@ -124,8 +120,8 @@ class Controller_Export extends Controller {
     }
 
     $form = Formo::form()
-      ->add('from', 'input', array('label' => 'From'))
-      ->add('to', 'input', array('label' => 'To'))
+      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add('block_id', 'select', array(
         'options'  => $block_options,
         'label'    => 'Block',
@@ -222,8 +218,8 @@ class Controller_Export extends Controller {
     }
 
     $form = Formo::form()
-      ->add('from', 'input', array('label' => 'From'))
-      ->add('to', 'input', array('label' => 'To'))
+      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add('block_id', 'select', array(
         'options'  => $block_options,
         'label'    => 'Block',
@@ -317,8 +313,8 @@ class Controller_Export extends Controller {
     }
 
     $form = Formo::form()
-      ->add('from', 'input', array('label' => 'From'))
-      ->add('to', 'input', array('label' => 'To'))
+      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add('site_id', 'select', array(
         'options'  => $site_options,
         'label'    => 'Site',

@@ -244,7 +244,7 @@ create table files (
   operation d_operation default 'U' not null,
   operation_type d_operation_type default 'UNKWN' not null,
   content d_oid unique,
-  content_md5 d_text_short unique,
+  content_md5 d_text_short,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -263,7 +263,7 @@ create table csv (
   site_id d_id,
   block_id d_id,
   values d_text_long,
-  content_md5 d_text_short not null,
+  content_md5 d_text_short unique,
   status d_csv_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -353,7 +353,7 @@ create table tdf_data (
   operator_id d_id not null,
   block_id d_id not null,
   barcode_id d_id unique not null,
-  tree_barcode_id d_id unique not null,
+  tree_barcode_id d_id not null,
   stump_barcode_id d_id unique not null,
   species_id d_id not null,
   survey_line d_survey_line not null,
@@ -750,16 +750,12 @@ create function barcodes_hops()
 $$
 begin
   if tg_op = 'INSERT' then
-    if new.parent_id is not null then
-      perform rebuild_barcode_hops(new.id);
-    end if;
+    perform rebuild_barcode_hops(new.id);
   elseif tg_op = 'UPDATE' then
-    if old.parent_id <> new.parent_id then
-      delete from barcode_hops_cached where barcode_id = old.barcode_id;
-      perform rebuild_barcode_hops(new.id);
-    end if;
+    delete from barcode_hops_cached where barcode_id = old.id;
+    perform rebuild_barcode_hops(new.id);
   elseif tg_op = 'DELETE' then
-    delete from barcode_hops_cached where barcode_id = old.barcode_id;
+    delete from barcode_hops_cached where barcode_id = old.id;
   end if;
 
   return null;

@@ -73,6 +73,7 @@ class Model_CSV extends ORM {
     $validation = new Validation($this->values);
     foreach ($model->other_rules() as $field => $set) $validation->rules($field, $set);
 
+    $validation->check();
     if (!$errors = $validation->errors()) {
       try {
         $model->save();
@@ -103,6 +104,7 @@ class Model_CSV extends ORM {
     foreach (DB::select('id')
       ->from('csv')
       ->where('content_md5', '=', $this->content_md5)
+      ->and_where('content_md5', 'IS NOT', NULL)
       ->and_where('id', '!=', $this->id)
       ->execute() as $dup) $duplicates[] = $dup['id'];
 
