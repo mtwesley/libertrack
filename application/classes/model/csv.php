@@ -77,11 +77,13 @@ class Model_CSV extends ORM {
     if (!$errors = $validation->errors()) {
       try {
         $model->save();
+        $this->form_data_id = $model->id;
       } catch (ORM_Validation_Exception $e) {
         $errors = $e->errors();
       }
     }
 
+    $errors = array_filter($errors);
     if ($errors) foreach ($errors as $field => $array) {
       list($error, $params) = $array;
 
@@ -109,16 +111,14 @@ class Model_CSV extends ORM {
       ->and_where('id', '!=', $this->id)
       ->execute() as $dup) $duplicates[] = $dup['id'];
 
+    $duplicates = array_filter($duplicates);
     if ($duplicates) foreach ($duplicates as $field => $duplicate_csv_id) {
       $this->set_duplicate($duplicate_csv_id, is_int($field) ? NULL : $field);
     }
 
     if ($duplicates)  $this->status = 'U';
     else if ($errors) $this->status = 'R';
-    else {
-      $this->status       = 'A';
-      $this->form_data_id = $model->id;
-    }
+    else $this->status = 'A';
 
     $this->save();
   }
