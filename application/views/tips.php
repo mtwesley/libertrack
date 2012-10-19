@@ -7,6 +7,7 @@
   <?php endforeach; ?>
 
   <?php if (!$tips): ?>
+  <div class="details-tips-title">Tips</div>
   <div class="details-no-tips">
     Sorry, no tips found.
   </div>

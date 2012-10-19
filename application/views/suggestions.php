@@ -16,6 +16,7 @@
   <?php endforeach; ?>
 
   <?php if (!$suggestions): ?>
+  <div class="details-suggestions-title">Suggestions</div>
   <div class="details-no-suggestions">
     Sorry, no suggestions found.
   </div>
