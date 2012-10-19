@@ -33,10 +33,10 @@
 }
 
 .details-suggestion ul li {
-  margin: 4px 0 0 4px;
+  margin: 4px 0 0 0;
   padding: 3px 5px;
-  background-color: #509aff;
-  color: #fff;
+  /* background-color: #509aff; */
+  color: #509aff;
   /* border-left: 2px solid #b0d1ff; */
   /* background-color: #e3efff; */
   float: left;
@@ -44,7 +44,8 @@
 }
 
 .details-suggestion ul li:hover {
-  background-color: #2f7dea;
+  /* background-color: #2f7dea; */
+  text-decoration: underline;
 }
 
 .details-suggestion {
@@ -117,25 +118,3 @@
   background-color: #ae3636;
 }
 
-.popup-suggestions {
-  padding: 28px 4px 4px;
-  width: 600px;
-  background-color: #fff;
-  border: 2px dotted #dedede;
-  position: relative;
-}
-
-.popup-suggestions .popup-close {
-  padding: 2px 5px;
-  position: absolute;
-  right: 5px;
-  top: 5px;
-  background-color: #dedede;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.popup-suggestions .popup-close:hover {
-  background-color: #ababab;
-}

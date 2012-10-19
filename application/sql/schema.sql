@@ -305,6 +305,7 @@ create table invoices (
   id bigserial not null,
   site_id d_id not null,
   reference_number d_positive_int unique not null,
+  is_draft d_bool default true not null,
   from_date d_date not null,
   to_date d_date not null,
   created_date d_date not null,

@@ -1,4 +1,4 @@
-editableOptions = {
+var editableOptions = {
   cssclass: 'eip-form',
   event: 'dblclick',
   id: 'id',
@@ -9,6 +9,15 @@ editableOptions = {
   }
 };
 
+var bPopupOptions = {
+  opacity: 0.8,
+  closeClass: 'popup-close',
+  modalColor: '#fff',
+  onClose: function() {
+    $("#popup .popup-text").text("");
+  }
+}
+
 $(function() {
 
   $("body.import .toggle-details").live('click', function() {
@@ -18,19 +27,24 @@ $(function() {
       {id: $(this).attr('id').match(/csv-(\d+)-details/)[1]},
       function() {
         $(".details-suggestions-link").live('click', function() {
-          $("#popup").addClass('popup-suggestions');
+          $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
           $("#popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
-            $("#popup").bPopup({
-              opacity: 0.8,
-              closeClass: 'popup-close',
-              modalColor: '#fff',
-              onClose: function() {
-                $("#popup").removeClass('popup-suggestions');
+            $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+          });
+
+          $("ul.suggest li").live('click', function() {
+            var csv_id = $(this).parent("ul.suggest").attr('id').match(/csv-(\d+)/)[1];
+            $.post(
+              '/ajax/csv',
+              {id: $(this).parent("ul.suggest").attr('id'), data: $(this).text(), process: 1},
+              function() {
+                $("#popup").bPopup().close();
+                update_csv(csv_id);
               }
-            });
+            );
           });
         });
-        $(this).removeClass('loading')
+        $(this).removeClass('loading');
       }
     );
   });
@@ -83,6 +97,8 @@ function update_csv(id) {
     function(data) {
       $("#csv-"+id+"-deleted").replaceWith(data);
       $("#csv-"+id+" .csv-eip").editable("/ajax/csv", editableOptions);
+      $("#csv-"+id).next("tr.details").hide();
+      $("#csv-"+id).next("tr.details").children("td").text("").addClass('loading');
     },
     "html"
   );

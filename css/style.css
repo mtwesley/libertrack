@@ -61,6 +61,7 @@
 #content form p.input input,
 #content form p.password input,
 #content form p.submit input,
+#content form p.textarea textarea,
 #content form p.select select {
   font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
   font-size: 11px;
@@ -71,6 +72,7 @@
 #content form p.password {}
 
 #content form p.input input,
+#content form p.textarea textarea,
 #content form p.password input {
   padding: 4px;
   border: none;
@@ -91,6 +93,10 @@
 #content form p.select {}
 #content form p.select select {
   width: 410px;
+}
+
+#content form p.textarea textarea {
+  height: 50px;
 }
 
 #content form p.checkboxes {}

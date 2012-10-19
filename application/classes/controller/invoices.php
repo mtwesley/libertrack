@@ -32,6 +32,13 @@ class Controller_Invoices extends Controller {
       ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'required' => TRUE))
       ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
       ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
+      ->add('format', 'radios', array(
+        'options' => array(
+          'html' => 'HTML Document',
+          'pdf' => 'PDF Document'),
+        'label' => '&nbsp;',
+        'required' => TRUE,
+        ))
       ->add('is_draft', 'radios', array(
         'options' => array(
           0 => 'Final Copy',
@@ -42,9 +49,11 @@ class Controller_Invoices extends Controller {
       ->add('submit', 'submit', 'Generate');
 
     if ($form->sent($_POST) and $form->load($_POST)->validate()) {
-      $site_id   = $form->site_id->val();
-      $from      = $form->from->val();
-      $to        = $form->to->val();
+      $site_id  = $form->site_id->val();
+      $format   = $form->format->val();
+      $is_draft = $form->is_draft->val();
+      $from     = $form->from->val();
+      $to       = $form->to->val();
 
       $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price',array(DB::expr('sum(volume)'), 'volume'))
         ->from('ldf_data')
@@ -56,15 +65,59 @@ class Controller_Invoices extends Controller {
         ->execute()
         ->as_array();
 
-      $invoice = View::factory('invoices/st')
-        ->set('data', $data)
+      $site     = ORM::factory('site', $site_id);
+      $operator = $site->operator;
+
+      $set = array_slice($data, 0, 9);
+
+      $invoice .= View::factory('invoices/st')
+        ->set('data', $set)
         ->set('from', $from)
         ->set('to', $to)
+        ->set('site', $site)
+        ->set('operator', $operator)
+        ->set('options', array(
+          'format' => $format
+        ))
         ->render();
+
+      $set = array_slice($data, 9, 9);
+
+      $invoice .= View::factory('invoices/st')
+        ->set('data', $set)
+        ->set('from', $from)
+        ->set('to', $to)
+        ->set('site', $site)
+        ->set('operator', $operator)
+        ->set('options', array(
+          'styles' => FALSE,
+          'info'   => FALSE,
+          'format' => $format
+        ))
+        ->render();
+
+//array(
+//  'styles' => TRUE,
+//  'header' => TRUE,
+//  'footer' => TRUE,
+//  'info'   => TRUE,
+//  'table'  => TRUE,
+//  'format' => 'pdf'
+//);
+
     }
 
     if ($form)    $content .= $form;
-    if ($invoice) $content .= $invoice;
+    if ($invoice) {
+      if ($format == 'html') $content .= $invoice;
+      else {
+        $dompdf = new DOMPDF();
+        $dompdf->set_paper("A4");
+        $dompdf->load_html($invoice);
+        $dompdf->render();
+        $dompdf->stream("sample.pdf");
+      }
+    }
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

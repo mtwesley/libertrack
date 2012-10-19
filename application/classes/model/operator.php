@@ -14,6 +14,7 @@ class Model_Operator extends ORM {
     $array = array(
       'id'         => array('render' => FALSE),
       'is_deleted' => array('render' => FALSE),
+      'address'    => array('driver' => 'textarea'),
     );
     foreach (self::fields() as $field => $label) {
       $array[$field]['label'] = $label;

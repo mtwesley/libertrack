@@ -19,6 +19,37 @@
   color: #f48f32;
 }
 
+.popup {
+  display: none;
+  padding: 28px 4px 4px;
+  width: 600px;
+  background-color: #fff;
+  border: 2px dotted #dedede;
+  position: relative;
+}
+
+.popup-close {
+  padding: 2px 5px;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  background-color: #dedede;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.popup-close:hover {
+  background-color: #ababab;
+}
+
+.popup.popup-loading {
+  height: 75px;
+  background-image: url("/images/loading_gray_large.gif");
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
 .loading-small {
   height: 16px;
   background-image: url("/images/loading_small.gif");

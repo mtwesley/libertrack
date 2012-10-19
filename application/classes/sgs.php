@@ -4,6 +4,7 @@ class SGS {
 
   const DATE_FORMAT = 'j M Y';
   const DATETIME_FORMAT = 'j M Y H:i';
+  const PRETTY_DATE_FORMAT = 'F j, Y';
 
   const PGSQL_DATE_FORMAT = 'Y-m-d';
   const PGSQL_DATETIME_FORMAT = 'Y-m-d H:i:s';
@@ -478,7 +479,7 @@ class SGS {
             $query = call_user_func_array(array('DB', 'select'), array_merge(array(array($table.'.id', 'id')), (array) $fields))
               ->from($table);
             if ($similarity) {
-              $query = $query->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"))
+              $query = $query->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), 'DESC')
                 ->offset($offset)
                 ->limit($limit);
             }

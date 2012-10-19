@@ -5,11 +5,12 @@ class Controller_Ajax extends Controller {
   public function action_csv() {
     if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
 
-    $vars  = explode('-', $this->request->post('id'));
-    $model = $vars[0];
-    $id    = $vars[1];
-    $key   = $vars[2];
-    $value = $this->request->post('data');
+    $vars    = explode('-', $this->request->post('id'));
+    $model   = $vars[0];
+    $id      = $vars[1];
+    $key     = $vars[2];
+    $value   = $this->request->post('data');
+    $process = $this->request->post('process');
 
     $csv = ORM::factory('CSV', $id);
     if (!$csv->loaded()) return $this->response->status(403);
@@ -25,6 +26,8 @@ class Controller_Ajax extends Controller {
     } catch (Exception $e) {
       return;
     }
+
+    if ($process) $csv->process();
 
     $this->response->body($value);
   }
@@ -95,5 +98,17 @@ class Controller_Ajax extends Controller {
       ->render();
 
     $this->response->body($content);
+  }
+
+  public function process() {
+    $vars  = explode('-', $this->request->post('id'));
+
+    $model = $vars[0];
+    $id    = $vars[1];
+
+    $csv = ORM::factory('CSV', $id);
+    $csv->process();
+
+    $this->response->body($csv->status);
   }
 }
