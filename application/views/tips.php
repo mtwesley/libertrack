@@ -4,13 +4,13 @@
   <div class="details-tip">
     <?php echo $tip; ?>
   </div>
+  <?php endforeach; ?>
 
   <?php if (!$tips): ?>
   <div class="details-no-tips">
     Sorry, no tips found.
   </div>
   <?php endif; ?>
-  <?php endforeach; ?>
 </div>
 
 

@@ -13,12 +13,12 @@
     </ul>
     <div class="clear"></div>
   </div>
+  <?php endforeach; ?>
 
   <?php if (!$suggestions): ?>
   <div class="details-no-suggestions">
     Sorry, no suggestions found.
   </div>
   <?php endif; ?>
-  <?php endforeach; ?>
 </div>
 
