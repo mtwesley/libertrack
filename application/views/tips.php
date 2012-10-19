@@ -9,8 +9,8 @@
   <div class="details-no-tips">
     Sorry, no tips found.
   </div>
-  <?php endforeach; ?>
   <?php endif; ?>
+  <?php endforeach; ?>
 </div>
 
 
