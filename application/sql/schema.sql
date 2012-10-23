@@ -298,6 +298,8 @@ create table csv_duplicates (
   constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
   constraint csv_duplicates_duplicate_csv_id_fkey foreign key (duplicate_csv_id) references csv (id) on update cascade on delete cascade,
 
+  constraint csv_duplicates_unique unique(csv_id,duplicate_csv_id,field),
+
   constraint csv_duplicates_check check (csv_id < duplicate_csv_id)
 );
 

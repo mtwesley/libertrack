@@ -79,7 +79,7 @@ class SGS {
                       and prevent duplicates from entering the tracability and monitoring
                       system. If you are reviewing this error, please check if the record
                       is flagged as a duplicate, and if so, resolve this error by choosing
-                      which of the marked duplicate is the correct data. If the recor is not
+                      which of the marked duplicate is the correct data. if the record is not
                       flagged as a duplicate, edit the field in question to prevent it from
                       conflicting with an existing record.',
       'not_empty' => 'Certain fields are required and cannot be left empty. If you are reviewing
@@ -519,7 +519,7 @@ class SGS {
     }
   }
 
-  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 24, $offset = 0)
+  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 15, $offset = 0)
   {
     $table  = 'barcodes';
     $model  = 'barcode';

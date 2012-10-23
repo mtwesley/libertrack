@@ -67,7 +67,7 @@ class Model_CSV extends ORM {
     $this->unset_errors();
     $this->unset_duplicates();
 
-    $model = ORM::factory($this->form_type);
+    $model = ORM::factory($this->form_type, $this->form_data_id);
     $model->parse_data($this->values);
 
     $validation = new Validation($this->values);

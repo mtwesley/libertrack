@@ -87,7 +87,7 @@ $header_columns = 0;
       <?php endif; ?>
 
       <?php if ($errors): ?>
-      <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
+      <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Errors</span>
       <?php endif; ?>
     </td>
   </tr>

@@ -123,3 +123,15 @@ begin
 end
 $$ language 'plpgsql';
 
+
+-- fix csv_duplicates
+
+create temporary table t_tmp on commit drop as
+select distinct on (csv_id,duplicate_csv_id,field) * from csv_duplicates;
+truncate csv_duplicates;
+insert into csv_duplicates
+select * from t_tmp;
+
+alter table csv_duplicates add constraint csv_duplicates_unique unique(csv_id,duplicate_csv_id,field);
+
+
