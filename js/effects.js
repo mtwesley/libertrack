@@ -13,6 +13,7 @@ var bPopupOptions = {
   opacity: 0.8,
   closeClass: 'popup-close',
   modalColor: '#fff',
+  fadeSpeed: 0,
   onClose: function() {
     $("#popup .popup-text").text("");
   }
@@ -45,6 +46,19 @@ $(function() {
           });
         });
         $(this).removeClass('loading');
+      }
+    );
+  });
+
+  $("body.import .csv-process").live('click', function() {
+    $(this).parent("td").addClass("loading");
+    var csv_id = $(this).attr('id').match(/csv-(\d+)/)[1];
+    $.post(
+      '/ajax/process',
+      {id: $(this).attr('id')},
+      function() {
+        $(this).parent("td").removeClass("loading");
+        update_csv(csv_id);
       }
     );
   });

@@ -1,10 +1,10 @@
 <?php $classes[] = 'data'; ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
-    <th>Username</th>
-    <th>Name</th>
-    <th>E-mail</th>
-    <th>Last Login</th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'username')), 'Username'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'name')), 'Name'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'email')), 'E-mail'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'last_timestamp')), 'Last Login'); ?></th>
     <th>Total Logins</th>
     <th>Currently Logged In</th>
     <th>Last Activity</th>
@@ -39,7 +39,15 @@
     <td><?php echo $total_logins; ?></td>
     <td><?php echo $currently_logged_in; ?></td>
     <td><?php echo $last_activity; ?></td>
-    <td class="wrap-normal"><?php echo SGS::implodify($user->roles->find_all()->as_array(NULL, 'description')); ?></td>
+    <td class="wrap-normal">
+      <?php if ($roles = $user->roles->find_all()->as_array(NULL, 'description')): ?>
+      <ul class="roles">
+        <?php foreach ($roles as $role): ?>
+        <li><?php echo $role; ?></li>
+        <?php endforeach; ?>
+      </ul>
+      <?php endif; ?>
+    </td>
     <td class="links">
       <?php echo HTML::anchor('users/'.$user->id.'/edit', 'Edit', array('class' => 'link')); ?>
       <?php echo HTML::anchor('users/'.$user->id.'/password', 'Change Password', array('class' => 'link')); ?>

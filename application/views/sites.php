@@ -1,9 +1,9 @@
 <?php $classes[] = 'data'; ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
-    <th>Type</th>
-    <th>Name</th>
-    <th>Operator</th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'type')), 'Type'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'name')), 'Name'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'operator_id')), 'Operator'); ?></th>
     <th class="links"></th>
   </tr>
   <?php foreach ($sites as $site): ?>

@@ -100,7 +100,7 @@ class Controller_Ajax extends Controller {
     $this->response->body($content);
   }
 
-  public function process() {
+  public function action_process() {
     $vars  = explode('-', $this->request->post('id'));
 
     $model = $vars[0];

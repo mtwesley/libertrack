@@ -22,14 +22,22 @@
 
 .toggle-form {
   margin: 5px 0;
-  padding: 4px 4px;
+  padding: 4px 4px 5px;
   border-top: 2px solid #ffb685;
   background-color: #ffd6ba;
   font-weight: bold;
   cursor: pointer;
 }
-.toggle-form:hover {
-  text-decoration: underline;
+
+.toggle-form span {
+  padding: 3px 10px;
+  font-size: 9px;
+  background-color: #ffb685;
+  color: #fff;
+}
+
+.toggle-form span:hover {
+  background-color: #fb984d;
 }
 
 #content form {
@@ -221,6 +229,16 @@
   background-color: #e5dbcc;
 }
 
+#content table.data tr.head a,
+#content table.data tr.head a:visited {
+  color: #333;
+  text-decoration: none;
+}
+
+#content table.data tr.head a:hover {
+  text-decoration: underline;
+}
+
 #content table.data tr:hover,
 #content table.data tr.odd:hover,
 #content table.data tr.even:hover {
@@ -313,3 +331,6 @@
   text-decoration: underline;
 }
 
+ul.roles {
+  padding-left: 18px;
+}

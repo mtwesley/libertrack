@@ -22,6 +22,17 @@ class Controller_Invoices extends Controller {
     $this->response->body($view);
   }
 
+//  public function action_process() {
+//    set_time_limit(0);
+//    foreach (DB::select('id')
+//      ->from('csv')
+//      ->where('status', '!=', 'A')
+//      ->execute() as $id) {
+//      $csv = ORM::factory('CSV', $id);
+//      $csv->process();
+//    }
+//  }
+//
   public function action_st() {
     $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -65,36 +76,49 @@ class Controller_Invoices extends Controller {
         ->execute()
         ->as_array();
 
+      foreach ($data as $item) foreach ($item as $key => $value) {
+        $total[$key] += $value;
+        $total['total'] += $item['volume'] * $item['fob_price'] * SGS::$species_fee_rate[$item['species_class']];
+      }
+
       $site     = ORM::factory('site', $site_id);
       $operator = $site->operator;
 
-      $set = array_slice($data, 0, 9);
+      $first_page_max  = 9;
+      $last_page_max   = 10;
+      $normal_page_max = 13;
 
-      $invoice .= View::factory('invoices/st')
-        ->set('data', $set)
-        ->set('from', $from)
-        ->set('to', $to)
-        ->set('site', $site)
-        ->set('operator', $operator)
-        ->set('options', array(
-          'format' => $format
-        ))
-        ->render();
+      $count = count($data);
+      $page_count = ceil(($count - $first_page_max - $last_page_max) / $normal_page_max) + 2;
 
-      $set = array_slice($data, 9, 9);
+      $cntr = 0;
+      for ($page = 1; $page <= $page_count; $page++) {
+        if ($page == 1) {
+          $max = $first_page_max;
+          $options = array('break' => FALSE, 'info' => TRUE);
+        } else if ($page == $page_count) {
+          $max = $last_page_max;
+          $options = array('total' => TRUE);
+        } else {
+          $max = $normal_page_max;
+        }
 
-      $invoice .= View::factory('invoices/st')
-        ->set('data', $set)
-        ->set('from', $from)
-        ->set('to', $to)
-        ->set('site', $site)
-        ->set('operator', $operator)
-        ->set('options', array(
-          'styles' => FALSE,
-          'info'   => FALSE,
-          'format' => $format
-        ))
-        ->render();
+        $set = array_slice($data, $cntr, $max);
+        $invoice .= View::factory('invoices/st')
+          ->set('data', $set)
+          ->set('from', $from)
+          ->set('to', $to)
+          ->set('site', $site)
+          ->set('operator', $operator)
+          ->set('options', (array) $options)
+          ->set('page', $page)
+          ->set('page_count', $page_count)
+          ->set('total', $total)
+          ->render();
+
+        $cntr += $max;
+      }
+
 
 //array(
 //  'styles' => TRUE,
@@ -106,6 +130,7 @@ class Controller_Invoices extends Controller {
 //);
 
     }
+
 
     if ($form)    $content .= $form;
     if ($invoice) {

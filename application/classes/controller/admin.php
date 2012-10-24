@@ -51,9 +51,10 @@ class Controller_Admin extends Controller {
         'total_items' => $operator->find_all()->count()));
 
       $operators = ORM::factory('operator')
-        ->order_by('name')
         ->offset($pagination->offset)
-        ->limit($pagination->items_per_page)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $operators->order_by($sort);
+      $operators = $operators->order_by('name')
         ->find_all()
         ->as_array();
 
@@ -104,9 +105,10 @@ class Controller_Admin extends Controller {
         'total_items' => $site->find_all()->count()));
 
       $sites = ORM::factory('site')
-        ->order_by('name')
         ->offset($pagination->offset)
-        ->limit($pagination->items_per_page)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $sites->order_by($sort);
+      $sites = $sites->order_by('name')
         ->find_all()
         ->as_array();
 
@@ -158,10 +160,11 @@ class Controller_Admin extends Controller {
         'total_items' => $block->find_all()->count()));
 
       $blocks = ORM::factory('block')
-        ->order_by('site_id')
-        ->order_by('name')
         ->offset($pagination->offset)
-        ->limit($pagination->items_per_page)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $blocks->order_by($sort);
+      $blocks = $blocks->order_by('site_id')
+        ->order_by('name')
         ->find_all()
         ->as_array();
 
@@ -213,9 +216,10 @@ class Controller_Admin extends Controller {
         'total_items' => $species->find_all()->count()));
 
       $speciess = ORM::factory('species')
-        ->order_by('trade_name')
         ->offset($pagination->offset)
-        ->limit($pagination->items_per_page)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $speciess->order_by($sort);
+      $speciess = $speciess->order_by('trade_name')
         ->find_all()
         ->as_array();
 

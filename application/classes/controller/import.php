@@ -25,8 +25,9 @@ class Controller_Import extends Controller {
       $files = ORM::factory('file')
         ->where('operation', '=', 'I')
         ->and_where('id', '=', $id)
-        ->find_all()
-        ->as_array();
+        ->find_all();
+      if ($sort = $this->request->query('sort')) $files->order_by($sort);
+      $files = $files->as_array();
     }
     else {
 
@@ -90,8 +91,9 @@ class Controller_Import extends Controller {
 
         $files = $files
           ->offset($pagination->offset)
-          ->limit($pagination->items_per_page)
-          ->order_by('timestamp', 'desc')
+          ->limit($pagination->items_per_page);
+        if ($sort = $this->request->query('sort')) $files->order_by($sort);
+        $files = $files->order_by('timestamp', 'desc')
           ->find_all()
           ->as_array();
       }
@@ -176,8 +178,9 @@ class Controller_Import extends Controller {
     }
 
     $csvs = $file->csv
-      ->order_by('status')
-      ->order_by('timestamp', 'desc');
+      ->order_by('status');
+    if ($sort = $this->request->query('sort')) $csvs->order_by($sort);
+    $csvs = $csvs->order_by('timestamp', 'desc');
 
     $form = Formo::form()
       ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
@@ -465,7 +468,9 @@ class Controller_Import extends Controller {
 
       $csvs = ORM::factory('csv')
         ->where('operation', '=', 'I')
-        ->and_where('id', '=', $id)
+        ->and_where('id', '=', $id);
+      if ($sort = $this->request->query('sort')) $csvs->order_by($sort);
+      $csvs = $csvs->order_by('timestamp')
         ->find_all()
         ->as_array();
 

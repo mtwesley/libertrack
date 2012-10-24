@@ -1,11 +1,11 @@
 <?php $classes[] = 'data'; ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
-    <th>Code</th>
-    <th>Trade Name</th>
-    <th>Botanic Name</th>
-    <th>Class</th>
-    <th>FOB Price</th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'code')), 'Code'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'trade_name')), 'Trade Name'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'botanic_name')), 'Botanic Name'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'class')), 'Class'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'fob_price')), 'FOB Price'); ?></th>
     <th class="links"></th>
   </tr>
   <?php foreach ($species as $spcs): ?>

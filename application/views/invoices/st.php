@@ -4,8 +4,10 @@ $options = (array) $options + array(
   'styles' => TRUE,
   'header' => TRUE,
   'footer' => TRUE,
-  'info'   => TRUE,
+  'info'   => FALSE,
   'table'  => TRUE,
+  'break'  => TRUE,
+  'total'  => FALSE,
   'format' => 'pdf'
 );
 
@@ -32,11 +34,8 @@ $options = (array) $options + array(
     font-size: 9.5pt;
   }
 
-  .invoice-page {
+  .invoice-page-break {
     page-break-before:  always;
-/*    padding-top: 150px;
-    padding-bottom: 50px;*/
-/*    position: relative;*/
   }
 
   .invoice-header {}
@@ -75,6 +74,15 @@ $options = (array) $options + array(
     padding: 6px 5px;
     background-color: #bfbfbf;
     font-weight: bold;
+  }
+
+  .invoice-data-table tr td.blank {
+    border: none;
+  }
+
+  .invoice-data-table tr td.blank-slim {
+    border: none;
+    font-size: 6px;
   }
 
   .invoice-data-table tr td.quantity,
@@ -166,121 +174,156 @@ $options = (array) $options + array(
 </style>
 <?php endif; ?>
 
-<div class="st-invoice invoice">
-  <div class="invoice-page">
-    <?php if ($options['header']): ?>
-    <div class="invoice-header">
-      <table class="invoice-header-table">
-        <tr>
-          <td class="liberfor-logo"><img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_liberfor.jpg" /></td>
-          <td class="fda-logo"><img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_fda.jpg" /></td>
-        </tr>
-      </table>
-      <div class="invoice-title">Proforma Stumpage Invoice</div>
-      <div class="invoice-subtitle">Request for Payment to the Government of Liberia</div>
-    </div>
-    <?php endif; ?>
-
-    <?php if ($options['info']): ?>
-    <div class="invoice-info">
-      <table class="invoice-info-table">
-        <tr>
-          <td class="label">Owner:</td>
-          <td><?php echo $operator->contact; ?></td>
-          <td class="label">Reference No:</td>
-          <td><?php // echo ($invoice->is_draft ? 'DT-' : 'ST-').$invoice->number; ?></td>
-        </tr>
-        <tr>
-          <td class="label">Company:</td>
-          <td><?php echo $operator->name; ?></td>
-          <td class="label">Created Date:</td>
-          <td><?php // echo $invoice->date; ?></td>
-        </tr>
-        <tr>
-          <td rowspan="3" class="label">Address:</td>
-          <td rowspan="3"><?php echo $operator->address; ?></td>
-          <td class="label">Due Date:</td>
-          <td><?php echo $due_date; ?></td>
-        </tr>
-        <tr>
-          <td class="label from">Logs Declared From:</td>
-          <td><?php if ($from) echo SGS::date($from, SGS::PRETTY_DATE_FORMAT); ?></td>
-        </tr>
-        <tr>
-          <td class="label to">To:</td>
-          <td><?php if ($to) echo SGS::date($to, SGS::PRETTY_DATE_FORMAT); ?></td>
-        </tr>
-        <tr>
-          <td class="label">Telephone:</td>
-          <td><?php echo $operator->phone; ?></td>
-          <td class="label">Site Reference:</td>
-          <td><?php echo $site->type.'/'.$site->name; ?></td>
-        </tr>
-        <tr>
-          <td class="label">E-mail:</td>
-          <td><?php echo $operator->email; ?></td>
-          <td class="label">Payee TIN:</td>
-          <td><?php echo $operator->tin; ?></td>
-        </tr>
-      </table>
-    </div>
-    <?php endif; ?>
-
-    <?php if ($options['table']): ?>
-    <div class="invoice-data">
-      <table class="invoice-data-table">
-        <tr class="head">
-          <td class="quantity">Quantity<br />(m<sup>3</sup>)</td>
-          <td class="species_code">Species</td>
-          <td class="species_class">Species<br />Class</td>
-          <td class="fee_desc">Fee Description</td>
-          <td class="tax_code">Tax Code</td>
-          <td class="fob_price">FOB Price<br />per m<sup>3</sup></td>
-          <td class="total">Total<br />(USD)</td>
-        </tr>
-        <?php foreach ($data as $record): ?>
-        <tr>
-          <td class="quantity" rowspan="2"><?php echo round($record['volume'], 3); ?></td>
-          <td class="species_code" rowspan="2"><?php echo $record['species_code']; ?></td>
-          <td class="species_class" rowspan="2"><?php echo $record['species_class']; ?></td>
-          <td class="fee_desc">
-            Stumpage Fee (GoL share)<br />
-            <em>FDA Regulation 107-7 section 22(b)</em>
-          </td>
-          <td class="tax_code">1415-12</td>
-          <td class="fob_price" rowspan="2"><?php echo $record['fob_price']; ?></td>
-          <td class="total"><?php echo round($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_GOL_RATE, 3); ?></td>
-        </tr>
-        <tr>
-          <td class="fee_desc">
-            Chain of Custody Stumpage Share<br />
-            <em>GoL-SGS contract</em>
-          </td>
-          <td class="tax_code">1415-01</td>
-          <td class="total"><?php echo round($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_SGS_RATE, 3); ?></td>
-        </tr>
-        <?php endforeach; ?>
-      </table>
-    </div>
-    <?php endif; ?>
-
-    <?php if ($options['footer']): ?>
-    <div class="invoice-footer">
-      <table class="invoice-footer-table">
-        <tr>
-          <td class="date"><?php echo SGS::date('now', SGS::PRETTY_DATE_FORMAT); ?></td>
-          <td class="info">
-            <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_liberfor_bw.jpg" /> &nbsp; is operated by &nbsp; <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_fda_small.jpg" /><br />
-            LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
-          </td>
-          <td class="page">
-            <div class="ref">Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <?php // echo ($invoice->is_draft ? 'DT-' : 'ST-').$invoice->number; ?></div>
-            Page <?php echo $page; ?> of <?php echo $page_count; ?>
-          </td>
-        </tr>
-      </table>
-    </div>
-    <?php endif; ?>
+<div class="st-invoice invoice <?php if ($options['break']) echo 'invoice-page-break' ?>">
+  <?php if ($options['header']): ?>
+  <div class="invoice-header">
+    <table class="invoice-header-table">
+      <tr>
+        <td class="liberfor-logo"><img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_liberfor.jpg" /></td>
+        <td class="fda-logo"><img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_fda.jpg" /></td>
+      </tr>
+    </table>
+    <div class="invoice-title">Proforma Stumpage Invoice</div>
+    <div class="invoice-subtitle">Request for Payment to the Government of Liberia</div>
   </div>
+  <?php endif; ?>
+
+  <?php if ($options['info']): ?>
+  <div class="invoice-info">
+    <table class="invoice-info-table">
+      <tr>
+        <td class="label">Owner:</td>
+        <td><?php echo $operator->contact; ?></td>
+        <td class="label">Reference No:</td>
+        <td><?php // echo ($invoice->is_draft ? 'DT-' : 'ST-').$invoice->number; ?></td>
+      </tr>
+      <tr>
+        <td class="label">Company:</td>
+        <td><?php echo $operator->name; ?></td>
+        <td class="label">Created Date:</td>
+        <td><?php // echo $invoice->date; ?></td>
+      </tr>
+      <tr>
+        <td rowspan="3" class="label">Address:</td>
+        <td rowspan="3"><?php echo $operator->address; ?></td>
+        <td class="label">Due Date:</td>
+        <td><?php echo $due_date; ?></td>
+      </tr>
+      <tr>
+        <td class="label from">Logs Declared From:</td>
+        <td><?php if ($from) echo SGS::date($from, SGS::PRETTY_DATE_FORMAT); ?></td>
+      </tr>
+      <tr>
+        <td class="label to">To:</td>
+        <td><?php if ($to) echo SGS::date($to, SGS::PRETTY_DATE_FORMAT); ?></td>
+      </tr>
+      <tr>
+        <td class="label">Telephone:</td>
+        <td><?php echo $operator->phone; ?></td>
+        <td class="label">Site Reference:</td>
+        <td><?php echo $site->type.'/'.$site->name; ?></td>
+      </tr>
+      <tr>
+        <td class="label">E-mail:</td>
+        <td><?php echo $operator->email; ?></td>
+        <td class="label">Payee TIN:</td>
+        <td><?php echo $operator->tin; ?></td>
+      </tr>
+    </table>
+  </div>
+  <?php endif; ?>
+
+  <?php if ($options['table']): ?>
+  <div class="invoice-data">
+    <table class="invoice-data-table">
+      <tr class="head">
+        <td class="quantity">Quantity<br />(m<sup>3</sup>)</td>
+        <td class="species_code">Species</td>
+        <td class="species_class">Species<br />Class</td>
+        <td class="fee_desc">Fee Description</td>
+        <td class="tax_code">Tax Code</td>
+        <td class="fob_price">FOB Price<br />per m<sup>3</sup></td>
+        <td class="total">Total<br />(USD)</td>
+      </tr>
+      <?php foreach ($data as $record): ?>
+      <tr>
+        <td class="quantity" rowspan="2"><?php echo round($record['volume'], 3); ?></td>
+        <td class="species_code" rowspan="2"><?php echo $record['species_code']; ?></td>
+        <td class="species_class" rowspan="2"><?php echo $record['species_class']; ?></td>
+        <td class="fee_desc">
+          Stumpage Fee (GoL share)<br />
+          <em>FDA Regulation 107-7 section 22(b)</em>
+        </td>
+        <td class="tax_code">1415-12</td>
+        <td class="fob_price" rowspan="2"><?php echo $record['fob_price']; ?></td>
+        <td class="total"><?php echo round($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_GOL_RATE, 3); ?></td>
+      </tr>
+      <tr>
+        <td class="fee_desc">
+          Chain of Custody Stumpage Share<br />
+          <em>GoL-SGS contract</em>
+        </td>
+        <td class="tax_code">1415-01</td>
+        <td class="total"><?php echo round($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_SGS_RATE, 3); ?></td>
+      </tr>
+      <?php endforeach; ?>
+      <?php if ($options['total']): ?>
+      <tr>
+        <td colspan="7" class="blank">&nbsp;</td>
+      </tr>
+      <tr class="total head">
+        <td class="quantity">Quantity<br />(m<sup>3</sup>)</td>
+        <td class="desc" colspan="2">Description</td>
+        <td class="fee_desc">Fee Description</td>
+        <td class="tax_code">Tax Code</td>
+        <td class="total" colspan="2">Total<br />(USD)</td>
+      </tr>
+      <tr class="total">
+        <td class="quantity" rowspan="2"><?php echo $total['volume']; ?></td>
+        <td class="desc" colspan="2" rowspan="2">Total</td>
+        <td class="fee_desc">
+          Stumpage Fee (GoL share)<br />
+          <em>FDA Regulation 107-7 section 22(b)</em>
+        </td>
+        <td class="tax_code">1415-12</td>
+        <td class="total" colspan="2"><?php echo round($total['total'] * SGS::FEE_GOL_RATE, 3); ?></td>
+      </tr>
+      <tr class="total">
+        <td class="fee_desc">
+          Chain of Custody Stumpage Share<br />
+          <em>GoL-SGS contract</em>
+        </td>
+        <td class="tax_code">1415-01</td>
+        <td class="total" colspan="2"><?php echo round($total['total'] * SGS::FEE_SGS_RATE, 3); ?></td>
+      </tr>
+      <tr>
+        <td colspan="7" class="blank blank-slim">&nbsp;</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="blank">&nbsp;</td>
+        <td colspan="2"><?php echo $total['total']; ?></td>
+      </tr>
+      <?php endif; ?>
+    </table>
+  </div>
+  <?php endif; ?>
+
+  <?php if ($options['footer']): ?>
+  <div class="invoice-footer">
+    <table class="invoice-footer-table">
+      <tr>
+        <td class="date"><?php echo SGS::date('now', SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td class="info">
+          <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_liberfor_bw.jpg" /> &nbsp; is operated by &nbsp; <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_fda_small.jpg" /><br />
+          LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
+        </td>
+        <td class="page">
+          <div class="ref">Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <?php // echo ($invoice->is_draft ? 'DT-' : 'ST-').$invoice->number; ?></div>
+          Page <?php echo $page; ?> of <?php echo $page_count; ?>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <?php endif; ?>
 </div>
 

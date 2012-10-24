@@ -37,8 +37,10 @@ class Controller_Barcodes extends Controller {
 
         $barcodes = $printjob->barcodes
           ->offset($pagination->offset)
-          ->limit($pagination->items_per_page)
-          ->order_by('timestamp')
+          ->limit($pagination->items_per_page);
+        if ($sort = $this->request->query('sort')) $barcodes->order_by($sort);
+        $barcodes = $barcodes->order_by('printjob_id')
+          ->order_by('barcode')
           ->find_all()
           ->as_array();
 
@@ -91,8 +93,9 @@ class Controller_Barcodes extends Controller {
 
         $printjobs = $printjobs
           ->offset($pagination->offset)
-          ->limit($pagination->items_per_page)
-          ->order_by('number')
+          ->limit($pagination->items_per_page);
+        if ($sort = $this->request->query('sort')) $printjobs->order_by($sort);
+        $printjobs = $printjobs->order_by('number')
           ->find_all()
           ->as_array();
 

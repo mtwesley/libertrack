@@ -1,8 +1,8 @@
 <?php $classes[] = 'data'; ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
-    <th>Name</th>
-    <th>Site</th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'name')), 'Name'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'site_id')), 'Site'); ?></th>
     <th>Operator</th>
     <th class="links"></th>
   </tr>

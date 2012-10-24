@@ -1,12 +1,12 @@
 <?php $classes[] = 'data'; ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
-    <th>TIN</th>
-    <th>Name</th>
-    <th>Contact</th>
-    <th>Address</th>
-    <th>E-mail</th>
-    <th>Phone Number</th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'tin')), 'TIN'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'name')), 'Name'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'contact')), 'Contact'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'address')), 'Address'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'email')), 'E-mail'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'phone')), 'Phone Number'); ?></th>
     <th class="links"></th>
   </tr>
   <?php foreach ($operators as $operator): ?>

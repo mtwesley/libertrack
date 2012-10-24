@@ -5,12 +5,12 @@ $classes[] = 'data';
   <tr class="head">
     <th></th>
     <th></th>
-    <th>Name</th>
-    <th>Size</th>
-    <th>Uploaded</th>
-    <th>Operator</th>
-    <th>Site</th>
-    <th>Block</th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'name')), 'Name'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'size')), 'Size'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'timestamp')), 'Uploaded'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'operator_id')), 'Operator'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'site_id')), 'Site'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'block_id')), 'Block'); ?></th>
 
     <?php if ($mode == 'import'): ?>
     <th>Statistics</th>

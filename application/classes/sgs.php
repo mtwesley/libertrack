@@ -686,7 +686,7 @@ class SGS {
   }
 
   public static function render_form_toggle($title) {
-    return '<div class="toggle-form">'.$title.'</div>';
+    return '<div class="toggle-form"><span>'.$title.'</span></div>';
   }
 
 }
