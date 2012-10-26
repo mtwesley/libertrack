@@ -216,6 +216,10 @@
   margin-bottom: 2px;
 }
 
+#content table.has-actions {
+  margin-top: 2px;
+}
+
 #content table.data tr {}
 
 #content table.data tr,
@@ -331,6 +335,34 @@
   text-decoration: underline;
 }
 
+#content table.data-header {
+  margin: 5px 0;
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #bcc6aa;
+}
+
+#content table.data-header tr {
+  background-color: #ecefe7;
+}
+
+#content table.data-header td {
+  padding: 2px 4px;
+  text-align: left;
+  height: 18px;
+}
+
+#content table.data-header td.label {
+  padding-right: 10px;
+  width: 125px;
+  font-weight: bold;
+  text-align: right;
+}
+
 ul.roles {
   padding-left: 18px;
+}
+
+.action-bar {
+  background-color: #d9c7ad;
 }

@@ -30,7 +30,7 @@ $classes[] = 'data';
           case 'operator_id': echo $record->operator->name; break;
           case 'site_id': echo $record->site->name; break;
           case 'block_id': echo $record->block->name; break;
-          case 'species_id': echo $record->species->code.' / '.$record->species->trade_name; break;
+          case 'species_id': echo $record->species->code; break;
 
           case 'barcode_id':
           case 'tree_barcode_id':

@@ -214,11 +214,19 @@ class Controller_Import extends Controller {
         ->find_all()
         ->as_array();
 
+      $first = reset($csvs);
+      $create_date = $first->values['create_date'];
+
       $table = View::factory('csvs')
         ->set('classes', array('has-pagination'))
         ->set('mode', 'import')
         ->set('csvs', $csvs)
         ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
+        ->set('operator', $file->operator)
+        ->set('site', $file->site)
+        ->set('block', $file->block->loaded() ? $file->block : NULL)
+        ->set('create_date', $create_date)
+        ->set('options', array('header' => TRUE))
         ->render();
       if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
       elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
@@ -234,6 +242,7 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_download($id = NULL) {
+    set_time_limit(0);
     if (!$id) $id = $this->request->param('id');
 
     $file = ORM::factory('file', $id);

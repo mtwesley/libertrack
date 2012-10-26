@@ -59,8 +59,8 @@ class SGS {
 
     'analysis'        => 'Analysis',
     'analysis/ssf'    => 'Stock Survey Data',
-    'analysis/tdf'    => 'Tree Data Data',
-    'analysis/ldf'    => 'Log Data Data',
+    'analysis/tdf'    => 'Tree Data',
+    'analysis/ldf'    => 'Log Data',
 
     'checks'          => 'Run Checks and Queries',
 

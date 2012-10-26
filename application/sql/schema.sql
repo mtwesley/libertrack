@@ -303,24 +303,6 @@ create table csv_duplicates (
   constraint csv_duplicates_check check (csv_id < duplicate_csv_id)
 );
 
-create table invoices (
-  id bigserial not null,
-  site_id d_id not null,
-  reference_number d_positive_int unique not null,
-  is_draft d_bool default true not null,
-  from_date d_date not null,
-  to_date d_date not null,
-  created_date d_date not null,
-  due_date d_date not null,
-  file_id d_id unique not null,
-  user_id d_id default 1 not null,
-  timestamp d_timestamp default current_timestamp not null,
-
-  constraint invoices_pkey primary key (id),
-  constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
-  constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade
-);
-
 create table ssf_data (
   id bigserial not null,
   site_id d_id not null,
@@ -501,6 +483,40 @@ create table epr_data (
   constraint epr_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint epr_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint epr_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
+);
+
+create table invoices (
+  id bigserial not null,
+  type d_invoice_type not null,
+  site_id d_id not null,
+  reference_number d_positive_int unique not null,
+  is_draft d_bool default true not null,
+  from_date d_date not null,
+  to_date d_date not null,
+  created_date d_date not null,
+  due_date d_date not null,
+  file_id d_id unique not null,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint invoices_pkey primary key (id),
+  constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
+  constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade
+);
+
+create table invoice_data (
+  id bigserial not null,
+  form_type d_form_type not null,
+  form_data_id d_id not null,
+  invoice_id d_id not null,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint invoice_data_pkey primary key (id),
+  constraint invoice_data_invoice_id foreign key (invoice_id) references invoices (id) on update cascade,
+  constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table errors (

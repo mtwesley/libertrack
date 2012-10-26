@@ -1,29 +1,72 @@
 <?php
 
-$classes[] = 'data';
-
 $options = (array) $options + array(
   'table'   => TRUE,
   'rows'    => TRUE,
   'details' => TRUE,
-  'header'  => ($operator or $site or $block) ? TRUE : FALSE
+  'actions' => TRUE,
+  'resolve' => FALSE,
+  'header'  => FALSE,
 );
 
 $header_columns = 0;
+
+if ($options['actions']) $classes[] = 'has-actions';
 
 ?>
 <?php if ($title): ?>
 <p><strong><?php echo $title; ?>:</strong></p>
 <?php endif; ?>
 
+<?php if ($options['header']): ?>
+<table class="data-header">
+  <tr>
+    <td class="label">Operator:</td>
+    <td><?php if ($operator) echo $operator->name; ?> (<?php echo $operator->tin; ?>)</td>
+    <td class="label"><?php echo $fields['create_date']; ?>:</td>
+    <td><?php if ($create_date) echo $create_date; ?></td>
+  </tr>
+  <tr>
+    <td class="label">TIN:</td>
+    <td><?php if ($operator) echo $operator->tin; ?></td>
+    <td class="label"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td class="label">Site:</td>
+    <td><?php if ($site) echo $site->name; ?></td>
+    <td class="label"></td>
+    <td></td>
+  </tr>
+  <?php if ($block): ?>
+  <tr>
+    <td class="label">Block:</td>
+    <td><?php echo $block->name; ?></td>
+    <td class="label"></td>
+    <td></td>
+  </tr>
+  <?php endif; ?>
+</table>
+<?php endif; ?>
+
+<?php if ($options['actions']): ?>
+<div class="action-bar">
+
+</div>
+<?php endif; ?>
+
 <?php if ($options['table']): ?>
-<table class="<?php echo SGS::render_classes($classes); ?>">
+<table class="data <?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
+    <?php if ($options['actions']): ?>
+    <th><input type="checkbox" name="action-all" value="" /></th>
+    <?php $header_columns++; ?>
+    <?php endif; ?>
     <th></th>
     <th></th>
     <?php foreach ($fields as $field => $name): ?>
     <?php
-      if ($options['header']) switch ($field):
+      if ($options['header'] or $options['hide_header_info']) switch ($field):
         case 'create_date':
         case 'operator_tin':
         case 'operator_id':
@@ -44,6 +87,9 @@ $header_columns = 0;
   <?php if ($options['rows']): ?>
   <?php $errors = $csv->get_errors(); ?>
   <tr id="csv-<?php echo $csv->id; ?>" class="<?php print SGS::odd_even($odd); ?>">
+    <?php if ($options['actions']): ?>
+    <td><input type="checkbox" name="action" value="<?php echo $csv->id; ?>" /></td>
+    <?php endif; ?>
     <td><span class="data-type"><?php echo $csv->form_type; ?></span></td>
     <td>
       <?php
@@ -57,7 +103,7 @@ $header_columns = 0;
     </td>
     <?php foreach ($fields as $field => $name): ?>
     <?php
-      if ($options['header']) switch ($field):
+      if ($options['header'] or $options['hide_header_info']) switch ($field):
         case 'create_date':
         case 'operator_tin':
         case 'operator_id':
@@ -74,6 +120,9 @@ $header_columns = 0;
     </td>
     <?php endforeach; ?>
     <td class="links">
+      <?php if ($options['resolve']): ?>
+
+      <?php else: ?>
       <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
 
       <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
@@ -83,12 +132,14 @@ $header_columns = 0;
       <?php if ($mode == 'import') echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
 
       <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R'))): ?>
-      <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span>
-      <?php // echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?>
+      <!-- <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span> -->
+      <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?>
       <?php endif; ?>
 
-      <?php if ($errors): ?>
+      <?php if ($options['details'] and $errors): ?>
       <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Errors</span>
+      <?php endif; ?>
+
       <?php endif; ?>
     </td>
   </tr>

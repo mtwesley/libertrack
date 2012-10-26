@@ -65,6 +65,7 @@ class Controller_Ajax extends Controller {
       ->set('options', array(
         'table'   => FALSE,
         'details' => FALSE,
+        'actions' => FALSE,
         'header'  => FALSE
       ))
       ->render());
@@ -84,6 +85,7 @@ class Controller_Ajax extends Controller {
 
     $tips = array_filter(array($field => SGS::decode_tip($field, $error)));
     $suggestions = array_filter($model->make_suggestions($csv->values, array($field => $error)));
+//    $resolutions = array_filter($model->resolve_duplicates)
 
     $content .= View::factory('tips')
       ->set('tips', $tips)
@@ -96,6 +98,8 @@ class Controller_Ajax extends Controller {
       ->set('csv', $csv)
       ->set('fields', $fields)
       ->render();
+
+    $content .= View::factory('resolutions');
 
     $this->response->body($content);
   }

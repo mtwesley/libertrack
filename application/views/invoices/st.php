@@ -1,14 +1,15 @@
 <?php
 
 $options = (array) $options + array(
-  'styles' => TRUE,
-  'header' => TRUE,
-  'footer' => TRUE,
-  'info'   => FALSE,
-  'table'  => TRUE,
-  'break'  => TRUE,
-  'total'  => FALSE,
-  'format' => 'pdf'
+  'header'    => TRUE,
+  'footer'    => TRUE,
+  'break'     => TRUE,
+  'styles'    => FALSE,
+  'info'      => FALSE,
+  'summary'   => FALSE,
+  'signature' => FALSE,
+  'total'     => FALSE,
+  'format'    => 'pdf'
 );
 
 ?>
@@ -19,6 +20,10 @@ $options = (array) $options + array(
     margin-top: 20px;
     margin-left: 25px;
 
+  }
+
+  table tr td.blank {
+    border: none;
   }
 
   .liberfor-logo {
@@ -35,7 +40,7 @@ $options = (array) $options + array(
   }
 
   .invoice-page-break {
-    page-break-before:  always;
+    page-break-before: always;
   }
 
   .invoice-header {}
@@ -49,11 +54,13 @@ $options = (array) $options + array(
   .invoice-header,
   .invoice-footer,
   .invoice-info,
-  .invoice-data {
+  .invoice-summary {
     width: 100%;
   }
 
-  .invoice-data-table,
+  .invoice-summary-table,
+  .invoice-details-table,
+  .invoice-signature-table,
   .invoice-info-table,
   .invoice-header-table,
   .invoice-footer-table {
@@ -61,46 +68,79 @@ $options = (array) $options + array(
     border-collapse: collapse;
   }
 
-  .invoice-data-table {
-    border-collapse: collapse;
-  }
-
-  .invoice-data-table tr td {
+  .invoice-summary-table tr td,
+  .invoice-details-table tr td {
     padding: 2px 5px;
     border: 1px solid #000;
   }
 
-  .invoice-data-table tr.head td {
+  .invoice-summary-table tr.head td,
+  .invoice-details-table tr.head td {
     padding: 6px 5px;
     background-color: #bfbfbf;
     font-weight: bold;
   }
 
-  .invoice-data-table tr td.blank {
-    border: none;
-  }
-
-  .invoice-data-table tr td.blank-slim {
+  .invoice-summary-table tr td.blank-slim {
     border: none;
     font-size: 6px;
   }
 
-  .invoice-data-table tr td.quantity,
-  .invoice-data-table tr td.species_code,
-  .invoice-data-table tr td.species_class,
-  .invoice-data-table tr td.fob_price,
-  .invoice-data-table tr td.tax_code,
-  .invoice-data-table tr td.total {
+  .invoice-summary-table tr td.quantity,
+  .invoice-summary-table tr td.species_code,
+  .invoice-summary-table tr td.species_class,
+  .invoice-summary-table tr td.fob_price,
+  .invoice-summary-table tr td.tax_code,
+  .invoice-summary-table tr td.total {
     text-align: center;
   }
 
-  .invoice-data-table tr td.fee_desc {
+  .invoice-summary-table tr td.fee_desc {
     font-size: 8pt;
     white-space: nowrap;
   }
 
-  .invoice-data-table tr.head td.fee_desc {
+  .invoice-summary-table tr.head td.fee_desc {
     font-size: 10pt;
+  }
+
+  .invoice-details-table tr td.barcode,
+  .invoice-details-table tr td.scan_date,
+  .invoice-details-table tr td.volume,
+  .invoice-details-table tr td.species_code,
+  .invoice-details-table tr td.species_class,
+  .invoice-details-table tr td.diameter,
+  .invoice-details-table tr td.length,
+  .invoice-details-table tr td.total {
+    text-align: center;
+  }
+
+  .invoice-details-table tr td.total_volume {
+    border-left: none;
+    text-align: center;
+  }
+
+  .invoice-details-table tr td.total_species {
+    border-right: none;
+  }
+
+  .invoice-details-table tr.even {
+    background-color: #f8f8f8;
+  }
+
+  .invoice-signature-table tr td {
+    padding: 5px;
+    border: 1px solid #000;
+  }
+
+  .invoice-signature-table tr td.signature {
+    width: 24%;
+    height: 150px;
+    vertical-align: top;
+  }
+
+  .invoice-signature-table tr td.half-signature {
+    height: 75px;
   }
 
   .invoice-info-table {
@@ -155,9 +195,7 @@ $options = (array) $options + array(
     font-size: 8pt;
   }
 
-  .invoice-titles {
-
-  }
+  .invoice-titles {}
 
   .invoice-title {
     margin: 7px 0 15px;
@@ -169,6 +207,15 @@ $options = (array) $options + array(
     margin-bottom: 25px;
     text-align: center;
     text-transform: uppercase;
+  }
+
+  .payment-message {
+    margin: -5px auto 15px;
+    padding: 5px 10px;
+    width: 75%;
+    font-style: italic;
+    text-align: center;
+    border: 1px solid #000;
   }
 
 </style>
@@ -233,9 +280,9 @@ $options = (array) $options + array(
   </div>
   <?php endif; ?>
 
-  <?php if ($options['table']): ?>
-  <div class="invoice-data">
-    <table class="invoice-data-table">
+  <?php if ($options['summary']): ?>
+  <div class="invoice-summary">
+    <table class="invoice-summary-table">
       <tr class="head">
         <td class="quantity">Quantity<br />(m<sup>3</sup>)</td>
         <td class="species_code">Species</td>
@@ -267,7 +314,7 @@ $options = (array) $options + array(
         <td class="total"><?php echo round($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_SGS_RATE, 3); ?></td>
       </tr>
       <?php endforeach; ?>
-      <?php if ($options['total']): ?>
+      <?php if ($options['total']['summary']): ?>
       <tr>
         <td colspan="7" class="blank">&nbsp;</td>
       </tr>
@@ -286,7 +333,7 @@ $options = (array) $options + array(
           <em>FDA Regulation 107-7 section 22(b)</em>
         </td>
         <td class="tax_code">1415-12</td>
-        <td class="total" colspan="2"><?php echo round($total['total'] * SGS::FEE_GOL_RATE, 3); ?></td>
+        <td class="total" colspan="2"><?php echo round($total['total']['summary'] * SGS::FEE_GOL_RATE, 3); ?></td>
       </tr>
       <tr class="total">
         <td class="fee_desc">
@@ -294,18 +341,78 @@ $options = (array) $options + array(
           <em>GoL-SGS contract</em>
         </td>
         <td class="tax_code">1415-01</td>
-        <td class="total" colspan="2"><?php echo round($total['total'] * SGS::FEE_SGS_RATE, 3); ?></td>
+        <td class="total" colspan="2"><?php echo round($total['total']['summary'] * SGS::FEE_SGS_RATE, 3); ?></td>
       </tr>
       <tr>
         <td colspan="7" class="blank blank-slim">&nbsp;</td>
       </tr>
       <tr>
         <td colspan="5" class="blank">&nbsp;</td>
-        <td colspan="2"><?php echo $total['total']; ?></td>
+        <td class="total" colspan="2"><?php echo $total['total']['summary']; ?></td>
       </tr>
       <?php endif; ?>
     </table>
   </div>
+  <?php endif; ?>
+
+  <?php if ($options['details']): ?>
+  <div class="invoice-details">
+    <table class="invoice-details-table">
+      <tr class="head">
+        <td class="barcode">Barcode</td>
+        <td class="scan_date">Scan Date</td>
+        <td class="species_code">Species</td>
+        <td class="species_class">Species<br />Class</td>
+        <td class="diameter">Average<br />Diameter<br />(cm)</td>
+        <td class="length">Length<br />(m)</td>
+        <td class="volume">Volume<br />(m<sup>3</sup>)</td>
+      </tr>
+      <?php foreach ($data as $record): ?>
+      <tr class="<?php print SGS::odd_even($odd); ?>">
+        <td class="barcode"><?php echo $record['barcode']; ?></td>
+        <td class="scan_date"><?php echo $record['scan_date']; ?></td>
+        <td class="species_code"><?php echo $record['species_code']; ?></td>
+        <td class="species_class"><?php echo $record['species_class']; ?></td>
+        <td class="diameter"><?php echo $record['diameter']; ?></td>
+        <td class="length"><?php echo $record['length']; ?></td>
+        <td class="volume"><?php echo $record['volume']; ?></td>
+      </tr>
+      <?php endforeach; ?>
+      <?php if ($options['total']): ?>
+      <tr>
+        <td class="total_species" colspan="6"><strong>Total:</strong> <?php echo $record['species_botanic_name']; ?></td>
+        <td class="total_volume"><?php echo $total['details'][$record['species_code']]['volume']; ?></td>
+      </tr>
+      <?php endif; ?>
+    </table>
+  </div>
+  <?php endif; ?>
+
+  <?php if ($options['signature']): ?>
+  <div class="payment-message">
+    Payments shall be made by Manager's Check to the order of the<br />
+    'General Revenue Account' delivered to SGS Liberia Inc. before the due date
+  </div>
+  <table class="invoice-signature-table">
+    <tr>
+      <td class="blank">&nbsp;</td>
+      <td class="blank">&nbsp;</td>
+      <td class="blank" colspan="3">For SGS internal use only</td>
+    </tr>
+    <tr>
+      <td class="signature half-signature">Authorized Signature</td>
+      <td class="blank" rowspan="2"></td>
+      <td class="signature" rowspan="2">Invoice Registered</td>
+      <td class="signature" rowspan="2">Payment Done</td>
+      <td class="signature" rowspan="2">Payment Registered</td>
+    </tr>
+    <tr>
+      <td class="signature half-signature">Reviewed Signature</td>
+    </tr>
+    <div class="payment-date">
+      <br />Date: _______________________________________
+    </div>
+  </table>
   <?php endif; ?>
 
   <?php if ($options['footer']): ?>
