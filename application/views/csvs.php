@@ -51,7 +51,11 @@ if ($options['actions']) $classes[] = 'has-actions';
 
 <?php if ($options['actions']): ?>
 <div class="action-bar">
-
+  <?php if ($total_items): ?>
+  <!-- <span class="link">Select All</span>
+  <span class="link">De-select All</span>
+  (<?php echo $total_items; ?> records) -->
+  <?php endif; ?>
 </div>
 <?php endif; ?>
 
@@ -59,11 +63,10 @@ if ($options['actions']) $classes[] = 'has-actions';
 <table class="data <?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <?php if ($options['actions']): ?>
-    <th><input type="checkbox" name="action-all" value="" /></th>
-    <?php $header_columns++; ?>
+    <th class="checkbox"><input type="checkbox" name="action-all" value="" /></th>
     <?php endif; ?>
-    <th></th>
-    <th></th>
+    <th class="type"></th>
+    <th class="status"></th>
     <?php foreach ($fields as $field => $name): ?>
     <?php
       if ($options['header'] or $options['hide_header_info']) switch ($field):
@@ -88,10 +91,10 @@ if ($options['actions']) $classes[] = 'has-actions';
   <?php $errors = $csv->get_errors(); ?>
   <tr id="csv-<?php echo $csv->id; ?>" class="<?php print SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
-    <td><input type="checkbox" name="action" value="<?php echo $csv->id; ?>" /></td>
+    <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $csv->id; ?>" /></td>
     <?php endif; ?>
-    <td><span class="data-type"><?php echo $csv->form_type; ?></span></td>
-    <td>
+    <td class="type"><span class="data-type"><?php echo $csv->form_type; ?></span></td>
+    <td class="status">
       <?php
         switch ($csv->status):
           case 'P': echo HTML::image('images/flag_yellow.png', array('class' => 'status pending', 'title' => 'Pending')); break;
@@ -147,7 +150,7 @@ if ($options['actions']) $classes[] = 'has-actions';
   <?php if ($options['details']): ?>
   <?php if ($csv->get_errors()): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td class="loading" colspan="<?php echo (count($fields) + 3 - $header_columns); ?>"></td>
+    <td class="loading" colspan="<?php echo (count($fields) + 4 - $header_columns); ?>"></td>
   </tr>
   <?php endif; // get_errors ?>
   <?php endif; // details ?>

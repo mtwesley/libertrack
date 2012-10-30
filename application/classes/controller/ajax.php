@@ -99,7 +99,7 @@ class Controller_Ajax extends Controller {
       ->set('fields', $fields)
       ->render();
 
-    $content .= View::factory('resolutions');
+//    $content .= View::factory('resolutions');
 
     $this->response->body($content);
   }
