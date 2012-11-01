@@ -18,7 +18,7 @@ class Controller_Export extends Controller {
   private function handle_file_list() {
     $files = ORM::factory('file')
       ->where('operation', '=', 'E')
-      ->order_by('timestamp', 'desc')
+      ->order_by('timestamp', 'DESC')
       ->find_all()
       ->as_array();
 
@@ -86,7 +86,7 @@ class Controller_Export extends Controller {
           ->where('operation', '=', 'E')
           ->and_where('form_type', '=', $form_type)
           ->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to))
-          ->order_by('timestamp', 'desc')
+          ->order_by('timestamp', 'DESC')
           ->find_all()
           ->as_array();
 

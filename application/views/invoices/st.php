@@ -86,7 +86,7 @@ $options = (array) $options + array(
     font-size: 6px;
   }
 
-  .invoice-summary-table tr td.quantity,
+  .invoice-summary-table tr td.volume,
   .invoice-summary-table tr td.species_code,
   .invoice-summary-table tr td.species_class,
   .invoice-summary-table tr td.fob_price,
@@ -125,7 +125,7 @@ $options = (array) $options + array(
   }
 
   .invoice-details-table tr.even {
-    background-color: #f8f8f8;
+    background-color: #f2f2f2;
   }
 
   .invoice-signature-table tr td {
@@ -240,29 +240,29 @@ $options = (array) $options + array(
     <table class="invoice-info-table">
       <tr>
         <td class="label">Owner:</td>
-        <td><?php echo $operator->contact; ?></td>
+        <td><?php echo $invoice->site->operator->contact; ?></td>
         <td class="label">Reference No:</td>
-        <td><?php // echo ($invoice->is_draft ? 'DT-' : 'ST-').$invoice->number; ?></td>
+        <td><?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->reference_number; ?></td>
       </tr>
       <tr>
         <td class="label">Company:</td>
-        <td><?php echo $operator->name; ?></td>
-        <td class="label">Created Date:</td>
-        <td><?php // echo $invoice->date; ?></td>
+        <td><?php echo $invoice->site->operator->name; ?></td>
+        <td class="label">Date Created:</td>
+        <td><?php echo $invoice->created_date; ?></td>
       </tr>
       <tr>
         <td rowspan="3" class="label">Address:</td>
-        <td rowspan="3"><?php echo $operator->address; ?></td>
-        <td class="label">Due Date:</td>
-        <td><?php echo $due_date; ?></td>
+        <td rowspan="3"><?php echo $invoice->site->operator->address; ?></td>
+        <td class="label">Date Due:</td>
+        <td><?php echo SGS::date($invoice->due_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
         <td class="label from">Logs Declared From:</td>
-        <td><?php if ($from) echo SGS::date($from, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td><?php echo SGS::date($invoice->from_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
         <td class="label to">To:</td>
-        <td><?php if ($to) echo SGS::date($to, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td><?php echo SGS::date($invoice->to_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
         <td class="label">Telephone:</td>
@@ -283,8 +283,9 @@ $options = (array) $options + array(
   <?php if ($options['summary']): ?>
   <div class="invoice-summary">
     <table class="invoice-summary-table">
+      <?php if ($data): ?>
       <tr class="head">
-        <td class="quantity">Quantity<br />(m<sup>3</sup>)</td>
+        <td class="volume">Volume<br />(m<sup>3</sup>)</td>
         <td class="species_code">Species</td>
         <td class="species_class">Species<br />Class</td>
         <td class="fee_desc">Fee Description</td>
@@ -294,7 +295,7 @@ $options = (array) $options + array(
       </tr>
       <?php foreach ($data as $record): ?>
       <tr>
-        <td class="quantity" rowspan="2"><?php echo round($record['volume'], 3); ?></td>
+        <td class="volume" rowspan="2"><?php echo round($record['volume'], 3); ?></td>
         <td class="species_code" rowspan="2"><?php echo $record['species_code']; ?></td>
         <td class="species_class" rowspan="2"><?php echo $record['species_class']; ?></td>
         <td class="fee_desc">
@@ -314,26 +315,27 @@ $options = (array) $options + array(
         <td class="total"><?php echo round($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_SGS_RATE, 3); ?></td>
       </tr>
       <?php endforeach; ?>
-      <?php if ($options['total']['summary']): ?>
+      <?php endif; ?>
+      <?php if ($options['total']): ?>
       <tr>
         <td colspan="7" class="blank">&nbsp;</td>
       </tr>
       <tr class="total head">
-        <td class="quantity">Quantity<br />(m<sup>3</sup>)</td>
+        <td class="volume">Volume<br />(m<sup>3</sup>)</td>
         <td class="desc" colspan="2">Description</td>
         <td class="fee_desc">Fee Description</td>
         <td class="tax_code">Tax Code</td>
         <td class="total" colspan="2">Total<br />(USD)</td>
       </tr>
       <tr class="total">
-        <td class="quantity" rowspan="2"><?php echo $total['volume']; ?></td>
+        <td class="volume" rowspan="2"><?php echo $total['summary']['volume']; ?></td>
         <td class="desc" colspan="2" rowspan="2">Total</td>
         <td class="fee_desc">
           Stumpage Fee (GoL share)<br />
           <em>FDA Regulation 107-7 section 22(b)</em>
         </td>
         <td class="tax_code">1415-12</td>
-        <td class="total" colspan="2"><?php echo round($total['total']['summary'] * SGS::FEE_GOL_RATE, 3); ?></td>
+        <td class="total" colspan="2"><?php echo round($total['summary']['total'] * SGS::FEE_GOL_RATE, 3); ?></td>
       </tr>
       <tr class="total">
         <td class="fee_desc">
@@ -341,14 +343,14 @@ $options = (array) $options + array(
           <em>GoL-SGS contract</em>
         </td>
         <td class="tax_code">1415-01</td>
-        <td class="total" colspan="2"><?php echo round($total['total']['summary'] * SGS::FEE_SGS_RATE, 3); ?></td>
+        <td class="total" colspan="2"><?php echo round($total['summary']['total'] * SGS::FEE_SGS_RATE, 3); ?></td>
       </tr>
       <tr>
         <td colspan="7" class="blank blank-slim">&nbsp;</td>
       </tr>
       <tr>
         <td colspan="5" class="blank">&nbsp;</td>
-        <td class="total" colspan="2"><?php echo $total['total']['summary']; ?></td>
+        <td class="total" colspan="2"><?php echo $total['summary']['total']; ?></td>
       </tr>
       <?php endif; ?>
     </table>
@@ -358,6 +360,7 @@ $options = (array) $options + array(
   <?php if ($options['details']): ?>
   <div class="invoice-details">
     <table class="invoice-details-table">
+      <?php if ($data): ?>
       <tr class="head">
         <td class="barcode">Barcode</td>
         <td class="scan_date">Scan Date</td>
@@ -378,6 +381,7 @@ $options = (array) $options + array(
         <td class="volume"><?php echo $record['volume']; ?></td>
       </tr>
       <?php endforeach; ?>
+      <?php endif; ?>
       <?php if ($options['total']): ?>
       <tr>
         <td class="total_species" colspan="6"><strong>Total:</strong> <?php echo $record['species_botanic_name']; ?></td>
@@ -419,13 +423,13 @@ $options = (array) $options + array(
   <div class="invoice-footer">
     <table class="invoice-footer-table">
       <tr>
-        <td class="date"><?php echo SGS::date('now', SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td class="date"><?php echo SGS::date($invoice->created_date, SGS::PRETTY_DATE_FORMAT); ?></td>
         <td class="info">
           <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_liberfor_bw.jpg" /> &nbsp; is operated by &nbsp; <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_fda_small.jpg" /><br />
           LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
         </td>
         <td class="page">
-          <div class="ref">Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <?php // echo ($invoice->is_draft ? 'DT-' : 'ST-').$invoice->number; ?></div>
+          <div class="ref">Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->reference_number; ?></div>
           Page <?php echo $page; ?> of <?php echo $page_count; ?>
         </td>
       </tr>

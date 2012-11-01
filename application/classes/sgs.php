@@ -65,7 +65,7 @@ class SGS {
     'checks'          => 'Run Checks and Queries',
 
     'invoices'        => 'Invoices',
-    'invoices/st'     => 'Stumpage Invoice',
+    'invoices/create' => 'Create New Invoice',
 
     'reports'         => 'Reports',
     'reports/ssf'     => 'Stock Survey Reports',
@@ -264,6 +264,10 @@ class SGS {
     'R' => 'Sawnmill Timber'
   );
 
+  public static $invoice_type = array(
+    'ST' => 'Stumpage Invoice'
+  );
+
   public static $csv_status = array(
     'P' => 'Pending',
     'A' => 'Accepted',
@@ -283,6 +287,8 @@ class SGS {
     'P' => 'Pending',
     'I' => 'In Progress',
     'H' => 'On Hold',
+    'T' => 'Stumpage Invoiced',
+    'X' => 'Export Fee Invoiced',
     'E' => 'Exported',
     'S' => 'Short-Shipped',
     'Y' => 'Sold Locally',
@@ -519,7 +525,7 @@ class SGS {
     }
   }
 
-  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 15, $offset = 0)
+  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 16, $offset = 0)
   {
     $table  = 'barcodes';
     $model  = 'barcode';
@@ -653,8 +659,6 @@ class SGS {
   {
     $matches = array();
     preg_match('/(\d{1,2})[\-\/](\d{1,2})[\-\/](\d{2,4})/', $string, $matches);
-
-    print_r(Debug::vars(get_defined_vars()));
 
     if (!($matches[1] and $matches[2] and $matches[3])) return FALSE;
 

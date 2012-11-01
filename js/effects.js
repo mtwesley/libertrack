@@ -107,7 +107,11 @@ function update_csv(id) {
   $("#csv-"+id).attr("id", "csv-"+id+"-deleted");
   $.post(
     "/ajax/update",
-    {id: id},
+    {
+      id: id,
+      actions: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
+      header: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0
+    },
     function(data) {
       $("#csv-"+id+"-deleted").replaceWith(data);
       $("#csv-"+id+" .csv-eip").editable("/ajax/csv", editableOptions);

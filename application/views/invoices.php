@@ -1,11 +1,22 @@
+  type d_invoice_type not null,
+  site_id d_id not null,
+  reference_number d_positive_int unique,
+  is_draft d_bool default true not null,
+  from_date d_date not null,
+  to_date d_date not null,
+  created_date d_date not null,
+  due_date d_date not null,
+
 <?php $classes[] = 'data'; ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <th></th>
-    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'username')), 'Username'); ?></th>
-    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'name')), 'Name'); ?></th>
-    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'email')), 'E-mail'); ?></th>
-    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'last_timestamp')), 'Last Login'); ?></th>
+    <th></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'reference_number')), 'Reference Number'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'from_date')), 'From'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'to_date')), 'To'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'created_date')), 'Date Created'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'due_date')), 'Date Due'); ?></th>
     <th>Total Logins</th>
     <th>Currently Logged In</th>
     <th>Last Activity</th>
@@ -33,7 +44,6 @@
     $last_activity = SGS::datetime($activity['to_timestamp']);
   ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
-    <td><?php echo HTML::image('images/flag_yellow.png', array('class' => 'status pending', 'title' => 'Pending')); ?></td>
     <td><?php echo $user->username; ?></td>
     <td><?php echo $user->name; ?></td>
     <td><?php echo $user->email; ?></td>

@@ -4,14 +4,16 @@ $options = (array) $options + array(
   'table'   => TRUE,
   'rows'    => TRUE,
   'details' => TRUE,
-  'actions' => TRUE,
+  'actions' => FALSE,
   'resolve' => FALSE,
   'header'  => FALSE,
 );
 
 $header_columns = 0;
+$additional_columns = 3;
 
 if ($options['actions']) $classes[] = 'has-actions';
+if ($options['header'])  $classes[] = 'has-header';
 
 ?>
 <?php if ($title): ?>
@@ -22,7 +24,7 @@ if ($options['actions']) $classes[] = 'has-actions';
 <table class="data-header">
   <tr>
     <td class="label">Operator:</td>
-    <td><?php if ($operator) echo $operator->name; ?> (<?php echo $operator->tin; ?>)</td>
+    <td><?php if ($operator) echo $operator->name; ?></td>
     <td class="label"><?php echo $fields['create_date']; ?>:</td>
     <td><?php if ($create_date) echo $create_date; ?></td>
   </tr>
@@ -50,6 +52,7 @@ if ($options['actions']) $classes[] = 'has-actions';
 <?php endif; ?>
 
 <?php if ($options['actions']): ?>
+<?php $additional_columns++; ?>
 <div class="action-bar">
   <?php if ($total_items): ?>
   <!-- <span class="link">Select All</span>
@@ -139,7 +142,7 @@ if ($options['actions']) $classes[] = 'has-actions';
       <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?>
       <?php endif; ?>
 
-      <?php if ($options['details'] and $errors): ?>
+      <?php if ($errors): ?>
       <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Errors</span>
       <?php endif; ?>
 
@@ -150,7 +153,7 @@ if ($options['actions']) $classes[] = 'has-actions';
   <?php if ($options['details']): ?>
   <?php if ($csv->get_errors()): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td class="loading" colspan="<?php echo (count($fields) + 4 - $header_columns); ?>"></td>
+    <td class="loading" colspan="<?php echo (count($fields) + $additional_columns - $header_columns); ?>"></td>
   </tr>
   <?php endif; // get_errors ?>
   <?php endif; // details ?>

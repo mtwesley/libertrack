@@ -500,16 +500,6 @@ class Model_TDF extends SGS_Form_ORM {
     );
   }
 
-  public function set($column, $value) {
-    switch ($column) {
-      case 'errors':
-        if ($value) $value = is_string($value) ? $value : serialize($value);
-        else $value = NULL;
-      default:
-        parent::set($column, $value);
-    }
-  }
-
   public function __get($column) {
     switch ($column) {
       case 'errors':

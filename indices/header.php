@@ -389,7 +389,7 @@ $path = array_filter(explode('/', $uri));
                           <?php foreach ($path as $item): ?>
                           <?php $link .= '/'.$item;?>
                           <li class="<?php if ($item == $path[count($path)]) echo 'active'; ?>">
-                            <a href="<?php echo $link; ?>"><?php echo in_array($item, array('documents', 'import', 'export')) ? ucwords($item) : $item; ?></a>
+                            <a href="<?php echo $link; ?>"><?php echo in_array($item, array('documents', 'import', 'export', 'invoices')) ? ucwords($item) : $item; ?></a>
                           </li>
                           <?php endforeach; ?>
                         </ul>

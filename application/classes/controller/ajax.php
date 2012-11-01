@@ -51,7 +51,9 @@ class Controller_Ajax extends Controller {
 
   public function action_update() {
     if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
-    $id = $this->request->post('id');
+    $id      = $this->request->post('id');
+    $actions = $this->request->post('actions');
+    $header  = $this->request->post('header');
 
     $csv   = ORM::factory('CSV', $id);
     $model = ORM::factory($csv->form_type, $csv->form_data_id);
@@ -65,8 +67,9 @@ class Controller_Ajax extends Controller {
       ->set('options', array(
         'table'   => FALSE,
         'details' => FALSE,
-        'actions' => FALSE,
-        'header'  => FALSE
+        'header'  => FALSE,
+        'actions' => $actions ? TRUE : FALSE,
+        'hide_header_info' => $header ? TRUE : FALSE
       ))
       ->render());
   }

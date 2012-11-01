@@ -101,7 +101,7 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('barcodes/download', SGS::title('barcodes/download')); ?></li>
 
     <?php elseif ($primary == 'invoices'): ?>
-    <li class="<?php if ($secondary == 'st') echo 'active'; ?>"><?php echo HTML::anchor('invoices/st', SGS::title('invoices/st')); ?></li>
+    <li class="<?php if ($secondary == 'st') echo 'active'; ?>"><?php echo HTML::anchor('invoices/create', SGS::title('invoices/create')); ?></li>
     <?php endif; ?>
   </ul>
 

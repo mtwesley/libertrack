@@ -93,7 +93,7 @@ class Controller_Import extends Controller {
           ->offset($pagination->offset)
           ->limit($pagination->items_per_page);
         if ($sort = $this->request->query('sort')) $files->order_by($sort);
-        $files = $files->order_by('timestamp', 'desc')
+        $files = $files->order_by('timestamp', 'DESC')
           ->find_all()
           ->as_array();
       }
@@ -180,7 +180,7 @@ class Controller_Import extends Controller {
     $csvs = $file->csv
       ->order_by('status');
     if ($sort = $this->request->query('sort')) $csvs->order_by($sort);
-    $csvs = $csvs->order_by('timestamp', 'desc');
+    $csvs = $csvs->order_by('timestamp', 'DESC');
 
     $form = Formo::form()
       ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
@@ -206,7 +206,7 @@ class Controller_Import extends Controller {
       $clone = clone($csvs);
       $pagination = Pagination::factory(array(
         'items_per_page' => 50,
-        'total_items' => $clone->find_all()->count()));
+        'total_items' => $total_items = $clone->find_all()->count()));
 
       $csvs = $csvs
         ->offset($pagination->offset)
@@ -226,6 +226,7 @@ class Controller_Import extends Controller {
         ->set('site', $file->site)
         ->set('block', $file->block->loaded() ? $file->block : NULL)
         ->set('create_date', $create_date)
+        ->set('total_items', $total_items)
         ->set('options', array('header' => TRUE))
         ->render();
       if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
@@ -508,7 +509,7 @@ class Controller_Import extends Controller {
       $csvs = ORM::factory('csv')
         ->where('operation', '=', 'I')
         ->and_where('form_type', '=', $form_type)
-        ->order_by('timestamp', 'desc');
+        ->order_by('timestamp', 'DESC');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
         Session::instance()->delete('pagination.csv');
@@ -578,8 +579,8 @@ class Controller_Import extends Controller {
 
             switch ($form_type) {
               case 'SSF': $fullname = ($site->name ? $site->name.'_' : '').'SSF'.($block->name ? '_'.$block->name : '').'.'.$ext; break;
-              case 'TDF': $fullname = ($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').Date::formatted_time(SGS::date($create_date), 'm_d_Y').'.'.$ext; break;
-              case 'LDF': $fullname = ($site->name ? $site->name.'_' : '').'LDF_'.Date::formatted_time(SGS::date($create_date), 'm_d_Y').'.'.$ext; break;
+              case 'TDF': $fullname = ($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').SGS::date($create_date, 'm_d_Y').'.'.$ext; break;
+              case 'LDF': $fullname = ($site->name ? $site->name.'_' : '').'LDF_'.SGS::date($create_date, 'm_d_Y').'.'.$ext; break;
             }
 
             $writer->save($tempname);
@@ -604,7 +605,7 @@ class Controller_Import extends Controller {
 //        $csvs = ORM::factory('csv')
 //          ->where('operation', '=', 'I')
 //          ->and_where('form_type', '=', $form_type)
-//          ->order_by('timestamp', 'desc');
+//          ->order_by('timestamp', 'DESC');
 
         if ($status)      $csvs->and_where('status', 'IN', (array) $status);
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
@@ -615,7 +616,7 @@ class Controller_Import extends Controller {
         $clone = clone($csvs);
         $pagination = Pagination::factory(array(
           'items_per_page' => 50,
-          'total_items' => $clone->find_all()->count()));
+          'total_items' => $total_items = $clone->find_all()->count()));
 
         $csvs = $csvs
           ->offset($pagination->offset)
@@ -635,6 +636,7 @@ class Controller_Import extends Controller {
         ->set('mode', 'import')
         ->set('csvs', $csvs)
         ->set('fields', SGS_Form_ORM::get_fields($form_type))
+        ->set('total_items', $total_items)
         ->render();
     }
 
@@ -756,7 +758,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W/', '_', $file->site->name.'_TDF_'.$file->block->name.'_'.Date::formatted_time(SGS::date($create_date), 'm_d_Y')).'.'.$ext;
+                  $newname = preg_replace('/\W/', '_', $file->site->name.'_TDF_'.$file->block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
 
                 case 'LDF':
@@ -769,7 +771,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W/', '_', $file->site->name.'_LDF_'.Date::formatted_time(SGS::date($create_date), 'm_d_Y')).'.'.$ext;
+                  $newname = preg_replace('/\W/', '_', $file->site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
               }
 

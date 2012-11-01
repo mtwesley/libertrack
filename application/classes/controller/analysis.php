@@ -57,7 +57,7 @@ class Controller_Analysis extends Controller {
         if ($has_block_id) $block_id = $form->block_id->val;
         $status   = $form->status->val();
 
-        $data = ORM::factory($form_type)->order_by('create_date', 'desc');
+        $data = ORM::factory($form_type)->order_by('create_date', 'DESC');
 
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
@@ -76,7 +76,7 @@ class Controller_Analysis extends Controller {
           $form->status->val($block_id = $settings['block_id']);
         }
 
-        $data = ORM::factory($form_type)->order_by('timestamp', 'desc');
+        $data = ORM::factory($form_type)->order_by('timestamp', 'DESC');
 
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
