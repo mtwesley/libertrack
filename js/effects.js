@@ -10,10 +10,10 @@ var editableOptions = {
 };
 
 var bPopupOptions = {
-  opacity: 0.8,
+  opacity: 0.9,
   closeClass: 'popup-close',
   modalColor: '#fff',
-  fadeSpeed: 0,
+  fadeSpeed: 100,
   onClose: function() {
     $("#popup .popup-text").text("");
   }

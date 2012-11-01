@@ -525,7 +525,7 @@ class SGS {
     }
   }
 
-  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 16, $offset = 0)
+  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 20, $offset = 0)
   {
     $table  = 'barcodes';
     $model  = 'barcode';
