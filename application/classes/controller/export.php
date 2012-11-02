@@ -169,7 +169,7 @@ class Controller_Export extends Controller {
             Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
           }
           $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_Excel2007($excel);
+          $writer = new PHPExcel_Writer_Excel5($excel);
           $mime_type = 'application/vnd.ms-excel';
           $headers = FALSE;
           break;
@@ -258,7 +258,7 @@ class Controller_Export extends Controller {
           $mime_type = 'text/csv';
           break;
         case 'xls':
-          $filename = APPPATH.'/templates/SSF.xls';
+          $filename = APPPATH.'/templates/TDF.xls';
           try {
             $reader = new PHPExcel_Reader_Excel5;
             if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
@@ -267,7 +267,7 @@ class Controller_Export extends Controller {
             Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
           }
           $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_Excel2007($excel);
+          $writer = new PHPExcel_Writer_Excel5($excel);
           $headers = FALSE;
           $mime_type = 'application/vnd.ms-excel';
           break;
@@ -352,7 +352,7 @@ class Controller_Export extends Controller {
           $mime_type = 'text/csv';
           break;
         case 'xls':
-          $filename = APPPATH.'/templates/SSF.xls';
+          $filename = APPPATH.'/templates/LDF.xls';
           try {
             $reader = new PHPExcel_Reader_Excel5;
             if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
@@ -361,7 +361,7 @@ class Controller_Export extends Controller {
             Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
           }
           $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_Excel2007($excel);
+          $writer = new PHPExcel_Writer_Excel5($excel);
           $headers = FALSE;
           $mime_type = 'application/vnd.ms-excel';
           break;
