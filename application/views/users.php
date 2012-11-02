@@ -1,7 +1,6 @@
 <?php $classes[] = 'data'; ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
-    <th></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'username')), 'Username'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'name')), 'Name'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'email')), 'E-mail'); ?></th>
@@ -33,7 +32,6 @@
     $last_activity = SGS::datetime($activity['to_timestamp']);
   ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
-    <td><?php echo HTML::image('images/flag_yellow.png', array('class' => 'status pending', 'title' => 'Pending')); ?></td>
     <td><?php echo $user->username; ?></td>
     <td><?php echo $user->name; ?></td>
     <td><?php echo $user->email; ?></td>

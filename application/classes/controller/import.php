@@ -25,19 +25,20 @@ class Controller_Import extends Controller {
       $files = ORM::factory('file')
         ->where('operation', '=', 'I')
         ->and_where('id', '=', $id)
-        ->find_all();
-      if ($sort = $this->request->query('sort')) $files->order_by($sort);
-      $files = $files->as_array();
+        ->find_all()
+        ->as_array();
     }
     else {
 
       $site_ids = DB::select('id', 'name')
         ->from('sites')
+        ->order_by('name')
         ->execute()
         ->as_array('id', 'name');
 
       $block_ids = DB::select('id', 'name')
         ->from('blocks')
+        ->order_by('name')
         ->execute()
         ->as_array('id', 'name');
 
@@ -243,7 +244,7 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_download($id = NULL) {
-    set_time_limit(0);
+    set_time_limit(600);
     if (!$id) $id = $this->request->param('id');
 
     $file = ORM::factory('file', $id);
@@ -311,7 +312,7 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_process($id = NULL) {
-    set_time_limit(0);
+    set_time_limit(600);
 
     if (!$id) $id = $this->request->param('id');
     $file = ORM::factory('file', $id);
@@ -478,9 +479,7 @@ class Controller_Import extends Controller {
 
       $csvs = ORM::factory('csv')
         ->where('operation', '=', 'I')
-        ->and_where('id', '=', $id);
-      if ($sort = $this->request->query('sort')) $csvs->order_by($sort);
-      $csvs = $csvs->order_by('timestamp')
+        ->and_where('id', '=', $id)
         ->find_all()
         ->as_array();
 
@@ -489,11 +488,13 @@ class Controller_Import extends Controller {
     elseif ($form_type) {
       $site_ids = DB::select('id', 'name')
         ->from('sites')
+        ->order_by('name')
         ->execute()
         ->as_array('id', 'name');
 
       $block_ids = DB::select('id', 'name')
         ->from('blocks')
+        ->order_by('name')
         ->execute()
         ->as_array('id', 'name');
 
@@ -654,7 +655,7 @@ class Controller_Import extends Controller {
   }
 
   public function action_upload() {
-    set_time_limit(0);
+    set_time_limit(600);
     $form = Formo::form()
       ->add('import[]', 'file', array(
         'label' => 'File',
@@ -781,8 +782,9 @@ class Controller_Import extends Controller {
               }
 
               $version = 0;
+              $testname = $newname;
               while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
-                $newname = substr($newname, 0, strrpos($newname, '.'.$ext)).'_'.($version++).'.'.$ext;
+                $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
                 $name_changed = TRUE;
                 $name_changed_duplicate = TRUE;
               }

@@ -57,6 +57,7 @@ class Controller_Barcodes extends Controller {
 
       $site_ids = DB::select('id', 'name')
         ->from('sites')
+        ->order_by('name')
         ->execute()
         ->as_array('id', 'name');
 
@@ -243,6 +244,7 @@ class Controller_Barcodes extends Controller {
     else {
       $site_ids = DB::select('id', 'name')
         ->from('sites')
+        ->order_by('name')
         ->execute()
         ->as_array('id', 'name');
 

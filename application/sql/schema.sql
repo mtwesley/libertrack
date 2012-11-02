@@ -238,7 +238,7 @@ create table barcode_hops_cached (
 
 create table files (
   id bigserial not null,
-  name d_text_short unique not null,
+  name d_text_short not null,
   path d_text_long unique,
   type d_file_type not null,
   size d_int not null,
@@ -253,7 +253,9 @@ create table files (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint files_pkey primary key (id),
-  constraint files_user_id_fkey foreign key (user_id) references users (id) on update cascade
+  constraint files_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint files_unique_name_path unique(name,path)
 );
 
 create table csv (
@@ -495,8 +497,8 @@ create table invoices (
   site_id d_id not null,
   reference_number d_positive_int unique,
   is_draft d_bool default true not null,
-  from_date d_date not null,
-  to_date d_date not null,
+  from_date d_date,
+  to_date d_date,
   created_date d_date not null,
   due_date d_date not null,
   file_id d_id unique not null,
@@ -552,6 +554,11 @@ create table settings (
 
   constraint settings_pkey primary key (key)
 );
+
+
+-- sequences
+
+create sequence s_invoices_reference_number minvalue 100100;
 
 
 -- indexes

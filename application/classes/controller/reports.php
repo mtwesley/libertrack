@@ -20,6 +20,7 @@ class Controller_Reports extends Controller {
   public function action_index() {
     $site_ids = DB::select('id', 'name')
       ->from('sites')
+      ->order_by('name')
       ->execute()
       ->as_array('id', 'name');
 

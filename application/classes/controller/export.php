@@ -445,7 +445,7 @@ class Controller_Export extends Controller {
       $id      = NULL;
     }
 
-    set_time_limit(0);
+    set_time_limit(600);
     switch ($command) {
       case 'ssf': return self::handle_download_ssf();
       case 'tdf': return self::handle_download_tdf();

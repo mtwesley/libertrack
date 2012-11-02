@@ -30,18 +30,20 @@ class SGS {
     'import/files'    => 'File Management',
     'import/data'     => 'Data Management',
 
-    'import/data/ssf' => 'Stock Survey Form',
-    'import/data/tdf' => 'Tree Data Form',
-    'import/data/ldf' => 'Log Data Form',
+    'import/data/ssf'   => 'Stock Survey Form',
+    'import/data/tdf'   => 'Tree Data Form',
+    'import/data/ldf'   => 'Log Data Form',
+    'import/data/specs' => 'Shipment Specification Form',
 
     'export'          => 'Export',
     'export/download' => 'Download Documents',
     'export/files'    => 'File Management',
     'export/data'     => 'Data Management',
 
-    'export/download/ssf' => 'Stock Survey Form',
-    'export/download/tdf' => 'Tree Data Form',
-    'export/download/ldf' => 'Log Data Form',
+    'export/download/ssf'   => 'Stock Survey Form',
+    'export/download/tdf'   => 'Tree Data Form',
+    'export/download/ldf'   => 'Log Data Form',
+    'export/download/specs' => 'Shipment Specification Form',
 
     'admin'           => 'Configuration',
 //    'admin/files'     => 'File Management',
@@ -56,21 +58,25 @@ class SGS {
     'barcodes/download' => 'Download Print Jobs',
 
     'users'           => 'Users',
+    'users/list'      => 'Manage Users',
 
-    'analysis'        => 'Analysis',
-    'analysis/ssf'    => 'Stock Survey Data',
-    'analysis/tdf'    => 'Tree Data',
-    'analysis/ldf'    => 'Log Data',
-
-    'checks'          => 'Run Checks and Queries',
+    'analysis'              => 'Analysis',
+    'analysis/checks'       => 'Checks and Queries',
+    'analysis/review'       => 'Review',
+    'analysis/review/ssf'   => 'Stock Survey',
+    'analysis/review/tdf'   => 'Tree Data',
+    'analysis/review/ldf'   => 'Log Data',
+    'analysis/review/specs' => 'Shipment Specification',
 
     'invoices'        => 'Invoices',
-    'invoices/create' => 'Create New Invoice',
+    'invoices/list'   => 'List Invoices',
+    'invoices/create' => 'Create Invoice',
 
     'reports'         => 'Reports',
     'reports/ssf'     => 'Stock Survey Reports',
     'reports/tdf'     => 'Tree Data Reports',
     'reports/ldf'     => 'Log Data Reports',
+    'reports/specs'   => 'Shipment Specification Reports',
   );
 
   public static $tips = array(

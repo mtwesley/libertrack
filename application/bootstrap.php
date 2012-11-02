@@ -129,7 +129,7 @@ Route::set('logout', 'logout')
     'action'     => 'logout'
   ));
 
-Route::set('alternate', '<controller>/<id>(/<command>)', array('controller' => 'users|barcodes', 'id' => '\d+'))
+Route::set('alternate', '<controller>/<id>(/<command>)', array('controller' => 'users|barcodes|invoices', 'id' => '\d+'))
   ->defaults(array(
     'action' => 'index'
   ));

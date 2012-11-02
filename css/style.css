@@ -30,7 +30,7 @@
 }
 
 .toggle-form span {
-  padding: 3px 10px;
+  padding: 3px 10px 2px;
   font-size: 10px;
   background-color: #ffb685;
   color: #fff;
@@ -286,7 +286,7 @@
 }
 
 #content table.data td span.data-type {
-  padding: 2px 4px;
+  padding: 2px 4px 1px;
   background-color: #e5dbcc;
   color: #86704e;
   font-size: 10px;

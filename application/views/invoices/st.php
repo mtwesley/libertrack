@@ -17,9 +17,18 @@ $options = (array) $options + array(
 <style type="text/css">
 
   @page {
-    margin-top: 20px;
-    margin-left: 25px;
+    margin: 0;
+  }
 
+  body, html {
+    margin: 0;
+  }
+
+  img.floater {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0.5;
   }
 
   table tr td.blank {
@@ -32,6 +41,10 @@ $options = (array) $options + array(
 
   .fda-logo {
     text-align: right;
+  }
+
+  .invoice {
+    padding: 20px 25px;
   }
 
   .st-invoice {
@@ -48,11 +61,10 @@ $options = (array) $options + array(
   .invoice-footer {
     position: absolute;
     bottom: 0;
-    left: 0;
+    left: 35px;
   }
 
   .invoice-header,
-  .invoice-footer,
   .invoice-info,
   .invoice-summary {
     width: 100%;
@@ -148,7 +160,7 @@ $options = (array) $options + array(
   }
 
   .invoice-info-table tr td {
-    padding: 7px 5px;
+    padding: 5px;
     vertical-align: top;
   }
 
@@ -221,7 +233,7 @@ $options = (array) $options + array(
 </style>
 <?php endif; ?>
 
-<div class="st-invoice invoice <?php if ($options['break']) echo 'invoice-page-break' ?>">
+<div class="st-invoice invoice <?php if ($options['break']) echo 'invoice-page-break'; ?>">
   <?php if ($options['header']): ?>
   <div class="invoice-header">
     <table class="invoice-header-table">
@@ -258,11 +270,11 @@ $options = (array) $options + array(
       </tr>
       <tr>
         <td class="label from">Logs Declared From:</td>
-        <td><?php echo SGS::date($invoice->from_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td><?php if ($invoice->from_date) echo SGS::date($invoice->from_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
         <td class="label to">To:</td>
-        <td><?php echo SGS::date($invoice->to_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td><?php if ($invoice->to_date) echo SGS::date($invoice->to_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
         <td class="label">Telephone:</td>
@@ -429,7 +441,7 @@ $options = (array) $options + array(
           LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
         </td>
         <td class="page">
-          <div class="ref">Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->reference_number; ?></div>
+          <div class="ref"><?php echo $invoice->is_draft ? 'DRAFT' : 'Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ST-'.$invoice->reference_number; ?></div>
           Page <?php echo $page; ?> of <?php echo $page_count; ?>
         </td>
       </tr>
@@ -438,3 +450,6 @@ $options = (array) $options + array(
   <?php endif; ?>
 </div>
 
+<?php if ($invoice->is_draft): ?>
+<img class="floater" src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/draft_copy.png" />
+<?php endif; ?>

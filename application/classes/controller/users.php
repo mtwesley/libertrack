@@ -16,6 +16,10 @@ class Controller_Users extends Controller {
   }
 
   public function action_index() {
+    return self::action_list();
+  }
+
+  public function action_list() {
     $id = $this->request->param('id');
     $command = $this->request->param('command');
 

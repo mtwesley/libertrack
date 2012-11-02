@@ -17,9 +17,135 @@ class Controller_Invoices extends Controller {
     Session::instance()->write();
   }
 
-  public function action_index() {
+  private function handle_invoice_finalize() {
+    $id = $this->request->param('id');
+    if (!$id) $this->request->redirect('invoices');
+
+    $invoice = ORM::factory('invoice', $id);
+    if (!($invoice->loaded() and $invoice->is_draft)) {
+      Notify::msg('Invoice already finalized.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
+    $invoice->is_draft = FALSE;
+    $invoice->reference_number = DB::query(Database::SELECT, "SELECT nextval('s_invoices_reference_number') reference_number")->execute()->get('reference_number');
+
+    switch ($invoice->type) {
+      case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, array_keys($invoice->get_data()));
+    }
+
+    if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
+    else Notify::msg('Sorry, invoice file failed to be generated. Please try again.', 'error', TRUE);
+
+    try {
+      $invoice->save();
+
+      Notify::msg('Invoice finalized.', 'success', TRUE);
+      $this->request->redirect('invoices/'.$invoice->id);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to create invoice. Please try again.', 'error');
+      $this->request->redirect('invoices/'.$invoice->id);
+    }
+
+  }
+
+  private function handle_invoice_list() {
+    $id = $this->request->param('id');
+
+    if (!Request::$current->query('page')) Session::instance()->delete('pagination.invoice.list');
+    if ($id) {
+      Session::instance()->delete('pagination.invoice.list');
+
+      $invoices = array(ORM::factory('invoice', $id));
+    }
+    else {
+
+      $site_ids = DB::select('id', 'name')
+        ->from('sites')
+        ->order_by('name')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $form = Formo::form()
+        ->add_group('type', 'checkboxes', SGS::$invoice_type, NULL, array('label' => 'Type'))
+        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
+        ->add('search', 'submit', 'Filter');
+
+      if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+        Session::instance()->delete('pagination.invoice.list');
+
+        $type    = $form->type->val();
+        $site_id = $form->site_id->val();
+
+        $invoices = ORM::factory('invoice');
+
+        if ($type)    $invoices->and_where('type', 'IN', (array) $type);
+        if ($site_id) $invoices->and_where('site_id', 'IN', (array) $site_id);
+
+        Session::instance()->set('pagination.invoice.list', array(
+          'form_type'   => $type,
+          'site_id'     => $site_id,
+        ));
+      }
+      else {
+        if ($settings = Session::instance()->get('pagination.invoice.list')) {
+          $form->type->val($type = $settings['form_type']);
+          $form->site_id->val($site_id = $settings['site_id']);
+        }
+
+        $invoices = ORM::factory('invoice');
+
+        if ($type)    $invoices->and_where('type', 'IN', (array) $type);
+        if ($site_id) $invoices->and_where('site_id', 'IN', (array) $site_id);
+      }
+
+      if ($invoices) {
+        $clone = clone($invoices);
+        $pagination = Pagination::factory(array(
+          'items_per_page' => 20,
+          'total_items' => $clone->find_all()->count()));
+
+        $invoices = $invoices
+          ->offset($pagination->offset)
+          ->limit($pagination->items_per_page);
+        if ($sort = $this->request->query('sort')) $invoices->order_by($sort);
+        $invoices = $invoices->order_by('created_date', 'DESC')
+          ->find_all()
+          ->as_array();
+      }
+    }
+
+    if ($invoices) {
+      $table = View::factory('invoices')
+        ->set('classes', array('has-pagination'))
+        ->set('invoices', $invoices)
+        ->render();
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' invoice found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' invoices found');
+    }
+    else Notify::msg('No invoices found');
+
+    if ($form) $content .= $form->render();
+    $content .= $table;
+    $content .= $pagination;
+
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
+  }
+
+  public function action_index() {
+    $command = $this->request->param('command');
+
+    switch ($command) {
+      case 'download': return self::handle_invoice_download();
+      case 'finalize': return self::handle_invoice_finalize();
+      case 'list':
+      default: return self::handle_invoice_list();
+    }
+  }
+
+  public function action_list() {
+    return self::handle_invoice_list();
   }
 
   private function generate_st_invoice($invoice, $data_ids = array()) {
@@ -71,7 +197,7 @@ class Controller_Invoices extends Controller {
     $page_count = $summary_page_count + $signature_page_count + $details_page_count;
 
     $cntr = 0;
-    for ($page = 1; $page <= 1; $page++) {
+    for ($page = 1; $page <= $summary_page_count; $page++) {
       $options = array();
       if ($page == 1) {
         $max = $summary_first_page_max;
@@ -136,15 +262,14 @@ class Controller_Invoices extends Controller {
     }
 
     // generate pdf
-    set_time_limit(0);
-    $dompdf = new DOMPDF();
-    $dompdf->set_paper("A4");
-    $dompdf->load_html($html);
-    $dompdf->render();
-
-    $output = $dompdf->output();
-
-    if (!$output) {
+    set_time_limit(600);
+    try {
+      $dompdf = new DOMPDF();
+      $dompdf->set_paper("A4");
+      $dompdf->load_html($html);
+      $dompdf->render();
+      if (!$output = $dompdf->output()) throw new Exception();
+    } catch (Exception $e) {
       Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
       return FALSE;
     }
@@ -159,8 +284,10 @@ class Controller_Invoices extends Controller {
     if ($invoice->is_draft) $newname = 'DRAFT_'.SGS::date($invoice->created_date, 'Y_m_d').'.'.$ext;
     else $newname = 'ST_'.$invoice->reference_number.'.'.$ext;
 
+    $version = 0;
+    $testname = $newname;
     while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
-      $newname = substr($newname, 0, strrpos($newname, '.'.$ext)).'_'.($version++).'.'.$ext;
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
     }
 
     if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
@@ -197,6 +324,7 @@ class Controller_Invoices extends Controller {
 
     $site_ids = DB::select('id', 'name')
       ->from('sites')
+      ->order_by('name')
       ->execute()
       ->as_array('id', 'name');
 
@@ -243,108 +371,92 @@ class Controller_Invoices extends Controller {
       $site = ORM::factory('site', $site_id);
 
       switch ($type) {
-        case 'ST': $form_type = 'LDF'; break;
-      }
-
-      $model = ORM::factory($form_type);
-      $sql   = "SELECT form_data_id
-                FROM invoice_data
-                JOIN invoices ON invoice_data.invoice_id = invoices.id
-                WHERE form_type = '$form_type' AND type = '$type' AND invoice_data.invoice_id IS NULL";
-
-      if (!$from) {
-        $from = SGS::date(DB::select('create_date')
-          ->from($model->table_name())
-          ->where('id', 'NOT IN', DB::expr("($sql)"))
-          ->and_where('site_id', '=', $site_id)
-          ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-          ->order_by('create_date', 'ASC')
-          ->limit(1)
-          ->execute()
-          ->get('create_date'), SGS::US_DATE_FORMAT);
-      }
-
-      if (!$to) {
-        $from = SGS::date(DB::select('create_date')
-          ->from($model->table_name())
-          ->where('id', 'NOT IN', DB::expr("($sql)"))
-          ->and_where('site_id', '=', $site_id)
-          ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-          ->order_by('create_date', 'DESC')
-          ->limit(1)
-          ->execute()
-          ->get('create_date'), SGS::US_DATE_FORMAT);
-      }
-
-      switch ($format) {
-        case 'preview':
-          $data = $model
-            ->where('id', 'NOT IN', DB::expr("($sql)"))
-            ->and_where('site_id', '=', $site_id)
-            ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-            ->order_by('create_date', 'ASC');
-
-          $clone = clone($data);
-          $pagination = Pagination::factory(array(
-            'items_per_page' => 50,
-            'total_items' => $clone->find_all()->count()));
-
-          $data = $data
-            ->offset($pagination->offset)
-            ->limit($pagination->items_per_page)
-            ->find_all()
+        case 'ST':
+          $form_type = 'LDF';
+          $ids = DB::select('ldf_data.id')
+            ->from('ldf_data')
+            ->join('barcodes')
+            ->on('ldf_data.parent_barcode_id', '=', 'barcodes.id')
+            ->join('invoice_data', 'LEFT OUTER')
+            ->on('ldf_data.id', '=', 'invoice_data.form_data_id')
+            ->on('invoice_data.form_type', '=', DB::expr("'LDF'"))
+            ->where('ldf_data.site_id', '=', $site_id)
+            ->and_where('ldf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
+            ->and_where('barcodes.type', '=', 'F')
+            ->and_where('invoice_data.form_data_id', '=', NULL)
+            ->execute()
             ->as_array();
-
-          if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
-          elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
-          else Notify::msg('No records found');
-
-          $table = View::factory('data')
-            ->set('classes', array('has-pagination'))
-            ->set('form_type', $form_type)
-            ->set('data', $data)
-            ->render();
-          break;
-
-        case 'draft':
-          $is_draft = TRUE;
-        case 'final':
-          set_time_limit(0);
-          $invoice = ORM::factory('invoice');
-          $invoice->site = $site;
-          $invoice->type = $type;
-          $invoice->is_draft = $is_draft ? TRUE : FALSE;
-          $invoice->from_date = SGS::date($from, SGS::PGSQL_DATE_FORMAT, TRUE);
-          $invoice->to_date = SGS::date($to, SGS::PGSQL_DATE_FORMAT, TRUE);
-          $invoice->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
-          $invoice->due_date = SGS::date($due, SGS::PGSQL_DATE_FORMAT, TRUE);
-
-          switch ($invoice->type) {
-            case 'ST':
-              $ids = DB::select('id')
-                ->from($model->table_name())
-                ->where('id', 'NOT IN', DB::expr("($sql)"))
-                ->and_where('site_id', '=', $site_id)
-                ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-                ->execute()
-                ->as_array();
-              $invoice->file_id = self::generate_st_invoice($invoice, $ids);
-          }
-
-          if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
-          else Notify::msg('Sorry, invoice file failed to be generated. Please try again.', 'error');
-
-          try {
-            $invoice->save();
-            foreach ($ids as $id) $invoice->set_data($form_type, $id);
-
-            Notify::msg(($invoice->is_draft ? 'Draft invoice' : 'Invoice') . ' created.', 'success', TRUE);
-//            $this->request->redirect('invoices/'.$invoice->id);
-          } catch (Exception $e) {
-            Notify::msg('Sorry, unable to create invoice. Please try again.', 'error');
-          }
           break;
       }
+
+      if ($form_type and $ids) {
+
+        $model = ORM::factory($form_type);
+        $sql   = "SELECT form_data_id
+                  FROM invoice_data
+                  JOIN invoices ON invoice_data.invoice_id = invoices.id
+                  WHERE form_type = '$form_type' AND type = '$type'";
+
+        switch ($format) {
+          case 'preview':
+            $data = $model
+              ->where('id', 'IN', (array) $ids)
+              ->order_by('create_date', 'ASC');
+
+            $clone = clone($data);
+            $pagination = Pagination::factory(array(
+              'items_per_page' => 50,
+              'total_items' => $clone->find_all()->count()));
+
+            $data = $data
+              ->offset($pagination->offset)
+              ->limit($pagination->items_per_page)
+              ->find_all()
+              ->as_array();
+
+            if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
+            elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
+            else Notify::msg('No records found');
+
+            $table = View::factory('data')
+              ->set('classes', array('has-pagination'))
+              ->set('form_type', $form_type)
+              ->set('data', $data)
+              ->render();
+            break;
+
+          case 'draft':
+            $is_draft = TRUE;
+          case 'final':
+            set_time_limit(600);
+            $invoice = ORM::factory('invoice');
+            $invoice->site = $site;
+            $invoice->type = $type;
+            $invoice->is_draft = $is_draft ? TRUE : FALSE;
+            $invoice->reference_number = $is_draft ? NULL : DB::query(Database::SELECT, "SELECT nextval('s_invoices_reference_number') reference_number")->execute()->get('reference_number');
+            if ($from) $invoice->from_date = SGS::date($from, SGS::PGSQL_DATE_FORMAT, TRUE);
+            if ($to) $invoice->to_date = SGS::date($to, SGS::PGSQL_DATE_FORMAT, TRUE);
+            $invoice->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
+            $invoice->due_date = SGS::date($due, SGS::PGSQL_DATE_FORMAT, TRUE);
+
+            $func = strtolower('generate_'.$type.'_invoice');
+            $invoice->file_id = self::$func($invoice, $ids);
+
+            if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
+            else Notify::msg('Sorry, invoice file failed to be generated. Please try again.', 'error');
+
+//            try {
+              $invoice->save();
+              foreach ($ids as $id) $invoice->set_data($form_type, $id);
+
+              Notify::msg(($invoice->is_draft ? 'Draft invoice' : 'Invoice') . ' created.', 'success', TRUE);
+              $this->request->redirect('invoices/'.$invoice->id);
+//            } catch (Exception $e) {
+//              Notify::msg('Sorry, unable to create invoice. Please try again.', 'error');
+//            }
+            break;
+        }
+      } else Notify::msg('No data found. Skipping invoice.', 'warning');
     }
     else if ($settings = Session::instance()->get('pagination.invoice.data')) {
       $form->site_id->val($site_id = $settings['site_id']);

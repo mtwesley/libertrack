@@ -17,7 +17,8 @@ class Model_File extends ORM {
   public function rules()
   {
     return array(
-      'name'           => array(array('not_empty'),
+      'name'           => array(array('not_empty')),
+      'path'           => array(array('not_empty'),
                                 array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'type'           => array(array('not_empty')),
       'size'           => array(array('not_empty')),
