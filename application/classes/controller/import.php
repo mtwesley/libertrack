@@ -323,7 +323,7 @@ class Controller_Import extends Controller {
 
     // pending
     $pending = $file->csv
-      ->where('status', 'IN', array('P','R'))
+      ->where('status', 'IN', array('P','R', 'U'))
       ->find_all()
       ->as_array();
 

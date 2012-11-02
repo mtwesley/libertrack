@@ -49,7 +49,7 @@ create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF
 
 create domain d_duplicate_type as character(1) check (value ~ E'^[BP]$');
 
-create domain d_grade as character varying(3) check (value ~ E'^[(LM|A|AB|B|BC|C|D|FAS|1|2|CG)]$');
+create domain d_grade as character varying(3) check (value ~ E'^(LM|A|AB|B|BC|C|D|FAS|1|2|CG)$');
 
 create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
 
@@ -193,6 +193,28 @@ create table blocks (
   constraint blocks_unique_site_name unique(site_id,name)
 );
 
+create table files (
+  id bigserial not null,
+  name d_text_short not null,
+  path d_text_long unique,
+  type d_file_type not null,
+  size d_int not null,
+  operator_id d_id,
+  site_id d_id,
+  block_id d_id,
+  operation d_operation default 'U' not null,
+  operation_type d_operation_type default 'UNKWN' not null,
+  content d_oid unique,
+  content_md5 d_text_short,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint files_pkey primary key (id),
+  constraint files_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint files_unique_name_path unique(name,path)
+);
+
 create table printjobs (
   id bigserial not null,
   number d_positive_int unique not null,
@@ -236,26 +258,35 @@ create table barcode_hops_cached (
   constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade
 );
 
-create table files (
+create table invoices (
   id bigserial not null,
-  name d_text_short not null,
-  path d_text_long unique,
-  type d_file_type not null,
-  size d_int not null,
-  operator_id d_id,
-  site_id d_id,
-  block_id d_id,
-  operation d_operation default 'U' not null,
-  operation_type d_operation_type default 'UNKWN' not null,
-  content d_oid unique,
-  content_md5 d_text_short,
+  type d_invoice_type not null,
+  site_id d_id not null,
+  reference_number d_positive_int unique,
+  is_draft d_bool default true not null,
+  from_date d_date,
+  to_date d_date,
+  created_date d_date not null,
+  due_date d_date not null,
+  file_id d_id unique not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint files_pkey primary key (id),
-  constraint files_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint invoices_pkey primary key (id),
+  constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
+  constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade
+);
 
-  constraint files_unique_name_path unique(name,path)
+create table invoice_data (
+  id bigserial not null,
+  form_type d_form_type not null,
+  form_data_id d_id not null,
+  invoice_id d_id,
+
+  constraint invoice_data_pkey primary key (id),
+  constraint invoice_data_invoice_id foreign key (invoice_id) references invoices (id) on update cascade,
+
+  constraint invoice_data_unique unique(form_type,form_data_id,invoice_id)
 );
 
 create table csv (
@@ -494,37 +525,6 @@ create table epr_data (
   constraint epr_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint epr_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint epr_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
-);
-
-create table invoices (
-  id bigserial not null,
-  type d_invoice_type not null,
-  site_id d_id not null,
-  reference_number d_positive_int unique,
-  is_draft d_bool default true not null,
-  from_date d_date,
-  to_date d_date,
-  created_date d_date not null,
-  due_date d_date not null,
-  file_id d_id unique not null,
-  user_id d_id default 1 not null,
-  timestamp d_timestamp default current_timestamp not null,
-
-  constraint invoices_pkey primary key (id),
-  constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
-  constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade
-);
-
-create table invoice_data (
-  id bigserial not null,
-  form_type d_form_type not null,
-  form_data_id d_id not null,
-  invoice_id d_id,
-
-  constraint invoice_data_pkey primary key (id),
-  constraint invoice_data_invoice_id foreign key (invoice_id) references invoices (id) on update cascade,
-
-  constraint invoice_data_unique unique(form_type,form_data_id,invoice_id)
 );
 
 create table errors (
