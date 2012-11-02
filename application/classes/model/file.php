@@ -18,8 +18,7 @@ class Model_File extends ORM {
   {
     return array(
       'name'           => array(array('not_empty')),
-      'path'           => array(array('not_empty'),
-                                array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
+      'path'           => array(array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'type'           => array(array('not_empty')),
       'size'           => array(array('not_empty')),
       'operation'      => array(array('not_empty')),

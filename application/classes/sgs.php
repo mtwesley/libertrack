@@ -246,9 +246,17 @@ class SGS {
   );
 
   public static $grade = array(
-    'A' => 'A',
-    'B' => 'B',
-    'C' => 'C'
+    'FAS' => 'FAS',
+    '1'   => '1',
+    '2'   => '2',
+    'CG'  => 'CG',
+    'LM'  => 'LM',
+    'A'   => 'A',
+    'AB'  => 'AB',
+    'B'   => 'B',
+    'BC'  => 'BC',
+    'C'   => 'C',
+    'D'   => 'D'
   );
 
   public static $form_type = array(
@@ -267,7 +275,9 @@ class SGS {
     'F' => 'Felled Tree',
     'S' => 'Stump',
     'L' => 'Log',
-    'R' => 'Sawnmill Timber'
+    'R' => 'Sawnmill Timber',
+    'H' => 'Shipment Specification',
+    'E' => 'Export Permit Request'
   );
 
   public static $invoice_type = array(
@@ -612,7 +622,7 @@ class SGS {
     return $tips[$field][$error] ?: $tips['all'][$error] ?: self::$tips[$field][$error] ?: self::$tips['all'][$error];
   }
 
-  public static function parse_site_and_block_info($text)
+  public static function parse_site_and_block($text)
   {
     $matches = array();
     preg_match('/((RESOURCE\sAREA\/)?(([A-Z]+)\/)?([A-Z0-9\s-_]+)?)(\/([A-Z0-9]+))?/i', $text, $matches);
@@ -622,6 +632,18 @@ class SGS {
       'block_name' => $matches[7]
     );
   }
+
+  public static function parse_grade($text)
+  {
+    $matches = array();
+    preg_match('/^\w+\/([(LM|A|AB|B|BC|C|D|FAS|1|2|CG)]+)/', $text, $matches);
+
+    return array(
+      'grade'  => $matches[1],
+    );
+  }
+
+
 
   public static function odd_even(&$odd) {
     return ($odd ? ($odd = false) : ($odd = true)) ? 'odd' : 'even';

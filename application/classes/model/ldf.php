@@ -44,7 +44,7 @@ class Model_LDF extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    extract(SGS::parse_site_and_block_info(trim($csv[2][B] ?: $csv[2][C] ?: $csv[2][D] ?: $csv[2][E])));
+    extract(SGS::parse_site_and_block(trim($csv[2][B] ?: $csv[2][C] ?: $csv[2][D] ?: $csv[2][E])));
     $data = array(
       'parent_barcode' => SGS::barcodify(trim($row[A])),
       'species_code'   => trim($row[B]),
@@ -400,16 +400,6 @@ class Model_LDF extends SGS_Form_ORM {
 //      'user_id'         => self::$fields['user_id'],
 //      'timestamp'       => self::$fields['timestamp'],
     );
-  }
-
-  public function __get($column) {
-    switch ($column) {
-      case 'errors':
-        $value = parent::__get($column);
-        return is_string($value) ? unserialize($value) : $value;
-      default:
-        return parent::__get($column);
-    }
   }
 
 }

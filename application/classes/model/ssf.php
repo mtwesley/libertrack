@@ -80,7 +80,7 @@ class Model_SSF extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    extract(SGS::parse_site_and_block_info(trim($csv[2][B] ?: $csv[2][C] ?: $csv[2][D] ?: $csv[2][E])));
+    extract(SGS::parse_site_and_block(trim($csv[2][B] ?: $csv[2][C] ?: $csv[2][D] ?: $csv[2][E])));
     $data = array(
       'barcode'           => SGS::barcodify(trim($row[A])),
       'tree_map_number'   => trim($row[B]),
@@ -445,10 +445,6 @@ class Model_SSF extends SGS_Form_ORM {
       case 'is_requested':
       case 'is_fda_approved':
         return parent::__get($column) == 't' ? TRUE : FALSE;
-
-      case 'errors':
-        $value = parent::__get($column);
-        return is_string($value) ? unserialize($value) : $value;
       default:
         return parent::__get($column);
     }

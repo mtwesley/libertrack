@@ -431,6 +431,9 @@ class Controller_Import extends Controller {
       ->set('mode', 'import')
       ->set('csvs', $csvs)
       ->set('fields', SGS_Form_ORM::get_fields($csv->form_type))
+      ->set('operator', $csv->operator->loaded() ? $csv->operator : NULL)
+      ->set('site', $csv->site->loaded() ? $csv->site : NULL)
+      ->set('block', $csv->block->loaded() ? $csv->block : NULL)
       ->render();
 
     $content .= $form->render();
@@ -483,6 +486,12 @@ class Controller_Import extends Controller {
         ->find_all()
         ->as_array();
 
+      $csv = reset($csvs);
+
+      $operator = $csv->operator->loaded() ? $csv->operator : NULL;
+      $site     = $csv->site->loaded() ? $csv->site : NULL;
+      $block    = $csv->block->loaded() ? $csv->block : NULL;
+
       $form_type = reset($csvs)->form_type;
     }
     elseif ($form_type) {
@@ -499,10 +508,17 @@ class Controller_Import extends Controller {
         ->as_array('id', 'name');
 
       $form = Formo::form()
-//        ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Type', 'required' => TRUE))
         ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status', 'required' => TRUE))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
         ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
+//        ->add('format', 'radios', array(
+//          'options' => array(
+//            'preview' => 'Filter',
+//            'draft'   => 'Download CSV',
+//            'final'   => 'Download XLS'),
+//          'label' => '&nbsp;',
+//          'required' => TRUE,
+//          ))
         ->add('search', 'submit', 'Filter');
 //        ->add('download_csv', 'submit', 'Download '.SGS::$file_type['csv'])
 //        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls']);
@@ -515,7 +531,6 @@ class Controller_Import extends Controller {
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
         Session::instance()->delete('pagination.csv');
 
-//        $form_type   = $form->form_type->val();
         $status      = $form->status->val();
         $site_id     = $form->site_id->val();
         $block_id    = $form->block_id->val();
@@ -576,7 +591,7 @@ class Controller_Import extends Controller {
             ), $headers);
 
             // file
-            $tempname  = tempnam(sys_get_temp_dir(), strtolower($form_type).'_download_').'.'.$type;
+            $tempname = tempnam(sys_get_temp_dir(), strtolower($form_type).'_download_').'.'.$type;
 
             switch ($form_type) {
               case 'SSF': $fullname = ($site->name ? $site->name.'_' : '').'SSF'.($block->name ? '_'.$block->name : '').'.'.$ext; break;
@@ -590,7 +605,6 @@ class Controller_Import extends Controller {
         }
 
         Session::instance()->set('pagination.csv', array(
-//          'form_type'   => $form_type,
           'site_id'     => $site_id,
           'block_id'    => $block_id,
           'status'      => $status,
@@ -598,15 +612,9 @@ class Controller_Import extends Controller {
 
       }
       elseif ($settings = Session::instance()->get('pagination.csv')) {
-//        $form->form_type->val($form_type = $settings['form_type']);
         $form->status->val($status = $settings['status']);
         $form->site_id->val($site_id = $settings['site_id']);
         $form->block_id->val($block_id = $settings['block_id']);
-
-//        $csvs = ORM::factory('csv')
-//          ->where('operation', '=', 'I')
-//          ->and_where('form_type', '=', $form_type)
-//          ->order_by('timestamp', 'DESC');
 
         if ($status)      $csvs->and_where('status', 'IN', (array) $status);
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
@@ -638,6 +646,9 @@ class Controller_Import extends Controller {
         ->set('csvs', $csvs)
         ->set('fields', SGS_Form_ORM::get_fields($form_type))
         ->set('total_items', $total_items)
+        ->set('operator', $operator)
+        ->set('site', $site)
+        ->set('block', $block)
         ->render();
     }
 
@@ -703,9 +714,10 @@ class Controller_Import extends Controller {
             Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
           }
 
-          if     (strpos(strtoupper($excel[1][D]), 'STOCK SURVEY FORM') !== false) $form_type = 'SSF';
-          elseif (strpos(strtoupper($excel[1][C]), 'TREE FELLING')      !== false) $form_type = 'TDF';
-          elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA FORM')     !== false) $form_type = 'LDF';
+          if     (strpos(strtoupper($excel[1][D]), 'STOCK SURVEY FORM') !== FALSE) $form_type = 'SSF';
+          elseif (strpos(strtoupper($excel[1][C]), 'TREE FELLING')      !== FALSE) $form_type = 'TDF';
+          elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA FORM')     !== FALSE) $form_type = 'LDF';
+          elseif (strpos(strtoupper($excel[1][A]), 'EXPORT SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECS';
           else   Notify::msg('Sorry, the form type cannot be determined from the uploaded file. Please check the form title for errors and try again.', 'error', TRUE);
 
           if ($form_type) {
@@ -773,6 +785,18 @@ class Controller_Import extends Controller {
                     throw new Exception();
                   }
                   $newname = preg_replace('/\W/', '_', $file->site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  break;
+
+                case 'SPECS':
+                  $newdir = implode(DIRECTORY_SEPARATOR, array(
+                    'specs',
+                    $file->operator->tin
+                  ));
+                  if (!($file->operator->name and $file->operation_type)) {
+                    Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
+                    throw new Exception();
+                  }
+                  $newname = preg_replace('/\W/', '_', 'SPECS_'.$file->operator->tin.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
               }
 

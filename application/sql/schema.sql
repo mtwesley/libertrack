@@ -49,11 +49,11 @@ create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF
 
 create domain d_duplicate_type as character(1) check (value ~ E'^[BP]$');
 
-create domain d_grade as character(1) check (value ~ E'^[ABC]$');
+create domain d_grade as character varying(3) check (value ~ E'^[(LM|A|AB|B|BC|C|D|FAS|1|2|CG)]$');
 
 create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
 
-create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLR]$');
+create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHE]$');
 
 create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value < 1));
 
@@ -453,7 +453,9 @@ create table mof_data (
 create table specs_data (
   id bigserial not null,
   operator_id d_id not null,
-  expected_loading_date d_date not null,
+  specs_barcode_id d_id not null,
+  epr_barcode_id d_id not null,
+  contract_numbuer d_text_short,
   barcode_id d_id unique not null,
   species_id d_id not null,
   top_min d_measurement_int not null,
@@ -463,6 +465,9 @@ create table specs_data (
   length d_measurement_float not null,
   grade d_grade not null,
   volume d_measurement_float not null,
+  origin d_text_short,
+  destination d_text_short,
+  create_date d_date not null,
   status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,

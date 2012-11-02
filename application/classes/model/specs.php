@@ -2,69 +2,48 @@
 
 class Model_SPECS extends SGS_Form_ORM {
 
-  const PARSE_START = 13;
+  const PARSE_START = 12;
 
   public static $type = 'SPECS';
 
   public static $fields = array(
     'create_date'     => 'Date Surveyed',
     'operator_tin'    => 'Operator TIN',
-    'site_name'       => 'Site Name',
-    'block_name'      => 'Block Name',
-    'barcode'         => 'Tree Barcode',
-    'tree_map_number' => 'Tree Map Number',
-    'survey_line'     => 'Survey Line',
-    'cell_number'     => 'Cell Number',
+    'contract_number' => 'Contract Summary Number',
+    'origin'          => 'Port of Origin',
+    'destination'     => 'Port of Destination',
+    'specs_barcode'   => 'Shipment Specification Barcode',
+    'epr_barcode'     => 'Export Permit Request Barcode',
+    'barcode'         => 'Log Barcode',
     'species_code'    => 'Species Code',
-    'diameter'        => 'Diameter',
-    'height'          => 'Height',
-    'is_requested'    => 'Is Requested',
-    'is_fda_approved' => 'Is FDA Approved',
-    'fda_remarks'     => 'FDA Remarks',
+    'bottom_max'      => 'Butt Max',
+    'bottom_min'      => 'Butt Min',
+    'top_max'         => 'Top Max',
+    'top_min'         => 'Top Min',
+    'length'          => 'Length',
+    'grade'           => 'Grade',
+    'volume'          => 'Volume',
   );
 
-  public static $errors = array(
-    'all' => array(
-      'is_active_barcode' => ':field must not be pending assignment',
-      'is_valid_barcode'  => ':field must be assigned as a standing tree',
-    )
-  );
+  public static $errors = array();
 
   protected $_table_name = 'specs_data';
 
   protected $_belongs_to = array(
-    'site'     => array(),
     'operator' => array(),
-    'block'    => array(),
     'barcode'  => array(),
+    'specs_barcode'  => array(
+      'model'       => 'barcode',
+      'foreign_key' => 'specs_barcode_id'),
+    'epr_barcode'  => array(
+      'model'       => 'barcode',
+      'foreign_key' => 'epr_barcode_id'),
     'species'  => array(),
     'user'     => array(),
   );
 
   public static function generate_report($records) {
-    $total = count($records);
-
-    $errors   = array();
-    $_records = array();
-    if ($records) foreach (DB::select('form_data_id', 'field', 'error')
-      ->from('errors')
-      ->where('form_type', '=', self::$type)
-      ->and_where('form_data_id', 'IN', (array) array_keys($records))
-      ->execute()
-      ->as_array() as $result) {
-        $_records[$result['form_data_id']][$result['field']][] = $result['error'];
-        $errors[$result['error']][$result['field']][$result['form_data_id']] = $records[$result['form_data_id']];
-    }
-
-    $fail = count($_records);
-
-    return array(
-      'total'   => $total,
-      'passed'  => $total - $fail,
-      'failed'  => $fail,
-      'records' => $_records,
-      'errors'  => $errors
-    );
+    return array();
   }
 
   public static function fields()
@@ -80,27 +59,28 @@ class Model_SPECS extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    extract(SGS::parse_site_and_block_info(trim($csv[2][B] ?: $csv[2][C] ?: $csv[2][D] ?: $csv[2][E])));
+    extract(SGS::parse_grade(trim($row[J])));
     $data = array(
-      'barcode'           => SGS::barcodify(trim($row[A])),
-      'tree_map_number'   => trim($row[B]),
-      'survey_line'       => trim($row[C]),
-      'cell_number'       => trim($row[D]),
-      'species_code'      => trim($row[E]),
-      'diameter'          => trim($row[F]),
-      'height'            => trim($row[G]),
+      'barcode'         => SGS::barcodify(trim($row[B] ?: $row[C])),
+      'species_code'    => trim($row[D]),
+      'bottom_max'      => trim($row[E]),
+      'bottom_min'      => trim($row[F]),
+      'top_max'         => trim($row[G]),
+      'top_min'         => trim($row[H]),
+      'length'          => trim($row[I]),
+      'grade'           => $grade,
+      'volume'          => trim($row[K]),
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'     => SGS::date(trim($csv[3][B] ?: $csv[3][C] ?: $csv[3][D] ?: $csv[3][E]), SGS::US_DATE_FORMAT, TRUE, TRUE),
-      'operator_tin'    => trim($csv[2][H] ?: $csv[2][I] ?: $csv[2][J]),
-      'site_name'       => $site_name,
-      'block_name'      => $block_name,
-    ) + $data + array(
-      'is_requested'    => trim($row[H]) == 'NO' ? 'NO' : 'YES',
-      'is_fda_approved' => trim($row[I]) == 'NO' ? 'NO' : 'YES',
-      'fda_remarks'     => trim($row[J]),
-    ));
+      'create_date'     => SGS::date(trim($csv[7][I] ?: $csv[7][J] ?: $csv[7][K]), SGS::US_DATE_FORMAT, TRUE, TRUE),
+      'operator_tin'    => trim($csv[4][C] ?: $csv[4][D]),
+      'contract_number' => trim($csv[3][I] ?: $csv[3][J] ?: $csv[3][K]),
+      'origin'          => trim($csv[5][C] ?: $csv[5][D]),
+      'destination'     => trim($csv[6][C] ?: $csv[6][D]),
+      'specs_barcode'   => SGS::barcodify(trim($csv[2][C] ?: $csv[2][D])),
+      'epr_barcode'     => SGS::barcodify(trim($csv[3][C] ?: $csv[3][D])),
+    ) + $data);
   }
 
   public function parse_data($data)
@@ -109,14 +89,9 @@ class Model_SPECS extends SGS_Form_ORM {
       case 'operator_tin':
         $this->operator = SGS::lookup_operator($value); break;
 
-      case 'site_name':
-        $this->site = SGS::lookup_site($value);
-        break;
-
-      case 'block_name':
-        $this->block = SGS::lookup_block($data['site_name'], $value); break;
-
       case 'barcode':
+      case 'specs_barcode':
+      case 'epr_barcode':
         $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
 
       case 'species_code':
@@ -130,143 +105,143 @@ class Model_SPECS extends SGS_Form_ORM {
     }
   }
 
-  public function export_data($excel, $row) {
-    $excel->getActiveSheet()->SetCellValue('A'.$row, $this->barcode->barcode);
-    $excel->getActiveSheet()->SetCellValue('B'.$row, $this->tree_map_number);
-    $excel->getActiveSheet()->SetCellValue('C'.$row, $this->survey_line);
-    $excel->getActiveSheet()->SetCellValue('D'.$row, $this->cell_number);
-    $excel->getActiveSheet()->SetCellValue('E'.$row, $this->species->code);
-    $excel->getActiveSheet()->SetCellValue('F'.$row, $this->diameter);
-    $excel->getActiveSheet()->SetCellValue('G'.$row, $this->height);
-    $excel->getActiveSheet()->SetCellValue('H'.$row, $this->is_requested == FALSE ? 'NO' : 'YES');
-    $excel->getActiveSheet()->SetCellValue('I'.$row, $this->is_fda_approved == FALSE ? 'NO' : 'YES');
-    $excel->getActiveSheet()->SetCellValue('J'.$row, $this->fda_remarks);
-  }
-
-  public function export_headers($excel, $args, $headers = TRUE) {
-    if ($headers) {
-      $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
-      $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
-      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
-      $excel->getActiveSheet()->SetCellValue('G2', 'Holder TIN:');
-      $excel->getActiveSheet()->SetCellValue('A3', 'Date Surveyed:');
-      $excel->getActiveSheet()->SetCellValue('G3', 'Enumerator:');
-      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 corners of the block map:');
-      $excel->getActiveSheet()->SetCellValue('E4', 'Easting');
-      $excel->getActiveSheet()->SetCellValue('G4', 'Northing');
-      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter  0 meter)');
-      $excel->getActiveSheet()->SetCellValue('A6', 'East from origin');
-      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from previous');
-      $excel->getActiveSheet()->SetCellValue('A8', 'West from previous');
-      $excel->getActiveSheet()->SetCellValue('A9', 'Date entered');
-      $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
-      $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
-      $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
-      $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
-      $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
-      $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
-      $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
-      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter Class Number (cm)');
-      $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
-      $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
-      $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
-      $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
-      $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
-      $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
-      $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
-    }
-
-    $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name.'/'.$this->block->name);
-    $excel->getActiveSheet()->SetCellValue('H2', $this->operator->tin);
-    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
-    $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
-    $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
-    $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
-    $excel->getActiveSheet()->SetCellValue('B7', ''); // north/south from previous
-    $excel->getActiveSheet()->SetCellValue('B8', ''); // west from previous
-    $excel->getActiveSheet()->SetCellValue('B9', ''); // date entered
-    $excel->getActiveSheet()->SetCellValue('H9', ''); // entered by
-    $excel->getActiveSheet()->SetCellValue('B10', ''); // date checked
-    $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
-  }
-
-  public function download_data($values, $errors, $suggestions, $duplicates, $excel, $row) {
-    $excel->getActiveSheet()->SetCellValue('A'.$row, $values['barcode']);
-    $excel->getActiveSheet()->SetCellValue('B'.$row, $values['tree_map_number']);
-    $excel->getActiveSheet()->SetCellValue('C'.$row, $values['survey_line']);
-    $excel->getActiveSheet()->SetCellValue('D'.$row, $values['cell_number']);
-    $excel->getActiveSheet()->SetCellValue('E'.$row, $values['species_code']);
-    $excel->getActiveSheet()->SetCellValue('F'.$row, $values['diameter']);
-    $excel->getActiveSheet()->SetCellValue('G'.$row, $values['height']);
-    $excel->getActiveSheet()->SetCellValue('H'.$row, $values['is_requested']);
-    $excel->getActiveSheet()->SetCellValue('I'.$row, $values['is_fda_approved']);
-    $excel->getActiveSheet()->SetCellValue('J'.$row, $values['fda_remarks']);
-
-    if ($errors) {
-      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $errors));
-      $excel->getActiveSheet()->getStyle('L'.$row)->getAlignment()->setWrapText(true);
-    }
-
-    if ($suggestions) {
-      $text = array();
-      foreach ($suggestions as $field => $suggestion) {
-        $text[] = 'Suggested values for '.self::$fields[$field].': '.implode(', ', $suggestion);
-      }
-      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" \n", (array) $text));
-      $excel->getActiveSheet()->getStyle('M'.$row)->getAlignment()->setWrapText(true);
-    }
-
-    if ($duplicates) {
-      $excel->getActiveSheet()->SetCellValue('N'.$row, 'Duplicate found');
-    }
-  }
-
-  public function download_headers($values, $excel, $args, $headers = TRUE) {
-    if ($headers) {
-      $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
-      $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
-      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
-      $excel->getActiveSheet()->SetCellValue('G2', 'Holder TIN:');
-      $excel->getActiveSheet()->SetCellValue('A3', 'Date Surveyed:');
-      $excel->getActiveSheet()->SetCellValue('G3', 'Enumerator:');
-      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 corners of the block map:');
-      $excel->getActiveSheet()->SetCellValue('E4', 'Easting');
-      $excel->getActiveSheet()->SetCellValue('G4', 'Northing');
-      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter  0 meter)');
-      $excel->getActiveSheet()->SetCellValue('A6', 'East from origin');
-      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from previous');
-      $excel->getActiveSheet()->SetCellValue('A8', 'West from previous');
-      $excel->getActiveSheet()->SetCellValue('A9', 'Date entered');
-      $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
-      $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
-      $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
-      $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
-      $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
-      $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
-      $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
-      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter Class Number (cm)');
-      $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
-      $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
-      $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
-      $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
-      $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
-      $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
-      $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
-    }
-
-    $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name'].'/'.$values['block_name']);
-    $excel->getActiveSheet()->SetCellValue('H2', $values['operator_tin']);
-    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
-    $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
-    $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
-    $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
-    $excel->getActiveSheet()->SetCellValue('B7', ''); // north/south from previous
-    $excel->getActiveSheet()->SetCellValue('B8', ''); // west from previous
-    $excel->getActiveSheet()->SetCellValue('B9', ''); // date entered
-    $excel->getActiveSheet()->SetCellValue('H9', ''); // entered by
-    $excel->getActiveSheet()->SetCellValue('B10', ''); // date checked
-    $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
-  }
+//  public function export_data($excel, $row) {
+//    $excel->getActiveSheet()->SetCellValue('A'.$row, $this->barcode->barcode);
+//    $excel->getActiveSheet()->SetCellValue('B'.$row, $this->tree_map_number);
+//    $excel->getActiveSheet()->SetCellValue('C'.$row, $this->survey_line);
+//    $excel->getActiveSheet()->SetCellValue('D'.$row, $this->cell_number);
+//    $excel->getActiveSheet()->SetCellValue('E'.$row, $this->species->code);
+//    $excel->getActiveSheet()->SetCellValue('F'.$row, $this->diameter);
+//    $excel->getActiveSheet()->SetCellValue('G'.$row, $this->height);
+//    $excel->getActiveSheet()->SetCellValue('H'.$row, $this->is_requested == FALSE ? 'NO' : 'YES');
+//    $excel->getActiveSheet()->SetCellValue('I'.$row, $this->is_fda_approved == FALSE ? 'NO' : 'YES');
+//    $excel->getActiveSheet()->SetCellValue('J'.$row, $this->fda_remarks);
+//  }
+//
+//  public function export_headers($excel, $args, $headers = TRUE) {
+//    if ($headers) {
+//      $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
+//      $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
+//      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
+//      $excel->getActiveSheet()->SetCellValue('G2', 'Holder TIN:');
+//      $excel->getActiveSheet()->SetCellValue('A3', 'Date Surveyed:');
+//      $excel->getActiveSheet()->SetCellValue('G3', 'Enumerator:');
+//      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 corners of the block map:');
+//      $excel->getActiveSheet()->SetCellValue('E4', 'Easting');
+//      $excel->getActiveSheet()->SetCellValue('G4', 'Northing');
+//      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter  0 meter)');
+//      $excel->getActiveSheet()->SetCellValue('A6', 'East from origin');
+//      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from previous');
+//      $excel->getActiveSheet()->SetCellValue('A8', 'West from previous');
+//      $excel->getActiveSheet()->SetCellValue('A9', 'Date entered');
+//      $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
+//      $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
+//      $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
+//      $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
+//      $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
+//      $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
+//      $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
+//      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter Class Number (cm)');
+//      $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
+//      $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
+//      $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
+//      $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
+//      $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
+//      $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
+//      $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
+//    }
+//
+//    $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name.'/'.$this->block->name);
+//    $excel->getActiveSheet()->SetCellValue('H2', $this->operator->tin);
+//    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+//    $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
+//    $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
+//    $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
+//    $excel->getActiveSheet()->SetCellValue('B7', ''); // north/south from previous
+//    $excel->getActiveSheet()->SetCellValue('B8', ''); // west from previous
+//    $excel->getActiveSheet()->SetCellValue('B9', ''); // date entered
+//    $excel->getActiveSheet()->SetCellValue('H9', ''); // entered by
+//    $excel->getActiveSheet()->SetCellValue('B10', ''); // date checked
+//    $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
+//  }
+//
+//  public function download_data($values, $errors, $suggestions, $duplicates, $excel, $row) {
+//    $excel->getActiveSheet()->SetCellValue('A'.$row, $values['barcode']);
+//    $excel->getActiveSheet()->SetCellValue('B'.$row, $values['tree_map_number']);
+//    $excel->getActiveSheet()->SetCellValue('C'.$row, $values['survey_line']);
+//    $excel->getActiveSheet()->SetCellValue('D'.$row, $values['cell_number']);
+//    $excel->getActiveSheet()->SetCellValue('E'.$row, $values['species_code']);
+//    $excel->getActiveSheet()->SetCellValue('F'.$row, $values['diameter']);
+//    $excel->getActiveSheet()->SetCellValue('G'.$row, $values['height']);
+//    $excel->getActiveSheet()->SetCellValue('H'.$row, $values['is_requested']);
+//    $excel->getActiveSheet()->SetCellValue('I'.$row, $values['is_fda_approved']);
+//    $excel->getActiveSheet()->SetCellValue('J'.$row, $values['fda_remarks']);
+//
+//    if ($errors) {
+//      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $errors));
+//      $excel->getActiveSheet()->getStyle('L'.$row)->getAlignment()->setWrapText(true);
+//    }
+//
+//    if ($suggestions) {
+//      $text = array();
+//      foreach ($suggestions as $field => $suggestion) {
+//        $text[] = 'Suggested values for '.self::$fields[$field].': '.implode(', ', $suggestion);
+//      }
+//      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" \n", (array) $text));
+//      $excel->getActiveSheet()->getStyle('M'.$row)->getAlignment()->setWrapText(true);
+//    }
+//
+//    if ($duplicates) {
+//      $excel->getActiveSheet()->SetCellValue('N'.$row, 'Duplicate found');
+//    }
+//  }
+//
+//  public function download_headers($values, $excel, $args, $headers = TRUE) {
+//    if ($headers) {
+//      $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
+//      $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
+//      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
+//      $excel->getActiveSheet()->SetCellValue('G2', 'Holder TIN:');
+//      $excel->getActiveSheet()->SetCellValue('A3', 'Date Surveyed:');
+//      $excel->getActiveSheet()->SetCellValue('G3', 'Enumerator:');
+//      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 corners of the block map:');
+//      $excel->getActiveSheet()->SetCellValue('E4', 'Easting');
+//      $excel->getActiveSheet()->SetCellValue('G4', 'Northing');
+//      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter  0 meter)');
+//      $excel->getActiveSheet()->SetCellValue('A6', 'East from origin');
+//      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from previous');
+//      $excel->getActiveSheet()->SetCellValue('A8', 'West from previous');
+//      $excel->getActiveSheet()->SetCellValue('A9', 'Date entered');
+//      $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
+//      $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
+//      $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
+//      $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
+//      $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
+//      $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
+//      $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
+//      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter Class Number (cm)');
+//      $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
+//      $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
+//      $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
+//      $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
+//      $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
+//      $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
+//      $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
+//    }
+//
+//    $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name'].'/'.$values['block_name']);
+//    $excel->getActiveSheet()->SetCellValue('H2', $values['operator_tin']);
+//    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+//    $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
+//    $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
+//    $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
+//    $excel->getActiveSheet()->SetCellValue('B7', ''); // north/south from previous
+//    $excel->getActiveSheet()->SetCellValue('B8', ''); // west from previous
+//    $excel->getActiveSheet()->SetCellValue('B9', ''); // date entered
+//    $excel->getActiveSheet()->SetCellValue('H9', ''); // entered by
+//    $excel->getActiveSheet()->SetCellValue('B10', ''); // date checked
+//    $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
+//  }
 
   public function make_suggestions($values, $errors) {
     $suggestions = array();
@@ -275,7 +250,21 @@ class Model_SPECS extends SGS_Form_ORM {
       switch ($field) {
         case 'barcode':
           $args = array(
-            'barcodes.type' => array('P'),
+            'barcodes.type' => array('P', 'L'),
+            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
+          );
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
+          break;
+        case 'specs_barcode':
+          $args = array(
+            'barcodes.type' => array('P', 'H'),
+            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
+          );
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
+          break;
+        case 'epr_barcode':
+          $args = array(
+            'barcodes.type' => array('P', 'E'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
@@ -285,12 +274,6 @@ class Model_SPECS extends SGS_Form_ORM {
             'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
           );
           $suggest = SGS::suggest_operator($values[$field], $args, 'tin');
-          break;
-        case 'site_name':
-          $args = array(
-            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
-          );
-          $suggest = SGS::suggest_site($values[$field], $args, 'name');
           break;
         case 'species_code':
           $suggest = SGS::suggest_species($values[$field], array(), 'code');
@@ -314,87 +297,64 @@ class Model_SPECS extends SGS_Form_ORM {
             ->where($field.'_id', '=', ($val = SGS::lookup_barcode($values[$field], TRUE)) ? $val : NULL);
 
           if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
-          if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
-          if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
 
           if ($duplicate = $query->execute()->get('id')) $duplicates[$field] = $duplicate;
           break;
       }
     }
 
-    // everything else
-    $query = DB::select('id')
-      ->from($this->_table_name)
-      ->where('survey_line', '=', (int) $values['survey_line'])
-      ->and_where('cell_number', '=', (int) $values['cell_number'])
-      ->and_where('tree_map_number', '=', (int) $values['tree_map_number']);
-
-    if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
-    if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
-    if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
-    if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
-
-    if ($duplicate = $query->execute()->get('id')) $duplicates[] = $duplicate;
     return $duplicates;
   }
 
-  public function run_checks() {
-    if ($this->status == 'A') return;
+  public function run_checks() {}
 
-    $errors = array();
-    $this->unset_errors();
-
-//    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'is_consistent_operator_barcode';
-//    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'is_consistent_operator_site';
-//    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'is_consistent_site_barcode';
-//    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'is_consistent_site_operator';
-//    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_barcode';
-//    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_site';
-
-    switch ($this->barcode->type) {
-      case 'T': break;
-      case 'P': $errors['barcode'][] = 'is_active_barcode'; break;
-      default:  $errors['barcode'][] = 'is_valid_barcode'; break;
-    }
-
-    if ($errors) {
-      $this->status = 'R';
-      foreach ($errors as $field => $array) {
-        foreach (array_filter(array_unique($array)) as $error) $this->set_error($field, $error);
-      }
-    } else $this->status = 'A';
-
-    $this->save();
-  }
+//  operator_id d_id not null,
+//  specs_barcode_id d_id not null,
+//  epr_barcode_id d_id not null,
+//  contract_numbuer d_text_short,
+//  barcode_id d_id unique not null,
+//  species_id d_id not null,
+//  top_min d_measurement_int not null,
+//  top_max d_measurement_int not null,
+//  bottom_min d_measurement_int not null,
+//  bottom_max d_measurement_int not null,
+//  length d_measurement_float not null,
+//  grade d_grade not null,
+//  volume d_measurement_float not null,
+//  origin d_text_short,
+//  destination d_text_short,
+//  create_date d_date not null,
+//  status d_data_status default 'P' not null,
 
   public function rules()
   {
     return array(
-      'site_id'         => array(array('not_empty')),
-      'operator_id'     => array(array('not_empty')),
-      'block_id'        => array(array('not_empty')),
-      'species_id'      => array(array('not_empty')),
-      'barcode_id'      => array(array('not_empty'),
-                                 array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
-      'survey_line'     => array(array('not_empty'),
-                                 array('is_survey_line')),
-      'cell_number'     => array(array('not_empty'),
-                                 array('is_positive_int')),
-      'tree_map_number' => array(array('not_empty'),
-                                 array('is_positive_int')),
-      'diameter'        => array(array('not_empty'),
-                                 array('is_measurement_int')),
-      'height'          => array(array('not_empty'),
-                                 array('is_measurement_float')),
-      'is_requested'    => array(array('not_empty'),
-                                 array('is_boolean')),
-      'is_fda_approved' => array(array('not_empty'),
-                                 array('is_boolean')),
-      'fda_remarks'     => array(),
-      'create_date'     => array(array('not_empty'),
-                                 array('is_date')),
-      'user_id'         => array(),
-      'timestamp'       => array()
+      'operator_id'        => array(array('not_empty')),
+      'species_id'         => array(array('not_empty')),
+      'barcode_id'         => array(array('not_empty'),
+                                    array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
+      'specs_barcode_id'   => array(array('not_empty')),
+      'epr_barcode_id'     => array(array('not_empty')),
+      'top_min'            => array(array('not_empty'),
+                                    array('is_measurement_int')),
+      'top_max'            => array(array('not_empty'),
+                                    array('is_measurement_int')),
+      'bottom_min'         => array(array('not_empty'),
+                                    array('is_measurement_int')),
+      'bottom_max'         => array(array('not_empty'),
+                                    array('is_measurement_int')),
+      'length'             => array(array('not_empty'),
+                                    array('is_measurement_float')),
+      'grade'              => array(array('not_empty'),
+                                    array('is_grade')),
+      'volume'             => array(array('not_empty'),
+                                    array('is_measurement_float')),
+      'origin'             => array(),
+      'destination'        => array(),
+      'create_date'        => array(array('not_empty'),
+                                    array('is_date')),
+      'user_id'            => array(),
+      'timestamp'          => array()
     );
   }
 
@@ -404,13 +364,12 @@ class Model_SPECS extends SGS_Form_ORM {
       'operator_tin'   => array(array('not_empty'),
                                 array('is_operator_tin'),
                                 array('is_existing_operator')),
-      'site_name'      => array(array('is_text_short'),
-                                array('is_existing_site')),
-      'block_name'     => array(array('not_empty'),
-                                array('is_block_name'),
-                                array('is_existing_block', array(':validation', 'site_name', 'block_name'))),
       'barcode'        => array(array('not_empty'),
                                 array('is_barcode', array(':value', TRUE)),
+                                array('is_existing_barcode')),
+      'specs_barcode'  => array(array('is_barcode', array(':value', TRUE)),
+                                array('is_existing_barcode')),
+      'epr_barcode'    => array(array('is_barcode', array(':value', TRUE)),
                                 array('is_existing_barcode')),
       'species_code'   => array(array('not_empty'),
                                 array('is_species_code'),
@@ -438,20 +397,6 @@ class Model_SPECS extends SGS_Form_ORM {
 //      'user_id'         => self::$fields['user_id'],
 //      'timestamp'       => self::$fields['timestamp'],
     );
-  }
-
-  public function __get($column) {
-    switch ($column) {
-      case 'is_requested':
-      case 'is_fda_approved':
-        return parent::__get($column) == 't' ? TRUE : FALSE;
-
-      case 'errors':
-        $value = parent::__get($column);
-        return is_string($value) ? unserialize($value) : $value;
-      default:
-        return parent::__get($column);
-    }
   }
 
 }

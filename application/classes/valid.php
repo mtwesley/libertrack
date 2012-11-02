@@ -155,7 +155,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_grade($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^[ABC]$/', (string) $value));
+    return (bool) (self::is_varchar($value, 3) AND preg_match('/^(LM|A|AB|B|BC|C|D|FAS|1|2|CG)$/', (string) $value));
   }
 
   public static function is_barcode($value, $barcodify = FALSE)

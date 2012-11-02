@@ -6,7 +6,7 @@ $options = (array) $options + array(
   'details' => TRUE,
   'actions' => FALSE,
   'resolve' => FALSE,
-  'header'  => FALSE,
+  'header'  => $operator ? TRUE : FALSE,
 );
 
 $header_columns = 0;
