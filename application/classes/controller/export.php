@@ -169,7 +169,7 @@ class Controller_Export extends Controller {
             Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
           }
           $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_Excel2005($excel);
+          $writer = new PHPExcel_Writer_Excel2007($excel);
           $mime_type = 'application/vnd.ms-excel';
           $headers = FALSE;
           break;
@@ -267,7 +267,7 @@ class Controller_Export extends Controller {
             Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
           }
           $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_Excel2005($excel);
+          $writer = new PHPExcel_Writer_Excel2007($excel);
           $headers = FALSE;
           $mime_type = 'application/vnd.ms-excel';
           break;
@@ -361,7 +361,7 @@ class Controller_Export extends Controller {
             Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
           }
           $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_Excel2005($excel);
+          $writer = new PHPExcel_Writer_Excel2007($excel);
           $headers = FALSE;
           $mime_type = 'application/vnd.ms-excel';
           break;

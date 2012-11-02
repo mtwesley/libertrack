@@ -21,6 +21,7 @@ class Controller_Analysis extends Controller {
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.data');
 
     $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
+    $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
 
     if ($id) {
       Session::instance()->delete('pagination.data');
@@ -34,8 +35,13 @@ class Controller_Analysis extends Controller {
       $form_type = reset($data)->form_type;
     }
     else {
-      $site_ids = DB::select('id', 'name')
+      if ($has_site_id) $site_ids = DB::select('id', 'name')
         ->from('sites')
+        ->order_by('name')
+        ->execute()
+        ->as_array('id', 'name');
+      else $operator_ids = DB::select('id', 'name')
+        ->from('operators')
         ->order_by('name')
         ->execute()
         ->as_array('id', 'name');
@@ -46,8 +52,9 @@ class Controller_Analysis extends Controller {
         ->execute()
         ->as_array('id', 'name');
 
-      $form = Formo::form()
-        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'));
+      $form = Formo::form();
+      if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'));
+      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
       if ($has_block_id) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'));
       $form = $form
         ->add_group('status', 'checkboxes', SGS::$data_status, NULL, array('label' => 'Status'))
@@ -55,25 +62,29 @@ class Controller_Analysis extends Controller {
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
         Session::instance()->delete('pagination.data');
-        $site_id  = $form->site_id->val();
-        if ($has_block_id) $block_id = $form->block_id->val;
+        if ($has_site_id)  $site_id  = $form->site_id->val();
+        else $operator_id = $form->operator_id->val();
+        if ($has_block_id) $block_id = $form->block_id->val();
         $status   = $form->status->val();
 
         $data = ORM::factory($form_type)->order_by('create_date', 'DESC');
 
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
+        if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
         if ($status)      $data->and_where('status', 'IN', (array) $status);
 
         Session::instance()->set('pagination.data', array(
           'site_id'     => $site_id,
+          'operator_id' => $operator_id,
           'block_id'    => $block_id,
           'status'      => $status,
         ));
       }
       else {
         if ($settings = Session::instance()->get('pagination.data')) {
-          $form->site_id->val($site_id = $settings['site_id']);
+          if ($has_site_id)  $form->site_id->val($site_id = $settings['site_id']);
+          else $form->operator_id->val($operator_id = $settings['operator_id']);
           if ($has_block_id) $form->block_id->val($block_id = $settings['block_id']);
           $form->status->val($block_id = $settings['block_id']);
         }
@@ -81,6 +92,7 @@ class Controller_Analysis extends Controller {
         $data = ORM::factory($form_type)->order_by('timestamp', 'DESC');
 
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
+        if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
       }
 

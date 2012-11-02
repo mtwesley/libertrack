@@ -924,6 +924,7 @@ class Controller_Import extends Controller {
       case 'ssf': return self::handle_csv_list('SSF');
       case 'tdf': return self::handle_csv_list('TDF');
       case 'ldf': return self::handle_csv_list('LDF');
+      case 'specs': return self::handle_csv_list('SPECS');
 
       default:
       case 'list': return self::handle_csv_list(NULL, $id);
