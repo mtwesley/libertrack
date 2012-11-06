@@ -118,4 +118,18 @@ class Controller_Ajax extends Controller {
 
     $this->response->body($csv->status);
   }
+
+  public function action_blockopts() {
+    $site_id = $this->request->post('site_id');
+
+    foreach (array('' => '') + DB::select('id', 'name')
+      ->from('blocks')
+      ->where('site_id', '=', $site_id)
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name') as $id => $name) $output .= '<option value="'.$id.'">'.$name.'</option>';
+
+    $this->response->body($output);
+  }
+
 }

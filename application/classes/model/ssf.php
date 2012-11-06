@@ -190,7 +190,7 @@ class Model_SSF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
   }
 
-  public function download_data($values, $errors, $suggestions, $duplicates, $excel, $row) {
+  public function download_data($values, $errors, $excel, $row) {
     $excel->getActiveSheet()->SetCellValue('A'.$row, $values['barcode']);
     $excel->getActiveSheet()->SetCellValue('B'.$row, $values['tree_map_number']);
     $excel->getActiveSheet()->SetCellValue('C'.$row, $values['survey_line']);
@@ -203,21 +203,9 @@ class Model_SSF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('J'.$row, $values['fda_remarks']);
 
     if ($errors) {
-      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $errors));
+      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $fields[$field]));
+      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $text));
       $excel->getActiveSheet()->getStyle('L'.$row)->getAlignment()->setWrapText(true);
-    }
-
-    if ($suggestions) {
-      $text = array();
-      foreach ($suggestions as $field => $suggestion) {
-        $text[] = 'Suggested values for '.self::$fields[$field].': '.implode(', ', $suggestion);
-      }
-      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" \n", (array) $text));
-      $excel->getActiveSheet()->getStyle('M'.$row)->getAlignment()->setWrapText(true);
-    }
-
-    if ($duplicates) {
-      $excel->getActiveSheet()->SetCellValue('N'.$row, 'Duplicate found');
     }
   }
 
@@ -275,7 +263,7 @@ class Model_SSF extends SGS_Form_ORM {
       switch ($field) {
         case 'barcode':
           $args = array(
-            'barcodes.type' => array('P'),
+            'barcodes.type' => array('T', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');

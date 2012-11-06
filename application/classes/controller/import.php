@@ -36,16 +36,16 @@ class Controller_Import extends Controller {
         ->execute()
         ->as_array('id', 'name');
 
-      $block_ids = DB::select('id', 'name')
-        ->from('blocks')
-        ->order_by('name')
-        ->execute()
-        ->as_array('id', 'name');
+//      $block_ids = DB::select('id', 'name')
+//        ->from('blocks')
+//        ->order_by('name')
+//        ->execute()
+//        ->as_array('id', 'name');
 
       $form = Formo::form()
         ->add_group('operation_type', 'checkboxes', SGS::$form_type, NULL, array('label' => 'Type'))
-        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
-        ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
+        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
+        ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
         ->add('search', 'submit', 'Filter');
 
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
@@ -288,11 +288,12 @@ class Controller_Import extends Controller {
         case 'SSF': $row = Model_SSF::PARSE_START; break;
         case 'TDF': $row = Model_TDF::PARSE_START; break;
         case 'LDF': $row = Model_LDF::PARSE_START; break;
+        case 'SPECS': $row = Model_SPECS::PARSE_START; break;
       }
       $model = ORM::factory($file->operation_type);
 
       foreach ($csvs as $csv) {
-        $model->download_data($csv->values, $csv->errors, $csv->suggestions, $csv->duplicates, $excel, $row);
+        $model->download_data($csv->values, $csv->get_errors(), $excel, $row);
         if (strtotime($csv->values['create_date']) > strtotime($create_date)) $create_date = $csv->values['create_date'];
         $row++;
       }
@@ -477,6 +478,10 @@ class Controller_Import extends Controller {
 
   private function handle_csv_list($form_type = NULL, $id = NULL) {
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.csv');
+
+    $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
+    $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
+
     if ($id) {
       Session::instance()->delete('pagination.csv');
 
@@ -495,31 +500,38 @@ class Controller_Import extends Controller {
       $form_type = reset($csvs)->form_type;
     }
     elseif ($form_type) {
-      $site_ids = DB::select('id', 'name')
+      if ($has_site_id) $site_ids = DB::select('id', 'name')
         ->from('sites')
         ->order_by('name')
         ->execute()
         ->as_array('id', 'name');
-
-      $block_ids = DB::select('id', 'name')
-        ->from('blocks')
+      else $operator_ids = DB::select('id', 'name')
+        ->from('operators')
         ->order_by('name')
         ->execute()
         ->as_array('id', 'name');
 
+//      if ($has_block_id) $block_ids = DB::select('id', 'name')
+//        ->from('blocks')
+//        ->order_by('name')
+//        ->execute()
+//        ->as_array('id', 'name');
+
       $form = Formo::form()
-        ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status', 'required' => TRUE))
-        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
-        ->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'))
-//        ->add('format', 'radios', array(
-//          'options' => array(
-//            'preview' => 'Filter',
-//            'draft'   => 'Download CSV',
-//            'final'   => 'Download XLS'),
-//          'label' => '&nbsp;',
-//          'required' => TRUE,
-//          ))
-        ->add('search', 'submit', 'Filter');
+        ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status', 'required' => TRUE));
+      if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
+      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
+      if ($has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
+      $form = $form
+        ->add('format', 'radios', array(
+          'options' => array(
+            'filter' => 'Filter',
+            'csv'   => 'Download CSV',
+            'xls'   => 'Download XLS'),
+          'label' => '&nbsp;',
+          'required' => TRUE,
+          ))
+        ->add('search', 'submit', 'Go');
 //        ->add('download_csv', 'submit', 'Download '.SGS::$file_type['csv'])
 //        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls']);
 
@@ -531,42 +543,47 @@ class Controller_Import extends Controller {
       if ($form->sent($_POST) and $form->load($_POST)->validate()) {
         Session::instance()->delete('pagination.csv');
 
+        if ($has_site_id)  $site_id  = $form->site_id->val();
+        else $operator_id = $form->operator_id->val();
+        if ($has_block_id) $block_id = $form->block_id->val();
         $status      = $form->status->val();
-        $site_id     = $form->site_id->val();
-        $block_id    = $form->block_id->val();
 
         if ($status)      $csvs->and_where('status', 'IN', (array) $status);
+        if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
 
-        if ($_POST['download_xls'] or $_POST['download_csv']) {
+        if (in_array($format, array('csv', 'xls'))) {
           $site     = ORM::factory('site', (int) $site_id);
           $block    = ORM::factory('block', (int) $block_id);
+          $operator = ORM::factory('operator', (int) $operator_id);
 
           $csvs = $csvs->find_all()->as_array();
 
-          if ($_POST['download_csv']) {
-            $ext = 'csv';
-            $excel = new PHPExcel();
-            $excel->setActiveSheetIndex(0);
-            $writer = new PHPExcel_Writer_CSV($excel);
-            $headers = TRUE;
-            $mime_type = 'text/csv';
-          }
-          else {
-            $ext = 'xls';
-            $filename = APPPATH.'/templates/'.$form_type.'.xls';
-            try {
-              $reader = new PHPExcel_Reader_Excel5;
-              if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
-              $excel = $reader->load($filename);
-            } catch (Exception $e) {
-              Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
-            }
-            $excel->setActiveSheetIndex(0);
-            $writer = new PHPExcel_Writer_Excel5($excel);
-            $headers = FALSE;
-            $mime_type = 'application/vnd.ms-excel';
+          switch ($format) {
+            case 'csv':
+              $ext = 'csv';
+              $excel = new PHPExcel();
+              $excel->setActiveSheetIndex(0);
+              $writer = new PHPExcel_Writer_CSV($excel);
+              $headers = TRUE;
+              $mime_type = 'text/csv';
+              break;
+            case 'xls':
+              $ext = 'xls';
+              $filename = APPPATH.'/templates/'.$form_type.'.xls';
+              try {
+                $reader = new PHPExcel_Reader_Excel5;
+                if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
+                $excel = $reader->load($filename);
+              } catch (Exception $e) {
+                Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
+              }
+              $excel->setActiveSheetIndex(0);
+              $writer = new PHPExcel_Writer_Excel5($excel);
+              $headers = FALSE;
+              $mime_type = 'application/vnd.ms-excel';
+              break;
           }
 
           if ($excel) {
@@ -576,6 +593,7 @@ class Controller_Import extends Controller {
               case 'SSF': $row = Model_SSF::PARSE_START; break;
               case 'TDF': $row = Model_TDF::PARSE_START; break;
               case 'LDF': $row = Model_LDF::PARSE_START; break;
+              case 'SPECS': $row = Model_SPECS::PARSE_START; break;
             }
             $model = ORM::factory($form_type);
 
@@ -594,9 +612,10 @@ class Controller_Import extends Controller {
             $tempname = tempnam(sys_get_temp_dir(), strtolower($form_type).'_download_').'.'.$type;
 
             switch ($form_type) {
-              case 'SSF': $fullname = ($site->name ? $site->name.'_' : '').'SSF'.($block->name ? '_'.$block->name : '').'.'.$ext; break;
-              case 'TDF': $fullname = ($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').SGS::date($create_date, 'm_d_Y').'.'.$ext; break;
-              case 'LDF': $fullname = ($site->name ? $site->name.'_' : '').'LDF_'.SGS::date($create_date, 'm_d_Y').'.'.$ext; break;
+              case 'SSF': $fullname = preg_replace('/\W+/', '_', ($site->name ? $site->name.'_' : '').'SSF'.($block->name ? '_'.$block->name : '')).'.'.$ext; break;
+              case 'TDF': $fullname = preg_replace('/\W+/', '_', ($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
+              case 'LDF': $fullname = preg_replace('/\W+/', '_', ($site->name ? $site->name.'_' : '').'LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
+              case 'SPECS': $fullname = preg_replace('/\W+/', '_', ($operator->tin ? $operator->tin.'_' : '').'SPECS_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
             }
 
             $writer->save($tempname);
@@ -612,13 +631,15 @@ class Controller_Import extends Controller {
 
       }
       elseif ($settings = Session::instance()->get('pagination.csv')) {
+        if ($has_site_id)  $form->site_id->val($site_id = $settings['site_id']);
+        else $form->operator_id->val($operator_id = $settings['operator_id']);
+        if ($has_block_id) $form->block_id->val($block_id = $settings['block_id']);
         $form->status->val($status = $settings['status']);
-        $form->site_id->val($site_id = $settings['site_id']);
-        $form->block_id->val($block_id = $settings['block_id']);
 
-        if ($status)      $csvs->and_where('status', 'IN', (array) $status);
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
+        if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
+        if ($status)      $csvs->and_where('status', 'IN', (array) $status);
       }
 
       if ($csvs) {
@@ -757,7 +778,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W/', '_', $file->site->name.'_SSF_'.$file->block->name).'.'.$ext;
+                  $newname = preg_replace('/\W+/', '_', $file->site->name.'_SSF_'.$file->block->name).'.'.$ext;
                   break;
 
                 case 'TDF':
@@ -771,7 +792,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W/', '_', $file->site->name.'_TDF_'.$file->block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  $newname = preg_replace('/\W+/', '_', $file->site->name.'_TDF_'.$file->block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
 
                 case 'LDF':
@@ -784,7 +805,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W/', '_', $file->site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  $newname = preg_replace('/\W+/', '_', $file->site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
 
                 case 'SPECS':
@@ -796,7 +817,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W/', '_', 'SPECS_'.$file->operator->tin.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  $newname = preg_replace('/\W+/', '_', 'SPECS_'.$file->operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
               }
 

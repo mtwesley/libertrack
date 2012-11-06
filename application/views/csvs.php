@@ -138,8 +138,8 @@ if ($options['header'])  $classes[] = 'has-header';
       <?php if ($mode == 'import') echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
 
       <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R'))): ?>
-      <!-- <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span> -->
-      <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?>
+      <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span>
+      <!-- <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?> -->
       <?php endif; ?>
 
       <?php if ($errors): ?>

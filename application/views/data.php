@@ -27,10 +27,10 @@ $classes[] = 'data';
     <td>
       <?php
         switch ($key):
-          case 'operator_id': echo $record->operator->name; break;
-          case 'site_id': echo $record->site->name; break;
-          case 'block_id': echo $record->block->name; break;
-          case 'species_id': echo $record->species->code; break;
+          case 'operator_id': if ($record->operator) echo $record->operator->name; break;
+          case 'site_id': if ($record->site) echo $record->site->name; break;
+          case 'block_id': if ($record->block) echo $record->block->name; break;
+          case 'species_id': if ($record->species) echo $record->species->code; break;
 
           case 'barcode_id':
           case 'tree_barcode_id':

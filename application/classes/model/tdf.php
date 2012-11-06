@@ -207,7 +207,7 @@ class Model_TDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
   }
 
-  public function download_data($values, $errors, $suggestions, $duplicates, $excel, $row) {
+  public function download_data($values, $errors, $excel, $row) {
     $excel->getActiveSheet()->SetCellValue('A'.$row, $values['survey_line']);
     $excel->getActiveSheet()->SetCellValue('B'.$row, $values['cell_number']);
     $excel->getActiveSheet()->SetCellValue('C'.$row, $values['tree_barcode']);
@@ -223,21 +223,9 @@ class Model_TDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('M'.$row, $values['comment']);
 
     if ($errors) {
-      $excel->getActiveSheet()->SetCellValue('O'.$row, implode(" \n", (array) $errors));
+      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $fields[$field]));
+      $excel->getActiveSheet()->SetCellValue('O'.$row, implode(" \n", (array) $text));
       $excel->getActiveSheet()->getStyle('O'.$row)->getAlignment()->setWrapText(true);
-    }
-
-    if ($suggestions) {
-      $text = array();
-      foreach ($suggestions as $field => $suggestion) {
-        $text[] = 'Suggested values for '.self::$fields[$field].': '.implode(', ', $suggestion);
-      }
-      $excel->getActiveSheet()->SetCellValue('P'.$row, implode(" \n", (array) $text));
-      $excel->getActiveSheet()->getStyle('P'.$row)->getAlignment()->setWrapText(true);
-    }
-
-    if ($duplicates) {
-      $excel->getActiveSheet()->SetCellValue('Q'.$row, 'Duplicate found');
     }
   }
 
@@ -294,7 +282,7 @@ class Model_TDF extends SGS_Form_ORM {
         case 'barcode':
         case 'stump_barcode':
           $args = array(
-            'barcodes.type' => array('P'),
+            'barcodes.type' => array('F', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');

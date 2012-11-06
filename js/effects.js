@@ -99,6 +99,23 @@ $(function() {
       target.val((newDate.getMonth() + 1)+'/'+newDate.getDate()+'/'+ newDate.getFullYear())}
   });
 
+  $("select.siteopts").change(function() {
+    $(this).$("select.blockopts").load(
+      '/ajax/blockopts',
+      {site_id: $(this).val()}
+    );
+  });
+
+  $("select.blockopts").load(
+    '/ajax/blockopts',
+    {site_id: $("select.siteopts").val()}
+  );
+
+//  .next(".field.select").children("label").children(".field").children("select.blockopts").load(
+//    '/ajax/blockopts',
+//    {site_id: $(this).val()}
+//  );
+
 });
 
 function update_csv(id) {

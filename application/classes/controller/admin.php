@@ -39,8 +39,7 @@ class Controller_Admin extends Controller {
         $this->request->redirect('admin/operators');
       } catch (Database_Exception $e) {
         Notify::msg('Sorry, unable to save operator due to incorrect or missing input. Please try again.', 'error');
-      }
-      catch (Exception $e) {
+      } catch (Exception $e) {
         Notify::msg('Sorry, operator failed to be saved. Please try again.', 'error');
       }
     }

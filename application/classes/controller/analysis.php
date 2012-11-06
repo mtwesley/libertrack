@@ -53,9 +53,9 @@ class Controller_Analysis extends Controller {
         ->as_array('id', 'name');
 
       $form = Formo::form();
-      if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'));
+      if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
-      if ($has_block_id) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block'));
+      if ($has_block_id) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts hide')));
       $form = $form
         ->add_group('status', 'checkboxes', SGS::$data_status, NULL, array('label' => 'Status'))
         ->add('search', 'submit', 'Filter');
@@ -94,6 +94,7 @@ class Controller_Analysis extends Controller {
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
         if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
+        if ($status)      $data->and_where('status', 'IN', (array) $status);
       }
 
       if ($data) {

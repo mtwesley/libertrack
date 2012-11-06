@@ -144,7 +144,7 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
   }
 
-  public function download_data($values, $errors, $suggestions, $duplicates, $excel, $row) {
+  public function download_data($values, $errors, $excel, $row) {
     $excel->getActiveSheet()->SetCellValue('A'.$row, $values['parent_barcode']);
     $excel->getActiveSheet()->SetCellValue('B'.$row, $values['species_code']);
     $excel->getActiveSheet()->SetCellValue('C'.$row, $values['barcode']);
@@ -158,21 +158,9 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('K'.$row, $values['comment']);
 
     if ($errors) {
-      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" \n", (array) $errors));
+      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $fields[$field]));
+      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" \n", (array) $text));
       $excel->getActiveSheet()->getStyle('M'.$row)->getAlignment()->setWrapText(true);
-    }
-
-    if ($suggestions) {
-      $text = array();
-      foreach ($suggestions as $field => $suggestion) {
-        $text[] = 'Suggested values for '.self::$fields[$field].': '.implode(', ', $suggestion);
-      }
-      $excel->getActiveSheet()->SetCellValue('N'.$row, implode(" \n", (array) $text));
-      $excel->getActiveSheet()->getStyle('N'.$row)->getAlignment()->setWrapText(true);
-    }
-
-    if ($duplicates) {
-      $excel->getActiveSheet()->SetCellValue('O'.$row, 'Duplicate found');
     }
   }
 
@@ -220,7 +208,7 @@ class Model_LDF extends SGS_Form_ORM {
       switch ($field) {
         case 'barcode':
           $args = array(
-            'barcodes.type' => array('P'),
+            'barcodes.type' => array('L', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');

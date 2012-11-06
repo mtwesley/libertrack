@@ -220,7 +220,7 @@ create table printjobs (
   number d_positive_int unique not null,
   site_id d_id not null,
   allocation_date d_date default current_timestamp not null,
-  file_id d_id not null,
+  file_id d_id,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 

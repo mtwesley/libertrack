@@ -48,6 +48,24 @@ class Controller_Barcodes extends Controller {
         elseif ($pagination->total_items) Notify::msg($pagination->total_items.' barcodes found');
         else Notify::msg('No barcodes found');
       }
+      elseif ($command == 'edit') {
+        $printjob = ORM::factory('printjob', $id);
+        $form = Formo::form()
+          ->orm('load', $printjob, array('site_id'))
+          ->add('save', 'submit', 'Update Print Job');
+
+        if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+          try {
+            $printjob->save();
+            Notify::msg('Print job successfully updated.', 'success', TRUE);
+            $this->request->redirect('barcodes/'.$printjob->id);
+          } catch (Database_Exception $e) {
+            Notify::msg('Sorry, unable to save print job due to incorrect or missing input. Please try again.', 'error');
+          } catch (Exception $e) {
+            Notify::msg('Sorry, print job failed to be saved. Please try again.', 'error');
+          }
+        }
+      }
       elseif ($command == 'download') {
         return $this->action_download($id);
       }
@@ -128,7 +146,6 @@ class Controller_Barcodes extends Controller {
 
   function action_upload() {
     $printjob = ORM::factory('printjob');
-
     $form = Formo::form()
       ->orm('load', $printjob, array('site_id'))
       ->add('import[]', 'file', array(
@@ -223,6 +240,86 @@ class Controller_Barcodes extends Controller {
       if ($barcode_error) Notify::msg($barcode_error.' barcodes failed to be parsed.', 'error', TRUE);
 
       if ($_printjob->loaded()) $this->request->redirect('barcodes');
+    }
+
+    if ($form) $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  function action_fix() {
+    $form = Formo::form()
+      ->add('import[]', 'file', array(
+        'label'    => 'File',
+        'required' => TRUE,
+        'attr'  => array('multiple' => 'multiple')
+      ))
+      ->add('save', 'submit', 'Fix');
+
+    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      $barcode_success = 0;
+      $barcode_error = 0;
+
+      $num_files = count(reset($_FILES['import']));
+      for ($j = 0; $j < $num_files; $j++) {
+        $import = array(
+          'name'     => $_FILES['import']['name'][$j],
+          'type'     => $_FILES['import']['type'][$j],
+          'tmp_name' => $_FILES['import']['tmp_name'][$j],
+          'error'    => $_FILES['import']['error'][$j],
+          'size'     => $_FILES['import']['size'][$j]
+        );
+
+        $info = pathinfo($import['name']);
+        if (!array_filter($info)) Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
+        else {
+          $array = file($import['tmp_name']);
+
+          // lookup printjob
+          for ($i = 0; $i < 10; $i++) {
+            $matches = array();
+            if (preg_match('/Print\sJob(\sID)?\:\s*(\d+).*/i', $array[$i], $matches)) {
+              $number = $matches[2];
+              break;
+            }
+          }
+
+          if (!$number) Notify::msg('Cannot parse print job number from this file', 'error');
+          else $printjob = ORM::factory('printjob')
+            ->where('number', '=', $number)
+            ->find();
+
+          if ($printjob->loaded()) {
+            $existing = DB::select('barcode')
+              ->from('barcodes')
+              ->where('printjob_id', '=', $printjob->id)
+              ->execute()
+              ->as_array(NULL, 'barcode');
+
+            // prase barcodes
+            $start = Model_Printjob::PARSE_START;
+            $count = count($array);
+            for ($i = $start; $i < ($count - 1); $i++) {
+              $line = $array[$i];
+              if (! $data = $printjob->parse_txt($line, $array)) continue;
+              if (in_array($data['barcode'], $existing)) continue;
+
+              $barcode = ORM::factory('barcode');
+              $barcode->printjob = $printjob;
+              $barcode->barcode = $data['barcode'];
+              try {
+                $barcode->save();
+                $barcode_success++;
+              } catch (Exception $e) {
+                $barcode_error++;
+              }
+            }
+          }
+        }
+      }
+      if ($barcode_success) Notify::msg($barcode_success.' barcodes successfully parsed.', 'success');
+      if ($barcode_error) Notify::msg($barcode_error.' barcodes failed to be parsed.', 'error');
     }
 
     if ($form) $content .= $form->render();

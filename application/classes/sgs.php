@@ -53,7 +53,7 @@ class SGS {
     'admin/species'   => 'Species Configuration',
 
     'barcodes'          => 'Barcodes',
-    'barcodes/list'     => 'Manage Barcodes',
+    'barcodes/list'     => 'List Print Jobs',
     'barcodes/upload'   => 'Upload Print Jobs',
     'barcodes/download' => 'Download Print Jobs',
 
