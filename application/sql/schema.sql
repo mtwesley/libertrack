@@ -970,6 +970,24 @@ end
 $$ language 'plpgsql';
 
 
+create function specs_data_update_barcodes()
+  returns trigger as
+$$
+begin
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    if new.specs_barcode_id is not null then
+      update barcodes set type = 'H' where barcodes.id = new.specs_barcode_id;
+    end if;
+    if new.epr_barcode_id is not null then
+      update barcodes set type = 'E' where barcodes.id = new.epr_barcode_id;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
 create function sites_parse_type()
   returns trigger as
 $$
@@ -998,6 +1016,7 @@ $$ language 'plpgsql';
 -- $$ language 'plpgsql';
 --
 
+
 -- triggers
 
 create trigger t_barcodes_hops
@@ -1024,6 +1043,11 @@ create trigger t_mof_data_update_barcodes
   after insert or update or delete on mof_data
   for each row
   execute procedure mof_data_update_barcodes();
+
+create trigger t_specs_data_update_barcodes
+  after insert or update or delete on specs_data
+  for each row
+  execute procedure specs_data_update_barcodes();
 
 create trigger t_barcodes_locks
   after insert or update on ldf_data
