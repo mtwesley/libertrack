@@ -1,11 +1,13 @@
 
 -- tolerances
 
+insert into roles (name,description) values ('tolerances','Accuracy and Tolerance Management');
+
 create table tolerances (
   id bigserial not null,
   type d_text_short not null,
   form_type d_form_type not null,
-  form_fields d_text_short not null,
+  form_fields d_text_long not null,
   accuracy_range d_measurement_float default 0 not null,
   tolerance_range d_measurement_float default 0 not null,
   user_id d_id default 1 not null,
@@ -17,15 +19,13 @@ create table tolerances (
   constraint tolerances_unique unique(form_type,form_fields)
 );
 
-insert into roles (name,description) values ('tolerances','Accuracy and Tolerance Management');
+insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('TDF','survey_line','survey_line',2,20);
+insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('TDF','diameter','bottom_min,bottom_max',5,40);
+insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('TDF','length','length',2,10);
 
-insert into tolerances (form_type,form_fields,accuracy_range,tolerance_range) values ('TDF','survey_line',2,20);
-insert into tolerances (form_type,form_fields,accuracy_range,tolerance_range) values ('TDF','diameter',5,40);
-insert into tolerances (form_type,form_fields,accuracy_range,tolerance_range) values ('TDF','length',2,10);
-
-insert into tolerances (form_type,form_fields,accuracy_range,tolerance_range) values ('LDF','diameter',5,30);
-insert into tolerances (form_type,form_fields,accuracy_range,tolerance_range) values ('LDF','length',0.5,2);
-insert into tolerances (form_type,form_fields,accuracy_range,tolerance_range) values ('LDF','volume',0.2,2);
+insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('LDF','diameter','top_min,top_max,bottom_min,bottom_max',5,30);
+insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('LDF','length','length',0.5,2);
+insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('LDF','volume','volume',0.2,2);
 
 
 -- fix barcodes
