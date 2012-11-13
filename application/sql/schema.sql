@@ -49,11 +49,13 @@ create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF
 
 create domain d_duplicate_type as character(1) check (value ~ E'^[BP]$');
 
-create domain d_grade as character varying(3) check (value ~ E'^(LM|A|AB|B|BC|C|D|FAS|1|2|CG)$');
+create domain d_grade as character varying(3) check (value ~ E'^(LM|A|AB|B|BC|C|D|FAS|CG|1|2|3)$');
 
 create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHE]$');
+
+create domain d_error_type as character(1) check (value ~ E'^[EW]$');
 
 create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value < 1));
 
@@ -531,6 +533,7 @@ create table errors (
   id bigserial not null,
   form_type d_form_type not null,
   form_data_id d_id not null,
+  type d_error_type default 'E' not null,
   field d_text_short not null,
   error d_text_short not null,
   params d_text_long,
@@ -551,6 +554,21 @@ create table revisions (
 
   constraint revisions_pkey primary key (id),
   constraint revisions_user_id_fkey foreign key (user_id) references users (id) on update cascade
+);
+
+create table tolerances (
+  id bigserial not null,
+  form_type d_form_type not null,
+  form_fields d_text_short not null,
+  accuracy_range d_measurement_int default 0 not null,
+  tolerance_range d_measurement_int default 0 not null,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint tolerances_pkey primary key (id),
+  constraint revisions_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint tolerances_unique unique(form_type,form_fields)
 );
 
 create table settings (

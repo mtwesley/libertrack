@@ -10,7 +10,7 @@ class Controller_Checks extends Controller {
       $this->request->redirect('login?destination='.$this->request->uri());
     }
     elseif (!Auth::instance()->logged_in('analysis')) {
-      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['analysis'].' privileges.', 'locked', TRUE);
+      Notify::msg('Access denied. You must have '.SGS::$roles['analysis'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }
 

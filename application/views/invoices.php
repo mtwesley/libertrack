@@ -2,7 +2,7 @@
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <th class="type"></th>
-    <th></th>
+    <th class="image"></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'reference_number')), 'Reference Number'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'site_id')), 'Site'); ?></th>
     <th>Operator</th>
@@ -15,7 +15,7 @@
   <?php foreach ($invoices as $invoice): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
     <td class="type"><span class="data-type"><?php echo $invoice->type; ?></span></td>
-    <td><?php echo HTML::image('images/layout.png'); ?></td>
+    <td class="image"><?php echo HTML::image('images/layout.png'); ?></td>
     <td><?php echo $invoice->is_draft ? 'DRAFT' : $invoice->type.'-'.$invoice->reference_number; ?></td>
     <td><?php echo $invoice->site->operator->name; ?></td>
     <td><?php echo $invoice->site->name; ?></td>

@@ -23,6 +23,20 @@ class Model_LDF extends SGS_Form_ORM {
     'comment'        => 'Comment',
   );
 
+  public static $errors = array(
+    'all' => array(
+      'is_active_barcode'   => ':field must not be pending assignment',
+      'is_valid_barcode'    => ':field must be assigned as a felled tree',
+      'is_within_tolerance' => ':field must be within tolerance range',
+      'is_valid_match'      => ':field must match required value',
+      'is_valid_match_tdf'  => ':field must match tree data for felled tree',
+      'is_valid_match_ldf'  => ':field must match log data for original log',
+      'is_existing'         => 'Data must be available',
+      'is_existing_tdf'     => 'Tree data must be available for felled tree',
+      'is_existing_ldf'     => 'Log data must be available for original log'
+    )
+  );
+
   protected $_table_name = 'ldf_data';
 
   protected $_belongs_to = array(
@@ -36,6 +50,33 @@ class Model_LDF extends SGS_Form_ORM {
     'species'  => array(),
     'user'     => array(),
   );
+
+  public static function generate_report($records) {
+    $total = count($records);
+
+    $errors   = array();
+    $_records = array();
+
+    if ($records) foreach (DB::select('form_data_id', 'field', 'error')
+      ->from('errors')
+      ->where('form_type', '=', self::$type)
+      ->and_where('form_data_id', 'IN', (array) array_keys($records))
+      ->execute()
+      ->as_array() as $result) {
+        $_records[$result['form_data_id']][$result['field']][] = $result['error'];
+        $errors[$result['error']][$result['field']][$result['form_data_id']] = $result['form_data_id'];
+    }
+
+    $fail = count($_records);
+
+    return array(
+      'total'   => $total,
+      'passed'  => $total - $fail,
+      'failed'  => $fail,
+      'records' => $_records,
+      'errors'  => $errors
+    );
+  }
 
   protected function _initialize() {
     parent::_initialize();
@@ -288,18 +329,39 @@ class Model_LDF extends SGS_Form_ORM {
       default:  $errors['parent_barcode_id'][] = 'is_valid_barcode'; break;
     }
 
-    $parent = ORM::factory($parent_form_type)
-      ->where('barcode_id', '=', $this->parent_barcode->id)
-      ->find();
+    if ($parent_form_type) {
+      $parent = ORM::factory($parent_form_type)
+        ->where('barcode_id', '=', $this->parent_barcode->id)
+        ->find();
 
-    if ($parent->loaded()) {
-      if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_HEIGHT_TOLERANCE)) $errors['length'][] = 'Felled tree length not within tolerance to match standing tree';
-      if (!Valid::meets_tolerance(($this->bottom_min + $this->bottom_max) / 2, $parent->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
+      if ($parent->loaded()) {
+        if (!($this->species->class == $parent->species->class)) $errors['species_id'][] = 'is_valid_match_'.strtolower($parent_form_type);
+      } else $errors['barcode'][] = 'is_existing_'.strtolower($parent_form_type);
+    }
+
+    $length   = 0;
+    $diameter = 0;
+    $volume   = 0;
+    $children = $this->children();
+    if ($children) {
+      foreach ($children as $child) {
+        $length   += $child->length;
+        $diameter += (($child->top_min + $child->top_max + $child->bottom_min + $child->bottom_max) / 4);
+        $volume   += $child->volume;
+      }
+
+      $diameter = $diameter / count($children);
+      $volume   = $volume / count($children);
+
+      if (!Valid::meets_tolerance($this->length, $length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_within_tolerance';
+      if (!Valid::meets_tolerance((($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4), $diameter, SGS::LDF_DIAMETER_TOLERANCE)) {
+        $errors['top_min'][] = 'is_within_tolerance';
+        $errors['top_max'][] = 'is_within_tolerance';
         $errors['bottom_min'][] = 'is_within_tolerance';
         $errors['bottom_max'][] = 'is_within_tolerance';
       }
-      if (!($this->species->class == $parent->species->class)) $errors['species_id'][] = 'is_valid_match_'.strtolower($parent_form_type);
-    } else $errors['barcode'][] = 'is_existing_'.strtolower($parent_form_type);
+      if (!Valid::meets_tolerance($this->volume, $volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume'][] = 'is_within_tolerance';
+    }
 
     if ($errors) {
       $this->status = 'R';
@@ -388,6 +450,34 @@ class Model_LDF extends SGS_Form_ORM {
 //      'user_id'         => self::$fields['user_id'],
 //      'timestamp'       => self::$fields['timestamp'],
     );
+  }
+
+  public function children() {
+    $sql = "SELECT barcode_id
+            FROM barcode_hops_cached
+            WHERE parent_id = $this->barcode_id";
+
+    return ORM::factory('LDF')
+      ->where('barcode_id', 'IN', DB::expr("($sql)"))
+      ->find_all()
+      ->as_array();
+  }
+
+  public function parents() {
+    $sql = "SELECT parent_id
+            FROM barcode_hops_cached
+            WHERE barcode_id = $this->barcode_id";
+  }
+
+  public function parent() {
+    switch ($this->parent_barcode->type) {
+      case 'F': $form_type = 'TDF'; break;
+      case 'L': $form_type = 'LDF'; break;
+    }
+
+    return $form_type ? ORM::factory('TDF')
+      ->where('barcode_id', '=', $this->parent_barcode->id)
+      ->find() : NULL;
   }
 
 }

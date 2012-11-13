@@ -10,7 +10,7 @@ class Controller_Barcodes extends Controller {
       $this->request->redirect('login?destination='.$this->request->uri());
     }
     elseif (!Auth::instance()->logged_in('barcodes')) {
-      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['barcodes'].' privileges.', 'locked', TRUE);
+      Notify::msg('Access denied. You must have '.SGS::$roles['barcodes'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }
   }

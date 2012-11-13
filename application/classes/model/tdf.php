@@ -382,14 +382,15 @@ class Model_TDF extends SGS_Form_ORM {
       ->find();
 
     if ($ssf->loaded()) {
-      if (!Valid::meets_tolerance($this->length, $ssf->height, SGS::TDF_HEIGHT_TOLERANCE)) $errors['length'][] = 'is_within_tolerance';
-      if (!Valid::meets_tolerance(($this->bottom_min + $this->bottom_max) / 2, $ssf->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
+      if (!Valid::meets_tolerance($this->survey_line, $ssf->survey_line, SGS::TDF_SURVEY_LINE_TOLERANCE)) $errors['survey_line'][] = 'is_within_tolerance';
+      if (!Valid::meets_tolerance($this->length, $ssf->height, SGS::TDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_within_tolerance';
+      if (!Valid::meets_tolerance((($this->bottom_min + $this->bottom_max) / 2), $ssf->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
         $errors['bottom_min'][] = 'is_within_tolerance';
         $errors['bottom_max'][] = 'is_within_tolerance';
       }
       if (!($this->species->class == $ssf->species->class)) $errors['species_id'][] = 'is_valid_match_ssf';
-      if (!($this->cell_number == $ssf->cell_number)) $errors['cell_number'][] = 'is_valid_match_ssf';
-      if (!($this->survey_line == $ssf->survey_line)) $errors['survey_line'][] = 'is_valid_match_ssf';
+//      if (!($this->cell_number == $ssf->cell_number)) $errors['cell_number'][] = 'is_valid_match_ssf';
+//      if (!($this->survey_line == $ssf->survey_line)) $errors['survey_line'][] = 'is_valid_match_ssf';
     } else $errors['barcode_id'][] = 'is_existing_ssf';
 
     if ($errors) {

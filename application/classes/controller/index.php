@@ -37,7 +37,7 @@ class Controller_Index extends Controller {
         if ($user->last_timestamp) Notify::msg('Welcome back, '.$user->name.'.', NULL, TRUE);
         else Notify::msg('Welcome to LiberTrack', NULL, TRUE);
 
-        $this->request->redirect($_GET['destination'] ? $_GET['destination'] : NULL);
+        $this->request->redirect($_GET['destination'] ? $_GET['destination'] : '');
       }
       else {
         Notify::msg('Invalid username and password combination. Please try again.', 'error');

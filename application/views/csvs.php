@@ -1,12 +1,15 @@
 <?php
 
+if ($block and !$site) $site = $block->site;
+if ($site  and !$operator) $operator = $site->operator;
+
 $options = (array) $options + array(
   'table'   => TRUE,
   'rows'    => TRUE,
   'details' => TRUE,
   'actions' => FALSE,
   'resolve' => FALSE,
-  'header'  => $operator ? TRUE : FALSE,
+  'header'  => $site ? TRUE : FALSE,
 );
 
 $header_columns = 0;
@@ -16,38 +19,20 @@ if ($options['actions']) $classes[] = 'has-actions';
 if ($options['header'])  $classes[] = 'has-header';
 
 ?>
-<?php if ($title): ?>
-<p><strong><?php echo $title; ?>:</strong></p>
-<?php endif; ?>
-
 <?php if ($options['header']): ?>
 <table class="data-header">
   <tr>
     <td class="label">Operator:</td>
     <td><?php if ($operator) echo $operator->name; ?></td>
-    <td class="label"><?php echo $fields['create_date']; ?>:</td>
-    <td><?php if ($create_date) echo $create_date; ?></td>
+    <td class="label">Site:</td>
+    <td><?php if ($site) echo $site->name; ?></td>
   </tr>
   <tr>
     <td class="label">TIN:</td>
     <td><?php if ($operator) echo $operator->tin; ?></td>
-    <td class="label"></td>
-    <td></td>
+    <td class="label"><?php if ($block) echo 'Block:'; ?></td>
+    <td><?php if ($block) echo $block->name; ?></td>
   </tr>
-  <tr>
-    <td class="label">Site:</td>
-    <td><?php if ($site) echo $site->name; ?></td>
-    <td class="label"></td>
-    <td></td>
-  </tr>
-  <?php if ($block): ?>
-  <tr>
-    <td class="label">Block:</td>
-    <td><?php echo $block->name; ?></td>
-    <td class="label"></td>
-    <td></td>
-  </tr>
-  <?php endif; ?>
 </table>
 <?php endif; ?>
 
@@ -73,7 +58,6 @@ if ($options['header'])  $classes[] = 'has-header';
     <?php foreach ($fields as $field => $name): ?>
     <?php
       if ($options['header'] or $options['hide_header_info']) switch ($field):
-        case 'create_date':
         case 'operator_tin':
         case 'operator_id':
         case 'site_name':
@@ -110,7 +94,6 @@ if ($options['header'])  $classes[] = 'has-header';
     <?php foreach ($fields as $field => $name): ?>
     <?php
       if ($options['header'] or $options['hide_header_info']) switch ($field):
-        case 'create_date':
         case 'operator_tin':
         case 'operator_id':
         case 'site_name':

@@ -49,6 +49,8 @@ class Controller_Ajax extends Controller {
     $this->response->body($view);
   }
 
+  public function action_details2() {}
+
   public function action_update() {
     if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
     $id      = $this->request->post('id');
@@ -122,7 +124,7 @@ class Controller_Ajax extends Controller {
   public function action_blockopts() {
     $site_id = $this->request->post('site_id');
 
-    foreach (array('' => '') + DB::select('id', 'name')
+    if ($site_id) foreach (array('' => '') + DB::select('id', 'name')
       ->from('blocks')
       ->where('site_id', '=', $site_id)
       ->order_by('name')

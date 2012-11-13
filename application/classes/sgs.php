@@ -11,8 +11,13 @@ class SGS {
 
   const US_DATE_FORMAT = 'm/d/Y';
 
-  const TDF_HEIGHT_TOLERANCE   = 10;
-  const TDF_DIAMETER_TOLERANCE = 10;
+  const TDF_SURVEY_LINE_TOLERANCE = 20;
+  const TDF_LENGTH_TOLERANCE      = 10;
+  const TDF_DIAMETER_TOLERANCE    = 40;
+
+  const LDF_LENGTH_TOLERANCE   = 2;
+  const LDF_DIAMETER_TOLERANCE = 30;
+  const LDF_VOLUME_TOLERANCE   = 2;
 
   const FEE_SGS_RATE = 0.33;
   const FEE_GOL_RATE = 0.67;
@@ -62,7 +67,8 @@ class SGS {
 
     'analysis'              => 'Analysis',
     'analysis/checks'       => 'Checks and Queries',
-    'analysis/review'       => 'Review',
+    'analysis/tolerances'   => 'Manage Accuracy and Tolerance',
+    'analysis/review'       => 'Reveiw Data',
     'analysis/review/ssf'   => 'Stock Survey',
     'analysis/review/tdf'   => 'Tree Data',
     'analysis/review/ldf'   => 'Log Data',
@@ -208,8 +214,12 @@ class SGS {
     'data'       => 'Data Entry',
     'analysis'   => 'Data Analysis',
     'reports'    => 'Reporting',
-    'admin'      => 'Aministration',
-    'management' => 'Project Management'
+    'management' => 'Project Management',
+    'admin'      => 'Site and Operator Configuration',
+    'users'      => 'User Management',
+    'barcodes'   => 'Barcode Management',
+    'invoices'   => 'Invoice Management',
+    'tolerances' => 'Accuracy and Tolerance Management',
   );
 
   public static $file_type = array(
@@ -284,6 +294,11 @@ class SGS {
     'ST' => 'Stumpage Invoice'
   );
 
+  public static $error_type = array(
+    'E' => 'Error',
+    'W' => 'Warning'
+  );
+
   public static $csv_status = array(
     'P' => 'Pending',
     'A' => 'Accepted',
@@ -294,8 +309,8 @@ class SGS {
 
   public static $data_status = array(
     'P' => 'Pending',
-    'A' => 'Accepted',
-    'R' => 'Rejected',
+    'A' => 'Passed',
+    'R' => 'Failed',
 //    'D' => 'Deleted',
   );
 
@@ -636,7 +651,7 @@ class SGS {
   public static function parse_grade($text)
   {
     $matches = array();
-    preg_match('/^\w+\/([(LM|A|AB|B|BC|C|D|FAS|1|2|CG)]+)/', $text, $matches);
+    preg_match('/^\w+\/([(LM|A|AB|B|BC|C|D|FAS|CG|1|2|3)]+)/', $text, $matches);
 
     return array(
       'grade'  => $matches[1],

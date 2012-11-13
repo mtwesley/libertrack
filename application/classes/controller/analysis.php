@@ -10,7 +10,7 @@ class Controller_Analysis extends Controller {
       $this->request->redirect('login?destination='.$this->request->uri());
     }
     elseif (!Auth::instance()->logged_in('analysis')) {
-      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['analysis'].' privileges.', 'locked', TRUE);
+      Notify::msg('Access denied. You must have '.SGS::$roles['analysis'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }
 
@@ -25,14 +25,8 @@ class Controller_Analysis extends Controller {
 
     if ($id) {
       Session::instance()->delete('pagination.data');
-
-      $data = ORM::factory($form_type)
-        ->where('operation', '=', 'I')
-        ->and_where('id', '=', $id)
-        ->find_all()
-        ->as_array();
-
-      $form_type = reset($data)->form_type;
+      $data = array(ORM::factory($form_type, $id));
+      $site = reset($data)->site;
     }
     else {
       if ($has_site_id) $site_ids = DB::select('id', 'name')
@@ -55,7 +49,7 @@ class Controller_Analysis extends Controller {
       $form = Formo::form();
       if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
-      if ($has_block_id) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts hide')));
+      if ($has_block_id) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
       $form = $form
         ->add_group('status', 'checkboxes', SGS::$data_status, NULL, array('label' => 'Status'))
         ->add('search', 'submit', 'Filter');
@@ -116,10 +110,17 @@ class Controller_Analysis extends Controller {
     }
 
     if ($data) {
+      if (!$site)     $site     = ORM::factory('site', (int) $site_id);
+      if (!$block)    $block    = ORM::factory('block', (int) $block_id);
+      if (!$operator) $operator = ORM::factory('operator', (int) $operator_id);
+
       $table = View::factory('data')
         ->set('classes', array('has-pagination'))
         ->set('form_type', $form_type)
         ->set('data', $data)
+        ->set('operator', $operator->loaded() ? $operator : NULL)
+        ->set('site', $site->loaded() ? $site : NULL)
+        ->set('block', $block->loaded() ? $block : NULL)
         ->render();
     }
 
@@ -202,20 +203,82 @@ class Controller_Analysis extends Controller {
   }
 
   public function action_review() {
-    $id      = $this->request->param('id');
-    $command = $this->request->param('command');
+    $command = $this->request->param('id'); // for now this is flipped
+    $id      = $this->request->param('command'); // for now this is flipped
 
-    if (!$command && !is_numeric($id)) {
-      $command = $id;
-      $id      = NULL;
-    }
+//    if (!$command && !is_numeric($id)) {
+//      $command = $id;
+//      $id      = NULL;
+//    }
 
     switch ($command) {
-      case 'ssf':   return self::handle_data_list('SSF');
-      case 'tdf':   return self::handle_data_list('TDF');
-      case 'ldf':   return self::handle_data_list('LDF');
-      case 'specs': return self::handle_data_list('SPECS');
+      case 'ssf':   return self::handle_data_list('SSF', $id);
+      case 'tdf':   return self::handle_data_list('TDF', $id);
+      case 'ldf':   return self::handle_data_list('LDF', $id);
+      case 'specs': return self::handle_data_list('SPECS', $id);
     }
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  public function action_tolerances() {
+    if (!Auth::instance()->logged_in('tolerances')) {
+      Notify::msg('Access denied. You must have '.SGS::$roles['tolerances'].' privileges.', 'locked', TRUE);
+      $this->request->redirect('analysis');
+    }
+
+    $id = $this->request->param('id');
+
+//    $tolerance = ORM::factory('tolerance', $id);
+//    $form = Formo::form(array('attr' => array('style' => $id || $_POST ? '' : 'display: none;')))
+//      ->orm('load', $tolerance, array('user_id', 'timestamp'), true)
+//      ->add('save', 'submit', array(
+//        'label' => $id ? 'Update Tolerance' : 'Add a New Tolerance'
+//      ))
+//      ->order(array('name' => 0));
+//
+//    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+//      try {
+//        $tolerance->save();
+//        if ($id) Notify::msg('Tolerance successfully updated.', 'success', TRUE);
+//        else Notify::msg('Tolerance successfully added.', 'success', TRUE);
+//
+//        $this->request->redirect('admin/tolerances');
+//      } catch (Database_Exception $e) {
+//        Notify::msg('Sorry, unable to save tolerance due to incorrect or missing input. Please try again.', 'error');
+//      } catch (Exception $e) {
+//        Notify::msg('Sorry, tolerance failed to be saved. Please try again.', 'error');
+//      }
+//    }
+
+    $id = NULL;
+
+    if ($id === null) {
+//      $pagination = Pagination::factory(array(
+//        'items_per_page' => 20,
+//        'total_items' => $tolerance->find_all()->count()));
+
+      $tolerances = ORM::factory('tolerance')
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $tolerances->order_by($sort);
+      $tolerances = $tolerances->order_by('form_type')
+        ->find_all()
+        ->as_array();
+
+      $table = View::factory('tolerances')
+        ->set('classes', array('has-pagination'))
+        ->set('tolerances', $tolerances);
+
+//      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' tolerance found');
+//      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' tolerances found');
+//      else Notify::msg('No tolerances found');
+    }
+
+//    $content .= $id || $_POST ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= $table;
+//    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

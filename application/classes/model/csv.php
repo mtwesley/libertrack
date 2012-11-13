@@ -79,6 +79,11 @@ class Model_CSV extends ORM {
         $model->save();
         $this->form_data_id = $model->id;
       } catch (ORM_Validation_Exception $e) {
+        try {
+          $model->delete();
+        } catch (Exception $e) {
+          // do nothing
+        }
         $errors = $e->errors();
       }
     }

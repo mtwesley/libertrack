@@ -3,8 +3,8 @@ $classes[] = 'data';
 ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
-    <th></th>
-    <th></th>
+    <th class="type"></th>
+    <th class="image"></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'name')), 'Name'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'size')), 'Size'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'timestamp')), 'Uploaded'); ?></th>
@@ -20,8 +20,8 @@ $classes[] = 'data';
   </tr>
   <?php foreach ($files as $file): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
-    <td><span class="data-type"><?php echo $file->operation_type; ?></span></td>
-    <td>
+    <td class="type"><span class="data-type"><?php echo $file->operation_type; ?></span></td>
+    <td class="image">
       <?php
         $info = pathinfo($file->name);
         switch ($info['extension']):

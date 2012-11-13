@@ -92,7 +92,6 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'data')  echo 'active'; ?>"><?php echo HTML::anchor('export/data', SGS::title('export/data')); ?></li>
 
     <?php elseif ($primary == 'analysis'): ?>
-    <li class="<?php if ($secondary == 'checks') echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks', SGS::title('analysis/checks')); ?></li>
     <li class="<?php if ($secondary == 'review') echo 'active'; ?>"><?php echo HTML::anchor('analysis/review', SGS::title('analysis/review')); ?>
       <?php if ($secondary == 'review'): ?>
       <ul class="nav commands">
@@ -102,6 +101,8 @@ if (!$command && !is_numeric($id)) {
         <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('analysis/review/specs', SGS::title('analysis/review/specs')); ?></li>
       </ul>
       <?php endif; ?>
+    <li class="<?php if ($secondary == 'checks')     echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks', SGS::title('analysis/checks')); ?></li>
+    <li class="<?php if ($secondary == 'tolerances') echo 'active'; ?>"><?php echo HTML::anchor('analysis/tolerances', SGS::title('analysis/tolerances')); ?></li>
     </li>
 
     <?php elseif ($primary == 'invoices'): ?>

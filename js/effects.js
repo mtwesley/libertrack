@@ -100,7 +100,7 @@ $(function() {
   });
 
   $("select.siteopts").change(function() {
-    $(this).$("select.blockopts").load(
+    $("select.blockopts").load(
       '/ajax/blockopts',
       {site_id: $(this).val()}
     );

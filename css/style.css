@@ -293,6 +293,15 @@
   font-weight: bold;
 }
 
+#content table.data th.type,
+#content table.data td.type,
+#content table.data th.status,
+#content table.data td.status,
+#content table.data th.image,
+#content table.data td.image {
+  width: 10px;
+}
+
 #content table.data td.error {
   color: #ae3636;
   font-weight: bold;

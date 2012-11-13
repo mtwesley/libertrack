@@ -10,7 +10,7 @@ class Controller_Users extends Controller {
       $this->request->redirect('login?destination='.$this->request->uri());
     }
     elseif (!Auth::instance()->logged_in('users')) {
-      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['users'].' privileges.', 'locked', TRUE);
+      Notify::msg('Access denied. You must have '.SGS::$roles['users'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }
   }

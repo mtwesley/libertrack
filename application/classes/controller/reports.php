@@ -10,7 +10,7 @@ class Controller_Reports extends Controller {
       $this->request->redirect('login?destination='.$this->request->uri());
     }
     elseif (!Auth::instance()->logged_in('reports')) {
-      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['reports'].' privileges.', 'locked', TRUE);
+      Notify::msg('Access denied. You must have '.SGS::$roles['reports'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }
 

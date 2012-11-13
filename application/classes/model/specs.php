@@ -105,143 +105,146 @@ class Model_SPECS extends SGS_Form_ORM {
     }
   }
 
-//  public function export_data($excel, $row) {
-//    $excel->getActiveSheet()->SetCellValue('A'.$row, $this->barcode->barcode);
-//    $excel->getActiveSheet()->SetCellValue('B'.$row, $this->tree_map_number);
-//    $excel->getActiveSheet()->SetCellValue('C'.$row, $this->survey_line);
-//    $excel->getActiveSheet()->SetCellValue('D'.$row, $this->cell_number);
-//    $excel->getActiveSheet()->SetCellValue('E'.$row, $this->species->code);
-//    $excel->getActiveSheet()->SetCellValue('F'.$row, $this->diameter);
-//    $excel->getActiveSheet()->SetCellValue('G'.$row, $this->height);
-//    $excel->getActiveSheet()->SetCellValue('H'.$row, $this->is_requested == FALSE ? 'NO' : 'YES');
-//    $excel->getActiveSheet()->SetCellValue('I'.$row, $this->is_fda_approved == FALSE ? 'NO' : 'YES');
-//    $excel->getActiveSheet()->SetCellValue('J'.$row, $this->fda_remarks);
-//  }
-//
-//  public function export_headers($excel, $args, $headers = TRUE) {
-//    if ($headers) {
-//      $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
-//      $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
-//      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
-//      $excel->getActiveSheet()->SetCellValue('G2', 'Holder TIN:');
-//      $excel->getActiveSheet()->SetCellValue('A3', 'Date Surveyed:');
-//      $excel->getActiveSheet()->SetCellValue('G3', 'Enumerator:');
-//      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 corners of the block map:');
-//      $excel->getActiveSheet()->SetCellValue('E4', 'Easting');
-//      $excel->getActiveSheet()->SetCellValue('G4', 'Northing');
-//      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter  0 meter)');
-//      $excel->getActiveSheet()->SetCellValue('A6', 'East from origin');
-//      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from previous');
-//      $excel->getActiveSheet()->SetCellValue('A8', 'West from previous');
-//      $excel->getActiveSheet()->SetCellValue('A9', 'Date entered');
-//      $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
-//      $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
-//      $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
-//      $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
-//      $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
-//      $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
-//      $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
-//      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter Class Number (cm)');
-//      $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
-//      $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
-//      $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
-//      $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
-//      $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
-//      $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
-//      $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
-//    }
-//
-//    $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name.'/'.$this->block->name);
-//    $excel->getActiveSheet()->SetCellValue('H2', $this->operator->tin);
-//    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
-//    $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
-//    $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
-//    $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
-//    $excel->getActiveSheet()->SetCellValue('B7', ''); // north/south from previous
-//    $excel->getActiveSheet()->SetCellValue('B8', ''); // west from previous
-//    $excel->getActiveSheet()->SetCellValue('B9', ''); // date entered
-//    $excel->getActiveSheet()->SetCellValue('H9', ''); // entered by
-//    $excel->getActiveSheet()->SetCellValue('B10', ''); // date checked
-//    $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
-//  }
-//
-//  public function download_data($values, $errors, $suggestions, $duplicates, $excel, $row) {
-//    $excel->getActiveSheet()->SetCellValue('A'.$row, $values['barcode']);
-//    $excel->getActiveSheet()->SetCellValue('B'.$row, $values['tree_map_number']);
-//    $excel->getActiveSheet()->SetCellValue('C'.$row, $values['survey_line']);
-//    $excel->getActiveSheet()->SetCellValue('D'.$row, $values['cell_number']);
-//    $excel->getActiveSheet()->SetCellValue('E'.$row, $values['species_code']);
-//    $excel->getActiveSheet()->SetCellValue('F'.$row, $values['diameter']);
-//    $excel->getActiveSheet()->SetCellValue('G'.$row, $values['height']);
-//    $excel->getActiveSheet()->SetCellValue('H'.$row, $values['is_requested']);
-//    $excel->getActiveSheet()->SetCellValue('I'.$row, $values['is_fda_approved']);
-//    $excel->getActiveSheet()->SetCellValue('J'.$row, $values['fda_remarks']);
-//
-//    if ($errors) {
-//      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $errors));
-//      $excel->getActiveSheet()->getStyle('L'.$row)->getAlignment()->setWrapText(true);
-//    }
-//
-//    if ($suggestions) {
-//      $text = array();
-//      foreach ($suggestions as $field => $suggestion) {
-//        $text[] = 'Suggested values for '.self::$fields[$field].': '.implode(', ', $suggestion);
-//      }
-//      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" \n", (array) $text));
-//      $excel->getActiveSheet()->getStyle('M'.$row)->getAlignment()->setWrapText(true);
-//    }
-//
-//    if ($duplicates) {
-//      $excel->getActiveSheet()->SetCellValue('N'.$row, 'Duplicate found');
-//    }
-//  }
-//
-//  public function download_headers($values, $excel, $args, $headers = TRUE) {
-//    if ($headers) {
-//      $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
-//      $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
-//      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
-//      $excel->getActiveSheet()->SetCellValue('G2', 'Holder TIN:');
-//      $excel->getActiveSheet()->SetCellValue('A3', 'Date Surveyed:');
-//      $excel->getActiveSheet()->SetCellValue('G3', 'Enumerator:');
-//      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 corners of the block map:');
-//      $excel->getActiveSheet()->SetCellValue('E4', 'Easting');
-//      $excel->getActiveSheet()->SetCellValue('G4', 'Northing');
-//      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter  0 meter)');
-//      $excel->getActiveSheet()->SetCellValue('A6', 'East from origin');
-//      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from previous');
-//      $excel->getActiveSheet()->SetCellValue('A8', 'West from previous');
-//      $excel->getActiveSheet()->SetCellValue('A9', 'Date entered');
-//      $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
-//      $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
-//      $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
-//      $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
-//      $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
-//      $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
-//      $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
-//      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter Class Number (cm)');
-//      $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
-//      $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
-//      $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
-//      $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
-//      $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
-//      $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
-//      $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
-//    }
-//
-//    $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name'].'/'.$values['block_name']);
-//    $excel->getActiveSheet()->SetCellValue('H2', $values['operator_tin']);
-//    $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
-//    $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
-//    $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
-//    $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
-//    $excel->getActiveSheet()->SetCellValue('B7', ''); // north/south from previous
-//    $excel->getActiveSheet()->SetCellValue('B8', ''); // west from previous
-//    $excel->getActiveSheet()->SetCellValue('B9', ''); // date entered
-//    $excel->getActiveSheet()->SetCellValue('H9', ''); // entered by
-//    $excel->getActiveSheet()->SetCellValue('B10', ''); // date checked
-//    $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
-//  }
+  public function export_data($excel, $row) {
+    switch ($this->grade) {
+      case 'LM':
+      case 'A':
+      case 'AB':
+      case 'B':
+      case 'BC':
+      case 'C':
+      case 'D':
+        $grade = 'Logs/'.$this->grade; break;
+
+      case '1':
+      case '2':
+      case '3':
+      case 'FAS':
+      case 'CG':
+        $grade = 'Sawnwood/'.$this->grade; break;
+    }
+
+    $excel->getActiveSheet()->SetCellValue('B'.$row, $this->barcode->barcode);
+    $excel->getActiveSheet()->SetCellValue('D'.$row, $this->species->code);
+    $excel->getActiveSheet()->SetCellValue('E'.$row, $this->bottom_max);
+    $excel->getActiveSheet()->SetCellValue('F'.$row, $this->bottom_min);
+    $excel->getActiveSheet()->SetCellValue('G'.$row, $this->top_max);
+    $excel->getActiveSheet()->SetCellValue('H'.$row, $this->top_min);
+    $excel->getActiveSheet()->SetCellValue('I'.$row, $this->length);
+    $excel->getActiveSheet()->SetCellValue('J'.$row, $grade);
+    $excel->getActiveSheet()->SetCellValue('K'.$row, $this->volume);
+  }
+
+  public function export_headers($excel, $args, $headers = TRUE) {
+    if ($headers) {
+      $excel->getActiveSheet()->SetCellValue('A1', 'Export Shipment Specification Form - Logs');
+      $excel->getActiveSheet()->SetCellValue('I1', 'SF19C-1'); // don't know what this is for
+      $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Permit Request Number');
+      $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number');
+      $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN');
+      $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Port of origin');
+      $excel->getActiveSheet()->SetCellValue('E5', 'Expecting loading date:');
+      $excel->getActiveSheet()->SetCellValue('A6', 'Port of Destination');
+      $excel->getActiveSheet()->SetCellValue('E6', 'Buyer');
+      $excel->getActiveSheet()->SetCellValue('A7', 'Submitted by');
+      $excel->getActiveSheet()->SetCellValue('E7', 'Date');
+      $excel->getActiveSheet()->SetCellValue('A8', 'PRODUCT SPECIFICATION - LOGS');
+      $excel->getActiveSheet()->SetCellValue('B9', 'Log Barcode');
+      $excel->getActiveSheet()->SetCellValue('D9', 'Species Code');
+      $excel->getActiveSheet()->SetCellValue('E9', 'Diameter (underbark to nearest cm)');
+      $excel->getActiveSheet()->SetCellValue('I9', 'Length (m) to nearest 0.1m');
+      $excel->getActiveSheet()->SetCellValue('J9', 'ATIBT Grade');
+      $excel->getActiveSheet()->SetCellValue('K9', 'Volume');
+    }
+
+    $excel->getActiveSheet()->SetCellValue('C2', $this->specs_barcode->barcode);
+    $excel->getActiveSheet()->SetCellValue('C3', $this->epr_barcode->barcode);
+    $excel->getActiveSheet()->SetCellValue('I3', $this->contract_number);
+    $excel->getActiveSheet()->SetCellValue('C4', $this->operator->tin);
+    $excel->getActiveSheet()->SetCellValue('I4', $this->operator->name);
+    $excel->getActiveSheet()->SetCellValue('C5', $this->origin);
+    $excel->getActiveSheet()->SetCellValue('I5', ''); // expected loading date
+    $excel->getActiveSheet()->SetCellValue('C6', $this->destination);
+    $excel->getActiveSheet()->SetCellValue('I6', ''); // buyer
+    $excel->getActiveSheet()->SetCellValue('C7', ''); // submitted by
+    $excel->getActiveSheet()->SetCellValue('I7', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+  }
+
+  public function download_data($values, $errors, $excel, $row) {
+    switch ($values['grade']) {
+      case 'LM':
+      case 'A':
+      case 'AB':
+      case 'B':
+      case 'BC':
+      case 'C':
+      case 'D':
+        $grade = 'Logs/'.$values['grade']; break;
+
+      case '1':
+      case '2':
+      case '3':
+      case 'FAS':
+      case 'CG':
+        $grade = 'Sawnwood/'.$values['grade']; break;
+    }
+
+    $excel->getActiveSheet()->SetCellValue('B'.$row, $values['barcode']);
+    $excel->getActiveSheet()->SetCellValue('D'.$row, $values['species_code']);
+    $excel->getActiveSheet()->SetCellValue('E'.$row, $values['bottom_max']);
+    $excel->getActiveSheet()->SetCellValue('F'.$row, $values['bottom_min']);
+    $excel->getActiveSheet()->SetCellValue('G'.$row, $values['top_max']);
+    $excel->getActiveSheet()->SetCellValue('H'.$row, $values['top_min']);
+    $excel->getActiveSheet()->SetCellValue('I'.$row, $values['length']);
+    $excel->getActiveSheet()->SetCellValue('J'.$row, $grade);
+    $excel->getActiveSheet()->SetCellValue('K'.$row, $values['volume']);
+
+    if ($errors) {
+      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $fields[$field]));
+      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $errors));
+      $excel->getActiveSheet()->getStyle('L'.$row)->getAlignment()->setWrapText(true);
+    }
+
+  }
+
+  public function download_headers($values, $excel, $args, $headers = TRUE) {
+    if ($headers) {
+      $excel->getActiveSheet()->SetCellValue('A1', 'Export Shipment Specification Form - Logs');
+      $excel->getActiveSheet()->SetCellValue('I1', 'SF19C-1'); // don't know what this is for
+      $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Permit Request Number');
+      $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number');
+      $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN');
+      $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Port of origin');
+      $excel->getActiveSheet()->SetCellValue('E5', 'Expecting loading date:');
+      $excel->getActiveSheet()->SetCellValue('A6', 'Port of Destination');
+      $excel->getActiveSheet()->SetCellValue('E6', 'Buyer');
+      $excel->getActiveSheet()->SetCellValue('A7', 'Submitted by');
+      $excel->getActiveSheet()->SetCellValue('E7', 'Date');
+      $excel->getActiveSheet()->SetCellValue('A8', 'PRODUCT SPECIFICATION - LOGS');
+      $excel->getActiveSheet()->SetCellValue('B9', 'Log Barcode');
+      $excel->getActiveSheet()->SetCellValue('D9', 'Species Code');
+      $excel->getActiveSheet()->SetCellValue('E9', 'Diameter (underbark to nearest cm)');
+      $excel->getActiveSheet()->SetCellValue('I9', 'Length (m) to nearest 0.1m');
+      $excel->getActiveSheet()->SetCellValue('J9', 'ATIBT Grade');
+      $excel->getActiveSheet()->SetCellValue('K9', 'Volume');
+    }
+
+    $excel->getActiveSheet()->SetCellValue('C2', $values['specs_barcode']);
+    $excel->getActiveSheet()->SetCellValue('C3', $values['barcode']);
+    $excel->getActiveSheet()->SetCellValue('I3', $values['contract_number']);
+    $excel->getActiveSheet()->SetCellValue('C4', $values['operator_tin']);
+    $excel->getActiveSheet()->SetCellValue('I4', SGS::lookup_operator($values['operator_tin'])->name);
+    $excel->getActiveSheet()->SetCellValue('C5', $values['origin']);
+    $excel->getActiveSheet()->SetCellValue('I5', ''); // expected loading date
+    $excel->getActiveSheet()->SetCellValue('C6', $values['destination']);
+    $excel->getActiveSheet()->SetCellValue('I6', ''); // buyer
+    $excel->getActiveSheet()->SetCellValue('C7', ''); // submitted by
+    $excel->getActiveSheet()->SetCellValue('I7', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+  }
 
   public function make_suggestions($values, $errors) {
     $suggestions = array();
@@ -307,24 +310,6 @@ class Model_SPECS extends SGS_Form_ORM {
   }
 
   public function run_checks() {}
-
-//  operator_id d_id not null,
-//  specs_barcode_id d_id not null,
-//  epr_barcode_id d_id not null,
-//  contract_numbuer d_text_short,
-//  barcode_id d_id unique not null,
-//  species_id d_id not null,
-//  top_min d_measurement_int not null,
-//  top_max d_measurement_int not null,
-//  bottom_min d_measurement_int not null,
-//  bottom_max d_measurement_int not null,
-//  length d_measurement_float not null,
-//  grade d_grade not null,
-//  volume d_measurement_float not null,
-//  origin d_text_short,
-//  destination d_text_short,
-//  create_date d_date not null,
-//  status d_data_status default 'P' not null,
 
   public function rules()
   {

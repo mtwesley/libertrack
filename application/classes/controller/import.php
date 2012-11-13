@@ -10,7 +10,7 @@ class Controller_Import extends Controller {
       $this->request->redirect('login?destination='.$this->request->uri());
     }
     elseif (!Auth::instance()->logged_in('data')) {
-      Notify::msg('Sorry, access denied. You must have '.SGS::$roles['data'].' privileges.', 'locked', TRUE);
+      Notify::msg('Access denied. You must have '.SGS::$roles['data'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }
 
@@ -214,9 +214,6 @@ class Controller_Import extends Controller {
         ->limit($pagination->items_per_page)
         ->find_all()
         ->as_array();
-
-      $first = reset($csvs);
-      $create_date = $first->values['create_date'];
 
       $table = View::factory('csvs')
         ->set('classes', array('has-pagination'))
@@ -518,12 +515,12 @@ class Controller_Import extends Controller {
 //        ->as_array('id', 'name');
 
       $form = Formo::form()
-        ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status', 'required' => TRUE));
+        ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'));
       if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
       if ($has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
       $form = $form
-        ->add('format', 'radios', array(
+        ->add('format', 'radios', 'filter', array(
           'options' => array(
             'filter' => 'Filter',
             'csv'   => 'Download CSV',
@@ -554,10 +551,6 @@ class Controller_Import extends Controller {
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
 
         if (in_array($format, array('csv', 'xls'))) {
-          $site     = ORM::factory('site', (int) $site_id);
-          $block    = ORM::factory('block', (int) $block_id);
-          $operator = ORM::factory('operator', (int) $operator_id);
-
           $csvs = $csvs->find_all()->as_array();
 
           switch ($format) {
@@ -661,15 +654,19 @@ class Controller_Import extends Controller {
     }
 
     if ($csvs) {
+      if (!$site)     $site     = ORM::factory('site', (int) $site_id);
+      if (!$block)    $block    = ORM::factory('block', (int) $block_id);
+      if (!$operator) $operator = ORM::factory('operator', (int) $operator_id);
+
       $table = View::factory('csvs')
         ->set('classes', array('has-pagination'))
         ->set('mode', 'import')
         ->set('csvs', $csvs)
         ->set('fields', SGS_Form_ORM::get_fields($form_type))
         ->set('total_items', $total_items)
-        ->set('operator', $operator)
-        ->set('site', $site)
-        ->set('block', $block)
+        ->set('operator', $operator->loaded() ? $operator : NULL)
+        ->set('site', $site->loaded() ? $site : NULL)
+        ->set('block', $block->loaded() ? $block : NULL)
         ->render();
     }
 
