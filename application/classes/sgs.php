@@ -698,6 +698,14 @@ class SGS {
     return implode(' and ', array_filter(array_merge(array(implode(', ', array_slice($array, 0, -1))), array_slice($array, -1))));
   }
 
+  public static function quantitify($float, $precision = 3) {
+    return number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
+  }
+
+  public static function amountify($float, $precision = 2) {
+    return number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
+  }
+
   public static function internationalify($string)
   {
     $matches = array();

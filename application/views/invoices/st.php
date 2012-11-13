@@ -307,7 +307,7 @@ $options = (array) $options + array(
       </tr>
       <?php foreach ($data as $record): ?>
       <tr>
-        <td class="volume" rowspan="2"><?php echo round($record['volume'], 3); ?></td>
+        <td class="volume" rowspan="2"><?php echo SGS::quantitify($record['volume']); ?></td>
         <td class="species_code" rowspan="2"><?php echo $record['species_code']; ?></td>
         <td class="species_class" rowspan="2"><?php echo $record['species_class']; ?></td>
         <td class="fee_desc">
@@ -316,7 +316,7 @@ $options = (array) $options + array(
         </td>
         <td class="tax_code">1415-12</td>
         <td class="fob_price" rowspan="2"><?php echo $record['fob_price']; ?></td>
-        <td class="total"><?php echo round($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_GOL_RATE, 3); ?></td>
+        <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_GOL_RATE); ?></td>
       </tr>
       <tr>
         <td class="fee_desc">
@@ -324,7 +324,7 @@ $options = (array) $options + array(
           <em>GoL-SGS contract</em>
         </td>
         <td class="tax_code">1415-01</td>
-        <td class="total"><?php echo round($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_SGS_RATE, 3); ?></td>
+        <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_SGS_RATE); ?></td>
       </tr>
       <?php endforeach; ?>
       <?php endif; ?>
@@ -340,14 +340,14 @@ $options = (array) $options + array(
         <td class="total" colspan="2">Total<br />(USD)</td>
       </tr>
       <tr class="total">
-        <td class="volume" rowspan="2"><?php echo $total['summary']['volume']; ?></td>
+        <td class="volume" rowspan="2"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
         <td class="desc" colspan="2" rowspan="2">Total</td>
         <td class="fee_desc">
           Stumpage Fee (GoL share)<br />
           <em>FDA Regulation 107-7 section 22(b)</em>
         </td>
         <td class="tax_code">1415-12</td>
-        <td class="total" colspan="2"><?php echo round($total['summary']['total'] * SGS::FEE_GOL_RATE, 3); ?></td>
+        <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total'] * SGS::FEE_GOL_RATE); ?></td>
       </tr>
       <tr class="total">
         <td class="fee_desc">
@@ -355,14 +355,14 @@ $options = (array) $options + array(
           <em>GoL-SGS contract</em>
         </td>
         <td class="tax_code">1415-01</td>
-        <td class="total" colspan="2"><?php echo round($total['summary']['total'] * SGS::FEE_SGS_RATE, 3); ?></td>
+        <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total'] * SGS::FEE_SGS_RATE); ?></td>
       </tr>
       <tr>
         <td colspan="7" class="blank blank-slim">&nbsp;</td>
       </tr>
       <tr>
         <td colspan="5" class="blank">&nbsp;</td>
-        <td class="total" colspan="2"><?php echo $total['summary']['total']; ?></td>
+        <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total']); ?></td>
       </tr>
       <?php endif; ?>
     </table>
@@ -389,15 +389,15 @@ $options = (array) $options + array(
         <td class="species_code"><?php echo $record['species_code']; ?></td>
         <td class="species_class"><?php echo $record['species_class']; ?></td>
         <td class="diameter"><?php echo $record['diameter']; ?></td>
-        <td class="length"><?php echo $record['length']; ?></td>
-        <td class="volume"><?php echo $record['volume']; ?></td>
+        <td class="length"><?php echo SGS::quantitify($record['length'], 1); ?></td>
+        <td class="volume"><?php echo SGS::quantitify($record['volume']); ?></td>
       </tr>
       <?php endforeach; ?>
       <?php endif; ?>
       <?php if ($options['total']): ?>
       <tr>
         <td class="total_species" colspan="6"><strong>Total:</strong> <?php echo $record['species_botanic_name']; ?></td>
-        <td class="total_volume"><?php echo $total['details'][$record['species_code']]['volume']; ?></td>
+        <td class="total_volume"><?php echo SGS::quantitify($total['details'][$record['species_code']]['volume']); ?></td>
       </tr>
       <?php endif; ?>
     </table>
