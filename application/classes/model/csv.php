@@ -53,7 +53,7 @@ class Model_CSV extends ORM {
 
   public function delete() {
     if ($this->form_type and $this->form_data_id) {
-      $data = ORM::factory($csv->form_type, $csv->form_data_id);
+      $data = ORM::factory($this->form_type, $this->form_data_id);
       if ($data->loaded()) $data->delete();
     }
 
