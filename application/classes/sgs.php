@@ -19,8 +19,8 @@ class SGS {
   const LDF_DIAMETER_TOLERANCE = 30;
   const LDF_VOLUME_TOLERANCE   = 2;
 
-  const FEE_SGS_RATE = 0.33;
-  const FEE_GOL_RATE = 0.67;
+  const FEE_SGS_RATE = 0.348;
+  const FEE_GOL_RATE = 0.652;
 
   public static $path = array(
     'index'           => 'Home',
