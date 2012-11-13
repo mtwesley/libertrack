@@ -208,12 +208,11 @@ class Controller_Invoices extends Controller {
         );
       } else if ($page == $summary_page_count) {
         $max = $summary_last_page_max;
-        $options = array(
-          'total' => TRUE
-        );
       } else {
         $max = $summary_normal_page_max;
       }
+
+      if ($page == $summary_page_count) $options['total'] = TRUE;
 
       $set = array_filter(array_slice($summary_data, $cntr, $max));
       $html .= View::factory('invoices/st')
