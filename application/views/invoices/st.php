@@ -451,5 +451,5 @@ $options = (array) $options + array(
 </div>
 
 <?php if ($invoice->is_draft): ?>
-<img class="floater" src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/draft_copy.png" />
+<!-- <img class="floater" src="<?php // echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/draft_copy.png" /> -->
 <?php endif; ?>
