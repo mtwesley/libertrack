@@ -336,8 +336,8 @@ class SGS {
 
   public static $species_fee_rate = array(
     'A' => 0.10,
-    'B' => 0.50,
-    'C' => 0.25
+    'B' => 0.05,
+    'C' => 0.025
   );
 
   public static function value($key, $array, $default = NULL)
