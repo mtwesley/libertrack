@@ -260,7 +260,7 @@ $options = (array) $options + array(
         <td class="label">Company:</td>
         <td><?php echo $invoice->site->operator->name; ?></td>
         <td class="label">Date Created:</td>
-        <td><?php echo $invoice->created_date; ?></td>
+        <td><?php echo SGS::date($invoice->created_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
         <td rowspan="3" class="label">Address:</td>
