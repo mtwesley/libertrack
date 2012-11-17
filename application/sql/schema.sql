@@ -220,7 +220,7 @@ create table files (
 create table printjobs (
   id bigserial not null,
   number d_positive_int unique not null,
-  site_id d_id not null,
+  site_id d_id,
   allocation_date d_date default current_timestamp not null,
   file_id d_id,
   user_id d_id default 1 not null,
@@ -558,10 +558,11 @@ create table revisions (
 
 create table tolerances (
   id bigserial not null,
+  type d_text_short not null,
   form_type d_form_type not null,
-  form_fields d_text_short not null,
-  accuracy_range d_measurement_int default 0 not null,
-  tolerance_range d_measurement_int default 0 not null,
+  form_fields d_text_long not null,
+  accuracy_range d_measurement_float default 0 not null,
+  tolerance_range d_measurement_float default 0 not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
