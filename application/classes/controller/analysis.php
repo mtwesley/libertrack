@@ -54,7 +54,7 @@ class Controller_Analysis extends Controller {
         ->add_group('status', 'checkboxes', SGS::$data_status, NULL, array('label' => 'Status'))
         ->add('search', 'submit', 'Filter');
 
-      if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.data');
         if ($has_site_id)  $site_id  = $form->site_id->val();
         else $operator_id = $form->operator_id->val();
@@ -158,7 +158,7 @@ class Controller_Analysis extends Controller {
       'value'  => 'Save'
     ));
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       foreach ($csv->values as $key => $value) {
         if ($form->$key) $data[$key] = $form->$key->val();
       }
@@ -231,14 +231,14 @@ class Controller_Analysis extends Controller {
     $id = $this->request->param('id');
 
 //    $tolerance = ORM::factory('tolerance', $id);
-//    $form = Formo::form(array('attr' => array('style' => $id || $_POST ? '' : 'display: none;')))
+//    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
 //      ->orm('load', $tolerance, array('user_id', 'timestamp'), true)
 //      ->add('save', 'submit', array(
 //        'label' => $id ? 'Update Tolerance' : 'Add a New Tolerance'
 //      ))
 //      ->order(array('name' => 0));
 //
-//    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+//    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
 //      try {
 //        $tolerance->save();
 //        if ($id) Notify::msg('Tolerance successfully updated.', 'success', TRUE);
@@ -276,7 +276,7 @@ class Controller_Analysis extends Controller {
 //      else Notify::msg('No tolerances found');
     }
 
-//    $content .= $id || $_POST ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+//    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
 //    $content .= $pagination;
 
@@ -298,7 +298,7 @@ class Controller_Analysis extends Controller {
       ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add('submit', 'submit', 'Run');
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $form_type = $form->form_type->val();
       $site_id   = $form->site_id->val();
       $from      = $form->from->val();

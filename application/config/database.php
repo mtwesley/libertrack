@@ -28,7 +28,7 @@ return array(
 			'username'   => 'sgs',
 			'password'   => '5gSu8z_',
 			'persistent' => FALSE,
-			'database'   => 'sgs2',
+			'database'   => 'sgs',
 		),
 		'primary_key'  => 'id',
 		'schema'       => '',

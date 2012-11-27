@@ -26,7 +26,7 @@ class Controller_Index extends Controller {
       ))
       ->add('search', 'submit', 'Login');
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $username = $form->username->val();
       $password = $form->password->val();
 

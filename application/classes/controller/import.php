@@ -48,7 +48,7 @@ class Controller_Import extends Controller {
         ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
         ->add('search', 'submit', 'Filter');
 
-      if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.file.list');
 
         $operation_type = $form->operation_type->val();
@@ -134,7 +134,7 @@ class Controller_Import extends Controller {
     $success = 0;
     $error   = 0;
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       foreach ($file->csv->find_all()->as_array() as $csv) {
         try {
           $csv->delete();
@@ -187,7 +187,7 @@ class Controller_Import extends Controller {
       ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
       ->add('search', 'submit', 'Filter');
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       Session::instance()->delete('pagination.file.review');
 
       $status = $form->status->val();
@@ -246,9 +246,9 @@ class Controller_Import extends Controller {
 
     $file = ORM::factory('file', $id);
 
-    $status = is_array($_POST['status']) ? $_POST['status'] : array();
-    $type   = (isset($_POST['type']) and in_array($_POST['type'], array('csv', 'xls'))) ? $_POST['type'] : 'xls';
-    $name   = isset($_POST['name']) ? $_POST['name'] : NULL;
+    $status = is_array($_REQUEST['status']) ? $_REQUEST['status'] : array();
+    $type   = (isset($_REQUEST['type']) and in_array($_REQUEST['type'], array('csv', 'xls'))) ? $_REQUEST['type'] : 'xls';
+    $name   = isset($_REQUEST['name']) ? $_REQUEST['name'] : NULL;
 
     $csvs   = $file->csv;
     if ($status) $csvs->where('status', 'IN', $status);
@@ -342,6 +342,7 @@ class Controller_Import extends Controller {
 
     if ($accepted) Notify::msg($accepted.' records accepted as form data.', 'success', TRUE);
     if ($rejected) Notify::msg($rejected.' records rejected as form data.', 'error', TRUE);
+    if ($duplicated) Notify::msg($duplicated.' records marked as duplicates of form data.', 'warning', TRUE);
     if ($failure)  Notify::msg($failure.' records failed to be processed.', 'error', TRUE);
 
     $this->request->redirect('import/files/'.$id.'/review');
@@ -397,7 +398,7 @@ class Controller_Import extends Controller {
       'value'  => 'Save'
     ));
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       foreach ($csv->values as $key => $value) {
         if ($form->$key) $data[$key] = $form->$key->val();
       }
@@ -455,7 +456,7 @@ class Controller_Import extends Controller {
       ->add('confirm', 'text', 'Are you sure you want to delete this data?')
       ->add('delete', 'submit', 'Delete');
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
         $csv->delete();
         if ($csv->loaded()) throw new Exception();
@@ -537,7 +538,7 @@ class Controller_Import extends Controller {
         ->and_where('form_type', '=', $form_type)
         ->order_by('timestamp', 'DESC');
 
-      if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.csv');
 
         if ($has_site_id)  $site_id  = $form->site_id->val();
@@ -693,7 +694,7 @@ class Controller_Import extends Controller {
       ))
       ->add('upload', 'submit', 'Upload');
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $csv_error   = 0;
       $csv_success = 0;
       $num_files = count(reset($_FILES['import']));

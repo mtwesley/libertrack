@@ -16,6 +16,11 @@ $options = (array) $options + array(
 <?php if ($options['styles']): ?>
 <style type="text/css">
 
+  * {
+    font-family: "Arial";
+    font-size: 10px;
+  }
+
   @page {
     margin: 0;
   }
@@ -39,18 +44,35 @@ $options = (array) $options + array(
     text-align: left;
   }
 
+  .liberfor-logo img {
+    height: 32px;
+  }
+
   .fda-logo {
     text-align: right;
+  }
+
+  .fda-logo img {
+    height: 32px;
+  }
+
+  img.liberfor-bw {
+    height: 20px;
+  }
+
+  img.sgs-bw {
+    height: 20px;
+  }
+
+  img.fda-bw {
+    height: 20px;
   }
 
   .invoice {
     padding: 20px 25px;
   }
 
-  .st-invoice {
-    font-family: Arial, sans-serif;
-    font-size: 9.5pt;
-  }
+  .st-invoice {}
 
   .invoice-page-break {
     page-break-before: always;
@@ -59,9 +81,7 @@ $options = (array) $options + array(
   .invoice-header {}
 
   .invoice-footer {
-    position: absolute;
-    bottom: 0;
-    left: 35px;
+    margin-top: 20px;
   }
 
   .invoice-header,
@@ -108,12 +128,12 @@ $options = (array) $options + array(
   }
 
   .invoice-summary-table tr td.fee_desc {
-    font-size: 8pt;
+    font-size: 8px;
     white-space: nowrap;
   }
 
   .invoice-summary-table tr.head td.fee_desc {
-    font-size: 10pt;
+    font-size: 10px;
   }
 
   .invoice-details-table tr td.barcode,
@@ -186,7 +206,7 @@ $options = (array) $options + array(
 
   .invoice-footer-table tr td.date,
   .invoice-footer-table tr td.page {
-    width: 135px;
+    width: 100px;
   }
 
   .invoice-footer-table tr td.date {
@@ -204,14 +224,14 @@ $options = (array) $options + array(
 
   .invoice-footer-table tr td.page .ref {
     margin-bottom: 12px;
-    font-size: 8pt;
+    font-size: 8px;
   }
 
   .invoice-titles {}
 
   .invoice-title {
     margin: 7px 0 15px;
-    font-size: 24pt;
+    font-size: 24px;
     text-align: center;
   }
 
@@ -219,6 +239,10 @@ $options = (array) $options + array(
     margin-bottom: 25px;
     text-align: center;
     text-transform: uppercase;
+  }
+
+  .payment-date {
+    margin-bottom: 15px;
   }
 
   .payment-message {
@@ -437,7 +461,7 @@ $options = (array) $options + array(
       <tr>
         <td class="date"><?php echo SGS::date($invoice->created_date, SGS::PRETTY_DATE_FORMAT); ?></td>
         <td class="info">
-          <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_liberfor_bw.jpg" /> &nbsp; is operated by &nbsp; <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_fda_small.jpg" /><br />
+          <img class="liberfor-bw" src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_liberfor_bw.jpg" /> &nbsp; is operated by &nbsp; <img class="sgs-bw" src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img class="fda-bw" src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_fda_small.jpg" /><br />
           LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
         </td>
         <td class="page">

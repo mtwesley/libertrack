@@ -257,7 +257,9 @@ create table barcode_hops_cached (
 
   constraint barcode_hops_cached_pkey primary key (id),
   constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
-  constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade
+  constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
+
+  constraint barcode_hops_cached_unique unique(barcode_id,parent_id)
 );
 
 create table invoices (
@@ -892,7 +894,7 @@ $$
 begin
   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
     if old.barcode_id is not null then
-      update barcodes set type = 'P', parent_id = NULL where barcodes.id = old.barcode_id;
+      update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
     end if;
   end if;
 
@@ -910,13 +912,18 @@ $$ language 'plpgsql';
 create function tdf_data_update_barcodes()
   returns trigger as
 $$
+  declare x_id d_id;
 begin
+  if (new.barcode_id = new.stump_barcode_id) or (new.barcode_id = new.tree_barcode_id) or (new.tree_barcode_id = new.stump_barcode_id) then
+    return null;
+  end if;
+
   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
     if old.barcode_id is not null then
-      update barcodes set type = 'P', parent_id = NULL where barcodes.id = old.barcode_id;
+      update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
     end if;
     if old.stump_barcode_id is not null then
-      update barcodes set type = 'P', parent_id = NULL where barcodes.id = old.stump_barcode_id;
+      update barcodes set type = 'P', parent_id = null where barcodes.id = old.stump_barcode_id;
     end if;
   end if;
 
@@ -947,9 +954,13 @@ create function ldf_data_update_barcodes()
   returns trigger as
 $$
 begin
+  if (new.barcode_id = new.parent_barcode_id) then
+    return null;
+  end if;
+
   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
     if old.barcode_id is not null then
-      update barcodes set type = 'P', parent_id = NULL where barcodes.id = old.barcode_id;
+      update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
     end if;
   end if;
 
@@ -974,7 +985,7 @@ $$
 begin
   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
     if old.barcode_id is not null then
-      update barcodes set type = 'P', parent_id = NULL where barcodes.id = old.barcode_id;
+      update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
     end if;
   end if;
 

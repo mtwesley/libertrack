@@ -24,13 +24,13 @@ class Controller_Admin extends Controller {
     $id = $this->request->param('id');
 
     $operator = ORM::factory('operator', $id);
-    $form = Formo::form(array('attr' => array('style' => $id || $_POST ? '' : 'display: none;')))
+    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
       ->orm('load', $operator, array('sites', 'user_id', 'timestamp'), true)
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Operator' : 'Add a New Operator'
       ));
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
         $operator->save();
         if ($id) Notify::msg('Operator successfully updated.', 'success', TRUE);
@@ -66,7 +66,7 @@ class Controller_Admin extends Controller {
       else Notify::msg('No operators found');
     }
 
-    $content .= $id || $_POST ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
     $content .= $pagination;
 
@@ -78,13 +78,13 @@ class Controller_Admin extends Controller {
     $id = $this->request->param('id');
 
     $site = ORM::factory('site', $id);
-    $form = Formo::form(array('attr' => array('style' => $id || $_POST ? '' : 'display: none;')))
+    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
       ->orm('load', $site, array('blocks', 'printjobs', 'invoices', 'user_id', 'timestamp'), true)
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Site' : 'Add a New Site'
       ));
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
         $site->save();
         if ($id) Notify::msg('Site successfully updated.', 'success', TRUE);
@@ -120,7 +120,7 @@ class Controller_Admin extends Controller {
       else Notify::msg('No sites found');
     }
 
-    $content .= $id || $_POST ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
     $content .= $pagination;
 
@@ -132,14 +132,14 @@ class Controller_Admin extends Controller {
     $id = $this->request->param('id');
 
     $block = ORM::factory('block', $id);
-    $form = Formo::form(array('attr' => array('style' => $id || $_POST ? '' : 'display: none;')))
+    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
       ->orm('load', $block, array('user_id', 'timestamp'), true)
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Block' : 'Add a New Block'
       ))
       ->order(array('name' => 0));
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
         $block->save();
         if ($id) Notify::msg('Block successfully updated.', 'success', TRUE);
@@ -176,7 +176,7 @@ class Controller_Admin extends Controller {
       else Notify::msg('No blocks found');
     }
 
-    $content .= $id || $_POST ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
     $content .= $pagination;
 
@@ -189,13 +189,13 @@ class Controller_Admin extends Controller {
     $id = $this->request->param('id');
 
     $species = ORM::factory('species', $id);
-    $form = Formo::form(array('attr' => array('style' => $id || $_POST ? '' : 'display: none;')))
+    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
       ->orm('load', $species, array('user_id', 'timestamp'), true)
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Species' : 'Add a New Species'
       ));
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
         $species->save();
         if ($id) Notify::msg('Species successfully updated.', 'success', TRUE);
@@ -230,7 +230,7 @@ class Controller_Admin extends Controller {
       else Notify::msg('No species found');
     }
 
-    $content .= $id || $_POST ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
     $content .= $pagination;
 

@@ -54,7 +54,7 @@ class Controller_Barcodes extends Controller {
           ->orm('load', $printjob, array('site_id'))
           ->add('save', 'submit', 'Update Print Job');
 
-        if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+        if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
           try {
             $printjob->save();
             Notify::msg('Print job successfully updated.', 'success', TRUE);
@@ -83,7 +83,7 @@ class Controller_Barcodes extends Controller {
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
         ->add('search', 'submit', 'Filter');
 
-      if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.printjob.list');
         $site_id = $form->site_id->val();
 
@@ -155,7 +155,7 @@ class Controller_Barcodes extends Controller {
       ))
       ->add('save', 'submit', 'Upload');
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $barcode_success = 0;
       $barcode_error = 0;
 
@@ -257,7 +257,7 @@ class Controller_Barcodes extends Controller {
       ))
       ->add('save', 'submit', 'Fix');
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $barcode_success = 0;
       $barcode_error = 0;
 
@@ -349,7 +349,7 @@ class Controller_Barcodes extends Controller {
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
         ->add('download', 'submit', 'Download');
 
-      if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         $site_id = $form->site_id->val();
 
         $site_name = DB::select('id', 'name')

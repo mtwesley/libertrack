@@ -34,7 +34,7 @@ class Controller_Reports extends Controller {
       ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add('submit', 'submit', 'Calculate');
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $form_type = $form->form_type->val();
       $site_id   = $form->site_id->val();
       $from      = $form->from->val();

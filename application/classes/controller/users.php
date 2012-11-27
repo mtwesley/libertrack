@@ -50,7 +50,7 @@ class Controller_Users extends Controller {
         ));
     }
     else {
-      $form = Formo::form(array('attr' => array('style' => $id || $_POST ? '' : 'display: none;')))
+      $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
         ->orm('load', $user, array_filter(array('username', 'name', 'email', 'roles', $id ? '' : 'password')))
         ->add('save', 'submit', array(
           'label' => $id ? 'Update user' : 'Add a New user'
@@ -70,16 +70,14 @@ class Controller_Users extends Controller {
         ));
     }
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       if ($command == 'password') {
         try {
           if ($user->password !== Auth::instance()->hash($form->old_password->val())) {
             Notify::msg('"Old password" provided is incorrect.', 'error');
             throw new Exception();
           }
-          $user->update_user($_POST, array(
-            'password',
-          ));
+          $user->update_user($_REQUEST, array('password'));
           Notify::msg('Password changed.', 'success', TRUE);
 
           $this->request->redirect('users');
@@ -89,7 +87,7 @@ class Controller_Users extends Controller {
       }
       else {
         try {
-          if (!$user->id) $user->create_user($_POST, array(
+          if (!$user->id) $user->create_user($_REQUEST, array(
             'username',
             'name',
             'email',
@@ -136,7 +134,7 @@ class Controller_Users extends Controller {
       else Notify::msg('No users found');
     }
 
-    $content .= $id || $_POST ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
     $content .= $pagination;
 

@@ -57,6 +57,7 @@ class Controller_Invoices extends Controller {
       Session::instance()->delete('pagination.invoice.list');
 
       $invoices = array(ORM::factory('invoice', $id));
+      if (!$invoices) $this->request->redirect ('invoices');
     }
     else {
 
@@ -71,7 +72,7 @@ class Controller_Invoices extends Controller {
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
         ->add('search', 'submit', 'Filter');
 
-      if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.invoice.list');
 
         $type    = $form->type->val();
@@ -262,16 +263,25 @@ class Controller_Invoices extends Controller {
 
     // generate pdf
     set_time_limit(600);
-    try {
-      $dompdf = new DOMPDF();
-      $dompdf->set_paper("A4");
-      $dompdf->load_html($html);
-      $dompdf->render();
-      if (!$output = $dompdf->output()) throw new Exception();
-    } catch (Exception $e) {
-      Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
-      return FALSE;
-    }
+
+//    try {
+//      $tcpdf = new TCPDF();
+//      $tcpdf->SetAutoPageBreak(TRUE);
+//      $tcpdf->AddPage();
+//      $tcpdf->writeHTML($html);
+//      $tcpdf->lastPage();
+
+//      if (!$output = $tcpdf->output(NULL, 'S')) throw new Exception();
+
+//      $dompdf = new DOMPDF();
+//      $dompdf->set_paper("A4");
+//      $dompdf->load_html($html);
+//      $dompdf->render();
+//      if (!$output = $dompdf->output()) throw new Exception();
+//    } catch (Exception $e) {
+//      Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
+//      return FALSE;
+//    }
 
     // save file
     $ext = 'pdf';
@@ -295,8 +305,26 @@ class Controller_Invoices extends Controller {
     }
 
     $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
-    if (!(file_put_contents($fullname, $output) and chmod($fullname, 0777))) {
-      Notify::msg('Sorry, cannot create invoice. Check file operation capabilities with the site administrator and try again.', 'error');
+//    if (!(file_put_contents($fullname, $output) and chmod($fullname, 0777))) {
+//      Notify::msg('Sorry, cannot create invoice. Check file operation capabilities with the site administrator and try again.', 'error');
+//      return FALSE;
+//    }
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'disable-javascript'     => TRUE,
+        'disable-internal-links' => TRUE,
+        'minimum-font-size'      => 6,
+        'margin-bottom' => 0,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'dpi' => 96,
+        'disable-smart-shrinking' => TRUE,
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
       return FALSE;
     }
 
@@ -348,7 +376,7 @@ class Controller_Invoices extends Controller {
         ))
       ->add('submit', 'submit', 'Generate');
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       Session::instance()->delete('pagination.data');
       $format   = $form->format->val();
       $site_id  = $form->site_id->val();
@@ -444,15 +472,15 @@ class Controller_Invoices extends Controller {
             if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
             else Notify::msg('Sorry, invoice file failed to be generated. Please try again.', 'error');
 
-//            try {
+            try {
               $invoice->save();
               foreach ($ids as $id) $invoice->set_data($form_type, $id);
 
               Notify::msg(($invoice->is_draft ? 'Draft invoice' : 'Invoice') . ' created.', 'success', TRUE);
               $this->request->redirect('invoices/'.$invoice->id);
-//            } catch (Exception $e) {
-//              Notify::msg('Sorry, unable to create invoice. Please try again.', 'error');
-//            }
+            } catch (Exception $e) {
+              Notify::msg('Sorry, unable to create invoice. Please try again.', 'error');
+            }
             break;
         }
       } else Notify::msg('No data found. Skipping invoice.', 'warning');

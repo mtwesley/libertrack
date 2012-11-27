@@ -106,6 +106,8 @@ Kohana::modules(array(
 	'orm'          => MODPATH.'orm',          // Object relationship mapping
 	'phpexcel'     => MODPATH.'phpexcel',     // PHPExcel library
 	'dompdf'       => MODPATH.'dompdf',       // DOMPDF library
+	'tcpdf'        => MODPATH.'tcpdf',        // TCPDF library
+	'snappy'       => MODPATH.'snappy',       // Slibrary
 	// 'image'     => MODPATH.'image',        // Image manipulation
 	// 'unittest'  => MODPATH.'unittest',     // Unit testing
 	'userguide'    => MODPATH.'userguide',    // User guide and API documentation

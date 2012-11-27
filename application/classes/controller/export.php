@@ -76,7 +76,7 @@ class Controller_Export extends Controller {
         ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
         ->add('search', 'submit', 'Search');
 
-      if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         $form_type = $form->form_type->val();
         $from      = $form->from->val();
         $to        = $form->to->val();
@@ -137,7 +137,7 @@ class Controller_Export extends Controller {
       ))
       ->add('download', 'submit', array('label' => 'Download'));
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $block    = ORM::factory('block', $form->block_id->val());
       $site     = $block->site;
       $operator = $site->operator;
@@ -235,7 +235,7 @@ class Controller_Export extends Controller {
       ))
       ->add('download', 'submit', array('label' => 'Download'));
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $block    = ORM::factory('block', $form->block_id->val());
       $site     = $block->site;
       $operator = $site->operator;
@@ -330,7 +330,7 @@ class Controller_Export extends Controller {
       ))
       ->add('download', 'submit', array('label' => 'Download'));
 
-    if ($form->sent($_POST) and $form->load($_POST)->validate()) {
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $site     = ORM::factory('site', $form->site_id->val());
       $operator = $site->operator;
       $type     = $form->type->val();
