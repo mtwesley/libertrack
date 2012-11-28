@@ -277,7 +277,7 @@ create table invoices (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint invoices_pkey primary key (id),
-  constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
+  constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade on delete cascade,
   constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
@@ -288,7 +288,7 @@ create table invoice_data (
   invoice_id d_id,
 
   constraint invoice_data_pkey primary key (id),
-  constraint invoice_data_invoice_id foreign key (invoice_id) references invoices (id) on update cascade,
+  constraint invoice_data_invoice_id foreign key (invoice_id) references invoices (id) on update cascade on delete cascade,
 
   constraint invoice_data_unique unique(form_type,form_data_id,invoice_id)
 );
@@ -324,7 +324,7 @@ create table csv_errors (
   is_ignored d_bool default false not null,
 
   constraint csv_errors_pkey primary key (id),
-  constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
+  constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade on delete cascade,
 
   constraint csv_errors_unique unique(csv_id,field,error)
 );
@@ -336,7 +336,7 @@ create table csv_duplicates (
   field d_text_short,
 
   constraint csv_duplicates_pkey primary key (id),
-  constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
+  constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade on delete cascade,
   constraint csv_duplicates_duplicate_csv_id_fkey foreign key (duplicate_csv_id) references csv (id) on update cascade on delete cascade,
 
   constraint csv_duplicates_unique unique(csv_id,duplicate_csv_id,field),
@@ -914,8 +914,10 @@ create function tdf_data_update_barcodes()
 $$
   declare x_id d_id;
 begin
-  if (new.barcode_id = new.stump_barcode_id) or (new.barcode_id = new.tree_barcode_id) or (new.tree_barcode_id = new.stump_barcode_id) then
-    return null;
+  if (tg_op <> 'DELETE') then
+    if (new.barcode_id = new.stump_barcode_id) or (new.barcode_id = new.tree_barcode_id) or (new.tree_barcode_id = new.stump_barcode_id) then
+      return null;
+    end if;
   end if;
 
   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
@@ -954,8 +956,10 @@ create function ldf_data_update_barcodes()
   returns trigger as
 $$
 begin
-  if (new.barcode_id = new.parent_barcode_id) then
-    return null;
+  if (tg_op <> 'DELETE') then
+    if (new.barcode_id = new.parent_barcode_id) then
+      return null;
+    end if;
   end if;
 
   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
