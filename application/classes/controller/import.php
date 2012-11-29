@@ -541,10 +541,13 @@ class Controller_Import extends Controller {
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.csv');
 
-        if ($has_site_id)  $site_id  = $form->site_id->val();
+        if ($has_site_id) $site_id = $form->site_id->val();
         else $operator_id = $form->operator_id->val();
+
         if ($has_block_id) $block_id = $form->block_id->val();
-        $status      = $form->status->val();
+
+        $status = $form->status->val();
+        $format = $form->format->val();
 
         if ($status)      $csvs->and_where('status', 'IN', (array) $status);
         if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
