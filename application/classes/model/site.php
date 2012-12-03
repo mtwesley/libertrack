@@ -22,6 +22,7 @@ class Model_Site extends ORM {
       'id'         => array('render' => FALSE),
       'type'       => array('render' => FALSE),
       'is_deleted' => array('render' => FALSE),
+      'site_id'    => array('driver' => 'select')
     );
     foreach (self::fields() as $field => $label) {
       $array[$field]['label'] = $label;

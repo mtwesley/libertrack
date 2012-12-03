@@ -126,8 +126,8 @@ $classes[] = 'data';
     <?php endforeach; ?>
     <td class="links">
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
-      <?php // echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
-      <?php // echo HTML::anchor('analysis/review/'.$record->get_type().'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
       <?php /* if ($record->errors): ?>
       <span class="link toggle-details">Details</span>
       <?php endif; */ ?>

@@ -5,7 +5,11 @@
     <?php foreach ((array) $array as $error): ?>
     <li>
       <?php echo SGS::decode_error($field, $error, array(':field' => $fields[$field]), $values); ?>
-      <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-suggestions" class="details-link details-suggestions-link">Tips and Suggestions</span>
+      <?php if ($csv->status == 'U'): ?>
+      <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-resolutions" class="details-link details-resolutions-link">Resolutions</span>
+      <?php endif; ?>
+      <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-suggestions" class="details-link details-suggestions-link">Suggestions</span>
+      <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-tips" class="details-link details-tips-link">Tips</span>
     </li>
     <?php endforeach; ?>
     <?php endforeach; ?>

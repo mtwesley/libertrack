@@ -83,6 +83,28 @@ class Model_LDF extends SGS_Form_ORM {
     $this->_object_plural = 'ldf';
   }
 
+  public function formo() {
+    $array = array(
+      'id'             => array('render' => FALSE),
+      'barcode'        => array('render' => FALSE),
+      'parent_barcode' => array('render' => FALSE),
+      'operator'       => array('render' => FALSE),
+      'site'           => array('render' => FALSE),
+      'status'         => array('render' => FALSE),
+      'user'           => array('render' => FALSE),
+      'timestamp'      => array('render' => FALSE),
+      'species'        => array(
+        'orm_primary_val' => 'code',
+        'label' => 'Species'
+      ),
+      'create_date' => array('order' => 0),
+    );
+    foreach (self::fields() as $field => $label) {
+      $array[$field]['label'] = $label;
+    }
+    return $array;
+  }
+
   public function parse_csv($row, &$csv)
   {
     extract(SGS::parse_site_and_block(trim($csv[2][B] ?: $csv[2][C] ?: $csv[2][D] ?: $csv[2][E])));
@@ -387,7 +409,6 @@ class Model_LDF extends SGS_Form_ORM {
       'barcode_id'         => array(array('not_empty'),
                                     array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'parent_barcode_id'  => array(array('not_empty')),
-      'invoice_id'         => array(),
       'top_min'            => array(array('not_empty'),
                                     array('is_measurement_int')),
       'top_max'            => array(array('not_empty'),
@@ -438,7 +459,6 @@ class Model_LDF extends SGS_Form_ORM {
       'species_id'         => 'Species',
       'barcode_id'         => self::$fields['barcode'],
       'parent_barcode_id'  => self::$fields['parent_barcode'],
-      'invoice_id'         => self::$fields['invoice'],
       'top_min'            => self::$fields['top_min'],
       'top_max'            => self::$fields['top_max'],
       'bottom_min'         => self::$fields['bottom_min'],

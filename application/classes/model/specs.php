@@ -57,6 +57,32 @@ class Model_SPECS extends SGS_Form_ORM {
     $this->_object_plural = 'specs';
   }
 
+  public function formo() {
+    $array = array(
+      'id'            => array('render' => FALSE),
+      'barcode'       => array('render' => FALSE),
+      'specs_barcode' => array('render' => FALSE),
+      'epr_barcode'   => array('render' => FALSE),
+      'operator'      => array('render' => FALSE),
+      'status'        => array('render' => FALSE),
+      'user'          => array('render' => FALSE),
+      'timestamp'     => array('render' => FALSE),
+      'species'       => array(
+        'orm_primary_val' => 'code',
+        'label' => 'Species'
+      ),
+      'grade' => array(
+        'driver'  => 'forceselect',
+        'options' => SGS::$grade
+      ),
+      'create_date' => array('order' => 0),
+    );
+    foreach (self::fields() as $field => $label) {
+      $array[$field]['label'] = $label;
+    }
+    return $array;
+  }
+
   public function parse_csv($row, &$csv)
   {
     extract(SGS::parse_grade(trim($row[J])));

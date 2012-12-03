@@ -1,7 +1,11 @@
 
--- fix barcode hops
+-- fix constraints
 
-alter table barcode_hops_cached add constraint barcode_hops_cached_unique unique(barcode_id,parent_id);
+alter table invoices drop constraint invoices_site_id_fkey;
+alter table invoices add constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade on delete cascade;
+
+alter table invoice_data drop constraint invoice_data_invoice_id;
+alter table invoice_data add constraint invoice_data_invoice_id foreign key (invoice_id) references invoices (id) on update cascade on delete cascade;
 
 
 -- fix triggers
@@ -11,8 +15,10 @@ create or replace function tdf_data_update_barcodes()
 $$
   declare x_id d_id;
 begin
-  if (new.barcode_id = new.stump_barcode_id) or (new.barcode_id = new.tree_barcode_id) or (new.tree_barcode_id = new.stump_barcode_id) then
-    return null;
+  if (tg_op <> 'DELETE') then
+    if (new.barcode_id = new.stump_barcode_id) or (new.barcode_id = new.tree_barcode_id) or (new.tree_barcode_id = new.stump_barcode_id) then
+      return null;
+    end if;
   end if;
 
   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
@@ -51,8 +57,10 @@ create or replace function ldf_data_update_barcodes()
   returns trigger as
 $$
 begin
-  if (new.barcode_id = new.parent_barcode_id) then
-    return null;
+  if (tg_op <> 'DELETE') then
+    if (new.barcode_id = new.parent_barcode_id) then
+      return null;
+    end if;
   end if;
 
   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
@@ -74,3 +82,4 @@ begin
   return null;
 end
 $$ language 'plpgsql';
+

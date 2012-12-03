@@ -6,7 +6,7 @@
     <strong><?php if ($fields[$field]) echo $fields[$field]; ?>:</strong>
     <?php endif; ?>
 
-    <ul id="csv-<?php echo $csv->id.'-'.$field; ?>-suggest" class="suggest">
+    <ul id="csv-<?php echo $csv->id.'-'.$field.'-suggest'; ?>" class="suggest">
       <?php foreach ($suggestion as $suggest): ?>
       <li class="<?php echo $field; ?>"><?php echo $suggest; ?></li>
       <?php endforeach; ?>

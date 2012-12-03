@@ -11,6 +11,9 @@ class SGS {
 
   const US_DATE_FORMAT = 'm/d/Y';
 
+  const PGSQL_TRUE  = 't';
+  const PGSQL_FALSE = 'f';
+
   const TDF_SURVEY_LINE_TOLERANCE = 20;
   const TDF_LENGTH_TOLERANCE      = 10;
   const TDF_DIAMETER_TOLERANCE    = 40;
@@ -669,7 +672,7 @@ class SGS {
     return preg_replace('/[^\w-]+/', '_', $string);
   }
 
-  public static function errorfy($string)
+  public static function errorify($string)
   {
     $string = preg_replace('/('.preg_quote(strtolower(implode('|', array_keys(self::$form_type)))).'_data)/', 'form', $string);
     $string = str_replace('content_md5', 'file', $string);
@@ -686,6 +689,22 @@ class SGS {
       $value = trim($value);
     }
     return $array;
+  }
+
+  public static function flattenify($array)
+  {
+    $return = array();
+    array_walk_recursive($array, function($a) use (&$return) {$return[] = $a;});
+    return $return;
+  }
+
+  public static function booleanify($value)
+  {
+    if (is_string($value)) $value = strtolower($value);
+    switch ($value) {
+      case TRUE:  case 'yes': case 'y': case 't': case '1': return TRUE;
+      case FALSE: case 'no':  case 'n': case 'f': case '0': return FALSE;
+    }
   }
 
   public static function barcodify($string) {

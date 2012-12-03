@@ -4,7 +4,7 @@
   <ul>
     <?php foreach ($errors as $field => $error): ?>
     <?php foreach ((array) $error as $err): ?>
-    <li><?php echo SGS::errorfy($err); ?></li>
+    <li><?php echo SGS::errorify($err); ?></li>
     <?php endforeach; ?>
     <?php endforeach; ?>
   </ul>

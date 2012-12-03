@@ -60,10 +60,10 @@ $classes[] = 'data';
       $_up = $_total ? floor($_u * 100 / $_total) : 0;
     ?>
     <td>
-      <span class="pending"><?php echo $_p; ?> Pending (<?php echo $_pp; ?>%)</span> |
-      <span class="accepted"><?php echo $_a; ?> Accepted (<?php echo $_ap; ?>%)</span> |
-      <span class="rejected"><?php echo $_r; ?> Rejected (<?php echo $_rp; ?>%)</span> |
-      <span class="duplicated"><?php echo $_u; ?> Duplicated (<?php echo $_up; ?>%)</span>
+      <span class="pending"><?php echo $_p; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=P', 'Pending'); ?> (<?php echo $_pp; ?>%)</span> |
+      <span class="accepted"><?php echo $_a; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=A', 'Accepted'); ?> (<?php echo $_ap; ?>%)</span> |
+      <span class="rejected"><?php echo $_r; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=R', 'Rejected'); ?> (<?php echo $_rp; ?>%)</span> |
+      <span class="duplicated"><?php echo $_u; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=U', 'Duplicated'); ?> (<?php echo $_up; ?>%)</span>
     </td>
     <?php endif; ?>
 

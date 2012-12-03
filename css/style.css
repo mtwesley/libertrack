@@ -1,20 +1,35 @@
 
 /* Colors */
 
-.pending {
+.pending,
+.pending a {
   color: #aa7700;
+  text-decoration: none;
 }
 
-.accepted {
+.accepted,
+.accepted a {
   color: #008200;
+  text-decoration: none;
 }
 
-.rejected {
+.rejected,
+.rejected a {
   color: #990000;
+  text-decoration: none;
 }
 
-.duplicated {
+.duplicated,
+.duplicated a {
   color: #0066cc;
+  text-decoration: none;
+}
+
+.pending a:hover,
+.accepted a:hover,
+.rejected a:hover,
+.duplicated a:hover {
+  text-decoration: underline;
 }
 
 
@@ -70,6 +85,7 @@
 #content form p.password input,
 #content form p.submit input,
 #content form p.textarea textarea,
+#content form p.forceselect select,
 #content form p.select select {
   font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
   font-size: 12px;
@@ -98,7 +114,10 @@
   cursor: pointer;
 }
 
+#content form p.forceselect {}
 #content form p.select {}
+
+#content form p.forceselect select,
 #content form p.select select {
   width: 410px;
 }
@@ -172,6 +191,7 @@
 
 #content table.data form p.input input,
 #content table.data form p.submit input,
+#content table.data form p.forceselect select,
 #content table.data form p.select select {}
 
 #content table.data form p.input {}
@@ -190,7 +210,10 @@
 }
 
 #content table.data form p.select {}
+#content table.data form p.forceselect {}
+
 #content table.data form p.select select {}
+#content table.data form p.forceselect select {}
 
 #content table.data form p span.error-message {
   margin-left: 590px;

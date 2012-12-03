@@ -136,7 +136,7 @@ Route::set('alternate', '<controller>/<id>(/<command>)', array('controller' => '
     'action' => 'index'
   ));
 
-Route::set('main', '<controller>(/<action>(/<id>)(/<command>))');
+Route::set('main', '<controller>(/<action>(/<id>)(/<command>(/<subcommand>)))');
 
 Route::set('default', '(<controller>(/<action>(/<id>)))')
 	->defaults(array(

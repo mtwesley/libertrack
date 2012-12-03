@@ -52,7 +52,7 @@ class Controller_Checks extends Controller {
         try {
           $record->run_checks();
         } catch (ORM_Validation_Exception $e) {
-          foreach ($e->errors('') as $err) Notify::msg(SGS::errorfy($err), 'error', TRUE);
+          foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
         } catch (Exception $e) {
           Notify::msg('Sorry, unable to run check and queries. Please try again.', 'error');
         }

@@ -88,6 +88,7 @@ if ($options['header'])  $classes[] = 'has-header';
           case 'A': echo HTML::image('images/flag_green.png', array('class' => 'status accepted', 'title' => 'Accepted')); break;
           case 'R': echo HTML::image('images/flag_red.png', array('class' => 'status rejected', 'title' => 'Rejected')); break;
           case 'U': echo HTML::image('images/flag_blue.png', array('class' => 'status duplicated', 'title' => 'Duplicated')); break;
+          case 'D': echo HTML::image('images/flag_grey.png', array('class' => 'status deleted', 'title' => 'Deleted')); break;
         endswitch;
       ?>
     </td>
@@ -120,7 +121,7 @@ if ($options['header'])  $classes[] = 'has-header';
 
       <?php if ($mode == 'import') echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
 
-      <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R'))): ?>
+      <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>
       <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span>
       <!-- <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?> -->
       <?php endif; ?>

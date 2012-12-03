@@ -323,6 +323,7 @@ class Controller_Invoices extends Controller {
         'dpi' => 96,
         'disable-smart-shrinking' => TRUE,
       ));
+      $this->response->send_file($fullname);
     } catch (Exception $e) {
       Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
       return FALSE;
@@ -340,7 +341,7 @@ class Controller_Invoices extends Controller {
       $file->save();
       return $file->id;
     } catch (ORM_Validation_Exception $e) {
-      foreach ($e->errors('') as $err) Notify::msg(SGS::errorfy($err).' ('.$file->name.')', 'error');
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
       return FALSE;
     }
   }

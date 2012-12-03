@@ -7,7 +7,7 @@ class ORM extends Kohana_ORM {
     if (in_array('user_id', array_keys((array) $this->_object))) {
       $this->user = Auth::instance()->get_user();
     }
-		return $this->loaded() ? $this->update($validation) : $this->create($validation);
+		return parent::save();
 	}
 
 }

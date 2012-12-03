@@ -188,7 +188,7 @@ class Controller_Barcodes extends Controller {
             $file->save();
             Notify::msg($file->name.' print job successfully uploaded.', 'success', TRUE);
           } catch (ORM_Validation_Exception $e) {
-            foreach ($e->errors('') as $err) Notify::msg(SGS::errorfy($err), 'error');
+            foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error');
           } catch (Exception $e) {
             Notify::msg('Sorry, print job upload failed. Please try again.', 'error');
           }

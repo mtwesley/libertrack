@@ -17,7 +17,7 @@ class Controller_Analysis extends Controller {
     Session::instance()->write();
   }
 
-  private function handle_data_list($form_type, $id = NULL) {
+  private function handle_data_list($form_type, $id = NULL, $command = NULL) {
     if (!Request::$current->query('page')) Session::instance()->delete('pagination.data');
 
     $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
@@ -132,66 +132,76 @@ class Controller_Analysis extends Controller {
     $this->response->body($view);
   }
 
-  private function handle_data_edit($id) {
-    $id = $this->request->param('id');
+  private function handle_data_edit($form_type, $id) {
+    $item  = ORM::factory($form_type, $id);
 
-    $csv = ORM::factory('csv', $id);
-    if ($csv->status == 'A') {
-      Notify::msg('Sorry, import data that has already been processed and accepted cannot be edited. Please edit the form data instead.', 'warning', TRUE);
-      $this->request->redirect('import/data/'.$id.'/list');
-    }
-
-    $form_type = $csv->form_type;
-    $fields    = SGS_Form_ORM::get_fields($form_type);
-
-    $form = Formo::form();
-    foreach ($fields as $key => $value) {
-      $form->add(array(
-        'alias' => $key,
-        'value' => $csv->values[$key],
-        'label' => $value
-      ));
-    }
-    $form->add(array(
-      'alias'  => 'save',
-      'driver' => 'submit',
-      'value'  => 'Save'
+    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
+      ->orm('load', $item)
+      ->add('save', 'submit', array(
+        'label' => 'Save'
     ));
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      foreach ($csv->values as $key => $value) {
-        if ($form->$key) $data[$key] = $form->$key->val();
-      }
-
-      $csv->values = $data;
-      $csv->status = 'P';
       try {
-        $csv->save();
-        $updated = true;
+        $item->status = 'P';
+        $item->save();
+        $item->reload();
+        Notify::msg('Form data saved.', 'success', TRUE);
       } catch (Exception $e) {
-        Notify::msg('Sorry, update failed. Please try again.', 'error');
+        Notify::msg('Sorry, form data update failed. Please try again.', 'error');
       }
-
-      if ($updated) {
-        $result = self::process_csv($csv);
-        if     ($result == 'A') Notify::msg('Updated data accepted as form data.', 'success', TRUE);
-        elseif ($result == 'R') Notify::msg('Updated data rejected as form data.', 'error', TRUE);
-        elseif ($result == 'U') Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE);
-        else    Notify::msg('Updated data failed to be processed.', 'error', TRUE);
-      }
-
-      $this->request->redirect('import/data/'.$csv->id);
     }
 
-    $csvs = array($csv);
-    $table = View::factory('csvs')
-      ->set('mode', 'import')
-      ->set('csvs', $csvs)
-      ->set('fields', SGS_Form_ORM::get_fields($csv->form_type))
+    $table = View::factory('data')
+      ->set('classes', array('has-pagination'))
+      ->set('form_type', $item::$type)
+      ->set('data', array($item))
+      ->set('site', isset($item->site) ? $item->site : NULL)
+      ->set('block', isset($item->block) ? $item->block : NULL)
       ->render();
 
-    $content .= $form->render();
+    if ($form) $content .= $form->render();
     $content .= $table;
+    $content .= $pagination;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_data_delete($form_type, $id) {
+    $item  = ORM::factory($form_type, $id);
+
+    if (!$item->loaded()) {
+      Notify::msg('No form data found.', 'warning', TRUE);
+      $this->request->redirect('analysis/review/'.strtolower($form_type));
+    }
+
+    $form = Formo::form()
+      ->add('confirm', 'text', 'Are you sure you want to delete this form data?')
+      ->add('delete', 'submit', 'Delete');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $csv = ORM::factory('CSV')
+        ->where('form_type', '=', $form_type)
+        ->and_where('form_data_id', '=', $item->id)
+        ->find();
+
+      try {
+        if ($csv->loaded()) {
+          $csv->status = 'D';
+          $csv->save();
+        }
+        $item->delete();
+        if ($item->loaded()) throw new Exception();
+        Notify::msg('Form data successfully deleted.', 'success', TRUE);
+      } catch (Exception $e) {
+        Notify::msg('Form data failed to be deleted.', 'error', TRUE);
+      }
+
+      $this->request->redirect('analysis/review/'.strtolower($form_type));
+    }
+
+    $content .= $form->render();
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -203,19 +213,15 @@ class Controller_Analysis extends Controller {
   }
 
   public function action_review() {
-    $command = $this->request->param('id'); // for now this is flipped
-    $id      = $this->request->param('command'); // for now this is flipped
+    $form_type = strtoupper($this->request->param('id')); // for now this is flipped
+    $id        = $this->request->param('command'); // for now this is flipped
+    $command   = $this->request->param('subcommand');
 
-//    if (!$command && !is_numeric($id)) {
-//      $command = $id;
-//      $id      = NULL;
-//    }
-
-    switch ($command) {
-      case 'ssf':   return self::handle_data_list('SSF', $id);
-      case 'tdf':   return self::handle_data_list('TDF', $id);
-      case 'ldf':   return self::handle_data_list('LDF', $id);
-      case 'specs': return self::handle_data_list('SPECS', $id);
+    if ($form_type) switch ($command) {
+      case 'delete': return self::handle_data_delete($form_type, $id);
+      case 'edit': return self::handle_data_edit($form_type, $id);
+      case 'list':
+      default: return self::handle_data_list($form_type, $id);
     }
 
     $view = View::factory('main')->set('content', $content);
@@ -319,7 +325,7 @@ class Controller_Analysis extends Controller {
         try {
           $record->run_checks();
         } catch (ORM_Validation_Exception $e) {
-          foreach ($e->errors('') as $err) Notify::msg(SGS::errorfy($err), 'error', TRUE);
+          foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
         } catch (Exception $e) {
           Notify::msg('Sorry, unable to run check and queries. Please try again.', 'error');
         }

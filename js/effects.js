@@ -14,6 +14,8 @@ var bPopupOptions = {
   closeClass: 'popup-close',
   modalColor: '#fff',
   fadeSpeed: 100,
+  follow: [true, false],
+  amsl: 150,
   onClose: function() {
     $("#popup .popup-text").text("");
   }
@@ -27,24 +29,47 @@ $(function() {
       '/ajax/details',
       {id: $(this).attr('id').match(/csv-(\d+)-details/)[1]},
       function() {
-        $(".details-suggestions-link").live('click', function() {
+        $(".details-tips-link").click(function() {
+          $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
+          $("#popup .popup-text").load('/ajax/tips', {id: $(this).attr('id')}, function() {
+            $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+          });
+        });
+        $(".details-suggestions-link").click(function() {
           $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
           $("#popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
             $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
-          });
-
-          $("ul.suggest li").live('click', function() {
-            var csv_id = $(this).parent("ul.suggest").attr('id').match(/csv-(\d+)/)[1];
-            $.post(
-              '/ajax/csv',
-              {id: $(this).parent("ul.suggest").attr('id'), data: $(this).text(), process: 1},
-              function() {
-                $("#popup").bPopup().close();
-                update_csv(csv_id);
-              }
-            );
+            $("ul.suggest li").click(function() {
+              var csv_id = $(this).parent("ul.suggest").attr('id').match(/csv-(\d+)/)[1];
+              $.post(
+                '/ajax/csv',
+                {id: $(this).parent("ul.suggest").attr('id'), data: $(this).text(), process: 1},
+                function() {
+                  $("#popup").bPopup().close();
+                  update_csv(csv_id);
+                }
+              );
+            });
           });
         });
+        $(".details-resolutions-link").click(function() {
+          $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
+          $("#popup .popup-text").load('/ajax/resolutions', {id: $(this).attr('id')}, function() {
+            $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+            $(".details-resolution-select span").click(function() {
+              var csv_id = $(this).attr('id').match(/csv-(\d+)/)[1];
+              $.post(
+                '/ajax/resolve',
+                {id: $(this).attr('id')},
+                function() {
+                  $("#popup").bPopup().close();
+                  update_csv(csv_id);
+                }
+              );
+            });
+          });
+        });
+
         $(this).removeClass('loading');
       }
     );
@@ -118,22 +143,24 @@ $(function() {
 
 });
 
-function update_csv(id) {
+function update_csv(id, new_id) {
+  new_id = new_id || id;
+
   $("#csv-"+id).addClass('loading');
   $("#csv-"+id).addClass('loading-small');
   $("#csv-"+id).attr("id", "csv-"+id+"-deleted");
   $.post(
     "/ajax/update",
     {
-      id: id,
+      id: new_id,
       actions: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
       header: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0
     },
     function(data) {
       $("#csv-"+id+"-deleted").replaceWith(data);
-      $("#csv-"+id+" .csv-eip").editable("/ajax/csv", editableOptions);
-      $("#csv-"+id).next("tr.details").hide();
-      $("#csv-"+id).next("tr.details").children("td").text("").addClass('loading');
+      $("#csv-"+new_id+" .csv-eip").editable("/ajax/csv", editableOptions);
+      $("#csv-"+new_id).next("tr.details").hide();
+      $("#csv-"+new_id).next("tr.details").children("td").text("").addClass('loading');
     },
     "html"
   );

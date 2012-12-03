@@ -324,7 +324,7 @@ create table csv_errors (
   is_ignored d_bool default false not null,
 
   constraint csv_errors_pkey primary key (id),
-  constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade on delete cascade,
+  constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
 
   constraint csv_errors_unique unique(csv_id,field,error)
 );
@@ -336,7 +336,7 @@ create table csv_duplicates (
   field d_text_short,
 
   constraint csv_duplicates_pkey primary key (id),
-  constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade on delete cascade,
+  constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
   constraint csv_duplicates_duplicate_csv_id_fkey foreign key (duplicate_csv_id) references csv (id) on update cascade on delete cascade,
 
   constraint csv_duplicates_unique unique(csv_id,duplicate_csv_id,field),
@@ -414,7 +414,6 @@ create table ldf_data (
   barcode_id d_id unique not null,
   parent_barcode_id d_id not null,
   species_id d_id not null,
-  invoice_id d_id,
   top_min d_measurement_int not null,
   top_max d_measurement_int not null,
   bottom_min d_measurement_int not null,
@@ -434,7 +433,6 @@ create table ldf_data (
   constraint ldf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint ldf_data_parent_barcode_id_fkey foreign key (parent_barcode_id) references barcodes (id) on update cascade,
   constraint ldf_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
-  constraint ldf_data_invoice_id_fkey foreign key (invoice_id) references invoices (id) on update cascade,
   constraint ldf_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
@@ -649,7 +647,6 @@ create index ldf_data_operator_id on ldf_data (id,operator_id);
 create index ldf_data_barcode_id on ldf_data (id,barcode_id);
 create index ldf_data_parent_barcode_id on ldf_data (id,parent_barcode_id);
 create index ldf_data_species_id on ldf_data (id,species_id);
-create index ldf_data_invoice_id on ldf_data (id,invoice_id);
 create index ldf_data_volume on ldf_data (id,volume);
 create index ldf_data_status on ldf_data (id,status);
 

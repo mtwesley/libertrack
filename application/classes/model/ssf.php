@@ -78,6 +78,37 @@ class Model_SSF extends SGS_Form_ORM {
     $this->_object_plural = 'ssf';
   }
 
+  public function formo() {
+    $array = array(
+      'id'        => array('render' => FALSE),
+      'barcode'   => array('render' => FALSE),
+      'operator'  => array('render' => FALSE),
+      'site'      => array('render' => FALSE),
+      'block'     => array('render' => FALSE),
+      'status'    => array('render' => FALSE),
+      'user'      => array('render' => FALSE),
+      'timestamp' => array('render' => FALSE),
+      'species'   => array(
+        'orm_primary_val' => 'code',
+        'label' => 'Species'
+      ),
+      'is_requested' => array(
+        'driver'  => 'forceselect',
+        'options' => array(TRUE => 'YES', FALSE => 'NO'),
+        'is_required' => TRUE
+      ),
+      'is_fda_approved' => array(
+        'driver'  => 'forceselect',
+        'options' => array(TRUE => 'YES', FALSE => 'NO')
+      ),
+      'create_date' => array('order' => 0),
+    );
+    foreach (self::fields() as $field => $label) {
+      $array[$field]['label'] = $label;
+    }
+    return $array;
+  }
+
   public function parse_csv($row, &$csv)
   {
     extract(SGS::parse_site_and_block(trim($csv[2][B] ?: $csv[2][C] ?: $csv[2][D] ?: $csv[2][E])));
@@ -426,6 +457,16 @@ class Model_SSF extends SGS_Form_ORM {
 //      'user_id'         => self::$fields['user_id'],
 //      'timestamp'       => self::$fields['timestamp'],
     );
+  }
+
+  public function set($column, $value) {
+    switch ($column) {
+      case 'is_requested':
+      case 'is_fda_approved':
+        parent::set($column, SGS::booleanify($value));
+      default:
+        parent::set($column, $value);
+    }
   }
 
   public function __get($column) {

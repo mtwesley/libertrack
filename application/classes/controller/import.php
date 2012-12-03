@@ -378,7 +378,7 @@ class Controller_Import extends Controller {
     $csv = ORM::factory('csv', $id);
     if ($csv->status == 'A') {
       Notify::msg('Sorry, import data that has already been processed and accepted cannot be edited. Please edit the form data instead.', 'warning', TRUE);
-      $this->request->redirect('import/data/'.$id.'/list');
+      $this->request->redirect('import/data/'.$id);
     }
 
     $form_type = $csv->form_type;
@@ -409,7 +409,7 @@ class Controller_Import extends Controller {
         $csv->save();
         $updated = true;
       } catch (Exception $e) {
-        Notify::msg('Sorry, update failed. Please try again.', 'error');
+        Notify::msg('Sorry, import data update failed. Please try again.', 'error');
       }
 
       if ($updated) {
@@ -860,11 +860,11 @@ class Controller_Import extends Controller {
                 $file->save();
                 Notify::msg($file->name.' successfully uploaded.', 'success', TRUE);
               } catch (ORM_Validation_Exception $e) {
-                foreach ($e->errors('') as $err) Notify::msg(SGS::errorfy($err).' ('.$file->name.')', 'error', TRUE);
+                foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error', TRUE);
               }
 
             } catch (ORM_Validation_Exception $e) {
-                foreach ($e->errors('') as $err) Notify::msg(SGS::errorfy($err).' ('.$file->name.')', 'error', TRUE);
+                foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error', TRUE);
             } catch (Exception $e) {
               try {
                 $file->delete();
