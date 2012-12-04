@@ -2,7 +2,7 @@
 
 $options = (array) $options + array(
   'header'    => TRUE,
-  'footer'    => TRUE,
+  'footer'    => FALSE,
   'break'     => TRUE,
   'styles'    => FALSE,
   'info'      => FALSE,
@@ -19,10 +19,6 @@ $options = (array) $options + array(
   * {
     font-family: "Arial";
     font-size: 10px;
-  }
-
-  @page {
-    margin: 0;
   }
 
   body, html {
@@ -56,18 +52,6 @@ $options = (array) $options + array(
     height: 32px;
   }
 
-  img.liberfor-bw {
-    height: 20px;
-  }
-
-  img.sgs-bw {
-    height: 20px;
-  }
-
-  img.fda-bw {
-    height: 20px;
-  }
-
   .invoice {
     padding: 20px 25px;
   }
@@ -80,10 +64,6 @@ $options = (array) $options + array(
 
   .invoice-header {}
 
-  .invoice-footer {
-    margin-top: 20px;
-  }
-
   .invoice-header,
   .invoice-info,
   .invoice-summary {
@@ -94,8 +74,7 @@ $options = (array) $options + array(
   .invoice-details-table,
   .invoice-signature-table,
   .invoice-info-table,
-  .invoice-header-table,
-  .invoice-footer-table {
+  .invoice-header-table {
     width: 100%;
     border-collapse: collapse;
   }
@@ -185,46 +164,13 @@ $options = (array) $options + array(
   }
 
   .invoice-info-table tr td.label {
-    width: 127px;
+    width: 102px;
     font-weight: bold;
   }
 
   .invoice-info-table tr td.from,
   .invoice-info-table tr td.to {
-    text-align: right;
-  }
-
-  .invoice-footer-table {
-    margin-top: 15px;
-  }
-
-  .invoice-footer-table tr td.date,
-  .invoice-footer-table tr td.info,
-  .invoice-footer-table tr td.page {
-    vertical-align: bottom;
-  }
-
-  .invoice-footer-table tr td.date,
-  .invoice-footer-table tr td.page {
-    width: 100px;
-  }
-
-  .invoice-footer-table tr td.date {
-    text-align: left;
-  }
-
-  .invoice-footer-table tr td.info {
-    text-align: center;
-  }
-
-  .invoice-footer-table tr td.page {
-    text-align: right;
-    position: relative;
-  }
-
-  .invoice-footer-table tr td.page .ref {
-    margin-bottom: 12px;
-    font-size: 8px;
+     text-align: right;
   }
 
   .invoice-titles {}
@@ -454,8 +400,79 @@ $options = (array) $options + array(
     </div>
   </table>
   <?php endif; ?>
-
   <?php if ($options['footer']): ?>
+  <script>
+  window.onload = function() {
+    var vars = {};
+    var x = document.location.search.substring(1).split('&');
+    for (var i in x) {
+      var z = x[i].split('=',2);
+      vars[z[0]] = unescape(z[1]);
+    }
+
+    var x = ['frompage', 'topage', 'page', 'webpage', 'section', 'subsection', 'subsubsection'];
+    for (var i in x) {
+      var y = document.getElementsByClassName(x[i]);
+      for (var j = 0; j<y.length; ++j) y[j].textContent = vars[x[i]];
+    }
+  }
+  </script>
+  <style>
+    * {
+      font-family: "Arial";
+      font-size: 12px;
+    }
+
+    img.liberfor-bw {
+      height: 20px;
+    }
+
+    img.sgs-bw {
+      height: 20px;
+    }
+
+    img.fda-bw {
+      height: 20px;
+    }
+
+    .invoice-footer {
+      margin: 0 25px;
+    }
+
+    .invoice-footer-table {
+      margin-top: 15px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .invoice-footer-table tr td.date,
+    .invoice-footer-table tr td.info,
+    .invoice-footer-table tr td.pageinfo {
+      vertical-align: bottom;
+    }
+
+    .invoice-footer-table tr td.date,
+    .invoice-footer-table tr td.pageinfo {
+      width: 100px;
+    }
+
+    .invoice-footer-table tr td.date {
+      text-align: left;
+    }
+
+    .invoice-footer-table tr td.info {
+      text-align: center;
+    }
+
+    .invoice-footer-table tr td.pageinfo {
+      text-align: right;
+      position: relative;
+    }
+
+    .invoice-footer-table tr td.pageinfo .ref {
+      margin-bottom: 12px;
+    }
+  </style>
   <div class="invoice-footer">
     <table class="invoice-footer-table">
       <tr>
@@ -464,9 +481,9 @@ $options = (array) $options + array(
           <img class="liberfor-bw" src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_liberfor_bw.jpg" /> &nbsp; is operated by &nbsp; <img class="sgs-bw" src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img class="fda-bw" src="<?php echo $options['format'] == 'pdf' ? DOCROOT : '/'; ?>images/invoice/st_fda_small.jpg" /><br />
           LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
         </td>
-        <td class="page">
+        <td class="pageinfo">
           <div class="ref"><?php echo $invoice->is_draft ? 'DRAFT' : 'Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ST-'.$invoice->reference_number; ?></div>
-          Page <?php echo $page; ?> of <?php echo $page_count; ?>
+          Page <span class="page"><?php echo $page; ?></span> of <span class="topage"><?php echo $page_count; ?></span>
         </td>
       </tr>
     </table>

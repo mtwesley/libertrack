@@ -313,17 +313,22 @@ class Controller_Invoices extends Controller {
     try {
       $snappy = new \Knp\Snappy\Pdf();
       $snappy->generateFromHtml($html, $fullname, array(
-        'disable-javascript'     => TRUE,
-        'disable-internal-links' => TRUE,
-        'minimum-font-size'      => 6,
-        'margin-bottom' => 0,
+        'margin-bottom' => 25,
         'margin-left' => 0,
         'margin-right' => 0,
         'margin-top' => 0,
-        'dpi' => 96,
+        'lowquality' => TRUE,
         'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('invoices/st')
+          ->set('invoice', $invoice)
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->set('page', $page)
+          ->set('page_count', $page_count)
+          ->render()
       ));
-      $this->response->send_file($fullname);
     } catch (Exception $e) {
       Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
       return FALSE;
