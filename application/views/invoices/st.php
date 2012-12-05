@@ -221,7 +221,7 @@ $options = (array) $options + array(
   <div class="invoice-info">
     <table class="invoice-info-table">
       <tr>
-        <td class="label">Owner:</td>
+        <td class="label">Contact:</td>
         <td><?php echo $invoice->site->operator->contact; ?></td>
         <td class="label">Reference No:</td>
         <td><?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->reference_number; ?></td>
