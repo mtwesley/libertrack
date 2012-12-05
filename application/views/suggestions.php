@@ -10,7 +10,7 @@
       <?php foreach ($suggestion as $suggest): ?>
       <li class="<?php echo $field; ?>"><?php echo $suggest; ?></li>
       <?php endforeach; ?>
-      <li id="more">More</li>
+      <!-- <li id="more">More</li> -->
     </ul>
     <div class="clear"></div>
   </div>
