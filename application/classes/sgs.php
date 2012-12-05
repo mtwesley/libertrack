@@ -736,7 +736,7 @@ class SGS {
     if (strlen($matches[2]) == 1) $matches[2] = '0'.$matches[2];
     if (strlen($matches[3]) == 2) $matches[3] = '20'.$matches[3];
 
-    if ($matches[2] > 12) return $matches[3].'-'.$matches[1].'-'.$matches[2];
+    if ($matches[2] < 12) return $matches[3].'-'.$matches[1].'-'.$matches[2];
     else return $matches[3].'-'.$matches[2].'-'.$matches[1];
   }
 

@@ -18,7 +18,7 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_list($id = NULL) {
-    if (!Request::$current->query('page')) Session::instance()->delete('pagination.file.list');
+    if (!Request::$current->query()) Session::instance()->delete('pagination.file.list');
     if ($id) {
       Session::instance()->delete('pagination.file.list');
 
@@ -169,7 +169,7 @@ class Controller_Import extends Controller {
   }
 
   private function handle_file_review($id = NULL) {
-    if (!Request::$current->query('page')) Session::instance()->delete('pagination.file.review');
+    if (!Request::$current->query()) Session::instance()->delete('pagination.file.review');
     if (!$id) $id = $this->request->param('id');
 
     $file = ORM::factory('file', $id);
@@ -475,7 +475,7 @@ class Controller_Import extends Controller {
   }
 
   private function handle_csv_list($form_type = NULL, $id = NULL) {
-    if (!Request::$current->query('page')) Session::instance()->delete('pagination.csv');
+    if (!Request::$current->query()) Session::instance()->delete('pagination.csv');
 
     $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
@@ -595,7 +595,7 @@ class Controller_Import extends Controller {
             $model = ORM::factory($form_type);
 
             foreach ($csvs as $csv) {
-              $model->download_data($csv->values, $excel, $row);
+              $model->download_data($csv->values, $csv->get_errors(), $excel, $row);
               if (strtotime($csv->values['create_date']) > strtotime($create_date)) $create_date = $csv->values['create_date'];
               $row++;
             }

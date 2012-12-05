@@ -52,7 +52,7 @@ class Controller_Invoices extends Controller {
   private function handle_invoice_list() {
     $id = $this->request->param('id');
 
-    if (!Request::$current->query('page')) Session::instance()->delete('pagination.invoice.list');
+    if (!Request::$current->query()) Session::instance()->delete('pagination.invoice.list');
     if ($id) {
       Session::instance()->delete('pagination.invoice.list');
 
@@ -329,6 +329,7 @@ class Controller_Invoices extends Controller {
           ->set('page_count', $page_count)
           ->render()
       ));
+      $this->response->send_file($fullname);
     } catch (Exception $e) {
       Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
       return FALSE;
@@ -352,7 +353,7 @@ class Controller_Invoices extends Controller {
   }
 
   public function action_create() {
-    if (!Request::$current->query('page')) Session::instance()->delete('pagination.invoice.data');
+    if (!Request::$current->query()) Session::instance()->delete('pagination.invoice.data');
     $command = $this->request->param('command');
 
     $site_ids = DB::select('id', 'name')

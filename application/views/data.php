@@ -67,7 +67,7 @@ $classes[] = 'data';
           continue 2;
       endswitch;
     ?>
-    <th><?php echo $name; ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => $field)), $name); ?></th>
     <?php endforeach; ?>
     <th class="links"></th>
   </tr>

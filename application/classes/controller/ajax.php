@@ -117,7 +117,9 @@ class Controller_Ajax extends Controller {
     $model  = ORM::factory($csv->form_type, $csv->form_data_id);
     $fields = SGS_Form_ORM::get_fields($csv->form_type) + $model->labels();
 
-    $suggestions = array_filter($model->make_suggestions($csv->values, array($field => $error)));
+    $suggestions = array_filter($model->make_suggestions($csv->values, array($field => array(
+      'error' => $error,
+    ))));
 
     $content .= View::factory('suggestions')
       ->set('suggestions', $suggestions)

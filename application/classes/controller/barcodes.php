@@ -71,7 +71,7 @@ class Controller_Barcodes extends Controller {
       }
     }
     else {
-      if (!Request::$current->query('page')) Session::instance()->delete('pagination.printjob.list');
+      if (!Request::$current->query()) Session::instance()->delete('pagination.printjob.list');
 
       $site_ids = DB::select('id', 'name')
         ->from('sites')

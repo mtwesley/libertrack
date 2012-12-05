@@ -274,7 +274,7 @@ class Model_SPECS extends SGS_Form_ORM {
 
   public function make_suggestions($values, $errors) {
     $suggestions = array();
-    foreach ($errors as $field => $error) {
+    foreach ($errors as $field => $options) {
       $suggest = NULL;
       switch ($field) {
         case 'barcode':
@@ -282,30 +282,30 @@ class Model_SPECS extends SGS_Form_ORM {
             'barcodes.type' => array('P', 'L'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', $options['min_length'], $options['limit'], $options['offset']);
           break;
         case 'specs_barcode':
           $args = array(
             'barcodes.type' => array('P', 'H'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', $options['min_length'], $options['limit'], $options['offset']);
           break;
         case 'epr_barcode':
           $args = array(
             'barcodes.type' => array('P', 'E'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode');
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', $options['min_length'], $options['limit'], $options['offset']);
           break;
         case 'operator_tin':
           $args = array(
             'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
           );
-          $suggest = SGS::suggest_operator($values[$field], $args, 'tin');
+          $suggest = SGS::suggest_operator($values[$field], $args, 'tin', $options['min_length'], $options['limit'], $options['offset']);
           break;
         case 'species_code':
-          $suggest = SGS::suggest_species($values[$field], array(), 'code');
+          $suggest = SGS::suggest_species($values[$field], array(), 'code', $options['min_length'], $options['limit'], $options['offset']);
           break;
       }
       if ($suggest) $suggestions[$field] = $suggest;

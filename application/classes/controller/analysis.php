@@ -18,7 +18,7 @@ class Controller_Analysis extends Controller {
   }
 
   private function handle_data_list($form_type, $id = NULL, $command = NULL) {
-    if (!Request::$current->query('page')) Session::instance()->delete('pagination.data');
+    if (!Request::$current->query()) Session::instance()->delete('pagination.data');
 
     $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
@@ -61,7 +61,7 @@ class Controller_Analysis extends Controller {
         if ($has_block_id) $block_id = $form->block_id->val();
         $status   = $form->status->val();
 
-        $data = ORM::factory($form_type)->order_by('create_date', 'DESC');
+        $data = ORM::factory($form_type);
 
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
         if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
@@ -83,7 +83,7 @@ class Controller_Analysis extends Controller {
           $form->status->val($block_id = $settings['block_id']);
         }
 
-        $data = ORM::factory($form_type)->order_by('timestamp', 'DESC');
+        $data = ORM::factory($form_type);
 
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
         if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
@@ -99,7 +99,9 @@ class Controller_Analysis extends Controller {
 
         $data = $data
           ->offset($pagination->offset)
-          ->limit($pagination->items_per_page)
+          ->limit($pagination->items_per_page);
+        if ($sort = $this->request->query('sort')) $data->order_by($sort);
+        $data = $data->order_by('status')
           ->find_all()
           ->as_array();
 
