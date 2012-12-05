@@ -101,6 +101,7 @@ class Model_CSV extends ORM {
           ->join($params[0])
           ->on('form_data_id', '=', $params[0].'.id')
           ->where($params[0].'.'.$params[1], '=', $params[2])
+          ->and_where('form_type', '=', $this->form_type)
           ->and_where('csv.id', '!=', $this->id)
           ->execute()
           ->get('id');

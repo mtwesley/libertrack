@@ -146,7 +146,8 @@ class Controller_Ajax extends Controller {
     $fields = SGS_Form_ORM::get_fields($csv->form_type) + $model->labels();
 
     $duplicates = array_merge(array($csv), ORM::factory('CSV')
-      ->where('id', 'IN', SGS::flattenify($csv->get_duplicates()))
+      ->where('form_type', '=', $csv->form_type)
+      ->and_where('id', 'IN', SGS::flattenify($csv->get_duplicates()))
       ->find_all()
       ->as_array());
 
