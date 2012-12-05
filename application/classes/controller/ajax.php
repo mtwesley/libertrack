@@ -23,6 +23,7 @@ class Controller_Ajax extends Controller {
       $csv->status = 'P';
 
       $csv->save();
+      $csv->process();
     } catch (Exception $e) {
       return;
     }
