@@ -329,7 +329,6 @@ class Controller_Invoices extends Controller {
           ->set('page_count', $page_count)
           ->render()
       ));
-      $this->response->send_file($fullname);
     } catch (Exception $e) {
       Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
       return FALSE;
