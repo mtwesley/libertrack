@@ -323,6 +323,15 @@ class Controller_Analysis extends Controller {
         ->find_all()
         ->as_array('id');
 
+      $report = array(
+        'errors'   => array(),
+        'warnings' => array(),
+        'passed'   => 0,
+        'failed'   => 0,
+        'ignored'  => 0,
+        'total'    => count($records)
+      );
+
       foreach ($records as $record) {
         try {
           $record->run_checks();
@@ -343,23 +352,27 @@ class Controller_Analysis extends Controller {
         } catch (Exception $e) {
           $failure++;
         }
+
+        if ($errors   = $record->get_errors())   $report['errors'][$record->id] = $errors;
+        if ($warnings = $record->get_warnings()) $report['warnings'][$record->id] = $warnings;
       }
+
+      $report['passed']  = $accepted;
+      $report['failed']  = $rejected;
+      $report['ignored'] = $pending;
 
       if ($accepted) Notify::msg($accepted.' records passed checks and queries.', 'success', TRUE);
       if ($rejected) Notify::msg($rejected.' records failed checks and queries.', 'error', TRUE);
       if ($pending)  Notify::msg($pending.' records still pending.', 'warning', TRUE);
       if ($failure)  Notify::msg($failure.' records could not be accessed.', 'error', TRUE);
 
-      $model     = ORM::factory($form_type);
-      $modelname = get_class($model);
-
-      $data   = $modelname::generate_report($records);
+      $model  = ORM::factory($form_type);
       $report = View::factory('report')
-        ->set('data', $data)
         ->set('from', $from)
         ->set('to', $to)
-        ->set('messages', $modelname::$errors)
-        ->set('fields', $modelname::$fields + $model->labels())
+        ->set('report', $report)
+        ->set('errors', $model::$errors)
+        ->set('warnings', $model::$warnings)
         ->render();
     }
 

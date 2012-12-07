@@ -397,6 +397,14 @@ class Controller_Export extends Controller {
     $this->response->body($view);
   }
 
+  public function action_blahblah() {
+    foreach (ORM::factory('CSV')
+      ->where('status', '=', 'U')
+      ->find_all() as $csv) $csv->process();
+
+    $this->response->body("DONE");
+  }
+
   public function action_index() {
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

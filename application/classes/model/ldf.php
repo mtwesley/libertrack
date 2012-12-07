@@ -4,6 +4,20 @@ class Model_LDF extends SGS_Form_ORM {
 
   const PARSE_START = 9;
 
+  protected $_table_name = 'ldf_data';
+
+  protected $_belongs_to = array(
+    'site'     => array(),
+    'operator' => array(),
+    'block'    => array(),
+    'barcode'  => array(),
+    'parent_barcode' => array(
+      'model'        => 'barcode',
+      'foreign_key'  => 'parent_barcode_id'),
+    'species'  => array(),
+    'user'     => array(),
+  );
+
   public static $type = 'LDF';
 
   public static $fields = array(
@@ -24,31 +38,35 @@ class Model_LDF extends SGS_Form_ORM {
   );
 
   public static $errors = array(
-    'all' => array(
-      'is_active_barcode'   => ':field must not be pending assignment',
-      'is_valid_barcode'    => ':field must be assigned as a felled tree',
-      'is_within_tolerance' => ':field must be within tolerance range',
-      'is_valid_match'      => ':field must match required value',
-      'is_valid_match_tdf'  => ':field must match tree data for felled tree',
-      'is_valid_match_ldf'  => ':field must match log data for original log',
-      'is_existing'         => 'Data must be available',
-      'is_existing_tdf'     => 'Tree data must be available for felled tree',
-      'is_existing_ldf'     => 'Log data must be available for original log'
-    )
+    'is_valid_barcode'        => 'New cross cut barcode assignment is valid',
+    'is_valid_parent_barcode' => 'Original log barcode assignment is valid',
+
+    'is_within_tolerance_diameter' => 'Diameter line is within tolerance',
+    'is_within_tolerance_length'   => 'Length is within tolerance',
+    'is_within_tolerance_volume'   => 'Volume is within tolerance',
+
+    'is_matching_species_class' => 'Species class matches original log data',
+
+    'is_matching_parent_operator' => 'Operator matches original log data',
+    'is_matching_parent_site'     => 'Site matches original log data',
+    'is_matching_parent_block'    => 'Block matches original log data',
+
+    'is_existing_parent' => 'Original log data exists',
   );
 
-  protected $_table_name = 'ldf_data';
+  public static $warnings = array(
+    'is_active_barcode'        => 'New cross cut barcode assignment is active',
+    'is_active_parent_barcode' => 'Original log barcode assignment is active',
 
-  protected $_belongs_to = array(
-    'site'     => array(),
-    'operator' => array(),
-    'block'    => array(),
-    'barcode'  => array(),
-    'parent_barcode' => array(
-      'model'        => 'barcode',
-      'foreign_key'  => 'parent_barcode_id'),
-    'species'  => array(),
-    'user'     => array(),
+    'is_accurate_diameter' => 'Diameter is accurate',
+    'is_accurate_length'   => 'Length is accurate',
+    'is_accurate_volume'   => 'Volume is accurate',
+
+    'is_matching_species_code' => 'Species code matches original log data',
+
+    'is_consistent_operator' => 'Operator assignments are consistent',
+    'is_consistent_site'     => 'Site assignments are consistent',
+    'is_consistent_block'    => 'Block assignments are consistent',
   );
 
   public static function generate_report($records) {
@@ -333,23 +351,30 @@ class Model_LDF extends SGS_Form_ORM {
 
     $errors = array();
     $this->unset_errors();
+    $this->unset_warnings();
 
-//    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'is_consistent_operator_barcode';
-//    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'is_consistent_operator_site';
-//    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'is_consistent_site_barcode';
-//    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'is_consistent_site_operator';
+    // warnings
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->parent_barcode->printjob->site->operator_id)) $warnings['parent_barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_consistent_operator';
 
+    if (!($this->site_id == $this->barcode->printjob->site_id)) $warnings['barcode_id'][] = 'is_consistent_site';
+    if (!($this->site_id == $this->parent_barcode->printjob->site_id)) $warnings['parent_barcode_id'][] = 'is_consistent_site';
+
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
+
+    // errors
     switch ($this->barcode->type) {
       case 'L': break;
-      case 'P': $errors['barcode_id'][] = 'is_active_barcode'; break;
-      default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
+      case 'P': $warnings['barcode_id'][] = 'is_active_barcode'; break;
+      default:  $errors['barcode_id'][]   = 'is_valid_barcode'; break;
     }
 
     switch ($this->parent_barcode->type) {
       case 'F': $parent_form_type = 'TDF'; break;
       case 'L': $parent_form_type = 'LDF'; break;
-      case 'P': $errors['parent_barcode_id'][] = 'is_active_barcode'; break;
-      default:  $errors['parent_barcode_id'][] = 'is_valid_barcode'; break;
+      case 'P': $warnings['parent_barcode_id'][] = 'is_active_parent_barcode'; break;
+      default:  $errors['parent_barcode_id'][]   = 'is_valid_parent_barcode'; break;
     }
 
     if ($parent_form_type) {
@@ -358,8 +383,14 @@ class Model_LDF extends SGS_Form_ORM {
         ->find();
 
       if ($parent->loaded()) {
-        if (!($this->species->class == $parent->species->class)) $errors['species_id'][] = 'is_valid_match_'.strtolower($parent_form_type);
-      } else $errors['barcode'][] = 'is_existing_'.strtolower($parent_form_type);
+        if (!($this->species->class == $parent->species->class)) $errors['species_id'][]   = 'is_matching_species_class';
+        if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][] = 'is_matching_species_code';
+
+        if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
+        if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
+        if (!($this->block_id    == $parent->block_id))    $errors['block_id'][]    = 'is_matching_block';
+      }
+      else $errors['barcode_id'][] = 'is_existing_parent';
     }
 
     $length   = 0;
@@ -376,14 +407,18 @@ class Model_LDF extends SGS_Form_ORM {
       $diameter = $diameter / count($children);
       $volume   = $volume / count($children);
 
-      if (!Valid::meets_tolerance($this->length, $length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_within_tolerance';
+      if (!Valid::meets_tolerance($this->length, $length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_within_tolerance_length';
+      if (!Valid::meets_tolerance($this->volume, $volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume'][] = 'is_within_tolerance_volume';
       if (!Valid::meets_tolerance((($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4), $diameter, SGS::LDF_DIAMETER_TOLERANCE)) {
-        $errors['top_min'][] = 'is_within_tolerance';
-        $errors['top_max'][] = 'is_within_tolerance';
-        $errors['bottom_min'][] = 'is_within_tolerance';
-        $errors['bottom_max'][] = 'is_within_tolerance';
+        $errors['top_min'][] = 'is_within_tolerance_diameter';
+        $errors['top_max'][] = 'is_within_tolerance_diameter';
+        $errors['bottom_min'][] = 'is_within_tolerance_diameter';
+        $errors['bottom_max'][] = 'is_within_tolerance_diameter';
       }
-      if (!Valid::meets_tolerance($this->volume, $volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume'][] = 'is_within_tolerance';
+    }
+
+    if ($warnings) foreach ($warnings as $field => $array) {
+      foreach (array_filter(array_unique($array)) as $warning) $this->set_warning($field, $warning);
     }
 
     if ($errors) {
@@ -391,7 +426,8 @@ class Model_LDF extends SGS_Form_ORM {
       foreach ($errors as $field => $array) {
         foreach (array_filter(array_unique($array)) as $error) $this->set_error($field, $error);
       }
-    } else $this->status = 'A';
+    }
+    else $this->status = 'A';
 
     $this->save();
   }

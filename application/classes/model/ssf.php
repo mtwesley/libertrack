@@ -4,6 +4,17 @@ class Model_SSF extends SGS_Form_ORM {
 
   const PARSE_START = 13;
 
+  protected $_table_name = 'ssf_data';
+
+  protected $_belongs_to = array(
+    'site'     => array(),
+    'operator' => array(),
+    'block'    => array(),
+    'barcode'  => array(),
+    'species'  => array(),
+    'user'     => array(),
+  );
+
   public static $type = 'SSF';
 
   public static $fields = array(
@@ -24,21 +35,13 @@ class Model_SSF extends SGS_Form_ORM {
   );
 
   public static $errors = array(
-    'all' => array(
-      'is_active_barcode' => ':field must not be pending assignment',
-      'is_valid_barcode'  => ':field must be assigned as a standing tree',
-    )
+    'is_valid_barcode' => 'Tree barcode assignment is valid',
   );
 
-  protected $_table_name = 'ssf_data';
-
-  protected $_belongs_to = array(
-    'site'     => array(),
-    'operator' => array(),
-    'block'    => array(),
-    'barcode'  => array(),
-    'species'  => array(),
-    'user'     => array(),
+  public static $warnings = array(
+    'is_consistent_operator' => 'Operator assignments are consistent',
+    'is_consistent_site'     => 'Site assignments are consistent',
+    'is_consistent_block'    => 'Block assignments are consistent',
   );
 
   public static function generate_report($records) {
@@ -363,18 +366,26 @@ class Model_SSF extends SGS_Form_ORM {
 
     $errors = array();
     $this->unset_errors();
+    $this->unset_warnings();
 
-//    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'is_consistent_operator_barcode';
-//    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'is_consistent_operator_site';
-//    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'is_consistent_site_barcode';
-//    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'is_consistent_site_operator';
-//    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_barcode';
-//    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_site';
+    // warnings
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_consistent_operator';
 
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
+
+    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id'][] = 'is_consistent_block';
+    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id'][] = 'is_consistent_block';
+
+    // errors
     switch ($this->barcode->type) {
       case 'T': break;
-      case 'P': $errors['barcode'][] = 'is_active_barcode'; break;
-      default:  $errors['barcode'][] = 'is_valid_barcode'; break;
+      case 'P': $warnings['barcode_id'][] = 'is_active_barcode'; break;
+      default:  $errors['barcode_id'][]   = 'is_valid_barcode'; break;
+    }
+
+    if ($warnings) foreach ($warnings as $field => $array) {
+      foreach (array_filter(array_unique($array)) as $warning) $this->set_warning($field, $warning);
     }
 
     if ($errors) {
@@ -382,7 +393,8 @@ class Model_SSF extends SGS_Form_ORM {
       foreach ($errors as $field => $array) {
         foreach (array_filter(array_unique($array)) as $error) $this->set_error($field, $error);
       }
-    } else $this->status = 'A';
+    }
+    else $this->status = 'A';
 
     $this->save();
   }

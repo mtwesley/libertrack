@@ -4,6 +4,23 @@ class Model_TDF extends SGS_Form_ORM {
 
   const PARSE_START = 9;
 
+  protected $_table_name = 'tdf_data';
+
+  protected $_belongs_to = array(
+    'site'     => array(),
+    'operator' => array(),
+    'block'    => array(),
+    'barcode'  => array(),
+    'tree_barcode'  => array(
+      'model'       => 'barcode',
+      'foreign_key' => 'tree_barcode_id'),
+    'stump_barcode' => array(
+      'model'       => 'barcode',
+      'foreign_key' => 'stump_barcode_id'),
+    'species'  => array(),
+    'user'     => array(),
+  );
+
   public static $type = 'TDF';
 
   public static $fields = array(
@@ -27,32 +44,37 @@ class Model_TDF extends SGS_Form_ORM {
   );
 
   public static $errors = array(
-    'all' => array(
-      'is_active_barcode'   => ':field must not be pending assignment',
-      'is_valid_barcode'    => ':field must be assigned as a felled tree',
-      'is_within_tolerance' => ':field must be within tolerance range',
-      'is_valid_match'      => ':field must match required value',
-      'is_valid_match_ssf'  => ':field must match stock survey data for standing tree',
-      'is_existing'         => 'Data must be available',
-      'is_existing_ssf'     => 'Stock survey data must be available for standing tree'
-    )
+    'is_valid_barcode'       => 'Tree barcode assignment is valid',
+    'is_valid_tree_barcode'  => 'Felled tree barcode assignment is valid',
+    'is_valid_stump_barcode' => 'Stump barcode assignment is valid',
+
+    'is_within_tolerance_survey_line' => 'Survey line is within tolerance',
+    'is_within_tolerance_diameter'    => 'Diameter line is within tolerance',
+    'is_within_tolerance_length'      => 'Length is within tolerance',
+
+    'is_matching_species_class' => 'Species class matches standing tree data',
+
+    'is_matching_parent_operator' => 'Operator matches standing tree data',
+    'is_matching_parent_site'     => 'Site matches standing tree data',
+    'is_matching_parent_block'    => 'Block matches standing tree data',
+
+    'is_existing_parent' => 'Standing tree data exists',
   );
 
-  protected $_table_name = 'tdf_data';
+  public static $warnings = array(
+    'is_active_barcode'       => 'Tree barcode assignment is active',
+    'is_active_tree_barcode'  => 'Felled tree barcode assignment is active',
+    'is_active_stump_barcode' => 'Stump barcode assignment is active',
 
-  protected $_belongs_to = array(
-    'site'     => array(),
-    'operator' => array(),
-    'block'    => array(),
-    'barcode'  => array(),
-    'tree_barcode'  => array(
-      'model'       => 'barcode',
-      'foreign_key' => 'tree_barcode_id'),
-    'stump_barcode' => array(
-      'model'       => 'barcode',
-      'foreign_key' => 'stump_barcode_id'),
-    'species'  => array(),
-    'user'     => array(),
+    'is_accurate_survey_line' => 'Survey line is accurate',
+    'is_accurate_diameter'    => 'Diameter is accurate',
+    'is_accurate_length'      => 'Length is accurate',
+
+    'is_matching_species_code' => 'Species code matches standing tree data',
+
+    'is_consistent_operator' => 'Operator assignments are consistent',
+    'is_consistent_site'     => 'Site assignments are consistent',
+    'is_consistent_block'    => 'Block assignments are consistent',
   );
 
   public static function generate_report($records) {
@@ -376,47 +398,67 @@ class Model_TDF extends SGS_Form_ORM {
 
     $errors = array();
     $this->unset_errors();
+    $this->unset_warnings();
 
-//    if (!($this->operator == $this->barcode->printjob->site->operator)) $errors['operator'][] = 'is_consistent_operator_barcode';
-//    if (!($this->operator == $this->site->operator)) $errors['operator'][] = 'is_consistent_operator_site';
-//    if (!($this->site == $this->barcode->printjob->site)) $errors['site'][] = 'is_consistent_site_barcode';
-//    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $errors['site'][] = 'is_consistent_site_operator';
-//    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_barcode';
-//    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $errors['block'][] = 'is_consistent_block_site';
+    // warnings
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->tree_barcode->printjob->site->operator_id)) $warnings['tree_barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->stump_barcode->printjob->site->operator_id)) $warnings['stump_barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_consistent_operator';
 
+    if (!($this->site_id == $this->barcode->printjob->site_id)) $warnings['barcode_id'][] = 'is_consistent_site';
+    if (!($this->site_id == $this->tree_barcode->printjob->site_id)) $warnings['tree_barcode_id'][] = 'is_consistent_site';
+    if (!($this->site_id == $this->stump_barcode->printjob->site_id)) $warnings['stump_barcode_id'][] = 'is_consistent_site';
+
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
+
+    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id'][] = 'is_consistent_block';
+    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id'][] = 'is_consistent_block';
+
+    // errors
     switch ($this->barcode->type) {
       case 'F': break;
-      case 'P': $errors['barcode_id'][] = 'is_active_barcode'; break;
+      case 'P': $warnings['barcode_id'][] = 'is_active_barcode'; break;
       default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
     }
 
     switch ($this->tree_barcode->type) {
       case 'T': break;
-      case 'P': $errors['tree_barcode_id'][] = 'is_active_barcode'; break;
-      default:  $errors['tree_barcode_id'][] = 'is_valid_barcode'; break;
+      case 'P': $warnings['tree_barcode_id'][] = 'is_active_tree_barcode'; break;
+      default:  $errors['tree_barcode_id'][] = 'is_valid_tree_barcode'; break;
     }
 
     switch ($this->stump_barcode->type) {
       case 'S': break;
-      case 'P': $errors['stump_barcode_id'][] = 'is_active_barcode'; break;
-      default:  $errors['stump_barcode_id'][] = 'is_valid_barcode'; break;
+      case 'P': $warnings['stump_barcode_id'][] = 'is_active_stump_barcode'; break;
+      default:  $errors['stump_barcode_id'][] = 'is_valid_stump_barcode'; break;
     }
 
-    $ssf = ORM::factory('SSF')
+    $parent = ORM::factory('SSF')
       ->where('barcode_id', '=', $this->tree_barcode->id)
       ->find();
 
-    if ($ssf->loaded()) {
-      if (!Valid::meets_tolerance($this->survey_line, $ssf->survey_line, SGS::TDF_SURVEY_LINE_TOLERANCE)) $errors['survey_line'][] = 'is_within_tolerance';
-      if (!Valid::meets_tolerance($this->length, $ssf->height, SGS::TDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_within_tolerance';
-      if (!Valid::meets_tolerance((($this->bottom_min + $this->bottom_max) / 2), $ssf->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
-        $errors['bottom_min'][] = 'is_within_tolerance';
-        $errors['bottom_max'][] = 'is_within_tolerance';
+    if ($parent->loaded()) {
+      if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_TOLERANCE)) $errors['survey_line'][] = 'is_within_tolerance_survey_line';
+      if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_within_tolerance_length';
+      if (!Valid::meets_tolerance((($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
+        $errors['bottom_min'][] = 'is_within_tolerance_diameter';
+        $errors['bottom_max'][] = 'is_within_tolerance_diameter';
       }
-      if (!($this->species->class == $ssf->species->class)) $errors['species_id'][] = 'is_valid_match_ssf';
-//      if (!($this->cell_number == $ssf->cell_number)) $errors['cell_number'][] = 'is_valid_match_ssf';
-//      if (!($this->survey_line == $ssf->survey_line)) $errors['survey_line'][] = 'is_valid_match_ssf';
-    } else $errors['barcode_id'][] = 'is_existing_ssf';
+
+      if (!($this->species->class == $parent->species->class)) $errors['species_id'][]    = 'is_matching_species_class';
+      if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][]  = 'is_matching_species_code';
+      if (!($this->survey_line    == $parent->survey_line))    $warnings['survey_line'][] = 'is_matching_survey_line';
+
+      if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
+      if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
+      if (!($this->block_id    == $parent->block_id))    $errors['block_id'][]    = 'is_matching_block';
+    }
+    else $errors['tree_barcode_id'][] = 'is_existing_parent';
+
+    if ($warnings) foreach ($warnings as $field => $array) {
+      foreach (array_filter(array_unique($array)) as $warning) $this->set_warning($field, $warning);
+    }
 
     if ($errors) {
       $this->status = 'R';

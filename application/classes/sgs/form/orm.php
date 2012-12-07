@@ -77,7 +77,7 @@ class SGS_Form_ORM extends ORM {
       ->and_where('form_data_id', '=', $this->id)
       ->and_where('type', '=', 'W');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
-    foreach ($query->execute() as $result) $warnings[$result['field']][] = $result['warning'];
+    foreach ($query->execute() as $result) $warnings[$result['field']][] = $result['error'];
     return (array) $warnings;
   }
 
@@ -91,7 +91,7 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function set_warning($field, $warning) {
-    DB::insert('errors', array('form_type', 'form_data_id', 'field', 'warning', 'type'))
+    DB::insert('errors', array('form_type', 'form_data_id', 'field', 'error', 'type'))
       ->values(array(static::$type, $this->id, $field, $warning, 'W'))
       ->execute();
   }
