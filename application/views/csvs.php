@@ -127,7 +127,7 @@ if ($options['header'])  $classes[] = 'has-header';
       <?php endif; ?>
 
       <?php if ($errors): ?>
-      <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Errors</span>
+      <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
       <?php endif; ?>
 
       <?php endif; ?>
@@ -135,7 +135,7 @@ if ($options['header'])  $classes[] = 'has-header';
   </tr>
   <?php endif; // rows ?>
   <?php if ($options['details']): ?>
-  <?php if ($csv->get_errors()): ?>
+  <?php if ($errors = $csv->get_errors()): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td class="loading" colspan="<?php echo (count($fields) + $additional_columns - $header_columns); ?>"></td>
   </tr>

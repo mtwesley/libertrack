@@ -81,7 +81,8 @@ class Model_CSV extends ORM {
       } catch (ORM_Validation_Exception $e) {
         $errors = $e->errors();
         try {
-          $model->delete();
+          // $model->delete();
+          // can not actually delete already validated data for consistency
         } catch (Exception $e) {
           // do nothing
         }
@@ -127,6 +128,30 @@ class Model_CSV extends ORM {
     else $this->status = 'A';
 
     $this->save();
+  }
+
+  public function resolve($id) {
+    $new = ORM::factory('CSV', $id);
+
+    $duplicates = ORM::factory('CSV')
+      ->where('id', 'IN', array_diff(array_merge(array($csv->id), SGS::flattenify($csv->get_duplicates())), array($id)))
+      ->find_all()
+      ->as_array();
+
+    foreach ($duplicates as $duplicate) {
+      if ($form_data_id = $duplicate->form_data_id) {
+        $data = ORM::factory($duplicate->form_type, $duplicate->form_data_id);
+
+        if ($data->loaded()) $data->parse_data($new->values);
+        $duplicate->form_data_id = NULL;
+        $new->form_data_id = $form_data_id;
+      }
+
+      $duplicate->status = 'D';
+      $duplicate->save();
+    }
+
+    $new->process();
   }
 
   public function get_errors($args = array()) {

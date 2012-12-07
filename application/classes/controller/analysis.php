@@ -323,15 +323,6 @@ class Controller_Analysis extends Controller {
         ->find_all()
         ->as_array('id');
 
-      $report = array(
-        'errors'   => array(),
-        'warnings' => array(),
-        'passed'   => 0,
-        'failed'   => 0,
-        'ignored'  => 0,
-        'total'    => count($records)
-      );
-
       foreach ($records as $record) {
         try {
           $record->run_checks();
@@ -352,14 +343,26 @@ class Controller_Analysis extends Controller {
         } catch (Exception $e) {
           $failure++;
         }
-
-        if ($errors   = $record->get_errors())   $report['errors'][$record->id] = $errors;
-        if ($warnings = $record->get_warnings()) $report['warnings'][$record->id] = $warnings;
       }
 
-      $report['passed']  = $accepted;
-      $report['failed']  = $rejected;
-      $report['ignored'] = $pending;
+      $report = array(
+        'errors'   => array(),
+        'warnings' => array(),
+        'passed'   => $accepted,
+        'failed'   => $rejected,
+        'ignored'  => $pending,
+        'total'    => count($records)
+      );
+
+      if ($records) foreach (DB::select('form_data_id', 'field', 'error', 'type')
+        ->from('errors')
+        ->where('form_type', '=', $form_type)
+        ->and_where('form_data_id', 'IN', (array) array_keys($records))
+        ->execute()
+        ->as_array() as $result) switch ($result['type']) {
+            case 'W': $report['warnings'][$result['error']][] = $result['form_data_id']; break;
+            case 'E': $report['errors'][$result['error']][]   = $result['form_data_id']; break;
+      }
 
       if ($accepted) Notify::msg($accepted.' records passed checks and queries.', 'success', TRUE);
       if ($rejected) Notify::msg($rejected.' records failed checks and queries.', 'error', TRUE);
@@ -370,8 +373,9 @@ class Controller_Analysis extends Controller {
       $report = View::factory('report')
         ->set('from', $from)
         ->set('to', $to)
+        ->set('form_type', $form_type)
         ->set('report', $report)
-        ->set('errors', $model::$errors)
+        ->set('checks', $model::$checks)
         ->set('warnings', $model::$warnings)
         ->render();
     }

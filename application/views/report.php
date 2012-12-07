@@ -2,26 +2,42 @@
 
 $classes[] = 'data';
 
-die(Debug::vars($report));
-
 ?>
 <table class="<?php echo SGS::render_classes($classes); ?> report-summary">
   <tr class="head">
-    <th>Checks and Queries</th>
-    <th>Passed</th>
-    <th>Failed</th>
+    <th class="type"></th>
+    <th class="status"></th>
+    <th></th>
+    <th>Total Checked</th>
+    <th>Total Passed</th>
+    <th>Total Warnings</th>
+    <th>Total Failed</th>
+    <th>Pass Rate</th>
   </tr>
-  <?php foreach ($data['errors'] as $error => $array): ?>
-  <?php foreach ($array as $field => $records): ?>
+  <?php foreach ($checks as $check => $description): ?>
   <?php
-    $failed = count($records);
-    $passed = $data['total'] - $failed;
+    $total  = $report['total'];
+    $passed = $total - count($report['errors'][$check]);
+    $failed = $total - $passed;
+
+    $percentage = $total ? floor($passed * 100 / $total) : 100;
+    $warnings   = count($report['warnings'][$check]);
   ?>
   <tr>
-    <td><?php echo SGS::decode_error($field, $error, array(':field' => $fields[$field]), $messages); ?></td>
-    <td><span class="accepted"><?php echo $passed; ?> Passed (<?php echo $data['total'] ? floor($passed * 100 / $data['total']) : 0; ?>%)</span></td>
-    <td><span class="rejected"><?php echo $failed; ?> Failed (<?php echo $data['total'] ? floor($failed * 100 / $data['total']) : 0; ?>%)</span></td>
+    <td class="type"><span class="data-type"><?php print $form_type; ?></span></td>
+    <td class="status">
+      <?php
+        if ($failed) print HTML::image('images/cross.png', array('class' => 'status'));
+        else if ($warnings) print HTML::image('images/asterisk_yellow.png', array('class' => 'status'));
+        else print HTML::image('images/check.png', array('class' => 'status'));
+      ?>
+    </td>
+    <td><?php print $description; ?></td>
+    <td><?php print $total; ?></td>
+    <td><span class="accepted"><?php print $passed ?></span></td>
+    <td><span class="pending"><?php print $warnings; ?></span></td>
+    <td><span class="rejected"><?php print $failed; ?></span></td>
+    <td><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
   </tr>
-  <?php endforeach; ?>
   <?php endforeach; ?>
 </table>

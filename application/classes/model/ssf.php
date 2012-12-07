@@ -34,41 +34,15 @@ class Model_SSF extends SGS_Form_ORM {
     'fda_remarks'     => 'FDA Remarks',
   );
 
-  public static $errors = array(
+  public static $checks = array(
     'is_valid_barcode' => 'Tree barcode assignment is valid',
   );
 
   public static $warnings = array(
-    'is_consistent_operator' => 'Operator assignments are consistent',
-    'is_consistent_site'     => 'Site assignments are consistent',
-    'is_consistent_block'    => 'Block assignments are consistent',
+    'is_matching_operator' => 'Operator assignments are inconsistent',
+    'is_matching_site'     => 'Site assignments are inconsistent',
+    'is_matching_block'    => 'Block assignments are inconsistent',
   );
-
-  public static function generate_report($records) {
-    $total = count($records);
-
-    $errors   = array();
-    $_records = array();
-    if ($records) foreach (DB::select('form_data_id', 'field', 'error')
-      ->from('errors')
-      ->where('form_type', '=', self::$type)
-      ->and_where('form_data_id', 'IN', (array) array_keys($records))
-      ->execute()
-      ->as_array() as $result) {
-        $_records[$result['form_data_id']][$result['field']][] = $result['error'];
-        $errors[$result['error']][$result['field']][$result['form_data_id']] = $records[$result['form_data_id']];
-    }
-
-    $fail = count($_records);
-
-    return array(
-      'total'   => $total,
-      'passed'  => $total - $fail,
-      'failed'  => $fail,
-      'records' => $_records,
-      'errors'  => $errors
-    );
-  }
 
   public static function fields()
   {
@@ -369,18 +343,18 @@ class Model_SSF extends SGS_Form_ORM {
     $this->unset_warnings();
 
     // warnings
-    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
-    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_matching_operator';
+    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_matching_operator';
 
-    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_matching_site';
 
-    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id'][] = 'is_consistent_block';
-    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id'][] = 'is_consistent_block';
+    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id'][] = 'is_matching_block';
+    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id'][] = 'is_matching_block';
 
     // errors
     switch ($this->barcode->type) {
       case 'T': break;
-      case 'P': $warnings['barcode_id'][] = 'is_active_barcode'; break;
+      case 'P': $warnings['barcode_id'][] = 'is_valid_barcode'; break;
       default:  $errors['barcode_id'][]   = 'is_valid_barcode'; break;
     }
 

@@ -184,25 +184,7 @@ class Controller_Ajax extends Controller {
     $new_id = $vars[3];
 
     $csv = ORM::factory('CSV', $id);
-
-    $duplicates = ORM::factory('CSV')
-      ->where('id', 'IN', array_diff(array_merge(array($csv->id), SGS::flattenify($csv->get_duplicates())), array($new_id)))
-      ->find_all()
-      ->as_array();
-
-    foreach ($duplicates as $duplicate) {
-      if ($duplicate->form_data_id) {
-        $data = ORM::factory($duplicate->form_type, $duplicate->form_data_id);
-        if ($data->loaded()) $data->delete();
-        $duplicate->form_data_id = NULL;
-      }
-
-      $duplicate->status = 'D';
-      $duplicate->save();
-    }
-
-    $new = ORM::factory('CSV', $new_id);
-    $new->process();
+    $csv->resolve($new_id);
   }
 
   public function action_blockopts() {

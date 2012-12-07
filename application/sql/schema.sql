@@ -104,7 +104,7 @@ create table roles_users (
   user_id d_int not null,
   role_id d_int not null,
 
-  constraint roles_users_pkey primary key (id),
+  -- constraint roles_users_pkey primary key (id),
   constraint roles_users_user_id_fkey foreign key (user_id) references users (id) on update cascade,
   constraint roles_users_role_id_fkey foreign key (role_id) references roles (id) on update cascade on delete cascade
 );
@@ -117,7 +117,7 @@ create table user_tokens (
   created d_int not null,
   expires d_int not null,
 
-  constraint user_tokens_pkey primary key (id),
+  -- constraint user_tokens_pkey primary key (id),
   constraint user_tokens_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
@@ -239,7 +239,6 @@ create table barcodes (
   parent_id d_id default null,
   printjob_id d_id not null,
   is_locked d_bool default false not null,
-  coc_status d_coc_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -255,11 +254,23 @@ create table barcode_hops_cached (
   parent_id d_id not null,
   hops d_measurement_int not null,
 
-  constraint barcode_hops_cached_pkey primary key (id),
+  -- constraint barcode_hops_cached_pkey primary key (id),
   constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
   constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
 
   constraint barcode_hops_cached_unique unique(barcode_id,parent_id)
+);
+
+create table barcode_coc_status (
+  id bigserial not null,
+  barcode_id d_id not null,
+  status d_coc_status default 'P' not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  -- constraint barcode_coc_status_pkey primary key (id),
+  constraint barcode_coc_status_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
+
+  constraint barcode_coc_status_unique unique(barcode_id,status)
 );
 
 create table invoices (
@@ -287,7 +298,7 @@ create table invoice_data (
   form_data_id d_id not null,
   invoice_id d_id,
 
-  constraint invoice_data_pkey primary key (id),
+  -- constraint invoice_data_pkey primary key (id),
   constraint invoice_data_invoice_id foreign key (invoice_id) references invoices (id) on update cascade on delete cascade,
 
   constraint invoice_data_unique unique(form_type,form_data_id,invoice_id)
@@ -319,11 +330,11 @@ create table csv_errors (
   id bigserial not null,
   csv_id d_id not null,
   field d_text_short not null,
-  error d_text_short not null,
+  error d_text_short,
   params d_text_long,
   is_ignored d_bool default false not null,
 
-  constraint csv_errors_pkey primary key (id),
+  -- constraint csv_errors_pkey primary key (id),
   constraint csv_errors_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
 
   constraint csv_errors_unique unique(csv_id,field,error)
@@ -335,7 +346,7 @@ create table csv_duplicates (
   duplicate_csv_id d_id not null,
   field d_text_short,
 
-  constraint csv_duplicates_pkey primary key (id),
+  -- constraint csv_duplicates_pkey primary key (id),
   constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
   constraint csv_duplicates_duplicate_csv_id_fkey foreign key (duplicate_csv_id) references csv (id) on update cascade on delete cascade,
 
@@ -533,13 +544,13 @@ create table errors (
   id bigserial not null,
   form_type d_form_type not null,
   form_data_id d_id not null,
-  type d_error_type default 'E' not null,
+  error d_text_short,
   field d_text_short not null,
-  error d_text_short not null,
   params d_text_long,
+  type d_error_type default 'E' not null,
   is_ignored d_bool default false not null,
 
-  constraint errors_pkey primary key (id),
+  -- constraint errors_pkey primary key (id),
 
   constraint errors_unique unique(form_type,form_data_id,field,error)
 );
@@ -566,7 +577,7 @@ create table tolerances (
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint tolerances_pkey primary key (id),
+  -- constraint tolerances_pkey primary key (id),
   constraint revisions_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
   constraint tolerances_unique unique(form_type,form_fields)
@@ -603,9 +614,10 @@ create index barcodes_printjob_id on barcodes (id,printjob_id);
 create index barcodes_parent_id on barcodes (id,parent_id);
 create index barcodes_type on barcodes (id,type);
 create index barcodes_is_locked on barcodes (id,is_locked);
-create index barcodes_coc_status on barcodes (id,coc_status);
 
 create index barcode_hops_cached_parent_id on barcode_hops_cached (barcode_id,parent_id);
+
+create index barcode_coc_status_barcode_id_status on barcode_coc_status (barcode_id,status);
 
 create index invoices_site_id on invoices (id,site_id);
 create index invoices_reference_number on invoices (id,reference_number);
