@@ -37,7 +37,7 @@ class Model_LDF extends SGS_Form_ORM {
     'comment'        => 'Comment',
   );
 
-  public static $errors = array(
+  public static $checks = array(
     'is_valid_barcode'        => 'New cross cut barcode assignment is valid',
     'is_valid_parent_barcode' => 'Original log barcode assignment is valid',
 
@@ -68,33 +68,6 @@ class Model_LDF extends SGS_Form_ORM {
     'is_consistent_site'     => 'Site assignments are consistent',
     'is_consistent_block'    => 'Block assignments are consistent',
   );
-
-  public static function generate_report($records) {
-    $total = count($records);
-
-    $errors   = array();
-    $_records = array();
-
-    if ($records) foreach (DB::select('form_data_id', 'field', 'error')
-      ->from('errors')
-      ->where('form_type', '=', self::$type)
-      ->and_where('form_data_id', 'IN', (array) array_keys($records))
-      ->execute()
-      ->as_array() as $result) {
-        $_records[$result['form_data_id']][$result['field']][] = $result['error'];
-        $errors[$result['error']][$result['field']][$result['form_data_id']] = $result['form_data_id'];
-    }
-
-    $fail = count($_records);
-
-    return array(
-      'total'   => $total,
-      'passed'  => $total - $fail,
-      'failed'  => $fail,
-      'records' => $_records,
-      'errors'  => $errors
-    );
-  }
 
   protected function _initialize() {
     parent::_initialize();
@@ -347,8 +320,6 @@ class Model_LDF extends SGS_Form_ORM {
   }
 
   public function run_checks() {
-    if ($this->status == 'A') return;
-
     $errors = array();
     $this->unset_errors();
     $this->unset_warnings();

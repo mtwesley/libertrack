@@ -1,7 +1,7 @@
 
 -- reduce junk from database, mainly unncecessary indexes
 
-drop trigger t_barcode_locks on ldf_data;
+drop trigger t_barcodes_locks on ldf_data;
 
 alter table roles_users drop constraint roles_users_pkey cascade;
 alter table user_tokens drop constraint user_tokens_pkey cascade;

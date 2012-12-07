@@ -26,7 +26,7 @@ class Formo_Core_Driver_Form extends Formo_Driver {
 		// If it's not already defined, define the field's action
 		( ! $this->_view->attr('action') AND $this->_view->attr('action', ''));
 	}
-	
+
 	public function val($value = NULL)
 	{
 		$values = array();
@@ -34,7 +34,7 @@ class Formo_Core_Driver_Form extends Formo_Driver {
 		{
 			$values[$field->alias()] = $field->val();
 		}
-		
+
 		return $values;
 	}
 

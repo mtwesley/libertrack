@@ -336,8 +336,6 @@ class Model_SSF extends SGS_Form_ORM {
   }
 
   public function run_checks() {
-    if ($this->status == 'A') return;
-
     $errors = array();
     $this->unset_errors();
     $this->unset_warnings();

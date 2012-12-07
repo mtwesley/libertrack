@@ -451,10 +451,12 @@ class Controller_Invoices extends Controller {
             elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
             else Notify::msg('No records found');
 
+            $site  = ORM::factory('site', $site_id);
             $table = View::factory('data')
               ->set('classes', array('has-pagination'))
               ->set('form_type', $form_type)
               ->set('data', $data)
+              ->set('site', $site)
               ->render();
             break;
 

@@ -311,9 +311,9 @@ class SGS {
   );
 
   public static $data_status = array(
-    'P' => 'Pending',
     'A' => 'Passed',
     'R' => 'Failed',
+    'P' => 'Unchecked',
 //    'D' => 'Deleted',
   );
 

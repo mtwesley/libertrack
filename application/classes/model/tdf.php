@@ -77,33 +77,6 @@ class Model_TDF extends SGS_Form_ORM {
     'is_matching_block'    => 'Block assignments are inconsistent',
   );
 
-  public static function generate_report($records) {
-    $total = count($records);
-
-    $errors   = array();
-    $_records = array();
-
-    if ($records) foreach (DB::select('form_data_id', 'field', 'error')
-      ->from('errors')
-      ->where('form_type', '=', self::$type)
-      ->and_where('form_data_id', 'IN', (array) array_keys($records))
-      ->execute()
-      ->as_array() as $result) {
-        $_records[$result['form_data_id']][$result['field']][] = $result['error'];
-        $errors[$result['error']][$result['field']][$result['form_data_id']] = $result['form_data_id'];
-    }
-
-    $fail = count($_records);
-
-    return array(
-      'total'   => $total,
-      'passed'  => $total - $fail,
-      'failed'  => $fail,
-      'records' => $_records,
-      'errors'  => $errors
-    );
-  }
-
   public static function fields()
   {
     return (array) self::$fields;
@@ -394,8 +367,6 @@ class Model_TDF extends SGS_Form_ORM {
   }
 
   public function run_checks() {
-    if ($this->status == 'A') return;
-
     $errors = array();
     $this->unset_errors();
     $this->unset_warnings();

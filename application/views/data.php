@@ -82,7 +82,7 @@ $classes[] = 'data';
     <td class="status">
       <?php
         switch ($record->status):
-          case 'P': echo HTML::image('images/bullet_yellow.png', array('class' => 'status pending', 'title' => 'Pending')); break;
+          case 'P': echo HTML::image('images/bullet_yellow.png', array('class' => 'status pending', 'title' => 'Unchecked')); break;
           case 'A': echo HTML::image('images/bullet_green.png', array('class' => 'status accepted', 'title' => 'Accepted')); break;
           case 'R': echo HTML::image('images/bullet_red.png', array('class' => 'status rejected', 'title' => 'Rejected')); break;
         endswitch;

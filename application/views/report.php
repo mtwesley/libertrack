@@ -8,6 +8,7 @@ $classes[] = 'data';
     <th class="type"></th>
     <th class="status"></th>
     <th></th>
+    <th>Total Records</th>
     <th>Total Checked</th>
     <th>Total Passed</th>
     <th>Total Warnings</th>
@@ -16,9 +17,10 @@ $classes[] = 'data';
   </tr>
   <?php foreach ($checks as $check => $description): ?>
   <?php
-    $total  = $report['total'];
-    $passed = $total - count($report['errors'][$check]);
-    $failed = $total - $passed;
+    $total   = $report['total'];
+    $passed  = $total - count($report['errors'][$check]);
+    $failed  = $total - $passed;
+    $checked = $total - $report['unchecked'];
 
     $percentage = $total ? floor($passed * 100 / $total) : 100;
     $warnings   = count($report['warnings'][$check]);
@@ -34,6 +36,7 @@ $classes[] = 'data';
     </td>
     <td><?php print $description; ?></td>
     <td><?php print $total; ?></td>
+    <td><?php print $checked; ?></td>
     <td><span class="accepted"><?php print $passed ?></span></td>
     <td><span class="pending"><?php print $warnings; ?></span></td>
     <td><span class="rejected"><?php print $failed; ?></span></td>

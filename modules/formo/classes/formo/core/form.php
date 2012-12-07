@@ -63,7 +63,7 @@ class Formo_Core_Form extends Formo_Validator {
 		(empty($options['alias']) AND $options['alias'] = $this->get('config')->form_alias);
 		(empty($options['driver']) AND $options['driver'] = $this->get('config')->form_driver);
 		(empty($options['kind']) AND $options['kind'] = $this->get('config')->kind);
-		
+
 		// Always process the driver first
 		$driver = $options['driver'];
 		unset($options['driver']);
@@ -161,7 +161,7 @@ class Formo_Core_Form extends Formo_Validator {
 
 		return $this;
 	}
-	
+
 	public function values(array $input)
 	{
 		foreach ($input as $name => $value)
@@ -171,7 +171,7 @@ class Formo_Core_Form extends Formo_Validator {
 				$field->val($value);
 			}
 		}
-		
+
 		return $this;
 	}
 
