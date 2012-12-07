@@ -2,6 +2,8 @@
 
 $classes[] = 'data';
 
+die(Debug::vars($report));
+
 ?>
 <table class="<?php echo SGS::render_classes($classes); ?> report-summary">
   <tr class="head">
