@@ -239,7 +239,7 @@ class Controller_Barcodes extends Controller {
       if ($barcode_success) Notify::msg($barcode_success.' barcodes successfully parsed.', 'success', TRUE);
       if ($barcode_error) Notify::msg($barcode_error.' barcodes failed to be parsed.', 'error', TRUE);
 
-      if ($_printjob->loaded()) $this->request->redirect('barcodes');
+      if (isset($_printjob) and $_printjob->loaded()) $this->request->redirect('barcodes');
     }
 
     if ($form) $content .= $form->render();
