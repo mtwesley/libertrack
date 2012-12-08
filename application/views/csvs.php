@@ -110,6 +110,7 @@ if ($options['header'])  $classes[] = 'has-header';
     </td>
     <?php endforeach; ?>
     <td class="links">
+    <?php if ($options['links']): ?>
       <?php if ($options['resolve']): ?>
 
       <?php else: ?>
@@ -131,6 +132,7 @@ if ($options['header'])  $classes[] = 'has-header';
       <?php endif; ?>
 
       <?php endif; ?>
+    <?php endif; ?>
     </td>
   </tr>
   <?php endif; // rows ?>

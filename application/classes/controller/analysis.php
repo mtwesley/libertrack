@@ -25,8 +25,9 @@ class Controller_Analysis extends Controller {
 
     if ($id) {
       Session::instance()->delete('pagination.data');
-      $data = array(ORM::factory($form_type, $id));
-      $site = reset($data)->site;
+      $item = ORM::factory($form_type, $id);
+      $site = $item->site;
+      $data = array($item);
     }
     else {
       if ($has_site_id) $site_ids = DB::select('id', 'name')

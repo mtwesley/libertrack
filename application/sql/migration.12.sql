@@ -38,4 +38,3 @@ create index barcode_coc_status_barcode_id_status on barcode_coc_status (barcode
 
 alter table csv_errors alter column error drop not null;
 alter table errors alter column error drop not null;
-

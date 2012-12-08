@@ -5,6 +5,7 @@ if ($site  and !$operator) $operator = $site->operator;
 $options = (array) $options + array(
   'table'   => TRUE,
   'rows'    => TRUE,
+  'links'   => TRUE,
   'actions' => FALSE,
   'header'  => $site ? TRUE : FALSE,
 );
@@ -125,15 +126,18 @@ $classes[] = 'data';
     </td>
     <?php endforeach; ?>
     <td class="links">
+    <?php if ($options['links']): ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
       <?php /* if ($record->errors): ?>
       <span class="link toggle-details">Details</span>
       <?php endif; */ ?>
+      <?php endif; ?>
     </td>
   </tr>
   <?php endif; // rows ?>
+  <?php if ($options['details']): ?>
   <?php /* if ($record->errors): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td colspan="<?php echo (count($fields) + 3); ?>">
@@ -146,6 +150,7 @@ $classes[] = 'data';
     </td>
   </tr>
   <?php endif; */ ?>
+  <?php endif; // details ?>
   <?php endforeach; ?>
 <?php if ($options['table']): ?>
 </table>

@@ -326,6 +326,17 @@ create table csv (
   constraint csv_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
+create table csv_revisions (
+  id bigserial not null,
+  csv_id b_id not null,
+  csv_data d_text_long,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint csv_revisions_pkey primary key (id),
+  constraint csv_revisions_user_id_fkey foreign key (user_id) references users (id) on update cascade
+);
+
 create table csv_errors (
   id bigserial not null,
   csv_id d_id not null,
@@ -557,9 +568,9 @@ create table errors (
 
 create table revisions (
   id bigserial not null,
-  form_type d_form_type not null,
-  form_data_id d_id not null,
-  form_data d_text_long,
+  model d_text_short not null,
+  model_id d_id not null,
+  data d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -578,7 +589,7 @@ create table tolerances (
   timestamp d_timestamp default current_timestamp not null,
 
   -- constraint tolerances_pkey primary key (id),
-  constraint revisions_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint tolerances_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
   constraint tolerances_unique unique(form_type,form_fields)
 );
@@ -693,8 +704,6 @@ create index epr_data_status on epr_data (id,status);
 create index errors_form_type_data_id on errors (form_type,form_data_id);
 create index errors_field on errors (form_type,form_data_id,field);
 create index errors_errors on errors (form_type,form_data_id,error);
-
-create index revisions_form_type_data_id on revisions (id,form_type,form_data_id);
 
 
 -- language
