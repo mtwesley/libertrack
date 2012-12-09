@@ -158,7 +158,10 @@ $classes[] = 'data';
         <tr>
           <?php foreach ($record::$checks as $check => $description): ?>
           <td>
-            <?php if (in_array($check, $errors)): ?>
+            <?php if ($record->status == 'P'): ?>
+            <div class="warning">Unchecked</div>
+
+            <?php elseif (in_array($check, $errors)): ?>
             <div class="error">Failed</div>
 
             <?php elseif (in_array($check, $warnings)): ?>
