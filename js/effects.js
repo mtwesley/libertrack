@@ -23,56 +23,51 @@ var bPopupOptions = {
 
 $(function() {
 
-  $("body.import .toggle-details").live('click', function() {
+  $(".toggle-details").click(function() {
     $(this).parent().parent("tr").next("tr.details").toggle();
-    $(this).parent().parent("tr").next("tr.details").children("td.loading").load(
-      '/ajax/details',
-      {id: $(this).attr('id').match(/csv-(\d+)-details/)[1]},
-      function() {
-        $(".details-tips-link").click(function() {
-          $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-          $("#popup .popup-text").load('/ajax/tips', {id: $(this).attr('id')}, function() {
-            $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
-          });
-        });
-        $(".details-suggestions-link").click(function() {
-          $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-          $("#popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
-            $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
-            $("ul.suggest li").click(function() {
-              var csv_id = $(this).parent("ul.suggest").attr('id').match(/csv-(\d+)/)[1];
-              $.post(
-                '/ajax/csv',
-                {id: $(this).parent("ul.suggest").attr('id'), data: $(this).text(), process: 1},
-                function() {
-                  $("#popup").bPopup().close();
-                  update_csv(csv_id);
-                }
-              );
-            });
-          });
-        });
-        $(".details-resolutions-link").click(function() {
-          $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-          $("#popup .popup-text").load('/ajax/resolutions', {id: $(this).attr('id')}, function() {
-            $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
-            $(".details-resolution-select span").click(function() {
-              var csv_id = $(this).attr('id').match(/csv-(\d+)/)[1];
-              $.post(
-                '/ajax/resolve',
-                {id: $(this).attr('id')},
-                function() {
-                  $("#popup").bPopup().close();
-                  update_csv(csv_id);
-                }
-              );
-            });
-          });
-        });
+  });
 
-        $(this).removeClass('loading');
-      }
-    );
+  $(".details-tips-link").click(function() {
+    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $("#popup .popup-text").load('/ajax/tips', {id: $(this).attr('id')}, function() {
+      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+    });
+  });
+
+  $(".details-suggestions-link").click(function() {
+    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $("#popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
+      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+      $("ul.suggest li").click(function() {
+        var csv_id = $(this).parent("ul.suggest").attr('id').match(/csv-(\d+)/)[1];
+        $.post(
+          '/ajax/csv',
+          {id: $(this).parent("ul.suggest").attr('id'), data: $(this).text(), process: 1},
+          function() {
+            $("#popup").bPopup().close();
+            update_csv(csv_id);
+          }
+        );
+      });
+    });
+  });
+
+  $(".details-resolutions-link").click(function() {
+    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $("#popup .popup-text").load('/ajax/resolutions', {id: $(this).attr('id')}, function() {
+      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+      $(".details-resolution-select span").click(function() {
+        var csv_id = $(this).attr('id').match(/csv-(\d+)/)[1];
+        $.post(
+          '/ajax/resolve',
+          {id: $(this).attr('id')},
+          function() {
+            $("#popup").bPopup().close();
+            update_csv(csv_id);
+          }
+        );
+      });
+    });
   });
 
   $("body.import .csv-process").live('click', function() {
@@ -86,10 +81,6 @@ $(function() {
         update_csv(csv_id);
       }
     );
-  });
-
-  $("body.analysis .toggle-details").live('click', function() {
-    $(this).parent().parent("tr").next("tr.details").toggle();
   });
 
   $(".toggle-download-form").live('click', function() {

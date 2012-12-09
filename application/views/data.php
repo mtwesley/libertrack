@@ -5,6 +5,7 @@ if ($site  and !$operator) $operator = $site->operator;
 $options = (array) $options + array(
   'table'   => TRUE,
   'rows'    => TRUE,
+  'details' => TRUE,
   'links'   => TRUE,
   'actions' => FALSE,
   'header'  => $site ? TRUE : FALSE,
@@ -84,11 +85,15 @@ $classes[] = 'data';
       <?php
         switch ($record->status):
           case 'P': echo HTML::image('images/bullet_yellow.png', array('class' => 'status pending', 'title' => 'Unchecked')); break;
-          case 'A': echo HTML::image('images/bullet_green.png', array('class' => 'status accepted', 'title' => 'Accepted')); break;
-          case 'R': echo HTML::image('images/bullet_red.png', array('class' => 'status rejected', 'title' => 'Rejected')); break;
+          case 'A': echo HTML::image('images/bullet_green.png', array('class' => 'status accepted', 'title' => 'Passed')); break;
+          case 'R': echo HTML::image('images/bullet_red.png', array('class' => 'status rejected', 'title' => 'Failed')); break;
         endswitch;
       ?>
     </td>
+    <?php
+      $errors   = $record->get_errors();
+      $warnings = $record->get_warnings();
+    ?>
     <?php foreach ($fields as $field => $name): ?>
     <?php
       if ($options['header'] or $options['hide_header_info']) switch ($field):
@@ -101,7 +106,7 @@ $classes[] = 'data';
           continue 2;
       endswitch;
     ?>
-    <td>
+    <td class="<?php if ($errors[$field]) print 'error'; else if ($warnings[$field]) print 'warning'; ?>">
       <?php
         switch ($field):
           case 'operator_id': if ($record->operator) echo $record->operator->name; break;
@@ -126,30 +131,48 @@ $classes[] = 'data';
     </td>
     <?php endforeach; ?>
     <td class="links">
-    <?php if ($options['links']): ?>
+      <?php if ($options['links']): ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
-      <?php /* if ($record->errors): ?>
+      <?php endif; // links ?>
+      <?php if ($options['details']): ?>
       <span class="link toggle-details">Details</span>
-      <?php endif; */ ?>
-      <?php endif; ?>
+      <?php endif; // details-links ?>
     </td>
   </tr>
   <?php endif; // rows ?>
   <?php if ($options['details']): ?>
-  <?php /* if ($record->errors): ?>
+  <?php
+    $errors = SGS::flattenify($record->get_errors());
+    $warnings = SGS::flattenify($record->get_warnings());
+  ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td colspan="<?php echo (count($fields) + 3); ?>">
-      <?php
-          if ($record->errors) echo View::factory('errors')
-            ->set('fields', $fields)
-            ->set('errors', $record->errors)
-            ->render();
-      ?>
+    <td colspan="<?php echo (count($fields) + $additional_columns - $header_columns); ?>">
+      <table class="details-checks">
+        <tr>
+          <?php foreach ($record::$checks as $check => $description): ?>
+          <th><?php print $description; ?></th>
+          <?php endforeach; ?>
+        </tr>
+        <tr>
+          <?php foreach ($record::$checks as $check => $description): ?>
+          <td>
+            <?php if (in_array($check, $errors)): ?>
+            <div class="error">Failed</div>
+
+            <?php elseif (in_array($check, $warnings)): ?>
+            <div class="warning"><?php print $record::$warnings[$check]; ?></div>
+
+            <?php else: ?>
+            <div class="success">Passed</div>
+            <?php endif; ?>
+          </td>
+          <?php endforeach; ?>
+        </tr>
+      </table>
     </td>
   </tr>
-  <?php endif; */ ?>
   <?php endif; // details ?>
   <?php endforeach; ?>
 <?php if ($options['table']): ?>

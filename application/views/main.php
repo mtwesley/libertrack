@@ -41,6 +41,7 @@ $styles[] = 'messages';
 $styles[] = 'navigation';
 $styles[] = 'pagination';
 $styles[] = 'csv';
+$styles[] = 'data';
 
 $scripts[] = 'jquery-1.8.0.min';
 $scripts[] = 'jquery-ui-1.8.23.min';

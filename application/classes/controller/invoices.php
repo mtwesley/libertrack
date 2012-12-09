@@ -457,6 +457,7 @@ class Controller_Invoices extends Controller {
               ->set('form_type', $form_type)
               ->set('data', $data)
               ->set('site', $site)
+              ->set('options', array('links' => FALSE))
               ->render();
             break;
 

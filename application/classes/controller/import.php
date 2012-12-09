@@ -515,18 +515,18 @@ class Controller_Import extends Controller {
 //        ->execute()
 //        ->as_array('id', 'name');
 
-      $form = Formo::form()
-        ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'));
+      $form = Formo::form();
       if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
       if ($has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
       $form = $form
+        ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
         ->add('format', 'radios', 'filter', array(
           'options' => array(
             'filter' => 'Filter',
             'csv'   => 'Download CSV',
             'xls'   => 'Download XLS'),
-          'label' => '&nbsp;',
+          'label' => 'Options',
           'required' => TRUE,
           ))
         ->add('search', 'submit', 'Go');

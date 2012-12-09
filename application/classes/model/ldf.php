@@ -9,7 +9,6 @@ class Model_LDF extends SGS_Form_ORM {
   protected $_belongs_to = array(
     'site'     => array(),
     'operator' => array(),
-    'block'    => array(),
     'barcode'  => array(),
     'parent_barcode' => array(
       'model'        => 'barcode',
@@ -49,24 +48,22 @@ class Model_LDF extends SGS_Form_ORM {
 
     'is_matching_parent_operator' => 'Operator matches original log data',
     'is_matching_parent_site'     => 'Site matches original log data',
-    'is_matching_parent_block'    => 'Block matches original log data',
 
     'is_existing_parent' => 'Original log data exists',
   );
 
   public static $warnings = array(
-    'is_active_barcode'        => 'New cross cut barcode assignment is active',
-    'is_active_parent_barcode' => 'Original log barcode assignment is active',
+    'is_active_barcode'        => 'New cross cut barcode assignment is not yet assigned',
+    'is_active_parent_barcode' => 'Original log barcode assignment is not yet assigned',
 
-    'is_accurate_diameter' => 'Diameter is accurate',
-    'is_accurate_length'   => 'Length is accurate',
-    'is_accurate_volume'   => 'Volume is accurate',
+    'is_accurate_diameter' => 'Diameter is inaccurate',
+    'is_accurate_length'   => 'Length is inaccurate',
+    'is_accurate_volume'   => 'Volume is inaccurate',
 
-    'is_matching_species_code' => 'Species code matches original log data',
+    'is_matching_species_code' => 'Species code does not match original log data',
 
-    'is_consistent_operator' => 'Operator assignments are consistent',
-    'is_consistent_site'     => 'Site assignments are consistent',
-    'is_consistent_block'    => 'Block assignments are consistent',
+    'is_consistent_operator' => 'Operator assignments are inconsistent',
+    'is_consistent_site'     => 'Site assignments are inconsistent',
   );
 
   protected function _initialize() {
@@ -359,7 +356,6 @@ class Model_LDF extends SGS_Form_ORM {
 
         if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
         if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
-        if (!($this->block_id    == $parent->block_id))    $errors['block_id'][]    = 'is_matching_block';
       }
       else $errors['barcode_id'][] = 'is_existing_parent';
     }

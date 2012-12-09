@@ -7,6 +7,7 @@ $options = (array) $options + array(
   'table'   => TRUE,
   'rows'    => TRUE,
   'details' => TRUE,
+  'links'   => TRUE,
   'actions' => FALSE,
   'resolve' => FALSE,
   'header'  => $site ? TRUE : FALSE,
@@ -110,10 +111,7 @@ if ($options['header'])  $classes[] = 'has-header';
     </td>
     <?php endforeach; ?>
     <td class="links">
-    <?php if ($options['links']): ?>
-      <?php if ($options['resolve']): ?>
-
-      <?php else: ?>
+      <?php if ($options['links']): ?>
       <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
 
       <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
@@ -127,7 +125,7 @@ if ($options['header'])  $classes[] = 'has-header';
       <!-- <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?> -->
       <?php endif; ?>
 
-      <?php if ($errors): ?>
+      <?php if ($options['details'] and $errors): ?>
       <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
       <?php endif; ?>
 
@@ -139,7 +137,25 @@ if ($options['header'])  $classes[] = 'has-header';
   <?php if ($options['details']): ?>
   <?php if ($errors = $csv->get_errors()): ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td class="loading" colspan="<?php echo (count($fields) + $additional_columns - $header_columns); ?>"></td>
+    <td colspan="<?php echo (count($fields) + $additional_columns - $header_columns); ?>">
+      <div class="details-errors">
+        <ul>
+          <?php foreach ($errors as $field => $array): ?>
+          <?php foreach ((array) $array as $error): ?>
+          <li>
+            <?php echo SGS::decode_error($field, $error, array(':field' => $fields[$field]), $values); ?>
+            <?php if ($csv->status == 'U'): ?>
+            <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-resolutions" class="details-link details-resolutions-link">Resolutions</span>
+            <?php endif; ?>
+            <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-suggestions" class="details-link details-suggestions-link">Suggestions</span>
+            <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-tips" class="details-link details-tips-link">Tips</span>
+          </li>
+          <?php endforeach; ?>
+          <?php endforeach; ?>
+        </ul>
+      </div>
+      <div class="clear"></div>
+    </td>
   </tr>
   <?php endif; // get_errors ?>
   <?php endif; // details ?>

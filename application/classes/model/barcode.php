@@ -52,4 +52,8 @@ class Model_Barcode extends ORM {
     }
   }
 
+  public function set_activiy($status) {
+
+  }
+
 }

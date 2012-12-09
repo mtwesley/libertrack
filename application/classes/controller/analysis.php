@@ -336,7 +336,7 @@ class Controller_Analysis extends Controller {
         } catch (ORM_Validation_Exception $e) {
           foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
         } catch (Exception $e) {
-          Notify::msg('Sorry, unable to run check and queries. Please try again.', 'error');
+          Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
         }
 
         switch ($record->status) {
@@ -442,6 +442,8 @@ class Controller_Analysis extends Controller {
           'rows'    => FALSE,
           'actions' => FALSE,
           'header'  => TRUE,
+          'details' => FALSE,
+          'links'   => FALSE
         ))
         ->render();
 
@@ -451,8 +453,10 @@ class Controller_Analysis extends Controller {
         ->set('data', $_data)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('options', array(
-          'header' => FALSE,
-          'hide_header_info' => TRUE
+          'hide_header_info' => TRUE,
+          'header'  => FALSE,
+          'details' => TRUE,
+          'links'   => FALSE,
         ))
         ->render();
     }

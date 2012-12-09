@@ -66,11 +66,11 @@ class Model_TDF extends SGS_Form_ORM {
     'is_valid_tree_barcode'  => 'Felled tree barcode is not yet assigned',
     'is_valid_stump_barcode' => 'Stump barcode is not yet assigned',
 
-    'is_matching__survey_line' => 'Survey line is inaccurate',
-    'is_matching__diameter'    => 'Diameter is inaccurate',
-    'is_matching__length'      => 'Length is inaccurate',
+    'is_matching_survey_line' => 'Survey line is inaccurate',
+    'is_matching_diameter'    => 'Diameter is inaccurate',
+    'is_matching_length'      => 'Length is inaccurate',
 
-    'is_matching_species' => 'Species code does not matches standing tree data',
+    'is_matching_species' => 'Species code does not match standing tree data',
 
     'is_matching_operator' => 'Operator assignments are inconsistent',
     'is_matching_site'     => 'Site assignments are inconsistent',

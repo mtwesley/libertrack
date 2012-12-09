@@ -169,6 +169,7 @@
   width: 100%;
   border-collapse: collapse;
   border-top: 2px solid #d9c7ad;
+  table-layout: auto;
 }
 
 #content table.data form {
@@ -327,6 +328,11 @@
 
 #content table.data td.error {
   color: #ae3636;
+  font-weight: bold;
+}
+
+#content table.data td.warning {
+  color: #a5890b;
   font-weight: bold;
 }
 
