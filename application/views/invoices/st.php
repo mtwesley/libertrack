@@ -106,7 +106,8 @@ $options = (array) $options + array(
     text-align: center;
   }
 
-  .invoice-summary-table tr td.fee_desc {
+  .invoice-summary-table tr td.fee_desc,
+  .invoice-summary-table tr td.fee_desc em {
     font-size: 8px;
     white-space: nowrap;
   }

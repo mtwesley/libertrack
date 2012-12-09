@@ -147,13 +147,13 @@ class Controller_Invoices extends Controller {
       ->add('delete', 'submit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      try {
+//      try {
         $invoice->delete();
         if ($invoice->loaded()) throw new Exception();
-        Notify::msg('Draft invoice successfully deleted.', 'success', TRUE);
-      } catch (Exception $e) {
-        Notify::msg('Draft invoice failed to be deleted.', 'error', TRUE);
-      }
+//        Notify::msg('Draft invoice successfully deleted.', 'success', TRUE);
+//      } catch (Exception $e) {
+//        Notify::msg('Draft invoice failed to be deleted.', 'error', TRUE);
+//      }
 
       $this->request->redirect('invoices');
     }
@@ -172,13 +172,14 @@ class Controller_Invoices extends Controller {
       case 'download': return self::handle_invoice_download($id);
       case 'finalize': return self::handle_invoice_finalize($id);
       case 'delete': return self::handle_invoice_delete($id);
-      case 'list':
-      default: return self::handle_invoice_list();
+      case 'list': default: return self::handle_invoice_list($id);
     }
   }
 
   public function action_list() {
-    return self::handle_invoice_list();
+    $id = $this->request->param('id');
+
+    return self::handle_invoice_list($id);
   }
 
   private function generate_st_invoice($invoice, $data_ids = array()) {
