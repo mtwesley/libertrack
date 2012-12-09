@@ -17,10 +17,7 @@ class Controller_Invoices extends Controller {
     Session::instance()->write();
   }
 
-  private function handle_invoice_finalize() {
-    $id = $this->request->param('id');
-    if (!$id) $this->request->redirect('invoices');
-
+  private function handle_invoice_finalize($id) {
     $invoice = ORM::factory('invoice', $id);
     if (!($invoice->loaded() and $invoice->is_draft)) {
       Notify::msg('Invoice already finalized.', 'warning', TRUE);
@@ -49,9 +46,7 @@ class Controller_Invoices extends Controller {
 
   }
 
-  private function handle_invoice_list() {
-    $id = $this->request->param('id');
-
+  private function handle_invoice_list($id = NULL) {
     if (!Request::$current->query()) Session::instance()->delete('pagination.invoice.list');
     if ($id) {
       Session::instance()->delete('pagination.invoice.list');
@@ -134,12 +129,49 @@ class Controller_Invoices extends Controller {
     $this->response->body($view);
   }
 
+  private function handle_invoice_delete($id) {
+    $invoice  = ORM::factory('invoice', $id);
+
+    if (!$invoice->loaded()) {
+      Notify::msg('No invoice found.', 'warning', TRUE);
+      $this->request->redirect('invoices');
+    }
+
+    if (!$invoice->is_draft) {
+      Notify::msg('Sorry, cannot delete final invoices.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$invoice->id);
+    }
+
+    $form = Formo::form()
+      ->add('confirm', 'text', 'Are you sure you want to delete this draft invoice?')
+      ->add('delete', 'submit', 'Delete');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      try {
+        $invoice->delete();
+        if ($invoice->loaded()) throw new Exception();
+        Notify::msg('Draft invoice successfully deleted.', 'success', TRUE);
+      } catch (Exception $e) {
+        Notify::msg('Draft invoice failed to be deleted.', 'error', TRUE);
+      }
+
+      $this->request->redirect('invoices');
+    }
+
+    $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
   public function action_index() {
+    $id      = $this->request->param('id');
     $command = $this->request->param('command');
 
     switch ($command) {
-      case 'download': return self::handle_invoice_download();
-      case 'finalize': return self::handle_invoice_finalize();
+      case 'download': return self::handle_invoice_download($id);
+      case 'finalize': return self::handle_invoice_finalize($id);
+      case 'delete': return self::handle_invoice_delete($id);
       case 'list':
       default: return self::handle_invoice_list();
     }

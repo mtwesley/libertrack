@@ -453,7 +453,7 @@ $options = (array) $options + array(
 
     .invoice-footer-table tr td.date,
     .invoice-footer-table tr td.pageinfo {
-      width: 100px;
+      width: 110px;
     }
 
     .invoice-footer-table tr td.date {

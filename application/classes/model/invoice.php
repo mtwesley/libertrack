@@ -38,4 +38,9 @@ class Model_Invoice extends ORM {
     }
   }
 
+  public function delete() {
+    $this->unset_data();
+    parent::delete();
+  }
+
 }

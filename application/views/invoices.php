@@ -25,7 +25,12 @@
     <td><?php echo SGS::date($invoice->due_date); ?></td>
     <td class="links">
       <?php echo HTML::anchor('invoices/'.$invoice->id, 'View', array('class' => 'link')); ?>
-      <?php if ($invoice->is_draft) echo HTML::anchor('invoices/'.$invoice->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
+
+        <?php if ($invoice->is_draft): ?>
+      <?php echo HTML::anchor('invoices/'.$invoice->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('invoices/'.$invoice->id.'/delete', 'Delete', array('class' => 'link')); ?>
+      <?php endif; ?>
+
       <?php echo HTML::anchor($invoice->file->path, 'Download', array('class' => 'link')); ?>
     </td>
   </tr>

@@ -18,9 +18,17 @@ class SGS {
   const TDF_LENGTH_TOLERANCE      = 10;
   const TDF_DIAMETER_TOLERANCE    = 40;
 
+  const TDF_SURVEY_LINE_ACCURACY = 2;
+  const TDF_LENGTH_ACCURACY      = 2;
+  const TDF_DIAMETER_ACCURACY    = 5;
+
   const LDF_LENGTH_TOLERANCE   = 2;
   const LDF_DIAMETER_TOLERANCE = 30;
   const LDF_VOLUME_TOLERANCE   = 2;
+
+  const LDF_LENGTH_ACCURACY   = 0.5;
+  const LDF_DIAMETER_ACCURACY = 5;
+  const LDF_VOLUME_ACCURACY   = 0.2;
 
   const FEE_SGS_RATE = 0.348;
   const FEE_GOL_RATE = 0.652;

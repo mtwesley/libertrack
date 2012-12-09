@@ -18,12 +18,12 @@ $classes[] = 'data';
   <?php foreach ($checks as $check => $description): ?>
   <?php
     $total   = $report['total'];
-    $passed  = $total - count($report['errors'][$check]);
+    $passed  = $total - count(array_filter(array_unique((array) $report['errors'][$check])));
     $failed  = $total - $passed;
     $checked = $total - $report['unchecked'];
 
     $percentage = $total ? floor($passed * 100 / $total) : 100;
-    $warnings   = count($report['warnings'][$check]);
+    $warnings   = count(array_filter(array_unique((array) $report['warnings'][$check])));
   ?>
   <tr>
     <td class="type"><span class="data-type"><?php print $form_type; ?></span></td>

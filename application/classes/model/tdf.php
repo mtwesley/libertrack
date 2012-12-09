@@ -48,15 +48,15 @@ class Model_TDF extends SGS_Form_ORM {
     'is_valid_tree_barcode'  => 'Felled tree barcode assignment is valid',
     'is_valid_stump_barcode' => 'Stump barcode assignment is valid',
 
-    'is_matching_survey_line' => 'Survey line is within tolerance',
-    'is_matching_diameter'    => 'Diameter line is within tolerance',
-    'is_matching_length'      => 'Length is within tolerance',
+    'is_matching_survey_line' => 'Survey line is within tolerance of standing tree data',
+    'is_matching_diameter'    => 'Diameter line is within tolerance of standing tree data',
+    'is_matching_length'      => 'Length is within tolerance of standing tree data',
 
     'is_matching_species' => 'Species class matches standing tree data',
 
     'is_matching_operator' => 'Operator matches standing tree data',
     'is_matching_site'     => 'Site matches standing tree data',
-    'is_matching_parent_block'    => 'Block matches standing tree data',
+    'is_matching_block'    => 'Block matches standing tree data',
 
     'is_existing_parent' => 'Standing tree data exists',
   );
@@ -66,9 +66,9 @@ class Model_TDF extends SGS_Form_ORM {
     'is_valid_tree_barcode'  => 'Felled tree barcode is not yet assigned',
     'is_valid_stump_barcode' => 'Stump barcode is not yet assigned',
 
-    'is_matching_survey_line' => 'Survey line is inaccurate',
-    'is_matching_diameter'    => 'Diameter is inaccurate',
-    'is_matching_length'      => 'Length is inaccurate',
+    'is_matching_survey_line' => 'Survey line is inaccurate with respect to standing tree data',
+    'is_matching_diameter'    => 'Diameter is inaccurate with respect to standing tree data',
+    'is_matching_length'      => 'Length is inaccurate with respect to standing tree data',
 
     'is_matching_species' => 'Species code does not match standing tree data',
 
@@ -411,10 +411,18 @@ class Model_TDF extends SGS_Form_ORM {
 
     if ($parent->loaded()) {
       if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_TOLERANCE)) $errors['survey_line'][] = 'is_matching_survey_line';
+      else if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_ACCURACY)) $warnings['survey_line'][] = 'is_matching_survey_line';
+
       if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_matching_length';
+      else if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_LENGTH_ACCURACY)) $warnings['length'][] = 'is_matching_length';
+
       if (!Valid::meets_tolerance((($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
         $errors['bottom_min'][] = 'is_matching_diameter';
         $errors['bottom_max'][] = 'is_matching_diameter';
+      }
+      else if (!Valid::meets_tolerance((($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::TDF_DIAMETER_ACCURACY)) {
+        $warnings['bottom_min'][] = 'is_matching_diameter';
+        $warnings['bottom_max'][] = 'is_matching_diameter';
       }
 
       if (!($this->species->class == $parent->species->class)) $errors['species_id'][]    = 'is_matching_species';
