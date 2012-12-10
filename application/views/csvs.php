@@ -125,7 +125,7 @@ if ($options['header'])  $classes[] = 'has-header';
       <!-- <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?> -->
       <?php endif; ?>
 
-      <?php if ($options['details'] and $errors): ?>
+      <?php if ($options['details']): ?>
       <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
       <?php endif; ?>
 
