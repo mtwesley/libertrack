@@ -335,9 +335,8 @@ class Controller_Analysis extends Controller {
           $record->run_checks();
         } catch (ORM_Validation_Exception $e) {
           foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
-          // trying to catch what error this is
-//        } catch (Exception $e) {
-//          Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
+        } catch (Exception $e) {
+          Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
         }
 
         switch ($record->status) {

@@ -563,7 +563,7 @@ create table errors (
 
   -- constraint errors_pkey primary key (id),
 
-  constraint errors_unique unique(form_type,form_data_id,field,error)
+  constraint errors_unique unique(form_type,form_data_id,field,error,type)
 );
 
 create table revisions (
