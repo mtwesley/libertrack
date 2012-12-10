@@ -130,7 +130,6 @@ if ($options['header'])  $classes[] = 'has-header';
       <?php endif; ?>
 
       <?php endif; ?>
-    <?php endif; ?>
     </td>
   </tr>
   <?php endif; // rows ?>
