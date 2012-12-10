@@ -41,7 +41,7 @@ class Controller_Analysis extends Controller {
         ->execute()
         ->as_array('id', 'name');
 
-      if ($has_block_id) $block_ids = DB::select('id', 'name')
+      if ($has_site_id and $has_block_id) $block_ids = DB::select('id', 'name')
         ->from('blocks')
         ->order_by('name')
         ->execute()
@@ -50,7 +50,7 @@ class Controller_Analysis extends Controller {
       $form = Formo::form();
       if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
-      if ($has_block_id) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
+      if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', $block_ids, NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
       $form = $form
         ->add_group('status', 'checkboxes', SGS::$data_status, NULL, array('label' => 'Status'))
         ->add('search', 'submit', 'Filter');
@@ -59,7 +59,7 @@ class Controller_Analysis extends Controller {
         Session::instance()->delete('pagination.data');
         if ($has_site_id)  $site_id  = $form->site_id->val();
         else $operator_id = $form->operator_id->val();
-        if ($has_block_id) $block_id = $form->block_id->val();
+        if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
         $status   = $form->status->val();
 
         $data = ORM::factory($form_type);
@@ -80,7 +80,7 @@ class Controller_Analysis extends Controller {
         if ($settings = Session::instance()->get('pagination.data')) {
           if ($has_site_id)  $form->site_id->val($site_id = $settings['site_id']);
           else $form->operator_id->val($operator_id = $settings['operator_id']);
-          if ($has_block_id) $form->block_id->val($block_id = $settings['block_id']);
+          if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
           $form->status->val($block_id = $settings['block_id']);
         }
 
@@ -335,8 +335,9 @@ class Controller_Analysis extends Controller {
           $record->run_checks();
         } catch (ORM_Validation_Exception $e) {
           foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
-        } catch (Exception $e) {
-          Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
+          // trying to catch what error this is
+//        } catch (Exception $e) {
+//          Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
         }
 
         switch ($record->status) {
