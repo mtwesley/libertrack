@@ -161,11 +161,11 @@ $classes[] = 'data';
             <?php if ($record->status == 'P'): ?>
             <div class="warning">Unchecked</div>
 
-            <?php elseif (in_array($check, $warnings)): ?>
-            <div class="warning"><?php print $record::$warnings[$check]; ?></div>
-
             <?php elseif (in_array($check, $errors)): ?>
             <div class="error">Failed</div>
+
+            <?php elseif (in_array($check, $warnings)): ?>
+            <div class="warning"><?php print $record::$warnings[$check]; ?></div>
 
             <?php else: ?>
             <div class="success">Passed</div>
