@@ -15,18 +15,95 @@ class Controller_Export extends Controller {
     }
   }
 
-  private function handle_file_list() {
-    $files = ORM::factory('file')
-      ->where('operation', '=', 'E')
-      ->order_by('timestamp', 'DESC')
-      ->find_all()
-      ->as_array();
+  private function handle_file_list($id = NULL) {
+    if (!Request::$current->query()) Session::instance()->delete('pagination.file.list');
+    if ($id) {
+      Session::instance()->delete('pagination.file.list');
 
-    if ($files) $content .= View::factory('files')
-      ->set('mode', 'export')
-      ->set('files', $files)
-      ->render();
-    else Notify::msg('No files found.');
+      $files = ORM::factory('file')
+        ->where('operation', '=', 'U')
+        ->and_where('id', '=', $id)
+        ->find_all()
+        ->as_array();
+    }
+    else {
+
+      $site_ids = DB::select('id', 'name')
+        ->from('sites')
+        ->order_by('name')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $form = Formo::form()
+        ->add_group('operation_type', 'checkboxes', SGS::$form_type, NULL, array('label' => 'Type'))
+        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
+        ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
+        ->add('search', 'submit', 'Filter');
+
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+        Session::instance()->delete('pagination.file.list');
+
+        $operation_type = $form->operation_type->val();
+        $site_id        = $form->site_id->val();
+        $block_id       = $form->block_id->val();
+
+        $files = ORM::factory('file')->where('operation', '=', 'U');
+
+        if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
+        if ($site_id)        $files->and_where('site_id', 'IN', (array) $site_id);
+        if ($block_id)       $files->and_where('block_id', 'IN', (array) $block_id);
+
+        Session::instance()->set('pagination.file.list', array(
+          'form_type'   => $operation_type,
+          'site_id'     => $site_id,
+          'block_id'    => $block_id,
+        ));
+      }
+      else {
+        if ($settings = Session::instance()->get('pagination.file.list')) {
+          $form->operation_type->val($operation_type = $settings['form_type']);
+          $form->site_id->val($site_id = $settings['site_id']);
+          $form->block_id->val($block_id = $settings['block_id']);
+        }
+
+        $files = ORM::factory('file')
+          ->where('operation', '=', 'E');
+
+        if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
+        if ($site_id)        $files->and_where('site_id', 'IN', (array) $site_id);
+        if ($block_id)       $files->and_where('block_id', 'IN', (array) $block_id);
+      }
+
+      if ($files) {
+        $clone = clone($files);
+        $pagination = Pagination::factory(array(
+          'items_per_page' => 20,
+          'total_items' => $clone->find_all()->count()));
+
+        $files = $files
+          ->offset($pagination->offset)
+          ->limit($pagination->items_per_page);
+        if ($sort = $this->request->query('sort')) $files->order_by($sort);
+        $files = $files->order_by('timestamp', 'DESC')
+          ->find_all()
+          ->as_array();
+      }
+    }
+
+    if ($files) {
+      $table = View::factory('files')
+        ->set('classes', array('has-pagination'))
+        ->set('mode', 'export')
+        ->set('files', $files)
+        ->render();
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' file found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' files found');
+    }
+    else Notify::msg('No files found');
+
+    if ($form) $content .= $form->render();
+    $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -55,78 +132,37 @@ class Controller_Export extends Controller {
     $this->response->body($view);
   }
 
-  private function handle_csv_list($id = NULL, $form_type = NULL, $range = array()) {
-    if ($id) {
-      $csvs = ORM::factory('csv')
-        ->where('operation', '=', 'E')
-        ->and_where('id', '=', $id)
-        ->find_all()
-        ->as_array();
+  private function handle_download($form_type) {
+    set_time_limit(600);
 
-      $form_type = reset($csvs)->form_type;
-      $display = TRUE;
-    }
-    else {
-      $form = Formo::form()
-        ->add_group('form_type', 'select', SGS::$form_type, NULL, array(
-          'label' => 'Data',
-          'required' => TRUE
-        ))
-        ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
-        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
-        ->add('search', 'submit', 'Search');
+    $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
+    $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
 
-      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-        $form_type = $form->form_type->val();
-        $from      = $form->from->val();
-        $to        = $form->to->val();
+    if ($has_site_id) $site_ids = DB::select('id', 'name')
+      ->from('sites')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+    else $operator_ids = DB::select('id', 'name')
+      ->from('operators')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
 
+    if ($has_site_id and $has_block_id) $block_ids = DB::select('id', 'name')
+      ->from('blocks')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
 
-        $csvs = ORM::factory('csv')
-          ->where('operation', '=', 'E')
-          ->and_where('form_type', '=', $form_type)
-          ->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to))
-          ->order_by('timestamp', 'DESC')
-          ->find_all()
-          ->as_array();
-
-        $display = TRUE;
-      }
-    }
-
-    if ($csvs) $table = View::factory('csvs')
-      ->set('mode', 'import')
-      ->set('csvs', $csvs)
-      ->set('fields', SGS_Form_ORM::get_fields($form_type))
-      ->render();
-    elseif ($display) Notify::msg('Search returned an empty set of results.');
-
-    if ($form) $content .= $form->render();
-    $content .= $table;
-
-    $view = View::factory('main')->set('content', $content);
-    $this->response->body($view);
-  }
-
-  private function handle_download_ssf() {
-    $sites = ORM::factory('site')
-      ->find_all()
-      ->as_array();
-
-    foreach ($sites as $site) {
-      foreach ($site->blocks->find_all()->as_array() as $block) {
-        $block_options[$site->name.' ('.$site->operator->name.')'][$block->id] = $block->name;
-      }
-    }
-
-    $form = Formo::form()
+    $form = Formo::form();
+    if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
+    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
+    if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
+    $form = $form
       ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
       ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
-      ->add('block_id', 'select', array(
-        'options'  => $block_options,
-        'label'    => 'Block',
-        'required' => TRUE
-      ))
+      ->add_group('status', 'checkboxes', SGS::$data_status, array('A'), array('label' => 'Status'))
       ->add('type', 'radios', array(
         'options' => array(
           'xls' => SGS::$file_type['xls'],
@@ -138,16 +174,24 @@ class Controller_Export extends Controller {
       ->add('download', 'submit', array('label' => 'Download'));
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      $block    = ORM::factory('block', $form->block_id->val());
-      $site     = $block->site;
-      $operator = $site->operator;
-      $type     = $form->type->val();
-      $from     = $form->from->val();
-      $to       = $form->to->val();
+      if ($has_site_id) $site_id = $form->site_id->val();
+      else $operator_id = $form->operator_id->val();
+      if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
 
-      $ssf_data = ORM::factory('ssf')
-        ->where('block_id', '=', $block->id)
+      $status = $form->status->val();
+      $type   = $form->type->val();
+      $from   = $form->from->val();
+      $to     = $form->to->val();
+
+      $data = ORM::factory($form_type);
+
+      if ($has_site_id) $data->where('site_id', 'IN', (array) $site_id);
+      else $data->where('operator_id', 'IN', (array) $operator_id);
+      if ($has_site_id and $has_block_id) $data->where('block_id', 'IN', (array) $block_id);
+
+      $data = $data
         ->where('create_date', 'BETWEEN', SGS::db_range($from, $to))
+        ->and_where('status', 'IN', (array) $status)
         ->find_all()
         ->as_array();
 
@@ -160,7 +204,7 @@ class Controller_Export extends Controller {
           $mime_type = 'text/csv';
           break;
         case 'xls':
-          $filename = APPPATH.'/templates/SSF.xls';
+          $filename = APPPATH.'/templates/'.$form_type.'.xls';
           try {
             $reader = new PHPExcel_Reader_Excel5;
             if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
@@ -179,230 +223,128 @@ class Controller_Export extends Controller {
         // data
         $create_date = 0;
         $row = Model_SSF::PARSE_START;
-        foreach ($ssf_data as $ssf) {
-          $ssf->export_data($excel, $row);
-          if (strtotime($ssf->create_date) > strtotime($create_date)) $create_date = $ssf->create_date;
+        foreach ($data as $item) {
+          $item->export_data($excel, $row);
+          if (strtotime($item->create_date) > strtotime($create_date)) $create_date = $item->create_date;
           $row++;
         }
 
         // headers
-        $ssf->export_headers($excel, array(
-          'create_date' => $create_date ? $create_date : $create_date = SGS::date ('now', SGS::PGSQL_DATE_FORMAT)
+        $item->export_headers($excel, array(
+          'create_date' => $create_date = $create_date ?: SGS::date('now', SGS::PGSQL_DATE_FORMAT)
         ), $headers);
 
-        // file
-        $tempname  = tempnam(sys_get_temp_dir(), 'ssf_').'.'.$type;
-        $fullname  = $site->name.'_SSF_'.$block->name.'.'.$type;
+        // temporary file
+        $tempname = tempnam(sys_get_temp_dir(), strtolower($form_type).'_').'.'.$type;
         $writer->save($tempname);
 
-        $this->response->send_file($tempname, $fullname, array('mime_type' => $mime_type, 'delete' => TRUE));
-      }
-    }
+        // info
+        if ($has_site_id) {
+          $site = ORM::factory ('site', $site_id);
+          $operator = $site->operator;
+        } else $operator = ORM::factory('operator', $operator_id);
+        if ($has_site_id and $has_block_id) $block = ORM::factory('block', $block_id);
 
-    $content .= $form->render();
+        // properties
+        try {
+          $ext = $type;
+          switch ($form_type) {
+            case 'SSF':
+              $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'import',
+                $site->name,
+                $operation_type,
+                $block->name
+              ));
+              if (!($operator->name and $site->name and $block->name)) {
+                Notify::msg('Sorry, cannot identify required properties to create a file.', 'error', TRUE);
+                throw new Exception();
+              }
+              $newname = SGS::wordify($site->name.'_SSF_'.$block->name).'.'.$ext;
+              break;
 
-    $view = View::factory('main')->set('content', $content);
-    $this->response->body($view);
-  }
+            case 'TDF':
+              $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'import',
+                $site->name,
+                $operation_type,
+                $block->name
+              ));
+              if (!($operator->name and $site->name and $block->name)) {
+                Notify::msg('Sorry, cannot identify required properties to create a file.', 'error', TRUE);
+                throw new Exception();
+              }
+              $newname = SGS::wordify($site->name.'_TDF_'.$block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+              break;
 
-  private function handle_download_tdf() {
+            case 'LDF':
+              $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'import',
+                $site->name,
+                $operation_type
+              ));
+              if (!($operator->name and $site->name)) {
+                Notify::msg('Sorry, cannot identify required properties to create a file.', 'error', TRUE);
+                throw new Exception();
+              }
+              $newname = SGS::wordify($site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+              break;
 
-    $sites = ORM::factory('site')
-      ->find_all()
-      ->as_array();
-
-    foreach ($sites as $site) {
-      foreach ($site->blocks->find_all()->as_array() as $block) {
-        $block_options[$site->name.' ('.$site->operator->name.')'][$block->id] = $block->name;
-      }
-    }
-
-    $form = Formo::form()
-      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
-      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
-      ->add('block_id', 'select', array(
-        'options'  => $block_options,
-        'label'    => 'Block',
-        'required' => TRUE
-      ))
-      ->add('type', 'radios', array(
-        'options' => array(
-          'xls' => SGS::$file_type['xls'],
-          'csv' => SGS::$file_type['csv']
-        ),
-        'label'    => 'Format',
-        'required' => TRUE
-      ))
-      ->add('download', 'submit', array('label' => 'Download'));
-
-    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      $block    = ORM::factory('block', $form->block_id->val());
-      $site     = $block->site;
-      $operator = $site->operator;
-      $type     = $form->type->val();
-      $from     = $form->from->val();
-      $to       = $form->to->val();
-
-      $tdf_data = ORM::factory('tdf')
-        ->where('block_id', '=', $block->id)
-        ->where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-        ->find_all()
-        ->as_array();
-
-      switch ($type) {
-        case 'csv':
-          $excel = new PHPExcel();
-          $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_CSV($excel);
-          $headers = TRUE;
-          $mime_type = 'text/csv';
-          break;
-        case 'xls':
-          $filename = APPPATH.'/templates/TDF.xls';
-          try {
-            $reader = new PHPExcel_Reader_Excel5;
-            if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
-            $excel = $reader->load($filename);
-          } catch (Exception $e) {
-            Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
+            case 'SPECS':
+              $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'specs',
+                $operator->tin
+              ));
+              if (!($operator->name)) {
+                Notify::msg('Sorry, cannot identify required properties to create a file.', 'error', TRUE);
+                throw new Exception();
+              }
+              $newname = SGS::wordify('SPECS_'.$operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+              break;
           }
-          $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_Excel5($excel);
-          $headers = FALSE;
-          $mime_type = 'application/vnd.ms-excel';
-          break;
-      }
 
-      if ($excel) {
-        // data
-        $create_date = 0;
-        $row = Model_TDF::PARSE_START;
-        foreach ($tdf_data as $tdf) {
-          $tdf->export_data($excel, $row);
-          if (strtotime($tdf->create_date) > strtotime($create_date)) $create_date = $tdf->create_date;
-          $row++;
-        }
-
-        // headers
-        $tdf->export_headers($excel, array(
-          'create_date' => $create_date ? $create_date : $create_date = SGS::date ('now', SGS::PGSQL_DATE_FORMAT)
-        ), $headers);
-
-        // file
-        $tempname  = tempnam(sys_get_temp_dir(), 'tdf_').'.'.$type;
-        $fullname  = $site->name.'_TDF_'.$block->name.'_'.Date::formatted_time('now', 'm_d_Y').'.'.$type;
-        $writer->save($tempname);
-
-        $this->response->send_file($tempname, $fullname, array('mime_type' => $mime_type, 'delete' => TRUE));
-      }
-    }
-
-    $content .= $form->render();
-
-    $view = View::factory('main')->set('content', $content);
-    $this->response->body($view);
-  }
-
-  private function handle_download_ldf() {
-    $sites = ORM::factory('site')
-      ->find_all()
-      ->as_array();
-
-    foreach ($sites as $site) {
-      $site_options[$site->id] = $site->name.' ('.$site->operator->name.')';
-    }
-
-    $form = Formo::form()
-      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
-      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
-      ->add('site_id', 'select', array(
-        'options'  => $site_options,
-        'label'    => 'Site',
-        'required' => TRUE
-      ))
-      ->add('type', 'radios', array(
-        'options' => array(
-          'xls' => SGS::$file_type['xls'],
-          'csv' => SGS::$file_type['csv']
-        ),
-        'label'    => 'Format',
-        'required' => TRUE
-      ))
-      ->add('download', 'submit', array('label' => 'Download'));
-
-    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      $site     = ORM::factory('site', $form->site_id->val());
-      $operator = $site->operator;
-      $type     = $form->type->val();
-      $from     = $form->from->val();
-      $to       = $form->to->val();
-
-      $ldf_data = ORM::factory('ldf')
-        ->where('site_id', '=', $site->id)
-        ->where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-        ->find_all()
-        ->as_array();
-
-      switch ($type) {
-        case 'csv':
-          $excel = new PHPExcel();
-          $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_CSV($excel);
-          $headers = TRUE;
-          $mime_type = 'text/csv';
-          break;
-        case 'xls':
-          $filename = APPPATH.'/templates/LDF.xls';
-          try {
-            $reader = new PHPExcel_Reader_Excel5;
-            if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
-            $excel = $reader->load($filename);
-          } catch (Exception $e) {
-            Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
+          $version = 0;
+          $testname = $newname;
+          while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+            $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
           }
-          $excel->setActiveSheetIndex(0);
-          $writer = new PHPExcel_Writer_Excel5($excel);
-          $headers = FALSE;
-          $mime_type = 'application/vnd.ms-excel';
-          break;
-      }
 
-      if ($excel) {
-        // data
-        $create_date = 0;
-        $row = Model_LDF::PARSE_START;
-        foreach ($ldf_data as $ldf) {
-          $ldf->export_data($excel, $row);
-          if (strtotime($ldf->create_date) > strtotime($create_date)) $create_date = $ldf->create_date;
-          $row++;
+          if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+            Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error', TRUE); break;
+          }
+          else if (!(rename($tempname, DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname) and chmod(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname, 0777))) {
+            Notify::msg('Sorry, cannot create document. Check file operation capabilities with the site administrator and try again.', 'error', TRUE); break;
+          }
+
+          $file = ORM::factory('file');
+          $file->name = $testname;
+          $file->type = $mime_type;
+          $file->size = filesize(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname);
+          $file->operation      = 'E';
+          $file->operation_type = $form_type;
+          $file->content_md5    = md5_file(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname);
+          $file->path           = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+
+          if ($operator) $file->operator = $operator;
+          if ($site)     $file->site     = $site;
+          if ($block)    $file->block    = $block;
+
+          $file->save();
+          Notify::msg($file->name.' successfully created.', 'success', TRUE);
+        } catch (ORM_Validation_Exception $e) {
+          foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
+        } catch (Exception $e) {
+          Notify::msg('Sorry, unable to save uploaded file.', 'error', TRUE);
         }
-
-        // headers
-        $ldf->export_headers($excel, array(
-          'create_date' => $create_date ? $create_date : $create_date = SGS::date ('now', SGS::PGSQL_DATE_FORMAT)
-        ), $headers);
-
-        // file
-        $tempname  = tempnam(sys_get_temp_dir(), 'ldf_').'.csv';
-        $fullname  = $site->name.'_LDF_'.Date::formatted_time('now', 'm_d_Y').'.'.$type;
-        $writer->save($tempname);
-
-        $this->response->send_file($tempname, $fullname, array('mime_type' => $mime_type, 'delete' => TRUE));
       }
+
+      $this->request->redirect('export/files');
     }
 
     $content .= $form->render();
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
-  }
-
-  public function action_blahblah() {
-    foreach (ORM::factory('CSV')
-      ->where('status', '=', 'U')
-      ->find_all() as $csv) $csv->process();
-
-    $this->response->body("DONE");
   }
 
   public function action_index() {
@@ -427,38 +369,8 @@ class Controller_Export extends Controller {
     }
   }
 
-  public function action_data() {
-    $id      = $this->request->param('id');
-    $command = $this->request->param('command');
-
-    if (!$command && !is_numeric($id)) {
-      $command = $id;
-      $id      = NULL;
-    }
-
-    switch ($command) {
-      case 'edit': return self::handle_csv_edit($id);
-
-      default:
-      case 'list': return self::handle_csv_list($id);
-    }
-  }
-
   public function action_download() {
-    $id      = $this->request->param('id');
-    $command = $this->request->param('command');
-
-    if (!$command && !is_numeric($id)) {
-      $command = $id;
-      $id      = NULL;
-    }
-
-    set_time_limit(600);
-    switch ($command) {
-      case 'ssf': return self::handle_download_ssf();
-      case 'tdf': return self::handle_download_tdf();
-      case 'ldf': return self::handle_download_ldf();
-    }
+    if ($form_type = $this->request->param('id')) return self::handle_download(strtoupper($form_type));
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

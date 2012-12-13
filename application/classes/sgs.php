@@ -669,15 +669,13 @@ class SGS {
     );
   }
 
-
-
   public static function odd_even(&$odd) {
     return ($odd ? ($odd = false) : ($odd = true)) ? 'odd' : 'even';
   }
 
   public static function wordify($string)
   {
-    return preg_replace('/[^\w-]+/', '_', $string);
+    return preg_replace('/\W+/', '_', $string);
   }
 
   public static function errorify($string)
@@ -703,7 +701,7 @@ class SGS {
   {
     $return = array();
     array_walk_recursive($array, function($a) use (&$return) {$return[] = $a;});
-    return $return;
+    return array_unique(array_filter($return));
   }
 
   public static function booleanify($value)

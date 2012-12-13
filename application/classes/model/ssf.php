@@ -35,13 +35,30 @@ class Model_SSF extends SGS_Form_ORM {
   );
 
   public static $checks = array(
-    'is_valid_barcode' => 'Tree barcode assignment is valid',
-  );
-
-  public static $warnings = array(
-    'is_matching_operator' => 'Operator assignments are inconsistent',
-    'is_matching_site'     => 'Site assignments are inconsistent',
-    'is_matching_block'    => 'Block assignments are inconsistent',
+    'consistency' => array(
+      'title'  => 'Data Consistency',
+      'checks' => array(
+        'is_valid_barcode' => array(
+          'title' => 'Tree barcode assignment is valid',
+          'error' => 'Tree barcode assignment is invalid',
+        )
+    )),
+//    'reliability' => array(
+//      'title'  => 'Data Reliability',
+//      'checks' => array(
+//        'is_consistent_operator' => array(
+//          'title'   => 'Operator assignments are consistent',
+//          'warning' => 'Operator assignments are inconsistent'
+//        ),
+//        'is_consistent_site' => array(
+//          'title'   => 'Site assignments are consistent',
+//          'warning' => 'Site assignments are inconsistent'
+//        ),
+//        'is_consistent_block' => array(
+//          'title'   => 'Block assignments are consistent',
+//          'warning' => 'Block assignments are inconsistent'
+//        )
+//    ))
   );
 
   public static function fields()
@@ -336,24 +353,25 @@ class Model_SSF extends SGS_Form_ORM {
   }
 
   public function run_checks() {
-    $errors = array();
+    $errors   = array();
+    $warnings = array();
+
     $this->unset_errors();
     $this->unset_warnings();
 
     // warnings
-    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_matching_operator';
-    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_matching_operator';
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_consistent_operator';
 
-    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_matching_site';
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
 
-    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id'][] = 'is_matching_block';
-    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id'][] = 'is_matching_block';
+    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id'][] = 'is_consistent_block';
+    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id'][] = 'is_consistent_block';
 
     // errors
     switch ($this->barcode->type) {
       case 'T': break;
-      case 'P': $warnings['barcode_id'][] = 'is_valid_barcode'; break;
-      default:  $errors['barcode_id'][]   = 'is_valid_barcode'; break;
+      default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
     }
 
     if ($warnings) foreach ($warnings as $field => $array) {

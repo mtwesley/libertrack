@@ -37,33 +37,85 @@ class Model_LDF extends SGS_Form_ORM {
   );
 
   public static $checks = array(
-    'is_valid_barcode'        => 'New cross cut barcode assignment is valid',
-    'is_valid_parent_barcode' => 'Original log barcode assignment is valid',
-
-    'is_within_tolerance_diameter' => 'Diameter is within tolerance of cross cut data',
-    'is_within_tolerance_length'   => 'Length is within tolerance of cross cut data',
-    'is_within_tolerance_volume'   => 'Volume is within tolerance of cross cut data',
-
-    'is_matching_species' => 'Species class matches original log data',
-
-    'is_matching_operator' => 'Operator matches original log data',
-    'is_matching_site'     => 'Site matches original log data',
-
-    'is_existing_parent' => 'Original log data exists',
-  );
-
-  public static $warnings = array(
-    'is_valid_barcode'        => 'New cross cut barcode assignment is not yet assigned',
-    'is_valid_parent_barcode' => 'Original log barcode assignment is not yet assigned',
-
-    'is_accurate_diameter' => 'Average diameter is inaccurate with respect to cross cut data',
-    'is_accurate_length'   => 'Length is inaccurate with respect to cross cut data',
-    'is_accurate_volume'   => 'Volume is inaccurate with respect to cross cut data',
-
-    'is_matching_species' => 'Species code does not match original log data',
-
-    'is_matching_operator' => 'Operator assignments are inconsistent',
-    'is_matching_site'     => 'Site assignments are inconsistent',
+    'consistency' => array(
+      'title'  => 'Data Consistency',
+      'checks' => array(
+        'is_valid_barcode' => array(
+          'title'   => 'New cross cut barcode assignment is valid',
+          'error'   => 'New cross cut barcode assignment is invalid',
+          'warning' => 'New cross cut barcode is not yet assigned',
+         ),
+        'is_valid_parent_barcode' => array(
+          'title'   => 'Original log barcode assignment is valid',
+          'error'   => 'Original log barcode assignment is invalid',
+          'warning' => 'Original log barcode is not yet assigned',
+         )
+    )),
+    'traceability' => array(
+      'title'  => 'Traceability',
+      'checks' => array(
+        'is_existing_parent' => array(
+          'title' => 'Traceable to parent log',
+          'error' => 'Not tracable to parent log'
+        ),
+        'is_valid_parent' => array(
+          'title' => 'Parent log passed checks and queries',
+          'error' => 'Parent log failed checks and queries'
+        )
+    )),
+    'tolerance' => array(
+      'title'  => 'Tolerance',
+      'checks' => array(
+        'is_matching_diameter' => array(
+          'title'   => 'Diameter matches data for parent log',
+          'error'   => 'Diameter does not match data for parent log',
+          'warning' => 'Diameter matches data for parent log but is inaccurate'
+        ),
+        'is_matching_length' => array(
+          'title'   => 'Length matches data for parent log',
+          'error'   => 'Length does not match data for parent log',
+          'warning' => 'Length matches data for parent log but is inaccurate'
+        ),
+        'is_matching_diameter' => array(
+          'title'   => 'Diameter matches data for parent log',
+          'error'   => 'Diameter does not match data for parent log',
+          'warning' => 'Diameter matches data for parent log but is inaccurate'
+        ),
+        'is_matching_volume' => array(
+          'title'   => 'Volume matches data for parent log',
+          'error'   => 'Volume does not match data for parent log',
+          'warning' => 'Volume matches data for parent log but is inaccurate'
+        ),
+        'is_matching_species' => array(
+          'title'   => 'Species matches data for parent log',
+          'error'   => 'Species does not match data for parent log',
+          'warning' => 'Species class matches data for parent log but species code does not'
+        ),
+        'is_matching_operator' => array(
+          'title' => 'Operator matches data for parent log',
+          'error' => 'Operator does not match data for parent log',
+        ),
+        'is_matching_site' => array(
+          'title' => 'Site matches data for parent log',
+          'error' => 'Site does not match data for parent log',
+        )
+    )),
+//    'reliability' => array(
+//      'title'  => 'Data Reliability',
+//      'checks' => array(
+//        'is_consistent_operator' => array(
+//          'title'   => 'Operator assignments are consistent',
+//          'warning' => 'Operator assignments are inconsistent'
+//        ),
+//        'is_consistent_site' => array(
+//          'title'   => 'Site assignments are consistent',
+//          'warning' => 'Site assignments are inconsistent'
+//        ),
+//        'is_consistent_block' => array(
+//          'title'   => 'Block assignments are consistent',
+//          'warning' => 'Block assignments are inconsistent'
+//        )
+//    )),
   );
 
   protected function _initialize() {
@@ -317,32 +369,32 @@ class Model_LDF extends SGS_Form_ORM {
   }
 
   public function run_checks() {
-    $errors = array();
+    $errors   = array();
+    $warnings = array();
+
     $this->unset_errors();
     $this->unset_warnings();
 
     // warnings
-    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_matching_operator';
-    if (!($this->operator_id == $this->parent_barcode->printjob->site->operator_id)) $warnings['parent_barcode_id'][] = 'is_matching_operator';
-    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_matching_operator';
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->parent_barcode->printjob->site->operator_id)) $warnings['parent_barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_consistent_operator';
 
-    if (!($this->site_id == $this->barcode->printjob->site_id)) $warnings['barcode_id'][] = 'is_matching_site';
-    if (!($this->site_id == $this->parent_barcode->printjob->site_id)) $warnings['parent_barcode_id'][] = 'is_matching_site';
+    if (!($this->site_id == $this->barcode->printjob->site_id)) $warnings['barcode_id'][] = 'is_consistent_site';
+    if (!($this->site_id == $this->parent_barcode->printjob->site_id)) $warnings['parent_barcode_id'][] = 'is_consistent_site';
 
-    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_matching_site';
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
 
     // errors
     switch ($this->barcode->type) {
       case 'L': break;
-      case 'P': $warnings['barcode_id'][] = 'is_valid_barcode'; break;
-      default:  $errors['barcode_id'][]   = 'is_valid_barcode'; break;
+      default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
     }
 
     switch ($this->parent_barcode->type) {
       case 'F': $parent_form_type = 'TDF'; break;
       case 'L': $parent_form_type = 'LDF'; break;
-      case 'P': $warnings['parent_barcode_id'][] = 'is_valid_parent_barcode'; break;
-      default:  $errors['parent_barcode_id'][]   = 'is_valid_parent_barcode'; break;
+      default:  $errors['parent_barcode_id'][] = 'is_valid_parent_barcode'; break;
     }
 
     if ($parent_form_type) {
@@ -351,14 +403,17 @@ class Model_LDF extends SGS_Form_ORM {
         ->find();
 
       if ($parent->loaded()) {
-        if (!($this->species->class == $parent->species->class)) $errors['species_id'][]   = 'is_matching_species';
+        if ($parent->status != 'A') $errors['parent_barcode_id'][] = 'is_valid_parent';
+
+        if (!(ord($this->species->class) >= ord($parent->species->class))) $errors['species_id'][] = 'is_matching_species';
         if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][] = 'is_matching_species';
 
         if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
         if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
       }
-      else $errors['barcode_id'][] = 'is_existing_parent';
+      else $errors['parent_barcode_id'][] = 'is_existing_parent';
     }
+    else $errors['parent_barcode_id'][] = 'is_existing_parent';
 
     $length   = 0;
     $diameter = 0;
@@ -392,6 +447,11 @@ class Model_LDF extends SGS_Form_ORM {
         $warnings['bottom_min'][] = 'is_within_tolerance_diameter';
         $warnings['bottom_max'][] = 'is_within_tolerance_diameter';
       }
+    }
+
+    // all tolerance checks fail if any traceability checks fail
+    if (array_intersect($errors, array_keys(self::$checks['traceability']['checks']))) {
+      foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['parent_barcode_id'][] = $check;
     }
 
     if ($warnings) foreach ($warnings as $field => $array) {

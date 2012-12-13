@@ -144,19 +144,25 @@ $classes[] = 'data';
   <?php endif; // rows ?>
   <?php if ($options['details']): ?>
   <?php
-    $errors = SGS::flattenify($record->get_errors());
+    $errors   = SGS::flattenify($record->get_errors());
     $warnings = SGS::flattenify($record->get_warnings());
   ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td colspan="<?php echo (count($fields) + $additional_columns - $header_columns); ?>">
       <table class="details-checks">
         <tr>
-          <?php foreach ($record::$checks as $check => $description): ?>
-          <th><?php print $description; ?></th>
+          <?php
+            foreach ($record::$checks as $type => $info)
+            foreach ($info['checks'] as $check => $array):
+          ?>
+          <th><?php print $array['title']; ?></th>
           <?php endforeach; ?>
         </tr>
         <tr>
-          <?php foreach ($record::$checks as $check => $description): ?>
+          <?php
+            foreach ($record::$checks as $type => $info)
+            foreach ($info['checks'] as $check => $array):
+          ?>
           <td>
             <?php if ($record->status == 'P'): ?>
             <div class="warning">Unchecked</div>
@@ -165,7 +171,7 @@ $classes[] = 'data';
             <div class="error">Failed</div>
 
             <?php elseif (in_array($check, $warnings)): ?>
-            <div class="warning"><?php print $record::$warnings[$check]; ?></div>
+            <div class="warning"><?php print $array['warning']; ?></div>
 
             <?php else: ?>
             <div class="success">Passed</div>

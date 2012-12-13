@@ -89,7 +89,7 @@ if (!$command && !is_numeric($id)) {
     </li>
 
     <li class="<?php if ($secondary == 'files') echo 'active'; ?>"><?php echo HTML::anchor('export/files', SGS::title('export/files')); ?></li>
-    <li class="<?php if ($secondary == 'data')  echo 'active'; ?>"><?php echo HTML::anchor('export/data', SGS::title('export/data')); ?></li>
+    <!-- <li class="<?php if ($secondary == 'data')  echo 'active'; ?>"><?php echo HTML::anchor('export/data', SGS::title('export/data')); ?></li> -->
 
     <?php elseif ($primary == 'analysis'): ?>
     <li class="<?php if ($secondary == 'review') echo 'active'; ?>"><?php echo HTML::anchor('analysis/review', SGS::title('analysis/review')); ?>

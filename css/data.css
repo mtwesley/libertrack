@@ -28,7 +28,7 @@ table.details-checks {
   margin: 2px 0;
   width: 100%;
   font-size: 10px;
-  table-layout: fixed;
+  /* table-layout: fixed; */
 }
 
 table.details-checks tr {}
@@ -39,7 +39,7 @@ table.details-checks tr th {
   vertical-align: bottom;
 }
 table.details-checks tr td {
-  width: 20px;
+  width: 5%;
   padding: 2px 2px 2px 0 !important;
   vertical-align: top;
 }
@@ -52,3 +52,7 @@ table.details-checks tr td:hover {
 
 table.details-checks tr td.error-desc {}
 table.details-checks tr td.error-info {}
+
+table.data tr td.check-info {
+  width: 130px;
+}

@@ -36,12 +36,6 @@ class Controller_Import extends Controller {
         ->execute()
         ->as_array('id', 'name');
 
-//      $block_ids = DB::select('id', 'name')
-//        ->from('blocks')
-//        ->order_by('name')
-//        ->execute()
-//        ->as_array('id', 'name');
-
       $form = Formo::form()
         ->add_group('operation_type', 'checkboxes', SGS::$form_type, NULL, array('label' => 'Type'))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
@@ -66,8 +60,6 @@ class Controller_Import extends Controller {
           'site_id'     => $site_id,
           'block_id'    => $block_id,
         ));
-
-        $search = TRUE;
       }
       else {
         if ($settings = Session::instance()->get('pagination.file.list')) {
@@ -509,16 +501,10 @@ class Controller_Import extends Controller {
         ->execute()
         ->as_array('id', 'name');
 
-//      if ($has_block_id) $block_ids = DB::select('id', 'name')
-//        ->from('blocks')
-//        ->order_by('name')
-//        ->execute()
-//        ->as_array('id', 'name');
-
       $form = Formo::form();
       if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
-      if ($has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
+      if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
       $form = $form
         ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
         ->add('format', 'radios', 'filter', array(
@@ -544,7 +530,7 @@ class Controller_Import extends Controller {
         if ($has_site_id) $site_id = $form->site_id->val();
         else $operator_id = $form->operator_id->val();
 
-        if ($has_block_id) $block_id = $form->block_id->val();
+        if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
 
         $status = $form->status->val();
         $format = $form->format->val();
@@ -609,10 +595,10 @@ class Controller_Import extends Controller {
             $tempname = tempnam(sys_get_temp_dir(), strtolower($form_type).'_download_').'.'.$type;
 
             switch ($form_type) {
-              case 'SSF': $fullname = preg_replace('/\W+/', '_', ($site->name ? $site->name.'_' : '').'SSF'.($block->name ? '_'.$block->name : '')).'.'.$ext; break;
-              case 'TDF': $fullname = preg_replace('/\W+/', '_', ($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
-              case 'LDF': $fullname = preg_replace('/\W+/', '_', ($site->name ? $site->name.'_' : '').'LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
-              case 'SPECS': $fullname = preg_replace('/\W+/', '_', ($operator->tin ? $operator->tin.'_' : '').'SPECS_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
+              case 'SSF': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'SSF'.($block->name ? '_'.$block->name : '')).'.'.$ext; break;
+              case 'TDF': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
+              case 'LDF': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
+              case 'SPECS': $fullname = SGS::wordify(($operator->tin ? $operator->tin.'_' : '').'SPECS_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
             }
 
             $writer->save($tempname);
@@ -630,7 +616,7 @@ class Controller_Import extends Controller {
       elseif ($settings = Session::instance()->get('pagination.csv')) {
         if ($has_site_id)  $form->site_id->val($site_id = $settings['site_id']);
         else $form->operator_id->val($operator_id = $settings['operator_id']);
-        if ($has_block_id) $form->block_id->val($block_id = $settings['block_id']);
+        if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
         $form->status->val($status = $settings['status']);
 
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
@@ -766,7 +752,7 @@ class Controller_Import extends Controller {
             try {
               $file->save();
 
-              $tmpname = $import['tmp_name'];
+              $tempname = $import['tmp_name'];
               switch ($file->operation_type) {
                 case 'SSF':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
@@ -779,7 +765,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W+/', '_', $file->site->name.'_SSF_'.$file->block->name).'.'.$ext;
+                  $newname = SGS::wordify($file->site->name.'_SSF_'.$file->block->name).'.'.$ext;
                   break;
 
                 case 'TDF':
@@ -793,7 +779,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W+/', '_', $file->site->name.'_TDF_'.$file->block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  $newname = SGS::wordify($file->site->name.'_TDF_'.$file->block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
 
                 case 'LDF':
@@ -806,7 +792,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W+/', '_', $file->site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  $newname = SGS::wordify($file->site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
 
                 case 'SPECS':
@@ -818,7 +804,7 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = preg_replace('/\W+/', '_', 'SPECS_'.$file->operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  $newname = SGS::wordify('SPECS_'.$file->operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
               }
 
@@ -849,9 +835,9 @@ class Controller_Import extends Controller {
                 Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error', TRUE);
                 throw new Exeption();
               }
-              if (!(rename($tmpname, DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname) and chmod(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname, 0777))) {
-                throw new Exception();
+              else if (!(rename($tempname, DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname) and chmod(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname, 0777))) {
                 Notify::msg('Sorry, cannot create document. Check file operation capabilities with the site administrator and try again.', 'error', TRUE);
+                throw new Exception();
               }
 
               $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;

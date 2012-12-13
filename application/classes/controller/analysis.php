@@ -329,6 +329,17 @@ class Controller_Analysis extends Controller {
         ->find_all()
         ->as_array('id');
 
+      $data = array(
+        'checks' => array(),
+        'total'  => array(
+          'checked'   => count($records),
+          'passed'    => 0,
+          'failed'    => 0,
+          'warned'    => 0,
+          'unchecked' => 0
+        )
+      );
+
       set_time_limit(600);
       foreach ($records as $record) {
         try {
@@ -339,10 +350,34 @@ class Controller_Analysis extends Controller {
           Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
         }
 
+        $errors   = SGS::flattenify($record->get_errors());
+        $warnings = SGS::flattenify($record->get_warnings());
+
+        $check_warned = FALSE;
+        $total_warned = FALSE;
+        foreach ($record::$checks as $type => $info) {
+          foreach ($info['checks'] as $check => $array) {
+            if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['traceability']['checks']), $errors)) continue;
+            $data['checks'][$type][$check]['checked']++;
+            if (in_array($check, $errors)) $data['checks'][$type][$check]['failed']++;
+            else {
+              if (in_array($check, $warnings) and !$check_warned) {
+                $check_warned = TRUE;
+                $data['checks'][$type][$check]['warned']++;
+                if (!$total_warned) {
+                  $warned = TRUE;
+                  $data['total']['warned']++;
+                }
+              }
+              $data['checks'][$type][$check]['passed']++;
+            }
+          }
+        }
+
         switch ($record->status) {
-          case 'A': $accepted++; break;
-          case 'R': $rejected++; break;
-          default:  $unchecked++; break;
+          case 'A': $accepted++;  $data['total']['passed']++; break;
+          case 'R': $rejected++;  $data['total']['failed']++; break;
+          default:  $unchecked++; $data['total']['unchecked']++; break;
         }
 
         try {
@@ -350,25 +385,6 @@ class Controller_Analysis extends Controller {
         } catch (Exception $e) {
           $failure++;
         }
-      }
-
-      $data = array(
-        'errors'    => array(),
-        'warnings'  => array(),
-        'passed'    => $accepted,
-        'failed'    => $rejected,
-        'unchecked' => $unchecked,
-        'total'     => count($records)
-      );
-
-      if ($records) foreach (DB::select('form_data_id', 'field', 'error', 'type')
-        ->from('errors')
-        ->where('form_type', '=', $form_type)
-        ->and_where('form_data_id', 'IN', (array) array_keys($records))
-        ->execute()
-        ->as_array() as $result) switch ($result['type']) {
-            case 'W': $data['warnings'][$result['error']][] = $result['form_data_id']; break;
-            case 'E': $data['errors'][$result['error']][]   = $result['form_data_id']; break;
       }
 
       if ($accepted)  Notify::msg($accepted.' records passed checks and queries.', 'success', TRUE);
@@ -410,7 +426,6 @@ class Controller_Analysis extends Controller {
         ->set('form_type', $form_type)
         ->set('report', $data)
         ->set('checks', $model::$checks)
-        ->set('warnings', $model::$warnings)
         ->render();
     }
 
