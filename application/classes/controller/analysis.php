@@ -303,7 +303,8 @@ class Controller_Analysis extends Controller {
 
     $form = Formo::form()
       ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Type', 'required' => TRUE))
-      ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'required' => TRUE))
+      ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
+      ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
       ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
       ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add_group('status', 'checkboxes', SGS::$data_status, array('P', 'R'), array('label' => 'Status'))
@@ -313,6 +314,7 @@ class Controller_Analysis extends Controller {
       Session::instance()->delete('pagination.checks');
       $form_type = $form->form_type->val();
       $site_id   = $form->site_id->val();
+      $block_id  = $form->block_id->val();
       $status    = $form->status->val();
       $from      = $form->from->val();
       $to        = $form->to->val();
@@ -323,7 +325,9 @@ class Controller_Analysis extends Controller {
       $failure   = 0;
 
       $records = ORM::factory($form_type)
-        ->where('site_id', 'IN', (array) $site_id)
+        ->where('site_id', 'IN', (array) $site_id);
+      if ($block_id) $records = $records->and_where('block_id', 'IN', (array) $block_id);
+      $records = $records
         ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
         ->and_where('status', 'IN', (array) $status)
         ->find_all()
@@ -394,6 +398,7 @@ class Controller_Analysis extends Controller {
 
       Session::instance()->set('pagination.checks', array(
         'site_id'     => $site_id,
+        'block_id'    => $block_id,
         'status'      => $status,
         'form_type'   => $form_type,
         'from'        => $from,
@@ -403,13 +408,16 @@ class Controller_Analysis extends Controller {
     }
     else if ($settings = Session::instance()->get('pagination.checks')) {
       $form->site_id->val($site_id = $settings['site_id']);
+      $form->block_id->val($block_id = $settings['block_id']);
       $form->status->val($status = $settings['status']);
       $form->form_type->val($form_type = $settings['form_type']);
       $form->from->val($from = $settings['from']);
       $form->to->val($to = $settings['to']);
 
       $records = ORM::factory($form_type)
-        ->where('site_id', 'IN', (array) $site_id)
+        ->where('site_id', 'IN', (array) $site_id);
+      if ($block_id) $records = $records->and_where('block_id', 'IN', (array) $block_id);
+      $records = $records
         ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
         ->and_where('status', 'IN', (array) $status)
         ->find_all()
@@ -431,7 +439,9 @@ class Controller_Analysis extends Controller {
 
     if ($records) {
       $_data = ORM::factory($form_type)
-        ->where('site_id', '=', $site_id)
+        ->where('site_id', 'IN', (array) $site_id);
+      if ($block_id) $_data = $_data->and_where('block_id', 'IN', (array) $block_id);
+      $_data = $_data
         ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       $clone = clone($_data);
