@@ -673,9 +673,9 @@ class SGS {
     return ($odd ? ($odd = false) : ($odd = true)) ? 'odd' : 'even';
   }
 
-  public static function wordify($string)
+  public static function wordify($string, $allowed_characters = array())
   {
-    return preg_replace('/\W+/', '_', $string);
+    return preg_replace('/[^\w'.preg_quote(implode('', $allowed_characters)).']+/', '_', $string);
   }
 
   public static function errorify($string)
@@ -748,7 +748,7 @@ class SGS {
 
   public static function render_classes($classes)
   {
-    return implode(' ', self::wordify(array_filter((array) $classes)));
+    return implode(' ', self::wordify(array_filter((array) $classes), array('-')));
   }
 
   public static function render_styles($styles) {
