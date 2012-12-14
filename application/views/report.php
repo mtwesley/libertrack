@@ -19,13 +19,13 @@ $classes[] = 'data';
     $passed  = $report['checks'][$type][$check]['passed'] ?: 0;
     $failed  = $report['checks'][$type][$check]['failed'] ?: 0;
     $warned  = $report['checks'][$type][$check]['warned'] ?: 0;
-    $percentage = $checked ? floor($passed * 100 / $checked) : 100;
+    $percentage = $checked ? floor($passed * 100 / $checked) : 0;
   ?>
   <tr>
     <td class="type"><span class="data-type"><?php print $form_type; ?></span></td>
     <td class="status">
       <?php
-        if ($failed) print HTML::image('images/cross.png', array('class' => 'status'));
+        if ($percentage < 100) print HTML::image('images/cross.png', array('class' => 'status'));
         else if ($warned) print HTML::image('images/asterisk_yellow.png', array('class' => 'status'));
         else print HTML::image('images/check.png', array('class' => 'status'));
       ?>
