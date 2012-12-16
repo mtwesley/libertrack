@@ -4,7 +4,7 @@
     <th class="type"></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'form_type')), 'Form'); ?></th>
     <th>Fields</th>
-    <th>Accuracy Rance</th>
+    <th>Accuracy Range</th>
     <th>Tolerance Range</th>
     <th class="links"></th>
   </tr>

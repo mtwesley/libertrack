@@ -17,6 +17,11 @@ class Model_LDF extends SGS_Form_ORM {
     'user'     => array(),
   );
 
+  protected function _initialize() {
+    parent::_initialize();
+    $this->_object_plural = 'ldf';
+  }
+
   public static $type = 'LDF';
 
   public static $fields = array(
@@ -76,11 +81,6 @@ class Model_LDF extends SGS_Form_ORM {
           'error'   => 'Length does not match data for parent log',
           'warning' => 'Length matches data for parent log but is inaccurate'
         ),
-        'is_matching_diameter' => array(
-          'title'   => 'Diameter matches data for parent log',
-          'error'   => 'Diameter does not match data for parent log',
-          'warning' => 'Diameter matches data for parent log but is inaccurate'
-        ),
         'is_matching_volume' => array(
           'title'   => 'Volume matches data for parent log',
           'error'   => 'Volume does not match data for parent log',
@@ -110,18 +110,9 @@ class Model_LDF extends SGS_Form_ORM {
 //        'is_consistent_site' => array(
 //          'title'   => 'Site assignments are consistent',
 //          'warning' => 'Site assignments are inconsistent'
-//        ),
-//        'is_consistent_block' => array(
-//          'title'   => 'Block assignments are consistent',
-//          'warning' => 'Block assignments are inconsistent'
 //        )
 //    )),
   );
-
-  protected function _initialize() {
-    parent::_initialize();
-    $this->_object_plural = 'ldf';
-  }
 
   public function formo() {
     $array = array(
@@ -392,65 +383,65 @@ class Model_LDF extends SGS_Form_ORM {
     }
 
     switch ($this->parent_barcode->type) {
-      case 'F': $parent_form_type = 'TDF'; break;
-      case 'L': $parent_form_type = 'LDF'; break;
+      case 'F': break;
+      case 'L': break;
       default:  $errors['parent_barcode_id'][] = 'is_valid_parent_barcode'; break;
     }
 
-    if ($parent_form_type) {
-      $parent = ORM::factory($parent_form_type)
-        ->where('barcode_id', '=', $this->parent_barcode->id)
-        ->find();
+    $parent = $this->parent();
 
-      if ($parent->loaded()) {
-        if ($parent->status != 'A') $errors['parent_barcode_id'][] = 'is_valid_parent';
+    if ($parent and $parent->loaded()) {
+      if ($parent->status != 'A') $errors['parent_barcode_id'][] = 'is_valid_parent';
 
-        if (!(ord($this->species->class) >= ord($parent->species->class))) $errors['species_id'][] = 'is_matching_species';
-        if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][] = 'is_matching_species';
+      if (!(ord($this->species->class) >= ord($parent->species->class))) $errors['species_id'][] = 'is_matching_species';
+      if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][] = 'is_matching_species';
 
-        if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
-        if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
+      if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
+      if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
+
+      $length   = 0;
+      $diameter = 0;
+      $volume   = 0;
+
+      if ($siblings = $this->siblings()) {
+        foreach ($siblings as $child) {
+          $length   += $child->length;
+          $diameter += (($child->top_min + $child->top_max + $child->bottom_min + $child->bottom_max) / 4);
+          $volume   += $child->volume;
+        }
+
+        $diameter = $diameter / count($siblings);
+        $volume   = $volume / count($siblings);
+
+        if ($parent::$type == 'LDF') {
+          if (!Valid::meets_tolerance($volume, $parent->volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume'][] = 'is_matching_volume';
+          else if (!Valid::meets_tolerance($volume, $parent->volume, SGS::LDF_VOLUME_ACCURACY)) $warnings['volume'][] = 'is_matching_volume';
+        }
+
+        if (!Valid::meets_tolerance($length, $parent->length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_matching_length';
+        else if (!Valid::meets_tolerance($length, $parent->length, SGS::LDF_LENGTH_ACCURACY)) $warnings['length'][] = 'is_matching_length';
+
+        if (!Valid::meets_tolerance($diameter, (($parent->top_min + $parent->top_max + $parent->bottom_min + $parent->bottom_max) / 4), SGS::LDF_DIAMETER_TOLERANCE)) {
+          $errors['top_min'][] = 'is_matching_diameter';
+          $errors['top_max'][] = 'is_matching_diameter';
+          $errors['bottom_min'][] = 'is_matching_diameter';
+          $errors['bottom_max'][] = 'is_matching_diameter';
+        }
+        else if (!Valid::meets_tolerance($diameter, (($parent->top_min + $parent->top_max + $parent->bottom_min + $parent->bottom_max) / 4), SGS::LDF_DIAMETER_ACCURACY)) {
+          $warnings['top_min'][] = 'is_matching_diameter';
+          $warnings['top_max'][] = 'is_matching_diameter';
+          $warnings['bottom_min'][] = 'is_matching_diameter';
+          $warnings['bottom_max'][] = 'is_matching_diameter';
+        }
       }
-      else $errors['parent_barcode_id'][] = 'is_existing_parent';
     }
-    else $errors['parent_barcode_id'][] = 'is_existing_parent';
-
-    $length   = 0;
-    $diameter = 0;
-    $volume   = 0;
-    $children = $this->children();
-    if ($children) {
-      foreach ($children as $child) {
-        $length   += $child->length;
-        $diameter += (($child->top_min + $child->top_max + $child->bottom_min + $child->bottom_max) / 4);
-        $volume   += $child->volume;
-      }
-
-      $diameter = $diameter / count($children);
-      $volume   = $volume / count($children);
-
-      if (!Valid::meets_tolerance($this->length, $length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_within_tolerance_length';
-      else if (!Valid::meets_tolerance($this->length, $length, SGS::LDF_LENGTH_ACCURACY)) $warnings['length'][] = 'is_within_tolerance_length';
-
-      if (!Valid::meets_tolerance($this->volume, $volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume'][] = 'is_within_tolerance_volume';
-      else if (!Valid::meets_tolerance($this->volume, $volume, SGS::LDF_VOLUME_ACCURACY)) $warnings['volume'][] = 'is_within_tolerance_volume';
-
-      if (!Valid::meets_tolerance((($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4), $diameter, SGS::LDF_DIAMETER_TOLERANCE)) {
-        $errors['top_min'][] = 'is_within_tolerance_diameter';
-        $errors['top_max'][] = 'is_within_tolerance_diameter';
-        $errors['bottom_min'][] = 'is_within_tolerance_diameter';
-        $errors['bottom_max'][] = 'is_within_tolerance_diameter';
-      }
-      else if (!Valid::meets_tolerance((($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4), $diameter, SGS::LDF_DIAMETER_ACCURACY)) {
-        $warnings['top_min'][] = 'is_within_tolerance_diameter';
-        $warnings['top_max'][] = 'is_within_tolerance_diameter';
-        $warnings['bottom_min'][] = 'is_within_tolerance_diameter';
-        $warnings['bottom_max'][] = 'is_within_tolerance_diameter';
-      }
+    else {
+      $errors['parent_barcode_id'][] = 'is_existing_parent';
+      $errors['parent_barcode_id'][] = 'is_valid_parent';
     }
 
     // all tolerance checks fail if any traceability checks fail
-    if (array_intersect($errors, array_keys(self::$checks['traceability']['checks']))) {
+    if (array_intersect(SGS::flattenify($errors), array_keys(self::$checks['traceability']['checks']))) {
       foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['parent_barcode_id'][] = $check;
     }
 
@@ -546,10 +537,11 @@ class Model_LDF extends SGS_Form_ORM {
     );
   }
 
-  public function children() {
+  public function siblings() {
     $sql = "SELECT barcode_id
             FROM barcode_hops_cached
-            WHERE parent_id = $this->barcode_id";
+            WHERE parent_id = $this->parent_barcode_id
+              AND hops = 1";
 
     return ORM::factory('LDF')
       ->where('barcode_id', 'IN', DB::expr("($sql)"))
@@ -557,10 +549,44 @@ class Model_LDF extends SGS_Form_ORM {
       ->as_array();
   }
 
-  public function parents() {
+  public function children($hops = array()) {
+    $sql = "SELECT barcode_id
+            FROM barcode_hops_cached
+            WHERE parent_id = $this->barcode_id
+              AND hops = 1";
+
+    return ORM::factory('LDF')
+      ->where('barcode_id', 'IN', DB::expr("($sql)"))
+      ->find_all()
+      ->as_array();
+  }
+
+  public function childrens($hops = array()) {
+    $sql = "SELECT barcode_id
+            FROM barcode_hops_cached
+            WHERE parent_id = $this->barcode_id";
+    if ($hops) $sql .= " AND hops IN (".implode(',', $hops).")";
+
+    return ORM::factory('LDF')
+      ->where('barcode_id', 'IN', DB::expr("($sql)"))
+      ->find_all()
+      ->as_array();
+  }
+
+  public function parents($hops = array()) {
     $sql = "SELECT parent_id
             FROM barcode_hops_cached
             WHERE barcode_id = $this->barcode_id";
+    if ($hops) $sql .= " AND hops IN (".implode(',', $hops).")";
+
+    return ORM::factory('LDF')
+        ->where('barcode_id', 'IN', DB::expr("($sql)"))
+        ->find_all()
+        ->as_array() +
+      ORM::facotry('TDF')
+        ->where('barcode_id', 'IN', DB::expr("($sql)"))
+        ->find_all()
+        ->as_array();
   }
 
   public function parent() {

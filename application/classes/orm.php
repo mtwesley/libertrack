@@ -28,8 +28,15 @@ class ORM extends Kohana_ORM {
 
     if (md5(serialize($new)) != md5(serialize($old))) switch ($this->_object_name) {
       case 'user': case 'tolerance': return;
-      default: DB::insert('revisions', array('model', 'model_id', 'data', 'user_id'))
-        ->values(array($this->_object_name, $this->id, $data, Auth::instance()->get_user()->id ?: 1))
+      default: DB::insert('revisions', array('model', 'model_id', 'data', 'url', 'user_id', 'session_id',))
+        ->values(array(
+          $this->_object_name,
+          $this->id,
+          $data,
+          Request::current()->url().URL::query(),
+          Auth::instance()->get_user()->id ?: 1,
+          DB::select('id')->from('sessions')->where('cookie', '=', Session::instance()->id())->execute()->get('id')
+        ))
         ->execute();
     }
   }

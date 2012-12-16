@@ -131,8 +131,8 @@ $classes[] = 'data';
     </td>
     <?php endforeach; ?>
     <td class="links">
-      <?php if ($options['links']): ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
+      <?php if ($options['links']): ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
       <?php endif; // links ?>

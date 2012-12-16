@@ -210,6 +210,226 @@ class Controller_Analysis extends Controller {
     $this->response->body($view);
   }
 
+  private function handle_checks($form_type) {
+    if (!Request::$current->query()) Session::instance()->delete('pagination.checks');
+
+    $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
+    $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
+
+    if ($has_site_id) $site_ids = DB::select('id', 'name')
+      ->from('sites')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+    else $operator_ids = DB::select('id', 'name')
+      ->from('operators')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    $form = Formo::form();
+    if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
+    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
+    if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
+    $form = $form
+      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
+      ->add_group('status', 'checkboxes', SGS::$data_status, array('P', 'R'), array('label' => 'Status'))
+      ->add('submit', 'submit', 'Run');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      Session::instance()->delete('pagination.checks');
+      if ($has_site_id) $site_id = $form->site_id->val();
+      else $operator_id = $form->operator_id->val();
+      if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
+
+      $status    = $form->status->val();
+      $from      = $form->from->val();
+      $to        = $form->to->val();
+
+      $rejected  = 0;
+      $accepted  = 0;
+      $unchecked = 0;
+      $failure   = 0;
+
+      $records = ORM::factory($form_type);
+      if ($operator_id) $records  = $records->where('operator_id', 'IN', (array) $operator_id);
+      if ($site_id)     $records  = $records->where('site_id', 'IN', (array) $site_id);
+      if ($block_id)    $records = $records->and_where('block_id', 'IN', (array) $block_id);
+      $records = $records
+        ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
+        ->and_where('status', 'IN', (array) $status)
+        ->find_all()
+        ->as_array('id');
+
+      $data = array(
+        'checks' => array(),
+        'total'  => array(
+          'checked'   => count($records),
+          'passed'    => 0,
+          'failed'    => 0,
+          'warned'    => 0,
+          'unchecked' => 0
+        )
+      );
+
+      set_time_limit(600);
+      foreach ($records as $record) {
+        try {
+          $record->run_checks();
+        } catch (ORM_Validation_Exception $e) {
+          foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
+        } catch (Exception $e) {
+          Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
+        }
+
+        $errors   = SGS::flattenify($record->get_errors());
+        $warnings = SGS::flattenify($record->get_warnings());
+
+        $check_warned = FALSE;
+        $total_warned = FALSE;
+        foreach ($record::$checks as $type => $info) {
+          foreach ($info['checks'] as $check => $array) {
+            if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['traceability']['checks']), $errors)) continue;
+            $data['checks'][$type][$check]['checked']++;
+            if (in_array($check, $errors)) $data['checks'][$type][$check]['failed']++;
+            else {
+              if (in_array($check, $warnings) and !$check_warned) {
+                $check_warned = TRUE;
+                $data['checks'][$type][$check]['warned']++;
+                if (!$total_warned) {
+                  $warned = TRUE;
+                  $data['total']['warned']++;
+                }
+              }
+              $data['checks'][$type][$check]['passed']++;
+            }
+          }
+        }
+
+        switch ($record->status) {
+          case 'A': $accepted++;  $data['total']['passed']++; break;
+          case 'R': $rejected++;  $data['total']['failed']++; break;
+          default:  $unchecked++; $data['total']['unchecked']++; break;
+        }
+
+        try {
+          $record->save();
+        } catch (Exception $e) {
+          $failure++;
+        }
+      }
+
+      if ($accepted)  Notify::msg($accepted.' records passed checks and queries.', 'success', TRUE);
+      if ($rejected)  Notify::msg($rejected.' records failed checks and queries.', 'error', TRUE);
+      if ($unchecked) Notify::msg($unchecked.' records unchecked.', 'warning', TRUE);
+      if ($failure)   Notify::msg($failure.' records could not be accessed.', 'error', TRUE);
+
+      Session::instance()->set('pagination.checks', array(
+        'operator_id' => $operator_id,
+        'site_id'     => $site_id,
+        'block_id'    => $block_id,
+        'status'      => $status,
+        'form_type'   => $form_type,
+        'from'        => $from,
+        'to'          => $to,
+        'data'        => $data,
+      ));
+    }
+    else if ($settings = Session::instance()->get('pagination.checks')) {
+      if ($has_site_id)  $form->site_id->val($site_id = $settings['site_id']);
+      else $form->operator_id->val($operator_id = $settings['operator_id']);
+      if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
+      $form->status->val($status = $settings['status']);
+      $form->form_type->val($form_type = $settings['form_type']);
+      $form->from->val($from = $settings['from']);
+      $form->to->val($to = $settings['to']);
+
+      $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
+      $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
+
+      $data = $settings['data'];
+    }
+
+    if ($data) {
+      $model  = ORM::factory($form_type);
+      $report = View::factory('report')
+        ->set('from', $from)
+        ->set('to', $to)
+        ->set('form_type', $form_type)
+        ->set('report', $data)
+        ->set('checks', $model::$checks)
+        ->render();
+
+      $_data = ORM::factory($form_type);
+      if ($has_site_id) $_data = $_data->where('site_id', 'IN', (array) $site_id);
+      else $_data = $_data->where('operator_id', 'IN', (array) $operator_id);
+      if ($has_site_id and $has_block_id) $_data = $_data->and_where('block_id', 'IN', (array) $block_id);
+      $_data = $_data
+        ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
+        ->and_where('status', 'IN', (array) $status);
+
+      $clone = clone($_data);
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 50,
+        'total_items' => $clone->find_all()->count()));
+
+      $_data = $_data
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $_data->order_by($sort);
+      $_data = $_data->order_by('status')
+        ->find_all()
+        ->as_array();
+
+      $operator = ORM::factory('operator', $operator_id ?: NULL);
+      $site     = ORM::factory('site', $site_id ?: NULL);
+      $block    = ORM::factory('block', $block_id ?: NULL);
+
+      $header = View::factory('data')
+        ->set('form_type', $form_type)
+        ->set('data', $_data)
+        ->set('operator', $operator->loaded() ? $operator : NULL)
+        ->set('site', $site->loaded() ? $site : NULL)
+        ->set('block', $block->loaded() ? $block : NULL)
+        ->set('options', array(
+          'table'   => FALSE,
+          'rows'    => FALSE,
+          'actions' => FALSE,
+          'header'  => TRUE,
+          'details' => FALSE,
+          'links'   => FALSE
+        ))
+        ->render();
+
+      $table = View::factory('data')
+        ->set('classes', array('has-pagination'))
+        ->set('form_type', $form_type)
+        ->set('data', $_data)
+        ->set('operator', $operator->loaded() ? $operator : NULL)
+        ->set('site', $site->loaded() ? $site : NULL)
+        ->set('block', $block->loaded() ? $block : NULL)
+        ->set('options', array(
+          'hide_header_info' => TRUE,
+          'header'  => FALSE,
+          'details' => TRUE,
+          'links'   => FALSE,
+        ))
+        ->render();
+    }
+
+    if ($form)   $content .= $form;
+    if ($header) $content .= $header;
+    if ($report) $content .= $report;
+    if ($table)  {
+      $content .= $table;
+      $content .= $pagination;
+    }
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
   public function action_index() {
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -294,205 +514,10 @@ class Controller_Analysis extends Controller {
   }
 
   public function action_checks() {
-    if (!Request::$current->query()) Session::instance()->delete('pagination.checks');
-    $site_ids = DB::select('id', 'name')
-      ->from('sites')
-      ->order_by('name')
-      ->execute()
-      ->as_array('id', 'name');
+    $form_type = strtoupper($this->request->param('id'));
+    $id        = $this->request->param('command');
 
-    $form = Formo::form()
-      ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Type', 'required' => TRUE))
-      ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
-      ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
-      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
-      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
-      ->add_group('status', 'checkboxes', SGS::$data_status, array('P', 'R'), array('label' => 'Status'))
-      ->add('submit', 'submit', 'Run');
-
-    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      Session::instance()->delete('pagination.checks');
-      $form_type = $form->form_type->val();
-      $site_id   = $form->site_id->val();
-      $block_id  = $form->block_id->val();
-      $status    = $form->status->val();
-      $from      = $form->from->val();
-      $to        = $form->to->val();
-
-      $rejected  = 0;
-      $accepted  = 0;
-      $unchecked = 0;
-      $failure   = 0;
-
-      $records = ORM::factory($form_type)
-        ->where('site_id', 'IN', (array) $site_id);
-      if ($block_id) $records = $records->and_where('block_id', 'IN', (array) $block_id);
-      $records = $records
-        ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-        ->and_where('status', 'IN', (array) $status)
-        ->find_all()
-        ->as_array('id');
-
-      $data = array(
-        'checks' => array(),
-        'total'  => array(
-          'checked'   => count($records),
-          'passed'    => 0,
-          'failed'    => 0,
-          'warned'    => 0,
-          'unchecked' => 0
-        )
-      );
-
-      set_time_limit(600);
-      foreach ($records as $record) {
-        try {
-          $record->run_checks();
-        } catch (ORM_Validation_Exception $e) {
-          foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
-        } catch (Exception $e) {
-          Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
-        }
-
-        $errors   = SGS::flattenify($record->get_errors());
-        $warnings = SGS::flattenify($record->get_warnings());
-
-        $check_warned = FALSE;
-        $total_warned = FALSE;
-        foreach ($record::$checks as $type => $info) {
-          foreach ($info['checks'] as $check => $array) {
-            if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['traceability']['checks']), $errors)) continue;
-            $data['checks'][$type][$check]['checked']++;
-            if (in_array($check, $errors)) $data['checks'][$type][$check]['failed']++;
-            else {
-              if (in_array($check, $warnings) and !$check_warned) {
-                $check_warned = TRUE;
-                $data['checks'][$type][$check]['warned']++;
-                if (!$total_warned) {
-                  $warned = TRUE;
-                  $data['total']['warned']++;
-                }
-              }
-              $data['checks'][$type][$check]['passed']++;
-            }
-          }
-        }
-
-        switch ($record->status) {
-          case 'A': $accepted++;  $data['total']['passed']++; break;
-          case 'R': $rejected++;  $data['total']['failed']++; break;
-          default:  $unchecked++; $data['total']['unchecked']++; break;
-        }
-
-        try {
-          $record->save();
-        } catch (Exception $e) {
-          $failure++;
-        }
-      }
-
-      if ($accepted)  Notify::msg($accepted.' records passed checks and queries.', 'success', TRUE);
-      if ($rejected)  Notify::msg($rejected.' records failed checks and queries.', 'error', TRUE);
-      if ($unchecked) Notify::msg($unchecked.' records unchecked.', 'warning', TRUE);
-      if ($failure)   Notify::msg($failure.' records could not be accessed.', 'error', TRUE);
-
-      Session::instance()->set('pagination.checks', array(
-        'site_id'     => $site_id,
-        'block_id'    => $block_id,
-        'status'      => $status,
-        'form_type'   => $form_type,
-        'from'        => $from,
-        'to'          => $to,
-        'data'        => $data,
-      ));
-    }
-    else if ($settings = Session::instance()->get('pagination.checks')) {
-      $form->site_id->val($site_id = $settings['site_id']);
-      $form->block_id->val($block_id = $settings['block_id']);
-      $form->status->val($status = $settings['status']);
-      $form->form_type->val($form_type = $settings['form_type']);
-      $form->from->val($from = $settings['from']);
-      $form->to->val($to = $settings['to']);
-
-      $records = ORM::factory($form_type)
-        ->where('site_id', 'IN', (array) $site_id);
-      if ($block_id) $records = $records->and_where('block_id', 'IN', (array) $block_id);
-      $records = $records
-        ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-        ->and_where('status', 'IN', (array) $status)
-        ->find_all()
-        ->as_array('id');
-
-      $data = $settings['data'];
-    }
-
-    if ($data) {
-      $model  = ORM::factory($form_type);
-      $report = View::factory('report')
-        ->set('from', $from)
-        ->set('to', $to)
-        ->set('form_type', $form_type)
-        ->set('report', $data)
-        ->set('checks', $model::$checks)
-        ->render();
-    }
-
-    if ($records) {
-      $_data = ORM::factory($form_type)
-        ->where('site_id', 'IN', (array) $site_id);
-      if ($block_id) $_data = $_data->and_where('block_id', 'IN', (array) $block_id);
-      $_data = $_data
-        ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
-
-      $clone = clone($_data);
-      $pagination = Pagination::factory(array(
-        'items_per_page' => 50,
-        'total_items' => $clone->find_all()->count()));
-
-      $_data = $_data
-        ->offset($pagination->offset)
-        ->limit($pagination->items_per_page);
-      if ($sort = $this->request->query('sort')) $_data->order_by($sort);
-      $_data = $_data->order_by('status')
-        ->find_all()
-        ->as_array();
-
-      $site  = ORM::factory('site', $site_id);
-      $header = View::factory('data')
-        ->set('form_type', $form_type)
-        ->set('data', $_data)
-        ->set('site', $site->loaded() ? $site : NULL)
-        ->set('options', array(
-          'table'   => FALSE,
-          'rows'    => FALSE,
-          'actions' => FALSE,
-          'header'  => TRUE,
-          'details' => FALSE,
-          'links'   => FALSE
-        ))
-        ->render();
-
-      $table = View::factory('data')
-        ->set('classes', array('has-pagination'))
-        ->set('form_type', $form_type)
-        ->set('data', $_data)
-        ->set('site', $site->loaded() ? $site : NULL)
-        ->set('options', array(
-          'hide_header_info' => TRUE,
-          'header'  => FALSE,
-          'details' => TRUE,
-          'links'   => FALSE,
-        ))
-        ->render();
-    }
-
-    if ($form)   $content .= $form;
-    if ($header) $content .= $header;
-    if ($report) $content .= $report;
-    if ($table)  {
-      $content .= $table;
-      $content .= $pagination;
-    }
+    if ($form_type) return self::handle_checks($form_type);
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

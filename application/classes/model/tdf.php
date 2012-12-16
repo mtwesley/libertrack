@@ -21,6 +21,12 @@ class Model_TDF extends SGS_Form_ORM {
     'user'     => array(),
   );
 
+  protected function _initialize()
+  {
+    parent::_initialize();
+    $this->_object_plural = 'tdf';
+  }
+
   public static $type = 'TDF';
 
   public static $fields = array(
@@ -133,12 +139,6 @@ class Model_TDF extends SGS_Form_ORM {
   public static function fields()
   {
     return (array) self::$fields;
-  }
-
-  protected function _initialize()
-  {
-    parent::_initialize();
-    $this->_object_plural = 'tdf';
   }
 
   public function formo() {
@@ -463,8 +463,15 @@ class Model_TDF extends SGS_Form_ORM {
       ->find();
 
     if ($parent->loaded()) {
-      // tolerance
       if ($parent->status != 'A') $errors['tree_barcode_id'][] = 'is_valid_parent';
+
+      if (!(ord($this->species->class) >= ord($parent->species->class))) $errors['species_id'][] = 'is_matching_species';
+      if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][]  = 'is_matching_species';
+      if (!($this->survey_line    == $parent->survey_line))    $warnings['survey_line'][] = 'is_matching_survey_line';
+
+      if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
+      if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
+      if (!($this->block_id    == $parent->block_id))    $errors['block_id'][]    = 'is_matching_block';
 
       if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_TOLERANCE)) $errors['survey_line'][] = 'is_matching_survey_line';
       else if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_ACCURACY)) $warnings['survey_line'][] = 'is_matching_survey_line';
@@ -480,19 +487,14 @@ class Model_TDF extends SGS_Form_ORM {
         $warnings['bottom_min'][] = 'is_matching_diameter';
         $warnings['bottom_max'][] = 'is_matching_diameter';
       }
-
-      if (!(ord($this->species->class) >= ord($parent->species->class))) $errors['species_id'][] = 'is_matching_species';
-      if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][]  = 'is_matching_species';
-      if (!($this->survey_line    == $parent->survey_line))    $warnings['survey_line'][] = 'is_matching_survey_line';
-
-      if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
-      if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
-      if (!($this->block_id    == $parent->block_id))    $errors['block_id'][]    = 'is_matching_block';
     }
-    else $errors['tree_barcode_id'][] = 'is_existing_parent';
+    else {
+      $errors['tree_barcode_id'][] = 'is_existing_parent';
+      $errors['tree_barcode_id'][] = 'is_valid_parent';
+    }
 
     // all tolerance checks fail if any traceability checks fail
-    if (array_intersect($errors, array_keys(self::$checks['traceability']['checks']))) {
+    if (array_intersect(SGS::flattenify($errors), array_keys(self::$checks['traceability']['checks']))) {
       foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['tree_barcode_id'][] = $check;
     }
 

@@ -15,6 +15,12 @@ class Model_SSF extends SGS_Form_ORM {
     'user'     => array(),
   );
 
+  protected function _initialize()
+  {
+    parent::_initialize();
+    $this->_object_plural = 'ssf';
+  }
+
   public static $type = 'SSF';
 
   public static $fields = array(
@@ -64,12 +70,6 @@ class Model_SSF extends SGS_Form_ORM {
   public static function fields()
   {
     return (array) self::$fields;
-  }
-
-  protected function _initialize()
-  {
-    parent::_initialize();
-    $this->_object_plural = 'ssf';
   }
 
   public function formo() {

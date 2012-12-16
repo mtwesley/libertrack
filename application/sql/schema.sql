@@ -330,7 +330,10 @@ create table csv_revisions (
   id bigserial not null,
   csv_id b_id not null,
   csv_data d_text_long,
+  url d_text_long,
   user_id d_id default 1 not null,
+  session_id d_id default 1 not null,
+
   timestamp d_timestamp default current_timestamp not null,
 
   constraint csv_revisions_pkey primary key (id),

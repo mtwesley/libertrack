@@ -14,7 +14,7 @@ class Formo_Driver_Form extends Formo_Core_Driver_Form {
 		( ! $this->_view->attr('method') AND $this->_view->attr('method', 'post'));
 
 		// If it's not already defined, define the field's action
-		( ! $this->_view->attr('action') AND $this->_view->attr('action', Request::$current->url()));
+		( ! $this->_view->attr('action') AND $this->_view->attr('action', Request::current()->query('destination') ? '' : Request::current()->url()));
 	}
 
 }
