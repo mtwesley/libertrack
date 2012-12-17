@@ -147,13 +147,13 @@ class Controller_Invoices extends Controller {
       ->add('delete', 'submit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-//      try {
+      try {
         $invoice->delete();
         if ($invoice->loaded()) throw new Exception();
-//        Notify::msg('Draft invoice successfully deleted.', 'success', TRUE);
-//      } catch (Exception $e) {
-//        Notify::msg('Draft invoice failed to be deleted.', 'error', TRUE);
-//      }
+        Notify::msg('Draft invoice successfully deleted.', 'success', TRUE);
+      } catch (Exception $e) {
+        Notify::msg('Draft invoice failed to be deleted.', 'error', TRUE);
+      }
 
       $this->request->redirect('invoices');
     }
@@ -182,8 +182,29 @@ class Controller_Invoices extends Controller {
     return self::handle_invoice_list($id);
   }
 
-  private function generate_st_invoice($invoice, $data_ids = array()) {
-    if (!$data_ids) {
+  private function generate_st_preview($data_ids) {
+    $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
+      ->from('ldf_data')
+      ->join('species')
+      ->on('species_id', '=', 'species.id')
+      ->where('ldf_data.id', 'IN', (array) $data_ids)
+      ->group_by('species_code', 'species_class', 'fob_price')
+      ->execute()
+      ->as_array();
+
+    foreach ($data as $record) {
+      foreach ($record as $key => $value) $total[$key] += $value;
+      $total['total'] += $record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']];
+    }
+
+    return View::factory('invoices/st_summary')
+      ->set('data', $data)
+      ->set('total', array('summary' => $total))
+      ->render();
+  }
+
+  private function generate_st_invoice($invoice) {
+    if (!$data_ids = $invoice->get_data()) {
       Notify::msg('No data found. Unable to generate invoice.', 'warning');
       return FALSE;
     }
@@ -405,7 +426,7 @@ class Controller_Invoices extends Controller {
       ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add('created', 'input', SGS::date('now', SGS::US_DATE_FORMAT), array('label' => 'Date Created', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'created-dpicker')))
       ->add('due', 'input', SGS::date('now + 30 days', SGS::US_DATE_FORMAT), array('label' => 'Date Due', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'due-dpicker')))
-      ->add('format', 'radios', array(
+      ->add('format', 'radios', 'preview', array(
         'options' => array(
           'preview' => 'Preview',
           'draft'   => 'Draft Copy',
@@ -485,12 +506,35 @@ class Controller_Invoices extends Controller {
             else Notify::msg('No records found');
 
             $site  = ORM::factory('site', $site_id);
+
+            switch ($type) {
+              case 'ST': $summary = self::generate_st_preview((array) $ids);
+            }
+
+            $header = View::factory('data')
+              ->set('form_type', $form_type)
+              ->set('data', $data)
+              ->set('site', $site)
+              ->set('options', array(
+                'table'   => FALSE,
+                'rows'    => FALSE,
+                'actions' => FALSE,
+                'header'  => TRUE,
+                'details' => FALSE,
+                'links'   => FALSE
+              ))
+              ->render();
+
             $table = View::factory('data')
               ->set('classes', array('has-pagination'))
               ->set('form_type', $form_type)
               ->set('data', $data)
               ->set('site', $site)
-              ->set('options', array('links' => FALSE))
+              ->set('options', array(
+                'links'  => FALSE,
+                'header' => FALSE,
+                'hide_header_info' => TRUE
+              ))
               ->render();
             break;
 
@@ -537,6 +581,8 @@ class Controller_Invoices extends Controller {
     }
 
     if ($form) $content .= $form;
+    $content .= $header;
+    $content .= $summary;
     $content .= $table;
     $content .= $pagination;
 

@@ -309,6 +309,10 @@
   white-space: nowrap;
 }
 
+#content table.data td.split-row {
+  border-top: none !important;
+}
+
 #content table.data td span.data-type {
   padding: 2px 4px 1px;
   background-color: #e5dbcc;
