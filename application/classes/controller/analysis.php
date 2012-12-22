@@ -275,16 +275,19 @@ class Controller_Analysis extends Controller {
 
       set_time_limit(600);
       foreach ($records as $record) {
+        $errors   = array();
+        $warnings = array();
+
         try {
-          $record->run_checks();
+          list($errors, $warnings) = $record->run_checks();
         } catch (ORM_Validation_Exception $e) {
           foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
         } catch (Exception $e) {
           Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
         }
 
-        $errors   = SGS::flattenify($record->get_errors());
-        $warnings = SGS::flattenify($record->get_warnings());
+        $errors   = SGS::flattenify($errors);
+        $warnings = SGS::flattenify($warnings);
 
         $check_warned = FALSE;
         $total_warned = FALSE;

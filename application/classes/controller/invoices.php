@@ -203,8 +203,8 @@ class Controller_Invoices extends Controller {
       ->render();
   }
 
-  private function generate_st_invoice($invoice) {
-    if (!$data_ids = $invoice->get_data()) {
+  private function generate_st_invoice($invoice, $data_ids = array()) {
+    if (!($data_ids ?: $invoice->get_data())) {
       Notify::msg('No data found. Unable to generate invoice.', 'warning');
       return FALSE;
     }
@@ -472,7 +472,7 @@ class Controller_Invoices extends Controller {
             ->and_where('barcodes.type', '=', 'F')
             ->and_where('invoice_data.form_data_id', '=', NULL)
             ->execute()
-            ->as_array();
+            ->as_array(NULL, 'id');
           break;
       }
 
@@ -507,9 +507,8 @@ class Controller_Invoices extends Controller {
 
             $site  = ORM::factory('site', $site_id);
 
-            switch ($type) {
-              case 'ST': $summary = self::generate_st_preview((array) $ids);
-            }
+            $func = strtolower('generate_'.$type.'_preview');
+            $summary = self::$func((array) $ids);
 
             $header = View::factory('data')
               ->set('form_type', $form_type)

@@ -458,6 +458,8 @@ class Model_LDF extends SGS_Form_ORM {
     else $this->status = 'A';
 
     $this->save();
+
+    return array($errors, $warnings);
   }
 
   public static function fields()

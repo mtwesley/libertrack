@@ -510,6 +510,8 @@ class Model_TDF extends SGS_Form_ORM {
     } else $this->status = 'A';
 
     $this->save();
+
+    return array($errors, $warnings);
   }
 
   public function rules()
