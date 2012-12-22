@@ -241,7 +241,7 @@ class Controller_Invoices extends Controller {
     }
 
     $details_page_count = 0;
-    $details_page_max   = 35;
+    $details_page_max   = 34;
 
     foreach ($details_data as $code => $records) {
       $details_page_count += ceil(count($records) / $details_page_max);
