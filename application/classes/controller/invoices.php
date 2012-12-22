@@ -541,6 +541,7 @@ class Controller_Invoices extends Controller {
           case 'draft':
             $is_draft = TRUE;
           case 'final':
+
             set_time_limit(600);
             $invoice = ORM::factory('invoice');
             $invoice->site = $site;
