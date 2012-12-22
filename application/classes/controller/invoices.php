@@ -367,6 +367,7 @@ class Controller_Invoices extends Controller {
     try {
       $snappy = new \Knp\Snappy\Pdf();
       $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
         'margin-bottom' => 25,
         'margin-left' => 0,
         'margin-right' => 0,
