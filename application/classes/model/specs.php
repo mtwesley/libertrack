@@ -552,7 +552,6 @@ class Model_SPECS extends SGS_Form_ORM {
       'contract_number'  => self::$fields['contract_number'],
       'origin'           => self::$fields['origin'],
       'destination'      => self::$fields['destination'],
-      'barcode'          => self::$fields['barcode'],
       'bottom_max'       => self::$fields['bottom_max'],
       'bottom_min'       => self::$fields['bottom_min'],
       'top_max'          => self::$fields['top_max'],
