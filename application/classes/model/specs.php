@@ -427,11 +427,6 @@ class Model_SPECS extends SGS_Form_ORM {
     if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
     if (!($this->operator_id == $this->specs_barcode->printjob->site->operator_id)) $warnings['specs_barcode_id'][] = 'is_consistent_operator';
     if (!($this->operator_id == $this->epr_barcode->printjob->site->operator_id)) $warnings['epr_barcode_id'][] = 'is_consistent_operator';
-    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_consistent_operator';
-
-    if (!($this->site_id == $this->barcode->printjob->site_id)) $warnings['barcode_id'][] = 'is_consistent_site';
-    if (!($this->site_id == $this->specs_barcode->printjob->site_id)) $warnings['specs_barcode_id'][] = 'is_consistent_site';
-    if (!($this->site_id == $this->epr_barcode->printjob->site_id)) $warnings['epr_barcode_id'][] = 'is_consistent_site';
 
     if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
 
@@ -452,7 +447,6 @@ class Model_SPECS extends SGS_Form_ORM {
       if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][] = 'is_matching_species';
 
       if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
-      if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
 
       if (!Valid::meets_tolerance($this->volume, $parent->volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume'][] = 'is_matching_volume';
       else if (!Valid::meets_tolerance($this->volume, $parent->volume, SGS::LDF_VOLUME_ACCURACY)) $warnings['volume'][] = 'is_matching_volume';
@@ -556,7 +550,6 @@ class Model_SPECS extends SGS_Form_ORM {
     return array(
       'create_date'     => self::$fields['create_date'],
       'operator_id'     => 'Operator',
-      'site_id'         => 'Site',
       'block_id'        => 'Block',
       'species_id'      => 'Species',
       'barcode_id'      => self::$fields['barcode'],

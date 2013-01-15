@@ -344,7 +344,6 @@ class Controller_Analysis extends Controller {
       else $form->operator_id->val($operator_id = $settings['operator_id']);
       if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
       $form->status->val($status = $settings['status']);
-      $form->form_type->val($form_type = $settings['form_type']);
       $form->from->val($from = $settings['from']);
       $form->to->val($to = $settings['to']);
 
