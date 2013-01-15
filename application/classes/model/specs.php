@@ -460,9 +460,9 @@ class Model_SPECS extends SGS_Form_ORM {
       $errors['barcode_id'][] = 'is_existing_parent';
       $errors['barcode_id'][] = 'is_valid_parent';
     }
-    
+
     // payment
-    
+
     if (!$ldf->is_invoiced('st')) $errors['barcode_id'][] = 'is_invoiced_st';
 
     // all tolerance checks fail if any traceability checks fail
@@ -543,17 +543,22 @@ class Model_SPECS extends SGS_Form_ORM {
     return array(
       'create_date'     => self::$fields['create_date'],
       'operator_id'     => 'Operator',
-      'block_id'        => 'Block',
       'species_id'      => 'Species',
       'barcode_id'      => self::$fields['barcode'],
-      'survey_line'     => self::$fields['survey_line'],
-      'cell_number'     => self::$fields['cell_number'],
-      'tree_map_number' => self::$fields['tree_map_number'],
-      'diameter'        => self::$fields['diameter'],
-      'height'          => self::$fields['height'],
-      'is_requested'    => self::$fields['is_requested'],
-      'is_fda_approved' => self::$fields['is_fda_approved'],
-      'fda_remarks'     => self::$fields['fda_remarks'],
+      'contract_number' => self::$fields['contract_number'],
+      'origin'          => self::$fields['origin'],
+      'destination'     => self::$fields['destination'],
+      'specs_barcode'   => self::$fields['specs_barcode'],
+      'epr_barcode'     => self::$fields['epr_barcode'],
+      'barcode'         => self::$fields['barcode'],
+      'species_code'    => self::$fields['species_code'],
+      'bottom_max'      => self::$fields['bottom_max'],
+      'bottom_min'      => self::$fields['bottom_min'],
+      'top_max'         => self::$fields['top_max'],
+      'top_min'         => self::$fields['top_min'],
+      'length'          => self::$fields['length'],
+      'grade'           => self::$fields['grade'],
+      'volume'          => self::$fields['volume'],
 //      'user_id'         => self::$fields['user_id'],
 //      'timestamp'       => self::$fields['timestamp'],
     );
