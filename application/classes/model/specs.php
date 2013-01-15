@@ -443,13 +443,15 @@ class Model_SPECS extends SGS_Form_ORM {
       if (!Valid::meets_tolerance($this->length, $ldf->length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_matching_length';
       else if (!Valid::meets_tolerance($this->length, $ldf->length, SGS::LDF_LENGTH_ACCURACY)) $warnings['length'][] = 'is_matching_length';
 
-      if (!Valid::meets_tolerance($this->diameter, (($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_TOLERANCE)) {
+      $diameter = ($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4;
+
+      if (!Valid::meets_tolerance($diameter, (($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_TOLERANCE)) {
         $errors['top_min'][] = 'is_matching_diameter';
         $errors['top_max'][] = 'is_matching_diameter';
         $errors['bottom_min'][] = 'is_matching_diameter';
         $errors['bottom_max'][] = 'is_matching_diameter';
       }
-      else if (!Valid::meets_tolerance($this->diameter, (($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_ACCURACY)) {
+      else if (!Valid::meets_tolerance($diameter, (($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_ACCURACY)) {
         $warnings['top_min'][] = 'is_matching_diameter';
         $warnings['top_max'][] = 'is_matching_diameter';
         $warnings['bottom_min'][] = 'is_matching_diameter';
