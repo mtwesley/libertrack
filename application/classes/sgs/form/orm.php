@@ -95,4 +95,15 @@ class SGS_Form_ORM extends ORM {
       ->values(array(static::$type, $this->id, $field, $warning, 'W'))
       ->execute();
   }
+
+  public function is_invoiced($type) {
+    return (bool) DB::select('invoice.id')
+      ->from('invoices')
+      ->join('invoice_data')
+      ->on('invoices.id', '=', 'invoice_data.invoice_id')
+      ->where('form_type', '=', static::$type)
+      ->and_where('form_data_id', '=', $this->id)
+      ->and_where('invoices.type', '=', $type);
+  }
+
 }

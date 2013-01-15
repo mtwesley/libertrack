@@ -81,10 +81,10 @@ class Model_SPECS extends SGS_Form_ORM {
     'tolerance' => array(
       'title'  => 'Tolerance',
       'checks' => array(
-        'is_matching_diameter' => array(
-          'title'   => 'Diameter matches data for LDF',
-          'error'   => 'Diameter does not match data for LDF',
-          'warning' => 'Diameter matches data for LDF but is inaccurate'
+        'is_matching_species' => array(
+          'title'   => 'Species matches data for LDF',
+          'error'   => 'Species does not match data for LDF',
+          'warning' => 'Species class matches data for LDF but species code does not'
         ),
         'is_matching_length' => array(
           'title'   => 'Length matches data for LDF',
@@ -101,30 +101,25 @@ class Model_SPECS extends SGS_Form_ORM {
           'error'   => 'Volume does not match data for LDF',
           'warning' => 'Volume matches data for LDF but is inaccurate'
         ),
-        'is_matching_species' => array(
-          'title'   => 'Species matches data for LDF',
-          'error'   => 'Species does not match data for LDF',
-          'warning' => 'Species class matches data for LDF but species code does not'
-        ),
         'is_matching_operator' => array(
           'title' => 'Operator matches data for LDF',
           'error' => 'Operator does not match data for LDF',
         ),
-        'is_matching_site' => array(
-          'title' => 'Site matches data for LDF',
-          'error' => 'Site does not match data for LDF',
-        )
     )),
+    'payment' => array(
+      'title'  => 'Payment',
+      'checks' => array(
+        'is_invoiced_st' => array(
+          'title'   => 'Stumpage fee invoiced',
+          'error'   => 'Stumpage fee has not been invoiced',
+        ),
+      )),
 //    'reliability' => array(
 //      'title'  => 'Data Reliability',
 //      'checks' => array(
 //        'is_consistent_operator' => array(
 //          'title'   => 'Operator assignments are consistent',
 //          'warning' => 'Operator assignments are inconsistent'
-//        ),
-//        'is_consistent_site' => array(
-//          'title'   => 'Site assignments are consistent',
-//          'warning' => 'Site assignments are inconsistent'
 //        )
 //    )),
   );
@@ -380,10 +375,7 @@ class Model_SPECS extends SGS_Form_ORM {
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', $options['min_length'], $options['limit'], $options['offset']);
           break;
         case 'operator_tin':
-          $args = array(
-            'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
-          );
-          $suggest = SGS::suggest_operator($values[$field], $args, 'tin', $options['min_length'], $options['limit'], $options['offset']);
+          $suggest = SGS::suggest_operator($values[$field], array(), 'tin', $options['min_length'], $options['limit'], $options['offset']);
           break;
         case 'species_code':
           $suggest = SGS::suggest_species($values[$field], array(), 'code', $options['min_length'], $options['limit'], $options['offset']);
@@ -424,11 +416,8 @@ class Model_SPECS extends SGS_Form_ORM {
     $this->unset_warnings();
 
     // warnings
-    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
     if (!($this->operator_id == $this->specs_barcode->printjob->site->operator_id)) $warnings['specs_barcode_id'][] = 'is_consistent_operator';
     if (!($this->operator_id == $this->epr_barcode->printjob->site->operator_id)) $warnings['epr_barcode_id'][] = 'is_consistent_operator';
-
-    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
 
     // errors
     switch ($this->barcode->type) {
@@ -436,31 +425,31 @@ class Model_SPECS extends SGS_Form_ORM {
       default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
     }
 
-    $parent = ORM::factory('LDF')
+    $ldf = ORM::factory('LDF')
       ->where('barcode_id', '=', $this->barcode->id)
       ->find();
 
-    if ($parent->loaded()) {
-      if ($parent->status != 'A') $errors['barcode_id'][] = 'is_valid_parent';
+    if ($ldf->loaded()) {
+      if ($ldf->status != 'A') $errors['barcode_id'][] = 'is_valid_parent';
 
-      if (!(ord($this->species->class) >= ord($parent->species->class))) $errors['species_id'][] = 'is_matching_species';
-      if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][] = 'is_matching_species';
+      if (!(ord($this->species->class) >= ord($ldf->species->class))) $errors['species_id'][] = 'is_matching_species';
+      if (!($this->species->code  == $ldf->species->code))  $warnings['species_id'][] = 'is_matching_species';
 
-      if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
+      if (!($this->operator_id == $ldf->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
 
-      if (!Valid::meets_tolerance($this->volume, $parent->volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume'][] = 'is_matching_volume';
-      else if (!Valid::meets_tolerance($this->volume, $parent->volume, SGS::LDF_VOLUME_ACCURACY)) $warnings['volume'][] = 'is_matching_volume';
+      if (!Valid::meets_tolerance($this->volume, $ldf->volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume'][] = 'is_matching_volume';
+      else if (!Valid::meets_tolerance($this->volume, $ldf->volume, SGS::LDF_VOLUME_ACCURACY)) $warnings['volume'][] = 'is_matching_volume';
 
-      if (!Valid::meets_tolerance($this->length, $parent->length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_matching_length';
-      else if (!Valid::meets_tolerance($this->length, $parent->length, SGS::LDF_LENGTH_ACCURACY)) $warnings['length'][] = 'is_matching_length';
+      if (!Valid::meets_tolerance($this->length, $ldf->length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_matching_length';
+      else if (!Valid::meets_tolerance($this->length, $ldf->length, SGS::LDF_LENGTH_ACCURACY)) $warnings['length'][] = 'is_matching_length';
 
-      if (!Valid::meets_tolerance($this->diameter, (($parent->top_min + $parent->top_max + $parent->bottom_min + $parent->bottom_max) / 4), SGS::LDF_DIAMETER_TOLERANCE)) {
+      if (!Valid::meets_tolerance($this->diameter, (($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_TOLERANCE)) {
         $errors['top_min'][] = 'is_matching_diameter';
         $errors['top_max'][] = 'is_matching_diameter';
         $errors['bottom_min'][] = 'is_matching_diameter';
         $errors['bottom_max'][] = 'is_matching_diameter';
       }
-      else if (!Valid::meets_tolerance($this->diameter, (($parent->top_min + $parent->top_max + $parent->bottom_min + $parent->bottom_max) / 4), SGS::LDF_DIAMETER_ACCURACY)) {
+      else if (!Valid::meets_tolerance($this->diameter, (($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_ACCURACY)) {
         $warnings['top_min'][] = 'is_matching_diameter';
         $warnings['top_max'][] = 'is_matching_diameter';
         $warnings['bottom_min'][] = 'is_matching_diameter';
@@ -471,6 +460,10 @@ class Model_SPECS extends SGS_Form_ORM {
       $errors['barcode_id'][] = 'is_existing_parent';
       $errors['barcode_id'][] = 'is_valid_parent';
     }
+    
+    // payment
+    
+    if (!$ldf->is_invoiced('st')) $errors['barcode_id'][] = 'is_invoiced_st';
 
     // all tolerance checks fail if any traceability checks fail
     if (array_intersect(SGS::flattenify($errors), array_keys(self::$checks['traceability']['checks']))) {

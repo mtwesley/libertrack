@@ -71,6 +71,11 @@ class Model_LDF extends SGS_Form_ORM {
     'tolerance' => array(
       'title'  => 'Tolerance',
       'checks' => array(
+        'is_matching_species' => array(
+          'title'   => 'Species matches data for parent log',
+          'error'   => 'Species does not match data for parent log',
+          'warning' => 'Species class matches data for parent log but species code does not'
+        ),
         'is_matching_diameter' => array(
           'title'   => 'Diameter matches data for parent log',
           'error'   => 'Diameter does not match data for parent log',
@@ -85,11 +90,6 @@ class Model_LDF extends SGS_Form_ORM {
           'title'   => 'Volume matches data for parent log',
           'error'   => 'Volume does not match data for parent log',
           'warning' => 'Volume matches data for parent log but is inaccurate'
-        ),
-        'is_matching_species' => array(
-          'title'   => 'Species matches data for parent log',
-          'error'   => 'Species does not match data for parent log',
-          'warning' => 'Species class matches data for parent log but species code does not'
         ),
         'is_matching_operator' => array(
           'title' => 'Operator matches data for parent log',
