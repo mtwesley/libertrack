@@ -26,7 +26,10 @@ class Controller_Analysis extends Controller {
     if ($id) {
       Session::instance()->delete('pagination.data');
       $item = ORM::factory($form_type, $id);
-      $site = $item->site;
+
+      if (isset($item->site)) $site = $item->site;
+      else if (isset($item->operator)) $operator = $item->operator;
+
       $data = array($item);
     }
     else {

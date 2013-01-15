@@ -117,6 +117,8 @@ $classes[] = 'data';
           case 'barcode_id':
           case 'tree_barcode_id':
           case 'stump_barcode_id':
+          case 'epr_barcode_id':
+          case 'specs_barcode_id':
           case 'parent_barcode_id': echo ORM::factory('barcode', $record->$field)->barcode; break;
 
           // dates
