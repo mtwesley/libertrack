@@ -513,7 +513,7 @@ create table specs_data (
   operator_id d_id not null,
   specs_barcode_id d_id not null,
   epr_barcode_id d_id not null,
-  contract_numbuer d_text_short,
+  contract_number d_text_short,
   barcode_id d_id unique not null,
   species_id d_id not null,
   top_min d_measurement_int not null,
