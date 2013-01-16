@@ -52,6 +52,9 @@ define('EXT', '.php');
 // error_reporting(E_ALL | E_STRICT);
 error_reporting(E_ALL & ~E_NOTICE);
 
+ini_set('display_errors', TRUE);
+ini_set('display_startup_errors', TRUE);
+
 /**
  * End of standard configuration! Changing any of the code below should only be
  * attempted by those with a working knowledge of Kohana internals.

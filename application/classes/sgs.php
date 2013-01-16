@@ -315,11 +315,11 @@ class SGS {
   );
 
   public static $csv_status = array(
-    'P' => 'Pending',
     'A' => 'Accepted',
     'R' => 'Rejected',
+    'U' => 'Duplicated',
 //    'D' => 'Deleted',
-    'U' => 'Duplicated'
+    'P' => 'Pending',
   );
 
   public static $data_status = array(

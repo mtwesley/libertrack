@@ -70,6 +70,22 @@ class Model_TDF extends SGS_Form_ORM {
           'warning' => 'Stump barcode is not yet assigned',
          )
     )),
+    'reliability' => array(
+      'title'  => 'Data Reliability',
+      'checks' => array(
+        'is_consistent_operator' => array(
+          'title'   => 'Operator assignments are consistent',
+          'warning' => 'Operator assignments are inconsistent'
+        ),
+        'is_consistent_site' => array(
+          'title'   => 'Site assignments are consistent',
+          'warning' => 'Site assignments are inconsistent'
+        ),
+        'is_consistent_block' => array(
+          'title'   => 'Block assignments are consistent',
+          'warning' => 'Block assignments are inconsistent'
+        )
+    )),
     'traceability' => array(
       'title'  => 'Traceability',
       'checks' => array(
@@ -118,22 +134,6 @@ class Model_TDF extends SGS_Form_ORM {
           'error' => 'Block does not match data for SSF record',
         )
     )),
-//    'reliability' => array(
-//      'title'  => 'Data Reliability',
-//      'checks' => array(
-//        'is_consistent_operator' => array(
-//          'title'   => 'Operator assignments are consistent',
-//          'warning' => 'Operator assignments are inconsistent'
-//        ),
-//        'is_consistent_site' => array(
-//          'title'   => 'Site assignments are consistent',
-//          'warning' => 'Site assignments are inconsistent'
-//        ),
-//        'is_consistent_block' => array(
-//          'title'   => 'Block assignments are consistent',
-//          'warning' => 'Block assignments are inconsistent'
-//        )
-//    )),
   );
 
   public static function fields()

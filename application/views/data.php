@@ -8,7 +8,7 @@ $options = (array) $options + array(
   'details' => TRUE,
   'links'   => TRUE,
   'actions' => FALSE,
-  'header'  => $site ? TRUE : FALSE,
+  'header'  => $site or $operator ? TRUE : FALSE,
 );
 
 $header_columns = 0;
@@ -173,7 +173,7 @@ $classes[] = 'data';
             <div class="error">Failed</div>
 
             <?php elseif (in_array($check, $warnings)): ?>
-            <div class="warning"><?php print $array['warning']; ?></div>
+            <div class="warning"><?php print 'Warned'; // $array['warning']; ?></div>
 
             <?php else: ?>
             <div class="success">Passed</div>

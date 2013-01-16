@@ -17,7 +17,7 @@
     <td><?php echo $barcode->printjob->site->name; ?></td>
     <td><?php echo SGS::value($barcode->type, 'barcode_type', 'Unknown'); ?></td>
     <td><?php echo $barcode->is_locked ? 'YES' : 'NO'; ?></td>
-    <td><?php echo 'Unknown'; ?></td>
+    <td><?php echo SGS::$coc_status[$barcode->get_coc_activity() ?: 'P']; ?></td>
   </tr>
   <?php endforeach; ?>
 </table>

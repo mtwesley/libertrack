@@ -216,6 +216,9 @@ class Controller_Analysis extends Controller {
   private function handle_checks($form_type) {
     if (!Request::$current->query()) Session::instance()->delete('pagination.checks');
 
+    $model = ORM::factory($form_type);
+    foreach ($model::$checks as $type => $info) $check_options[$type] = $info['title'];
+
     $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
 
@@ -238,6 +241,8 @@ class Controller_Analysis extends Controller {
       ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
       ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add_group('status', 'checkboxes', SGS::$data_status, array('P', 'R'), array('label' => 'Status'))
+      ->add_group('display', 'checkboxes', SGS::$data_status, array('P', 'A', 'R'), array('label' => 'Display'))
+      ->add_group('checks', 'checkboxes', $check_options, array_diff(array_keys($check_options), array('consistency', 'reliability')), array('label' => 'Check'))
       ->add('submit', 'submit', 'Run');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -246,9 +251,11 @@ class Controller_Analysis extends Controller {
       else $operator_id = $form->operator_id->val();
       if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
 
-      $status    = $form->status->val();
-      $from      = $form->from->val();
-      $to        = $form->to->val();
+      $status  = $form->status->val();
+      $display = $form->display->val();
+      $checks  = $form->checks->val();
+      $from    = $form->from->val();
+      $to      = $form->to->val();
 
       $rejected  = 0;
       $accepted  = 0;
@@ -258,17 +265,17 @@ class Controller_Analysis extends Controller {
       $records = ORM::factory($form_type);
       if ($operator_id) $records  = $records->where('operator_id', 'IN', (array) $operator_id);
       if ($site_id)     $records  = $records->where('site_id', 'IN', (array) $site_id);
-      if ($block_id)    $records = $records->and_where('block_id', 'IN', (array) $block_id);
+      if ($block_id)    $records  = $records->and_where('block_id', 'IN', (array) $block_id);
       $records = $records
         ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-        ->and_where('status', 'IN', (array) $status)
+        ->and_where('status', 'IN', (array) $display)
         ->find_all()
         ->as_array('id');
 
       $data = array(
         'checks' => array(),
         'total'  => array(
-          'checked'   => count($records),
+          'checked'   => 0,
           'passed'    => 0,
           'failed'    => 0,
           'warned'    => 0,
@@ -276,48 +283,72 @@ class Controller_Analysis extends Controller {
         )
       );
 
+      $unable = 0;
       set_time_limit(600);
       foreach ($records as $record) {
         $errors   = array();
         $warnings = array();
 
-        try {
-          list($errors, $warnings) = $record->run_checks();
-        } catch (ORM_Validation_Exception $e) {
-          foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
-        } catch (Exception $e) {
-          Notify::msg('Sorry, unable to run checks and queries. Please try again.', 'error');
+        $total_checked = FALSE;
+        if (in_array($record->status, (array) $status)) {
+          $total_checked = TRUE;
+          try {
+            list($errors, $warnings) = $record->run_checks();
+          } catch (ORM_Validation_Exception $e) {
+            foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
+          } /* catch (Exception $e) {
+            $unable++;
+          } */
         }
 
         $errors   = SGS::flattenify($errors);
         $warnings = SGS::flattenify($warnings);
 
-        $check_warned = FALSE;
-        $total_warned = FALSE;
-        foreach ($record::$checks as $type => $info) {
-          foreach ($info['checks'] as $check => $array) {
-            if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['traceability']['checks']), $errors)) continue;
-            $data['checks'][$type][$check]['checked']++;
-            if (in_array($check, $errors)) $data['checks'][$type][$check]['failed']++;
-            else {
-              if (in_array($check, $warnings) and !$check_warned) {
-                $check_warned = TRUE;
-                $data['checks'][$type][$check]['warned']++;
-                if (!$total_warned) {
-                  $warned = TRUE;
-                  $data['total']['warned']++;
+        if ($total_checked) {
+          $total_warned = FALSE;
+          foreach ($record::$checks as $type => $info) {
+            if (!in_array($type, $checks)) continue;
+            foreach ($info['checks'] as $check => $array) {
+              $check_warned = FALSE;
+              if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['traceability']['checks']), $errors)) continue;
+              $data['checks'][$type][$check]['checked']++;
+              if (in_array($check, $errors)) $data['checks'][$type][$check]['failed']++;
+              else {
+                if (in_array($check, $warnings)) {
+                  if (!$check_warned) {
+                    $data['checks'][$type][$check]['warned']++;
+                    $check_warned = TRUE;
+                  }
+                  if (!$toal_warned) $total_warned = TRUE;
                 }
+                $data['checks'][$type][$check]['passed']++;
               }
-              $data['checks'][$type][$check]['passed']++;
             }
           }
+
+          switch ($record->status) {
+            case 'A':
+              $accepted++;
+              $data['total']['checked']++;
+              $data['total']['passed']++;
+              break;
+
+            case 'R':
+              $rejected++;
+              $data['total']['checked']++;
+              $data['total']['failed']++;
+              break;
+
+            default:
+              $unchecked++;
+              $data['total']['unchecked']++;
+              break;
+          }
+
+          if ($total_warned) $data['total']['warned']++;
         }
 
-        switch ($record->status) {
-          case 'A': $accepted++;  $data['total']['passed']++; break;
-          case 'R': $rejected++;  $data['total']['failed']++; break;
-          default:  $unchecked++; $data['total']['unchecked']++; break;
-        }
+        $data['total']['records']++;
 
         try {
           $record->save();
@@ -326,6 +357,7 @@ class Controller_Analysis extends Controller {
         }
       }
 
+      if ($unable)    Notify::msg('Sorry, unable to run checks and queries on '.$unable.' records. Please try again.', 'error', TRUE);
       if ($accepted)  Notify::msg($accepted.' records passed checks and queries.', 'success', TRUE);
       if ($rejected)  Notify::msg($rejected.' records failed checks and queries.', 'error', TRUE);
       if ($unchecked) Notify::msg($unchecked.' records unchecked.', 'warning', TRUE);
@@ -336,6 +368,8 @@ class Controller_Analysis extends Controller {
         'site_id'     => $site_id,
         'block_id'    => $block_id,
         'status'      => $status,
+        'display'     => $display,
+        'checks'      => $checks,
         'form_type'   => $form_type,
         'from'        => $from,
         'to'          => $to,
@@ -347,6 +381,8 @@ class Controller_Analysis extends Controller {
       else $form->operator_id->val($operator_id = $settings['operator_id']);
       if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
       $form->status->val($status = $settings['status']);
+      $form->display->val($display = $settings['display']);
+      $form->checks->val($checks = $settings['checks']);
       $form->from->val($from = $settings['from']);
       $form->to->val($to = $settings['to']);
 
@@ -358,21 +394,25 @@ class Controller_Analysis extends Controller {
 
     if ($data) {
       $model  = ORM::factory($form_type);
+      foreach ($model::$checks as $type => $info) {
+        if (in_array($type, $checks)) $_checks[$type] = $info;
+      }
+
       $report = View::factory('report')
         ->set('from', $from)
         ->set('to', $to)
         ->set('form_type', $form_type)
         ->set('report', $data)
-        ->set('checks', $model::$checks)
+        ->set('checks', $_checks)
         ->render();
 
       $_data = ORM::factory($form_type);
-      if ($has_site_id) $_data = $_data->where('site_id', 'IN', (array) $site_id);
-      else $_data = $_data->where('operator_id', 'IN', (array) $operator_id);
-      if ($has_site_id and $has_block_id) $_data = $_data->and_where('block_id', 'IN', (array) $block_id);
+      if ($has_site_id and $site_id) $_data = $_data->where('site_id', 'IN', (array) $site_id);
+      else if ($operator_id) $_data = $_data->where('operator_id', 'IN', (array) $operator_id);
+      if ($has_site_id and $has_block_id and $block_id) $_data = $_data->and_where('block_id', 'IN', (array) $block_id);
       $_data = $_data
         ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to))
-        ->and_where('status', 'IN', (array) $status);
+        ->and_where('status', 'IN', (array) $display);
 
       $clone = clone($_data);
       $pagination = Pagination::factory(array(

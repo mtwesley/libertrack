@@ -10,7 +10,7 @@ $options = (array) $options + array(
   'links'   => TRUE,
   'actions' => FALSE,
   'resolve' => FALSE,
-  'header'  => $site ? TRUE : FALSE,
+  'header'  => $site or $operator ? TRUE : FALSE,
 );
 
 $header_columns = 0;

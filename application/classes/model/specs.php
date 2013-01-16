@@ -66,6 +66,14 @@ class Model_SPECS extends SGS_Form_ORM {
           'warning' => 'Export permit request barcode is not yet assigned',
          )
     )),
+    'reliability' => array(
+      'title'  => 'Data Reliability',
+      'checks' => array(
+        'is_consistent_operator' => array(
+          'title'   => 'Operator assignments are consistent',
+          'warning' => 'Operator assignments are inconsistent'
+        )
+    )),
     'traceability' => array(
       'title'  => 'Traceability',
       'checks' => array(
@@ -114,14 +122,6 @@ class Model_SPECS extends SGS_Form_ORM {
           'error'   => 'Stumpage fee has not been invoiced',
         ),
       )),
-//    'reliability' => array(
-//      'title'  => 'Data Reliability',
-//      'checks' => array(
-//        'is_consistent_operator' => array(
-//          'title'   => 'Operator assignments are consistent',
-//          'warning' => 'Operator assignments are inconsistent'
-//        )
-//    )),
   );
 
   public static function generate_report($records) {

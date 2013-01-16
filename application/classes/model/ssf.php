@@ -49,22 +49,22 @@ class Model_SSF extends SGS_Form_ORM {
           'error' => 'Tree barcode assignment is invalid',
         )
     )),
-//    'reliability' => array(
-//      'title'  => 'Data Reliability',
-//      'checks' => array(
-//        'is_consistent_operator' => array(
-//          'title'   => 'Operator assignments are consistent',
-//          'warning' => 'Operator assignments are inconsistent'
-//        ),
-//        'is_consistent_site' => array(
-//          'title'   => 'Site assignments are consistent',
-//          'warning' => 'Site assignments are inconsistent'
-//        ),
-//        'is_consistent_block' => array(
-//          'title'   => 'Block assignments are consistent',
-//          'warning' => 'Block assignments are inconsistent'
-//        )
-//    ))
+    'reliability' => array(
+      'title'  => 'Data Reliability',
+      'checks' => array(
+        'is_consistent_operator' => array(
+          'title'   => 'Operator assignments are consistent',
+          'warning' => 'Operator assignments are inconsistent'
+        ),
+        'is_consistent_site' => array(
+          'title'   => 'Site assignments are consistent',
+          'warning' => 'Site assignments are inconsistent'
+        ),
+        'is_consistent_block' => array(
+          'title'   => 'Block assignments are consistent',
+          'warning' => 'Block assignments are inconsistent'
+        )
+    ))
   );
 
   public static function fields()

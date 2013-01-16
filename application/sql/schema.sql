@@ -265,6 +265,8 @@ create table barcode_coc_activity (
   id bigserial not null,
   barcode_id d_id not null,
   status d_coc_status default 'P' not null,
+  trigger d_text_short default NULL,
+  user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
   -- constraint barcode_coc_activity_pkey primary key (id),
@@ -324,20 +326,6 @@ create table csv (
   constraint csv_file_id_fkey foreign key (file_id) references files (id) on update cascade,
   constraint csv_other_csv_id_fkey foreign key (other_csv_id) references csv (id) on update cascade on delete set null,
   constraint csv_user_id_fkey foreign key (user_id) references users (id) on update cascade
-);
-
-create table csv_revisions (
-  id bigserial not null,
-  csv_id b_id not null,
-  csv_data d_text_long,
-  url d_text_long,
-  user_id d_id default 1 not null,
-  session_id d_id default 1 not null,
-
-  timestamp d_timestamp default current_timestamp not null,
-
-  constraint csv_revisions_pkey primary key (id),
-  constraint csv_revisions_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table csv_errors (
@@ -574,6 +562,8 @@ create table revisions (
   model d_text_short not null,
   model_id d_id not null,
   data d_text_long,
+  url d_text_long,
+  session_id d_id default 1 not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -632,6 +622,9 @@ create index barcodes_is_locked on barcodes (id,is_locked);
 create index barcode_hops_cached_parent_id on barcode_hops_cached (barcode_id,parent_id);
 
 create index barcode_coc_activity_barcode_id_status on barcode_coc_activity (barcode_id,status);
+create index barcode_coc_activity_barcode_id_status on barcode_coc_activity (barcode_id,trigger);
+create index barcode_coc_activity_status_trigger on barcode_coc_activity (status,trigger);
+
 
 create index invoices_site_id on invoices (id,site_id);
 create index invoices_reference_number on invoices (id,reference_number);
@@ -872,41 +865,41 @@ end
 $$ language 'plpgsql';
 
 
-create function barcodes_locks()
-  returns trigger as
-$$
-begin
-  if tg_op = 'INSERT' then
-    if new.invoice_id is not null then
-      perform rebuild_barcode_locks(new.barcode_id, true);
-    end if;
-  elseif tg_op = 'UPDATE' then
-    if (old.invoice_id is null) and (new.invoice_id is not null) then
-      perform rebuild_barcode_locks(new.barcode_id, true);
-    elseif (old.invoice_id is not null) and (new.invoice_id is null) then
-      perform rebuild_barcode_locks(new.barcode_id, false);
-    end if;
-  end if;
+-- create function barcodes_locks()
+--   returns trigger as
+-- $$
+-- begin
+--   if tg_op = 'INSERT' then
+--     if new.invoice_id is not null then
+--       perform rebuild_barcode_locks(new.barcode_id, true);
+--     end if;
+--   elseif tg_op = 'UPDATE' then
+--     if (old.invoice_id is null) and (new.invoice_id is not null) then
+--       perform rebuild_barcode_locks(new.barcode_id, true);
+--     elseif (old.invoice_id is not null) and (new.invoice_id is null) then
+--       perform rebuild_barcode_locks(new.barcode_id, false);
+--     end if;
+--   end if;
+--
+--   return null;
+-- end
+-- $$ language 'plpgsql';
 
-  return null;
-end
-$$ language 'plpgsql';
 
-
-create function rebuild_barcode_locks(x_barcode_id d_id, x_locked d_bool)
-  returns void as
-$$
-  declare x_id d_id;
-begin
-  for x_id in select barcode_id from barcode_hops_cached where parent_id = x_barcode_id loop
-    update barcodes set is_locked = x_locked where id = x_id;
-  end loop;
-
-  for x_id in select parent_id from barcode_hops_cached where barcode_id = x_barcode_id loop
-    update barcodes set is_locked = x_locked where id = x_id;
-  end loop;
-end
-$$ language 'plpgsql';
+-- create function rebuild_barcode_locks(x_barcode_id d_id, x_locked d_bool)
+--   returns void as
+-- $$
+--   declare x_id d_id;
+-- begin
+--   for x_id in select barcode_id from barcode_hops_cached where parent_id = x_barcode_id loop
+--     update barcodes set is_locked = x_locked where id = x_id;
+--   end loop;
+--
+--   for x_id in select parent_id from barcode_hops_cached where barcode_id = x_barcode_id loop
+--     update barcodes set is_locked = x_locked where id = x_id;
+--   end loop;
+-- end
+-- $$ language 'plpgsql';
 
 
 create function ssf_data_update_barcodes()
@@ -1104,10 +1097,10 @@ create trigger t_specs_data_update_barcodes
   for each row
   execute procedure specs_data_update_barcodes();
 
-create trigger t_barcodes_locks
-  after insert or update on ldf_data
-  for each row
-  execute procedure barcodes_locks();
+-- create trigger t_barcodes_locks
+--   after insert or update on ldf_data
+--   for each row
+--   execute procedure barcodes_locks();
 
 create trigger t_sites_parse_type
   before insert or update on sites

@@ -7,6 +7,7 @@ $classes[] = 'data';
     <th class="type"></th>
     <th class="status"></th>
     <th><?php print $info['title']; ?></th>
+    <th class="check-info">Total Records</th>
     <th class="check-info">Total Checked</th>
     <th class="check-info">Total Passed</th>
     <th class="check-info">Total Warnings</th>
@@ -15,11 +16,12 @@ $classes[] = 'data';
   </tr>
   <?php foreach ($info['checks'] as $check => $array): ?>
   <?php
+    $records = $report['total']['records'] ?: 0;
     $checked = $report['checks'][$type][$check]['checked'] ?: 0;
     $passed  = $report['checks'][$type][$check]['passed'] ?: 0;
     $failed  = $report['checks'][$type][$check]['failed'] ?: 0;
     $warned  = $report['checks'][$type][$check]['warned'] ?: 0;
-    $percentage = $checked ? floor($passed * 100 / $checked) : 0;
+    $percentage = $checked ? floor($passed * 100 / $checked) : 100;
   ?>
   <tr>
     <td class="type"><span class="data-type"><?php print $form_type; ?></span></td>
@@ -31,6 +33,7 @@ $classes[] = 'data';
       ?>
     </td>
     <td class="check-desc"><?php print $array['title']; ?></td>
+    <td class="check-info"><?php print $records; ?></td>
     <td class="check-info"><?php print $checked; ?></td>
     <td class="check-info"><span class="accepted"><?php print $passed; ?></span></td>
     <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>
@@ -45,6 +48,7 @@ $classes[] = 'data';
     <th class="type"></th>
     <th class="status"></th>
     <th>Summary</th>
+    <th class="check-info">Total Records</th>
     <th class="check-info">Total Checked</th>
     <th class="check-info">Total Passed</th>
     <th class="check-info">Total Warnings</th>
@@ -52,6 +56,7 @@ $classes[] = 'data';
     <th class="check-info">Pass Rate</th>
   </tr>
   <?php
+    $records = $report['total']['records'] ?: 0;
     $checked = $report['total']['checked'] ?: 0;
     $passed  = $report['total']['passed'] ?: 0;
     $failed  = $report['total']['failed'] ?: 0;
@@ -62,6 +67,7 @@ $classes[] = 'data';
     <td class="type"><span class="data-type"><?php print $form_type; ?></span></td>
     <td class="status"><?php print HTML::image('images/calculator.png', array('class' => 'status')); ?></td>
     <td class="check-desc">Total</td>
+    <td class="check-info"><?php print $records; ?></td>
     <td class="check-info"><?php print $checked; ?></td>
     <td class="check-info"><span class="accepted"><?php print $passed; ?></span></td>
     <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>

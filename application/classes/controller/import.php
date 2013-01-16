@@ -765,6 +765,14 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
+                  if (!($file->operator->id == $file->site->operator_id)) {
+                    Notify::msg('Sorry, site operator does not match operator in properties of the file '.$file->name.'.', 'error', TRUE);
+                    throw new Exception();
+                  }
+                  if (!($file->site->id == $file->block->site_id)) {
+                    Notify::msg('Sorry, block site does not match site in properties of the file '.$file->name.'.', 'error', TRUE);
+                    throw new Exception();
+                  }
                   $newname = SGS::wordify($file->site->name.'_SSF_'.$file->block->name).'.'.$ext;
                   break;
 
@@ -779,6 +787,14 @@ class Controller_Import extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
+                  if (!($file->operator->id == $file->site->operator_id)) {
+                    Notify::msg('Sorry, site operator does not match operator in properties of the file '.$file->name.'.', 'error', TRUE);
+                    throw new Exception();
+                  }
+                  if (!($file->site->id == $file->block->site_id)) {
+                    Notify::msg('Sorry, block site does not match site in properties of the file '.$file->name.'.', 'error', TRUE);
+                    throw new Exception();
+                  }
                   $newname = SGS::wordify($file->site->name.'_TDF_'.$file->block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
 
@@ -790,6 +806,10 @@ class Controller_Import extends Controller {
                   ));
                   if (!($file->operator->name and $file->site->name and $file->operation_type)) {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
+                    throw new Exception();
+                  }
+                  if (!($file->operator->id == $file->site->operator_id)) {
+                    Notify::msg('Sorry, site operator does not match operator in properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
                   $newname = SGS::wordify($file->site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;

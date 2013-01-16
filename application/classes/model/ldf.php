@@ -56,6 +56,18 @@ class Model_LDF extends SGS_Form_ORM {
           'warning' => 'Original log barcode is not yet assigned',
          )
     )),
+    'reliability' => array(
+      'title'  => 'Data Reliability',
+      'checks' => array(
+        'is_consistent_operator' => array(
+          'title'   => 'Operator assignments are consistent',
+          'warning' => 'Operator assignments are inconsistent'
+        ),
+        'is_consistent_site' => array(
+          'title'   => 'Site assignments are consistent',
+          'warning' => 'Site assignments are inconsistent'
+        )
+    )),
     'traceability' => array(
       'title'  => 'Traceability',
       'checks' => array(
@@ -100,18 +112,6 @@ class Model_LDF extends SGS_Form_ORM {
           'error' => 'Site does not match data for parent log',
         )
     )),
-//    'reliability' => array(
-//      'title'  => 'Data Reliability',
-//      'checks' => array(
-//        'is_consistent_operator' => array(
-//          'title'   => 'Operator assignments are consistent',
-//          'warning' => 'Operator assignments are inconsistent'
-//        ),
-//        'is_consistent_site' => array(
-//          'title'   => 'Site assignments are consistent',
-//          'warning' => 'Site assignments are inconsistent'
-//        )
-//    )),
   );
 
   public function formo() {
