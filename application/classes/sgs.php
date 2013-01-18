@@ -41,7 +41,7 @@ class SGS {
 
     'documents'       => 'Documents',
 
-    'import'          => 'Data Management',
+    'import'          => 'Data',
     'import/upload'   => 'Upload Documents',
     'import/files'    => 'File Management',
     'import/data'     => 'Data Management',
@@ -51,7 +51,7 @@ class SGS {
     'import/data/ldf'   => 'Log Data Form',
     'import/data/specs' => 'Shipment Specification Form',
 
-    'export'          => 'Data Management',
+    'export'          => 'Data',
     'export/download' => 'Download Documents',
 //    'export/files'    => 'File Management',
 //    'export/data'     => 'Data Management',
