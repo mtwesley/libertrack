@@ -502,7 +502,7 @@ class Controller_Import extends Controller {
         ->as_array('id', 'name');
 
       $form = Formo::form();
-      if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
+      if ($has_site_id) $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
       if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
       $form = $form
@@ -614,7 +614,7 @@ class Controller_Import extends Controller {
 
       }
       elseif ($settings = Session::instance()->get('pagination.csv')) {
-        if ($has_site_id)  $form->site_id->val($site_id = $settings['site_id']);
+        if ($has_site_id) $form->site_id->val($site_id = $settings['site_id']);
         else $form->operator_id->val($operator_id = $settings['operator_id']);
         if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
         $form->status->val($status = $settings['status']);

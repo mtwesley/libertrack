@@ -60,7 +60,7 @@ class Controller_Analysis extends Controller {
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.data');
-        if ($has_site_id)  $site_id  = $form->site_id->val();
+        if ($has_site_id) $site_id  = $form->site_id->val();
         else $operator_id = $form->operator_id->val();
         if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
         $status   = $form->status->val();
@@ -81,7 +81,7 @@ class Controller_Analysis extends Controller {
       }
       else {
         if ($settings = Session::instance()->get('pagination.data')) {
-          if ($has_site_id)  $form->site_id->val($site_id = $settings['site_id']);
+          if ($has_site_id) $form->site_id->val($site_id = $settings['site_id']);
           else $form->operator_id->val($operator_id = $settings['operator_id']);
           if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
           $form->status->val($block_id = $settings['block_id']);

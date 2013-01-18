@@ -41,7 +41,7 @@ class SGS {
 
     'documents'       => 'Documents',
 
-    'import'          => 'Import',
+    'import'          => 'Data Management',
     'import/upload'   => 'Upload Documents',
     'import/files'    => 'File Management',
     'import/data'     => 'Data Management',
@@ -51,10 +51,10 @@ class SGS {
     'import/data/ldf'   => 'Log Data Form',
     'import/data/specs' => 'Shipment Specification Form',
 
-    'export'          => 'Export',
+    'export'          => 'Data Management',
     'export/download' => 'Download Documents',
-    'export/files'    => 'File Management',
-    'export/data'     => 'Data Management',
+//    'export/files'    => 'File Management',
+//    'export/data'     => 'Data Management',
 
     'export/download/ssf'   => 'Stock Survey Form',
     'export/download/tdf'   => 'Tree Data Form',
@@ -89,7 +89,7 @@ class SGS {
     'analysis/checks/specs' => 'Shipment Specification',
     'analysis/tolerances'   => 'Manage Accuracy and Tolerance',
 
-    'invoices'        => 'Invoices',
+    'invoices'        => 'Invoicing',
     'invoices/list'   => 'List Invoices',
     'invoices/create' => 'Create Invoice',
 
@@ -332,9 +332,10 @@ class SGS {
   public static $coc_status = array(
     'P' => 'Pending',
     'I' => 'In Progress',
-    'H' => 'On Hold',
+    'H' => 'On Hold / Investigation',
     'T' => 'Stumpage Invoiced',
     'X' => 'Export Fee Invoiced',
+    'D' => 'Declared for Export',
     'E' => 'Exported',
     'S' => 'Short-Shipped',
     'Y' => 'Sold Locally',

@@ -2,14 +2,8 @@
 
 class ORM extends Kohana_ORM {
 
-	public function save(Validation $validation = NULL)
-	{
-    if (in_array('user_id', array_keys((array) $this->_object))) $this->user = Auth::instance()->get_user();
-
-		return parent::save();
-	}
-
-  public function update(Validation $validation = NULL) {
+  private function create_revision()
+  {
     $new = $this->_object;
     $old = $this->_original_values;
 
@@ -24,8 +18,6 @@ class ORM extends Kohana_ORM {
 
     $data = serialize($this->_original_values);
 
-    parent::update($validation);
-
     if (md5(serialize($new)) != md5(serialize($old))) switch ($this->_object_name) {
       case 'user': case 'tolerance': return;
       default: DB::insert('revisions', array('model', 'model_id', 'data', 'url', 'user_id', 'session_id',))
@@ -39,6 +31,32 @@ class ORM extends Kohana_ORM {
         ))
         ->execute();
     }
+  }
+
+	public function save(Validation $validation = NULL)
+	{
+    if (in_array('user_id', array_keys((array) $this->_object))) $this->user = Auth::instance()->get_user();
+		return parent::save();
+	}
+
+  public function create(Validation $validation = NULL)
+  {
+    if (in_array('user_id', array_keys((array) $this->_object))) $this->user = Auth::instance()->get_user();
+    $this->create_revision();
+    parent::create($validation);
+  }
+
+  public function update(Validation $validation = NULL)
+  {
+    if (in_array('user_id', array_keys((array) $this->_object))) $this->user = Auth::instance()->get_user();
+    $this->create_revision();
+    parent::update($validation);
+  }
+
+  public function delete()
+  {
+    $this->create_revision();
+    parent::delete();
   }
 
 }

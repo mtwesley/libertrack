@@ -135,6 +135,8 @@ class Controller_Export extends Controller {
   private function handle_download($form_type) {
     set_time_limit(600);
 
+    $model = ORM::factory($form_type);
+
     $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
 
@@ -156,14 +158,14 @@ class Controller_Export extends Controller {
       ->as_array('id', 'name');
 
     $form = Formo::form();
-    if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
+    if ($has_site_id) $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
     else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
     $form = $form
       ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
       ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add_group('status', 'checkboxes', SGS::$data_status, array('A'), array('label' => 'Status'))
-      ->add('type', 'radios', array(
+      ->add('type', 'radios', 'xls', array(
         'options' => array(
           'xls' => SGS::$file_type['xls'],
           'csv' => SGS::$file_type['csv']
@@ -222,7 +224,7 @@ class Controller_Export extends Controller {
       if ($excel) {
         // data
         $create_date = 0;
-        $row = Model_SSF::PARSE_START;
+        $row = $model::PARSE_START;
         foreach ($data as $item) {
           $item->export_data($excel, $row);
           if (strtotime($item->create_date) > strtotime($create_date)) $create_date = $item->create_date;
@@ -239,11 +241,12 @@ class Controller_Export extends Controller {
         $writer->save($tempname);
 
         // info
-        if ($has_site_id) {
+        if ($operator_id) $operator = ORM::factory('operator', $operator_id);
+        if ($site_id) {
           $site = ORM::factory ('site', $site_id);
-          $operator = $site->operator;
-        } else $operator = ORM::factory('operator', $operator_id);
-        if ($has_site_id and $has_block_id) $block = ORM::factory('block', $block_id);
+          if (!$operator) $operator = $site->operator;
+        }
+        if ($block_id) $block = ORM::factory('block', $block_id);
 
         // properties
         try {
@@ -251,9 +254,9 @@ class Controller_Export extends Controller {
           switch ($form_type) {
             case 'SSF':
               $newdir = implode(DIRECTORY_SEPARATOR, array(
-                'import',
+                'export',
                 $site->name,
-                $operation_type,
+                $form_type,
                 $block->name
               ));
               if (!($operator->name and $site->name and $block->name)) {
@@ -265,9 +268,9 @@ class Controller_Export extends Controller {
 
             case 'TDF':
               $newdir = implode(DIRECTORY_SEPARATOR, array(
-                'import',
+                'export',
                 $site->name,
-                $operation_type,
+                $form_type,
                 $block->name
               ));
               if (!($operator->name and $site->name and $block->name)) {
@@ -279,9 +282,9 @@ class Controller_Export extends Controller {
 
             case 'LDF':
               $newdir = implode(DIRECTORY_SEPARATOR, array(
-                'import',
+                'export',
                 $site->name,
-                $operation_type
+                $form_type
               ));
               if (!($operator->name and $site->name)) {
                 Notify::msg('Sorry, cannot identify required properties to create a file.', 'error', TRUE);
@@ -292,6 +295,7 @@ class Controller_Export extends Controller {
 
             case 'SPECS':
               $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'export',
                 'specs',
                 $operator->tin
               ));
@@ -336,9 +340,9 @@ class Controller_Export extends Controller {
         } catch (Exception $e) {
           Notify::msg('Sorry, unable to save uploaded file.', 'error', TRUE);
         }
-      }
 
-      $this->request->redirect('export/files');
+        $this->response->send_file(preg_replace('/\/$/', '', DOCROOT).$file->path, $file->name, array('mime_type' => $mime_type));
+      }
     }
 
     $content .= $form->render();

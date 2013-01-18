@@ -65,7 +65,7 @@ create domain d_csv_status as character(1) check (value ~ E'^[PARDU]$');
 
 create domain d_data_status as character(1) check (value ~ E'^[PARD]$');
 
-create domain d_coc_status as character(1) check (value ~ E'^[PIHETXZYALZ]$');
+create domain d_coc_status as character(1) check (value ~ E'^[PIHTXDESYALZ]$');
 
 create domain d_username as character varying(24) check (value ~ E'^[0-9A-Za-z_]{3,24}$');
 
@@ -252,7 +252,7 @@ create table barcode_hops_cached (
   id bigserial not null,
   barcode_id d_id not null,
   parent_id d_id not null,
-  hops d_measurement_int not null,
+  hops d_positive_int not null,
 
   -- constraint barcode_hops_cached_pkey primary key (id),
   constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
@@ -831,22 +831,20 @@ end
 $$ language 'plpgsql';
 
 
-create function rebuild_barcode_hops(x_barcode_id d_id)
+create or replace function rebuild_barcode_hops(x_barcode_id d_id)
   returns void as
 $$
   declare x_id d_id;
   declare x_hops d_positive_int;
 begin
   if x_barcode_id is null then
-    delete from barcode_hops_cached;
+    truncate barcode_hops_cached;
 
-    for x_id in select id from barcodes where parent_id is null loop
+    for x_id in select id from barcodes loop
       perform rebuild_barcode_hops(x_id);
     end loop;
   else
-
     delete from barcode_hops_cached where barcode_id = x_barcode_id;
-    insert into barcode_hops_cached(barcode_id,parent_id,hops) values(x_barcode_id,x_barcode_id,0);
     select parent_id from barcodes where id = x_barcode_id into x_id;
 
     x_hops = 1;

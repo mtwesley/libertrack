@@ -19,8 +19,7 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($primary == 'index')     echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('index')); ?></li>
 
     <?php if (Auth::instance()->logged_in('data')): ?>
-    <li class="<?php if ($primary == 'import')    echo 'active'; ?>"><?php echo HTML::anchor('import', SGS::title('import')); ?></li>
-    <li class="<?php if ($primary == 'export')    echo 'active'; ?>"><?php echo HTML::anchor('export', SGS::title('export')); ?></li>
+    <li class="<?php if ($primary == 'import' or $primary == 'export') echo 'active'; ?>"><?php echo HTML::anchor('import', SGS::title('import')); ?></li>
     <li class="<?php if ($primary == 'documents') echo 'active'; ?>"><?php echo HTML::anchor('documents', SGS::title('documents')); ?></li>
     <?php endif; ?>
 
@@ -62,8 +61,18 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'blocks')    echo 'active'; ?>"><?php echo HTML::anchor('admin/blocks', SGS::title('admin/blocks')); ?></li>
     <li class="<?php if ($secondary == 'species')   echo 'active'; ?>"><?php echo HTML::anchor('admin/species', SGS::title('admin/species')); ?></li>
 
-    <?php elseif ($primary == 'import'): ?>
+    <?php elseif ($primary == 'import' or $primary == 'export'): ?>
     <li class="<?php if ($secondary == 'upload') echo 'active'; ?>"><?php echo HTML::anchor('import/upload', SGS::title('import/upload')); ?></li>
+    <li class="<?php if ($primary == 'export' and $secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('export/download', SGS::title('export/download')); ?>
+      <?php if ($primary == 'export' and $secondary == 'download'): ?>
+      <ul class="nav commands">
+        <li class="<?php if ($command == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('export/download/ssf', SGS::title('export/download/ssf')); ?></li>
+        <li class="<?php if ($command == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('export/download/tdf', SGS::title('export/download/tdf')); ?></li>
+        <li class="<?php if ($command == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('export/download/ldf', SGS::title('export/download/ldf')); ?></li>
+        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('export/download/specs', SGS::title('export/download/specs')); ?></li>
+      </ul>
+      <?php endif; ?>
+    </li>
     <li class="<?php if ($secondary == 'files')  echo 'active'; ?>"><?php echo HTML::anchor('import/files', SGS::title('import/files')); ?></li>
     <li class="<?php if ($secondary == 'data')   echo 'active'; ?>"><?php echo HTML::anchor('import/data', SGS::title('import/data')); ?>
       <?php if ($secondary == 'data'): ?>
@@ -76,19 +85,7 @@ if (!$command && !is_numeric($id)) {
       <?php endif; ?>
     </li>
 
-    <?php elseif ($primary == 'export'): ?>
-    <li class="<?php if ($secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('export/download', SGS::title('export/download')); ?>
-      <?php if ($secondary == 'download'): ?>
-      <ul class="nav commands">
-        <li class="<?php if ($command == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('export/download/ssf', SGS::title('export/download/ssf')); ?></li>
-        <li class="<?php if ($command == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('export/download/tdf', SGS::title('export/download/tdf')); ?></li>
-        <li class="<?php if ($command == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('export/download/ldf', SGS::title('export/download/ldf')); ?></li>
-        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('export/download/specs', SGS::title('export/download/specs')); ?></li>
-      </ul>
-      <?php endif; ?>
-    </li>
-
-    <li class="<?php if ($secondary == 'files') echo 'active'; ?>"><?php echo HTML::anchor('export/files', SGS::title('export/files')); ?></li>
+    <!-- <li class="<?php if ($secondary == 'files') echo 'active'; ?>"><?php echo HTML::anchor('export/files', SGS::title('export/files')); ?></li> -->
     <!-- <li class="<?php if ($secondary == 'data')  echo 'active'; ?>"><?php echo HTML::anchor('export/data', SGS::title('export/data')); ?></li> -->
 
     <?php elseif ($primary == 'analysis'): ?>
