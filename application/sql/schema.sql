@@ -889,7 +889,7 @@ begin
     raise exception 'Sorry, cannot modify data due to barcode locks.';
     return null;
 
-  elseif (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+  elseif (tg_op = 'UPDATE') then
     return new;
 
   elseif (tg_op = 'DELETE') then
@@ -1163,37 +1163,37 @@ create trigger t_barcodes_locks
   execute procedure barcodes_locks();
 
 create trigger t_check_barcode_locks
-  before insert or update or delete on ssf_data
+  before update or delete on ssf_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before insert or update or delete on tdf_data
+  before update or delete on tdf_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before insert or update or delete on ldf_data
+  before update or delete on ldf_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before insert or update or delete on mof_data
+  before update or delete on mof_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before insert or update or delete on mif_data
+  before update or delete on mif_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before insert or update or delete on specs_data
+  before update or delete on specs_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before insert or update or delete on epr_data
+  before update or delete on epr_data
   for each row
   execute procedure check_barcode_locks();
 
