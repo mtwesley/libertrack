@@ -26,6 +26,10 @@ $num = $cntr;
     margin: 0;
   }
 
+  table {
+    border-collapse: collapse;
+  }
+
   img.floater {
     position: absolute;
     top: 0;
@@ -169,12 +173,12 @@ $num = $cntr;
   }
 
   .invoice-info-table tr td {
-    padding: 5px;
+    padding: 10px 5px;
     vertical-align: top;
+    width: 25%;
   }
 
   .invoice-info-table tr td.label {
-    width: 150px;
     font-weight: bold;
     background-color: #bfbfbf;
   }
@@ -188,7 +192,7 @@ $num = $cntr;
 
   .invoice-title {
     margin: 7px 0 15px;
-    font-size: 24px;
+    font-size: 20px;
     text-align: center;
   }
 

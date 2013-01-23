@@ -120,7 +120,7 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('invoices/create', SGS::title('invoices/create')); ?></li>
 
     <?php elseif ($primary == 'exporting'): ?>
-    <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('exporting/list', SGS::title('exporting/list')); ?></li>
+    <!-- <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('exporting/list', SGS::title('exporting/list')); ?></li> -->
     <li class="<?php if ($secondary == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('exporting/create', SGS::title('exporting/create')); ?></li>
 
     <?php elseif ($primary == 'barcodes'): ?>

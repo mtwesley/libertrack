@@ -172,8 +172,11 @@ class Controller_Exporting extends Controller {
       case 'download': return self::handle_invoice_download($id);
       case 'finalize': return self::handle_invoice_finalize($id);
       case 'delete': return self::handle_invoice_delete($id);
-      case 'list': default: return self::handle_invoice_list($id);
+      case 'list': return self::handle_invoice_list($id);
     }
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
   }
 
   public function action_list() {
@@ -212,7 +215,7 @@ class Controller_Exporting extends Controller {
     $item = reset($records);
 
     $details_page_count = 0;
-    $details_page_max   = 34;
+    $details_page_max   = 25;
 
     $page_count = $details_page_count;
     $max        = $details_page_max;
