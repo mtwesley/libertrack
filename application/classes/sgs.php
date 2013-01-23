@@ -670,7 +670,27 @@ class SGS {
     preg_match('/^\w+\/([(LM|A|AB|B|BC|C|D|FAS|CG|1|2|3)]+)/', $text, $matches);
 
     return array(
-      'grade'  => $matches[1],
+      'grade'  => $matches[1]
+    );
+  }
+
+  public static function parse_specs_number($text)
+  {
+    $matches = array();
+    preg_match('/^SPEC\D+(\d+)/', $text, $matches);
+
+    return array(
+      'specs_number'  => str_pad($matches[1], 6, '0', STR_PAD_LEFT)
+    );
+  }
+
+  public static function parse_epr_number($text)
+  {
+    $matches = array();
+    preg_match('/^EP\D+(\d+)/', $text, $matches);
+
+    return array(
+      'epr_number'  => str_pad($matches[1], 6, '0', STR_PAD_LEFT)
     );
   }
 

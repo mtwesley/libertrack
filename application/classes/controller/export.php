@@ -137,8 +137,10 @@ class Controller_Export extends Controller {
 
     $model = ORM::factory($form_type);
 
-    $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
-    $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
+    $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
+    $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
+    $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
+    $has_epr_info   = (bool) (in_array($form_type, array('SPECS')));
 
     if ($has_site_id) $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -159,11 +161,17 @@ class Controller_Export extends Controller {
 
     $form = Formo::form();
     if ($has_site_id) $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
-    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
+    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts')) : array()));
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
+    if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+
+    if (!$has_specs_info and !$has_epr_info) {
+      $form = $form
+        ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
+    }
+
     $form = $form
-      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
-      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add_group('status', 'checkboxes', SGS::$data_status, array('A'), array('label' => 'Status'))
       ->add('type', 'radios', 'xls', array(
         'options' => array(
@@ -179,11 +187,15 @@ class Controller_Export extends Controller {
       if ($has_site_id) $site_id = $form->site_id->val();
       else $operator_id = $form->operator_id->val();
       if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
+      if ($has_specs_info) $specs_info = $form->specs_info->val();
+
+      if (!$has_specs_info and !$has_epr_info) {
+        $from = $form->from->val();
+        $to   = $form->to->val();
+      }
 
       $status = $form->status->val();
       $type   = $form->type->val();
-      $from   = $form->from->val();
-      $to     = $form->to->val();
 
       $data = ORM::factory($form_type);
 
@@ -191,13 +203,18 @@ class Controller_Export extends Controller {
       else $data->where('operator_id', 'IN', (array) $operator_id);
       if ($has_site_id and $has_block_id) $data->where('block_id', 'IN', (array) $block_id);
 
+      if ($specs_info) {
+        if (Valid::is_barcode($specs_info))   $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
+        else if (Valid::numeric($specs_info)) $data->and_where('specs_number', '=', $spec_info);
+      }
+      else $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
+
       $data = $data
-        ->where('create_date', 'BETWEEN', SGS::db_range($from, $to))
         ->and_where('status', 'IN', (array) $status)
         ->find_all()
         ->as_array();
 
-      switch ($type) {
+      if ($data) switch ($type) {
         case 'csv':
           $excel = new PHPExcel();
           $excel->setActiveSheetIndex(0);

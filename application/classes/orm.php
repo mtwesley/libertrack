@@ -35,20 +35,18 @@ class ORM extends Kohana_ORM {
 
 	public function save(Validation $validation = NULL)
 	{
-    if (in_array('user_id', array_keys((array) $this->_object))) $this->user = Auth::instance()->get_user();
+    if ($this->_changed and in_array('user_id', array_keys((array) $this->_object))) $this->user = Auth::instance()->get_user();
 		return parent::save();
 	}
 
   public function create(Validation $validation = NULL)
   {
-    if (in_array('user_id', array_keys((array) $this->_object))) $this->user = Auth::instance()->get_user();
     parent::create($validation);
     $this->create_revision();
   }
 
   public function update(Validation $validation = NULL)
   {
-    if (in_array('user_id', array_keys((array) $this->_object))) $this->user = Auth::instance()->get_user();
     $this->create_revision();
     parent::update($validation);
   }

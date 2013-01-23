@@ -202,4 +202,41 @@ class Controller_Ajax extends Controller {
     $this->response->body($output);
   }
 
+  public function action_specsopts() {
+    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+
+    $operator_id = $this->request->post('operator_id');
+
+    if ($operator_id) {
+      $output = '<optgroup label=""><option value=""></option>';
+
+      $sql = "SELECT distinct barcode
+              FROM barcodes
+              JOIN specs_data ON specs_data.specs_barcode_id = barcodes.id
+              ORDER BY barcode";
+
+      if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
+        ->execute()
+        ->as_array(NULL, 'barcode'))) {
+        $output .= '<optgroup label="Shipment Specification Barcode">';
+        foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'<option>';
+        $output .= '</optgroup>';
+      }
+
+      $sql = "SELECT distinct specs_number
+              FROM specs_data
+              ORDER BY specs_number";
+
+      if ($numbers = array_filter(DB::query(Database::SELECT, $sql)
+        ->execute()
+        ->as_array(NULL, 'specs_number'))) {
+        $output .= '<optgroup label="Shipment Specification Number">';
+        foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'<option>';
+        $output .= '</optgroup>';
+      }
+
+      $this->response->body($output);
+    }
+  }
+
 }

@@ -469,8 +469,10 @@ class Controller_Import extends Controller {
   private function handle_csv_list($form_type = NULL, $id = NULL) {
     if (!Request::$current->query()) Session::instance()->delete('pagination.csv');
 
-    $has_block_id = (bool) (in_array($form_type, array('SSF', 'TDF')));
-    $has_site_id  = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
+    $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
+    $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
+    $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
+    $has_epr_info   = (bool) (in_array($form_type, array('SPECS')));
 
     if ($id) {
       Session::instance()->delete('pagination.csv');
@@ -503,8 +505,9 @@ class Controller_Import extends Controller {
 
       $form = Formo::form();
       if ($has_site_id) $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
-      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'));
+      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts')) : array()));
       if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
+      if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
       $form = $form
         ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
         ->add('format', 'radios', 'filter', array(
@@ -531,6 +534,7 @@ class Controller_Import extends Controller {
         else $operator_id = $form->operator_id->val();
 
         if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
+        if ($has_specs_info) $specs_info = $form->specs_info->val();
 
         $status = $form->status->val();
         $format = $form->format->val();
@@ -539,6 +543,9 @@ class Controller_Import extends Controller {
         if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
+
+        if (Valid::is_barcode($specs_info))   $csvs->and_where('values', 'LIKE', '%"specs_barcode";s:'.strlen($specs_info).':"'.$specs_info.'"%');
+        else if (Valid::numeric($specs_info)) $csvs->and_where('values', 'LIKE', '%"specs_number";s:'.strlen($specs_info).':"'.$specs_info.'"%');
 
         if (in_array($format, array('csv', 'xls'))) {
           $csvs = $csvs->find_all()->as_array();
@@ -609,6 +616,7 @@ class Controller_Import extends Controller {
         Session::instance()->set('pagination.csv', array(
           'site_id'     => $site_id,
           'block_id'    => $block_id,
+          'specs_info'  => $specs_info,
           'status'      => $status,
         ));
 
@@ -617,12 +625,16 @@ class Controller_Import extends Controller {
         if ($has_site_id) $form->site_id->val($site_id = $settings['site_id']);
         else $form->operator_id->val($operator_id = $settings['operator_id']);
         if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
+        if ($has_specs_info) $form->specs_info->val($specs_info = $settings['specs_info']);
         $form->status->val($status = $settings['status']);
 
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
         if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
         if ($status)      $csvs->and_where('status', 'IN', (array) $status);
+
+        if (Valid::is_barcode($specs_info))   $csvs->and_where('data', 'LIKE', '"specs_barcode";s:'.strlen($specs_info).':"'.$specs_info.'"');
+        else if (Valid::numeric($specs_info)) $csvs->and_where('data', 'LIKE', '"specs_number";s:'.strlen($specs_info).':"'.$specs_info.'"');
       }
 
       if ($csvs) {

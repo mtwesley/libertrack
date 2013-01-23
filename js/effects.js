@@ -127,6 +127,18 @@ $(function() {
     {site_id: $("select.siteopts").val()}
   );
 
+  $("select.specs_operatoropts").change(function() {
+    $("select.specsopts").load(
+      '/ajax/specsopts',
+      {operator_id: $(this).val()}
+    );
+  });
+
+  $("select.specsopts").load(
+    '/ajax/specsopts',
+    {operator_id: $("select.specs_operatoropts").val()}
+  );
+
 //  .next(".field.select").children("label").children(".field").children("select.blockopts").load(
 //    '/ajax/blockopts',
 //    {site_id: $(this).val()}

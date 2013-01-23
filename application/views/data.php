@@ -25,7 +25,7 @@ $classes[] = 'data';
   <tr>
     <td class="label">Operator:</td>
     <td><?php if ($operator) echo $operator->name; ?></td>
-    <td class="label">Site:</td>
+    <td class="label"><?php if ($site) echo 'Site:'; ?></td>
     <td><?php if ($site) echo $site->name; ?></td>
   </tr>
   <tr>

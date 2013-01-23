@@ -30,7 +30,9 @@ class Model_SPECS extends SGS_Form_ORM {
   public static $fields = array(
     'create_date'     => 'Date Surveyed',
     'operator_tin'    => 'Operator TIN',
-    'contract_number' => 'Contract Summary Number',
+    'specs_number'    => 'Shipment Specification Number',
+    'epr_number'      => 'Permit Request Number',
+//    'contract_number' => 'Contract Summary Number',
     'origin'          => 'Port of Origin',
     'destination'     => 'Port of Destination',
     'specs_barcode'   => 'Shipment Specification Barcode',
@@ -162,6 +164,8 @@ class Model_SPECS extends SGS_Form_ORM {
   public function parse_csv($row, &$csv)
   {
     extract(SGS::parse_grade(trim($row[J])));
+    extract(SGS::parse_specs_number(trim($csv[2][I] ?: $csv[2][J] ?: $csv[2][K])));
+    extract(SGS::parse_epr_number(trim($csv[3][I] ?: $csv[3][J] ?: $csv[3][K])));
     $data = array(
       'barcode'         => SGS::barcodify(trim($row[B] ?: $row[C])),
       'species_code'    => trim($row[D]),
@@ -177,7 +181,9 @@ class Model_SPECS extends SGS_Form_ORM {
     if (array_filter($data)) return SGS::cleanify(array(
       'create_date'     => SGS::date(trim($csv[7][I] ?: $csv[7][J] ?: $csv[7][K]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'operator_tin'    => trim($csv[4][C] ?: $csv[4][D]),
-      'contract_number' => trim($csv[3][I] ?: $csv[3][J] ?: $csv[3][K]),
+//      'contract_number' => trim($csv[3][I] ?: $csv[3][J] ?: $csv[3][K]),
+      'specs_number'    => $specs_number,
+      'epr_number'      => $epr_number,
       'origin'          => trim($csv[5][C] ?: $csv[5][D]),
       'destination'     => trim($csv[6][C] ?: $csv[6][D]),
       'specs_barcode'   => SGS::barcodify(trim($csv[2][C] ?: $csv[2][D])),
@@ -263,7 +269,9 @@ class Model_SPECS extends SGS_Form_ORM {
 
     $excel->getActiveSheet()->SetCellValue('C2', $this->specs_barcode->barcode);
     $excel->getActiveSheet()->SetCellValue('C3', $this->epr_barcode->barcode);
-    $excel->getActiveSheet()->SetCellValue('I3', $this->contract_number);
+//    $excel->getActiveSheet()->SetCellValue('I3', $this->contract_number);
+    $excel->getActiveSheet()->SetCellValue('I2', $this->specs_number);
+    $excel->getActiveSheet()->SetCellValue('I3', $this->epr_number);
     $excel->getActiveSheet()->SetCellValue('C4', $this->operator->tin);
     $excel->getActiveSheet()->SetCellValue('I4', $this->operator->name);
     $excel->getActiveSheet()->SetCellValue('C5', $this->origin);
@@ -337,7 +345,9 @@ class Model_SPECS extends SGS_Form_ORM {
 
     $excel->getActiveSheet()->SetCellValue('C2', $values['specs_barcode']);
     $excel->getActiveSheet()->SetCellValue('C3', $values['barcode']);
-    $excel->getActiveSheet()->SetCellValue('I3', $values['contract_number']);
+//    $excel->getActiveSheet()->SetCellValue('I3', $values['contract_number']);
+    $excel->getActiveSheet()->SetCellValue('I2', $values['specs_number']);
+    $excel->getActiveSheet()->SetCellValue('I3', $values['epr_number']);
     $excel->getActiveSheet()->SetCellValue('C4', $values['operator_tin']);
     $excel->getActiveSheet()->SetCellValue('I4', SGS::lookup_operator($values['operator_tin'])->name);
     $excel->getActiveSheet()->SetCellValue('C5', $values['origin']);
@@ -549,7 +559,9 @@ class Model_SPECS extends SGS_Form_ORM {
       'barcode_id'       => self::$fields['barcode'],
       'specs_barcode_id' => self::$fields['specs_barcode'],
       'epr_barcode_id'   => self::$fields['epr_barcode'],
-      'contract_number'  => self::$fields['contract_number'],
+//      'contract_number'  => self::$fields['contract_number'],
+      'specs_number'     => self::$fields['specs_number'],
+      'epr_number'       => self::$fields['epr_number'],
       'origin'           => self::$fields['origin'],
       'destination'      => self::$fields['destination'],
       'bottom_max'       => self::$fields['bottom_max'],
@@ -562,6 +574,13 @@ class Model_SPECS extends SGS_Form_ORM {
 //      'user_id'          => self::$fields['user_id'],
 //      'timestamp'        => self::$fields['timestamp'],
     );
+  }
+
+  public function create_specs_number($force = FALSE) {
+    if ($force or !$this->specs_number)
+      return DB::query(Database::SELECT, "SELECT to_char(nextval('s_specs_data_specs_number'), 'FM000000') specs_number")
+        ->execute()
+        ->get('specs_number');
   }
 
 }

@@ -75,6 +75,10 @@ create domain d_oid as oid;
 
 create domain d_invoice_type as character varying(3) check (value ~ E'(ST)');
 
+create domain d_specs_number as character(6) check (value ~ E'[0-9]{6}');
+
+create domain d_epr_number as character(6) check (value ~ E'[0-9]{6}');
+
 
 -- tables
 
@@ -499,8 +503,10 @@ create table mof_data (
 create table specs_data (
   id bigserial not null,
   operator_id d_id not null,
-  specs_barcode_id d_id not null,
-  epr_barcode_id d_id not null,
+  specs_barcode_id d_id,
+  epr_barcode_id d_id,
+  specs_number d_specs_number,
+  epr_number d_epr_number,
   contract_number d_text_short,
   barcode_id d_id unique not null,
   species_id d_id not null,
@@ -522,7 +528,10 @@ create table specs_data (
   constraint specs_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
-  constraint specs_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
+  constraint specs_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint specs_data_specs_number_or_barcode check (specs_number is not null or specs_barcode_id is not null),
+  constraint specs_data_epr_number_or_barcode check (epr_number is not null or epr_barcode_id is not null)
 );
 
 create table epr_data (
@@ -598,6 +607,7 @@ create table settings (
 -- sequences
 
 create sequence s_invoices_reference_number minvalue 100100;
+create sequence s_specs_data_specs_number minvalue 1;
 
 
 -- indexes
@@ -622,7 +632,7 @@ create index barcodes_is_locked on barcodes (id,is_locked);
 create index barcode_hops_cached_parent_id on barcode_hops_cached (barcode_id,parent_id);
 
 create index barcode_coc_activity_barcode_id_status on barcode_coc_activity (barcode_id,status);
-create index barcode_coc_activity_barcode_id_status on barcode_coc_activity (barcode_id,trigger);
+create index barcode_coc_activity_barcode_id_trigger on barcode_coc_activity (barcode_id,trigger);
 create index barcode_coc_activity_status_trigger on barcode_coc_activity (status,trigger);
 
 
@@ -855,7 +865,7 @@ begin
   if x_barcode_id is null then
     truncate barcode_hops_cached;
 
-    for x_id in select id from barcodes loop
+    for x_id in select id from barcodes where parent_id is not null loop
       perform rebuild_barcode_hops(x_id);
     end loop;
   else

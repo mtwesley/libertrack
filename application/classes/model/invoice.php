@@ -8,6 +8,13 @@ class Model_Invoice extends ORM {
     'user' => array()
   );
 
+  public function create_reference_number($force = FALSE) {
+    if ($force or !$this->reference_number)
+      return DB::query(Database::SELECT, "SELECT nextval('s_invoices_reference_number') reference_number")
+        ->execute()
+        ->get('reference_number');
+  }
+
   public function get_data($args = array()) {
     $query = DB::select('form_type', 'form_data_id')
       ->from('invoice_data')
