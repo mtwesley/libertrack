@@ -223,13 +223,13 @@ class Controller_Ajax extends Controller {
         $output .= '</optgroup>';
       }
 
-      $sql = "SELECT distinct specs_number
-              FROM specs_data
-              ORDER BY specs_number";
+      $sql = "SELECT distinct number
+              FROM specs
+              ORDER BY number";
 
       if ($numbers = array_filter(DB::query(Database::SELECT, $sql)
         ->execute()
-        ->as_array(NULL, 'specs_number'))) {
+        ->as_array(NULL, 'number'))) {
         $output .= '<optgroup label="Shipment Specification Number">';
         foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'<option>';
         $output .= '</optgroup>';

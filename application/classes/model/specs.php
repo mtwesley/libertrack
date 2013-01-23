@@ -135,6 +135,12 @@ class Model_SPECS extends SGS_Form_ORM {
     return (array) self::$fields;
   }
 
+  public static function create_specs_number($force = FALSE) {
+    return DB::query(Database::SELECT, "SELECT to_char(nextval('s_specs_number'), 'FM000000') specs_number")
+      ->execute()
+      ->get('specs_number');
+  }
+
   public function formo() {
     $array = array(
       'id'            => array('render' => FALSE),
@@ -201,6 +207,12 @@ class Model_SPECS extends SGS_Form_ORM {
       case 'specs_barcode':
       case 'epr_barcode':
         $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
+
+      case 'specs_number':
+        $this->specs_id = SGS::lookup_specs($value, TRUE); break;
+
+      case 'epr_number':
+        $this->epr_id = SGS::lookup_epr($value, TRUE); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;
@@ -560,8 +572,8 @@ class Model_SPECS extends SGS_Form_ORM {
       'specs_barcode_id' => self::$fields['specs_barcode'],
       'epr_barcode_id'   => self::$fields['epr_barcode'],
 //      'contract_number'  => self::$fields['contract_number'],
-      'specs_number'     => self::$fields['specs_number'],
-      'epr_number'       => self::$fields['epr_number'],
+      'specs_id'         => self::$fields['specs_number'],
+      'epr_id'           => self::$fields['epr_number'],
       'origin'           => self::$fields['origin'],
       'destination'      => self::$fields['destination'],
       'bottom_max'       => self::$fields['bottom_max'],
@@ -574,13 +586,6 @@ class Model_SPECS extends SGS_Form_ORM {
 //      'user_id'          => self::$fields['user_id'],
 //      'timestamp'        => self::$fields['timestamp'],
     );
-  }
-
-  public function create_specs_number($force = FALSE) {
-    if ($force or !$this->specs_number)
-      return DB::query(Database::SELECT, "SELECT to_char(nextval('s_specs_data_specs_number'), 'FM000000') specs_number")
-        ->execute()
-        ->get('specs_number');
   }
 
 }

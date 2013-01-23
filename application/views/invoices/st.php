@@ -225,7 +225,7 @@ $options = (array) $options + array(
         <td class="label">Contact:</td>
         <td><?php echo $invoice->site->operator->contact; ?></td>
         <td class="label">Reference No:</td>
-        <td><?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->reference_number; ?></td>
+        <td><?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->number; ?></td>
       </tr>
       <tr>
         <td class="label">Company:</td>
@@ -483,7 +483,7 @@ $options = (array) $options + array(
           LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
         </td>
         <td class="pageinfo">
-          <div class="ref"><?php echo $invoice->is_draft ? 'DRAFT' : 'Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ST-'.$invoice->reference_number; ?></div>
+          <div class="ref"><?php echo $invoice->is_draft ? 'DRAFT' : 'Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ST-'.$invoice->number; ?></div>
           Page <span class="page"><?php echo $page; ?></span> of <span class="topage"><?php echo $page_count; ?></span>
         </td>
       </tr>

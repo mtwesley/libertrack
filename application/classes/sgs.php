@@ -93,6 +93,10 @@ class SGS {
     'invoices/list'   => 'List Invoices',
     'invoices/create' => 'Create Invoice',
 
+    'exporting'        => 'Exporting',
+    'exporting/list'   => 'List Shipment Specifications',
+    'exporting/create' => 'Create Shipment Specification',
+
     'reports'         => 'Reports',
     'reports/ssf'     => 'Stock Survey Reports',
     'reports/tdf'     => 'Tree Data Reports',
@@ -476,6 +480,34 @@ class SGS {
       ->get('id');
 
     return $returning_id ? $id : ORM::factory('barcode', $id);
+  }
+
+  public static function lookup_specs($number, $returning_id = FALSE)
+  {
+    $id = DB::select('id')
+      ->from('specs')
+      ->where('number', '=', (string) $number)
+      ->execute()
+      ->get('id');
+
+    return $returning_id ? $id : ORM::factory('SPECS')
+      ->where('specs_id', '=', $id)
+      ->find_all()
+      ->as_array();
+  }
+
+  public static function lookup_epr($number, $returning_id = FALSE)
+  {
+    $id = DB::select('id')
+      ->from('epr')
+      ->where('number', '=', (string) $number)
+      ->execute()
+      ->get('id');
+
+    return $returning_id ? $id : ORM::factory('EPR')
+      ->where('epr_id', '=', $id)
+      ->find_all()
+      ->as_array();
   }
 
   public static function lookup_printjob($number, $returning_id = FALSE)

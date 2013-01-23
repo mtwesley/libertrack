@@ -79,6 +79,8 @@ create domain d_specs_number as character(6) check (value ~ E'[0-9]{6}');
 
 create domain d_epr_number as character(6) check (value ~ E'[0-9]{6}');
 
+create domain d_invoice_number as numeric(6) check ((value > 100000) and (value < 200000));
+
 
 -- tables
 
@@ -283,7 +285,7 @@ create table invoices (
   id bigserial not null,
   type d_invoice_type not null,
   site_id d_id not null,
-  reference_number d_positive_int unique,
+  number d_invoice_number unique,
   is_draft d_bool default true not null,
   from_date d_date,
   to_date d_date,
@@ -295,7 +297,9 @@ create table invoices (
 
   constraint invoices_pkey primary key (id),
   constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade on delete cascade,
-  constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade
+  constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint invoices_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
 );
 
 create table invoice_data (
@@ -308,6 +312,32 @@ create table invoice_data (
   constraint invoice_data_invoice_id foreign key (invoice_id) references invoices (id) on update cascade on delete cascade,
 
   constraint invoice_data_unique unique(form_type,form_data_id,invoice_id)
+);
+
+create table specs (
+  id bigserial not null,
+  number d_specs_number not null,
+  is_draft d_bool default true not null,
+  file_id d_id unique not null,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint specs_pkey primary key (id),
+
+  constraint specs_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
+);
+
+create table epr (
+  id bigserial not null,
+  number d_epr_number not null,
+  is_draft d_bool default true not null,
+  file_id d_id unique not null,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint epr_pkey primary key (id),
+
+  constraint epr_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
 );
 
 create table csv (
@@ -505,8 +535,8 @@ create table specs_data (
   operator_id d_id not null,
   specs_barcode_id d_id,
   epr_barcode_id d_id,
-  specs_number d_specs_number,
-  epr_number d_epr_number,
+  specs_id d_id,
+  epr_id d_id,
   contract_number d_text_short,
   barcode_id d_id unique not null,
   species_id d_id not null,
@@ -527,11 +557,15 @@ create table specs_data (
   constraint specs_data_pkey primary key (id),
   constraint specs_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
+  constraint specs_data_specs_barcode_id_fkey foreign key (specs_barcode_id) references barcodes (id) on update cascade,
+  constraint specs_data_epr_barcode_id_fkey foreign key (epr_barcode_id) references barcodes (id) on update cascade,
+  constraint specs_data_specs_id_fkey foreign key (specs_id) references specs (id) on update cascade,
+  constraint specs_data_epr_id_fkey foreign key (epr_id) references epr (id) on update cascade,
   constraint specs_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
   constraint specs_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
-  constraint specs_data_specs_number_or_barcode check (specs_number is not null or specs_barcode_id is not null),
-  constraint specs_data_epr_number_or_barcode check (epr_number is not null or epr_barcode_id is not null)
+  constraint specs_data_specs_check check (specs_id is not null or specs_barcode_id is not null),
+  constraint specs_data_epr_check check (epr_id is not null or epr_barcode_id is not null)
 );
 
 create table epr_data (
@@ -607,7 +641,8 @@ create table settings (
 -- sequences
 
 create sequence s_invoices_reference_number minvalue 100100;
-create sequence s_specs_data_specs_number minvalue 1;
+create sequence s_specs_specs_number minvalue 1;
+create sequence s_epr_epr_number minvalue 1;
 
 
 -- indexes

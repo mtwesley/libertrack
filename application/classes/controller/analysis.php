@@ -72,13 +72,13 @@ class Controller_Analysis extends Controller {
         if ($status)      $data->and_where('status', 'IN', (array) $status);
 
         if (Valid::is_barcode($specs_info))   $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
-        else if (Valid::numeric($specs_info)) $data->and_where('specs_number', '=', $spec_info);
+        else if (Valid::numeric($specs_info)) $data->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
 
         Session::instance()->set('pagination.data', array(
           'site_id'     => $site_id,
           'operator_id' => $operator_id,
           'block_id'    => $block_id,
-          'spec_info'   => $spec_info,
+          'specs_info'  => $specs_info,
           'status'      => $status,
         ));
       }
@@ -100,7 +100,7 @@ class Controller_Analysis extends Controller {
         if ($status)      $data->and_where('status', 'IN', (array) $status);
 
         if (Valid::is_barcode($specs_info))   $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
-        else if (Valid::numeric($specs_info)) $data->and_where('specs_number', '=', $spec_info);
+        else if (Valid::numeric($specs_info)) $data->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
       }
 
       if ($data) {
@@ -288,7 +288,7 @@ class Controller_Analysis extends Controller {
       if ($block_id)    $records = $records->and_where('block_id', 'IN', (array) $block_id);
 
       if (Valid::is_barcode($specs_info))   $records = $records->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
-      else if (Valid::numeric($specs_info)) $records = $records->and_where('specs_number', '=', $spec_info);
+      else if (Valid::numeric($specs_info)) $records = $records->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
 
       if (!$has_specs_info and !$has_epr_info) {
         $records = $records->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
@@ -442,7 +442,7 @@ class Controller_Analysis extends Controller {
       if ($has_site_id and $has_block_id and $block_id) $_data = $_data->and_where('block_id', 'IN', (array) $block_id);
 
       if (Valid::is_barcode($specs_info))   $_data = $_data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
-      else if (Valid::numeric($specs_info)) $_data = $_data->and_where('specs_number', '=', $spec_info);
+      else if (Valid::numeric($specs_info)) $_data = $_data->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
 
       if (!$has_specs_info and !$has_epr_info)  $_data = $_data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 

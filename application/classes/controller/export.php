@@ -205,7 +205,7 @@ class Controller_Export extends Controller {
 
       if ($specs_info) {
         if (Valid::is_barcode($specs_info))   $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
-        else if (Valid::numeric($specs_info)) $data->and_where('specs_number', '=', $spec_info);
+        else if (Valid::numeric($specs_info)) $data->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
       }
       else $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 

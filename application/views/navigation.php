@@ -31,6 +31,10 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($primary == 'invoices')  echo 'active'; ?>"><?php echo HTML::anchor('invoices', SGS::title('invoices')); ?></li>
     <?php endif; ?>
 
+    <?php if (Auth::instance()->logged_in('invoices')): ?>
+    <li class="<?php if ($primary == 'exporting')  echo 'active'; ?>"><?php echo HTML::anchor('exporting', SGS::title('exporting')); ?></li>
+    <?php endif; ?>
+
     <?php if (Auth::instance()->logged_in('reports')): ?>
     <!-- <li class="<?php if ($primary == 'reports')   echo 'active'; ?>"><?php echo HTML::anchor('reports', SGS::title('reports')); ?></li> -->
     <?php endif; ?>
@@ -114,6 +118,10 @@ if (!$command && !is_numeric($id)) {
     <?php elseif ($primary == 'invoices'): ?>
     <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('invoices/list', SGS::title('invoices/list')); ?></li>
     <li class="<?php if ($secondary == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('invoices/create', SGS::title('invoices/create')); ?></li>
+
+    <?php elseif ($primary == 'exporting'): ?>
+    <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('exporting/list', SGS::title('exporting/list')); ?></li>
+    <li class="<?php if ($secondary == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('exporting/create', SGS::title('exporting/create')); ?></li>
 
     <?php elseif ($primary == 'barcodes'): ?>
     <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('barcodes/list', SGS::title('barcodes/list')); ?></li>
