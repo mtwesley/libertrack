@@ -25,7 +25,7 @@ class Controller_Invoices extends Controller {
     }
 
     $invoice->is_draft = FALSE;
-    $invoice->reference_number = $invoice::create_invoice_number();
+    $invoice->number = $invoice::create_invoice_number();
 
     switch ($invoice->type) {
       case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, array_keys($invoice->get_data()));
@@ -345,7 +345,7 @@ class Controller_Invoices extends Controller {
     ));
 
     if ($invoice->is_draft) $newname = 'DRAFT_'.SGS::date($invoice->created_date, 'Y_m_d').'.'.$ext;
-    else $newname = 'ST_'.$invoice->reference_number.'.'.$ext;
+    else $newname = 'ST_'.$invoice->number.'.'.$ext;
 
     $version = 0;
     $testname = $newname;
@@ -547,7 +547,7 @@ class Controller_Invoices extends Controller {
             $invoice->site = $site;
             $invoice->type = $type;
             $invoice->is_draft = $is_draft ? TRUE : FALSE;
-            $invoice->reference_number = $is_draft ? NULL : $invoice::create_invoice_number();
+            $invoice->number = $is_draft ? NULL : $invoice::create_invoice_number();
             if ($from) $invoice->from_date = SGS::date($from, SGS::PGSQL_DATE_FORMAT, TRUE);
             if ($to) $invoice->to_date = SGS::date($to, SGS::PGSQL_DATE_FORMAT, TRUE);
             $invoice->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);

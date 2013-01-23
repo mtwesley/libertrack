@@ -25,7 +25,7 @@ class Controller_Exporting extends Controller {
     }
 
     $invoice->is_draft = FALSE;
-    $invoice->reference_number = $invoice::create_reference_number();
+    $invoice->number = $invoice::create_number();
 
     switch ($invoice->type) {
       case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, array_keys($invoice->get_data()));
@@ -267,7 +267,7 @@ class Controller_Exporting extends Controller {
     ));
 
 //    if ($invoice->is_draft) $newname = 'DRAFT_'.SGS::date($invoice->created_date, 'Y_m_d').'.'.$ext;
-//    else $newname = 'ST_'.$invoice->reference_number.'.'.$ext;
+//    else $newname = 'ST_'.$invoice->number.'.'.$ext;
 
     $newname = 'specs_download'.'.'.$ext;
 

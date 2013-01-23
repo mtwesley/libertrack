@@ -9,9 +9,9 @@ class Model_Invoice extends ORM {
   );
 
   public static function create_invoice_number() {
-    return DB::query(Database::SELECT, "SELECT nextval('s_invoices_reference_number') reference_number")
+    return DB::query(Database::SELECT, "SELECT nextval('s_invoices_number') number")
       ->execute()
-      ->get('reference_number');
+      ->get('number');
   }
 
   public function get_data($args = array()) {
