@@ -64,9 +64,3 @@ alter table invoices alter column number type d_invoice_number;
 
 alter table invoices add constraint invoices_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)));
 
-
-
--- NEED TO FIX THIS !!!
-
-alter table epr_data add constraint specs_data_specs_barcode_id_fkey foreign key (specs_barcode_id) references barcodes (id) on update cascade;
-alter table epr_data add constraint specs_data_epr_barcode_id_fkey foreign key (epr_barcode_id) references barcodes (id) on update cascade;

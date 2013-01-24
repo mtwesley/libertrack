@@ -487,7 +487,7 @@ class Model_SPECS extends SGS_Form_ORM {
 
     // payment
 
-    if (!$ldf->is_invoiced('st')) $errors['barcode_id'][] = 'is_invoiced_st';
+    if (!$ldf->is_invoiced('ST')) $errors['barcode_id'][] = 'is_invoiced_st';
 
     // all tolerance checks fail if any traceability checks fail
     if (array_intersect(SGS::flattenify($errors), array_keys(self::$checks['traceability']['checks']))) {
