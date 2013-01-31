@@ -77,7 +77,7 @@ create domain d_invoice_type as character varying(3) check (value ~ E'(ST)');
 
 create domain d_specs_number as character(6) check (value ~ E'[0-9]{6}');
 
-create domain d_epr_number as character(6) check (value ~ E'[0-9]{6}');
+create domain d_epr_number as character(6) check (value ~ E'[0-9]{6,10}');
 
 create domain d_invoice_number as numeric(6) check ((value > 100000) and (value < 200000));
 
@@ -316,7 +316,7 @@ create table invoice_data (
 
 create table specs (
   id bigserial not null,
-  number d_specs_number not null,
+  number d_specs_number,
   is_draft d_bool default true not null,
   file_id d_id unique not null,
   user_id d_id default 1 not null,
@@ -329,7 +329,7 @@ create table specs (
 
 create table epr (
   id bigserial not null,
-  number d_epr_number not null,
+  number d_epr_number,
   is_draft d_bool default true not null,
   file_id d_id unique not null,
   user_id d_id default 1 not null,
@@ -731,6 +731,10 @@ create index mof_data_status on mof_data (id,status);
 
 create index specs_data_operator_id on specs_data (id,operator_id);
 create index specs_data_barcode_id on specs_data (id,barcode_id);
+create index specs_data_specs_barcode_id on specs_data (id,specs_barcode_id);
+create index specs_data_epr_barcode_id on specs_data (id,epr_barcode_id);
+create index specs_data_specs_number on specs_data (id,specs_number);
+create index specs_data_epr_number on specs_data (id,epr_number);
 create index specs_data_species_id on specs_data (id,species_id);
 create index specs_data_volume on specs_data (id,volume);
 create index specs_data_grade on specs_data (id,grade);
@@ -1106,6 +1110,21 @@ begin
     if new.epr_barcode_id is not null then
       update barcodes set type = 'E' where barcodes.id = new.epr_barcode_id;
     end if;
+
+    update barcodes set is_locked = false where id = new.barcode_id;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create function epr_data_update_barcodes()
+  returns trigger as
+$$
+begin
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    update barcodes set is_locked = false where id = new.barcode_id;
   end if;
 
   return null;

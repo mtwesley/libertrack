@@ -114,6 +114,9 @@ $classes[] = 'data';
           case 'block_id': if ($record->block) echo $record->block->name; break;
           case 'species_id': if ($record->species) echo $record->species->code; break;
 
+          case 'specs_id': echo $record->specs_number; break;
+          case 'epr_id': echo $record->epr_number; break;
+
           case 'barcode_id':
           case 'tree_barcode_id':
           case 'stump_barcode_id':

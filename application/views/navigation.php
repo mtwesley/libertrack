@@ -120,8 +120,9 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('invoices/create', SGS::title('invoices/create')); ?></li>
 
     <?php elseif ($primary == 'exporting'): ?>
-    <!-- <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('exporting/list', SGS::title('exporting/list')); ?></li> -->
-    <li class="<?php if ($secondary == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('exporting/create', SGS::title('exporting/create')); ?></li>
+    <!-- <li class="<?php if ($secondary == 'epr')     echo 'active'; ?>"><?php echo HTML::anchor('exporting/epr', SGS::title('exporting/epr')); ?></li> -->
+    <li class="<?php if ($secondary == 'specs')   echo 'active'; ?>"><?php echo HTML::anchor('exporting/specs', SGS::title('exporting/specs')); ?></li>
+    <li class="<?php if ($command == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('exporting/specs/create', SGS::title('exporting/specs/create')); ?></li>
 
     <?php elseif ($primary == 'barcodes'): ?>
     <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('barcodes/list', SGS::title('barcodes/list')); ?></li>

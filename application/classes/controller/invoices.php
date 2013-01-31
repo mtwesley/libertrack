@@ -318,25 +318,6 @@ class Controller_Invoices extends Controller {
     // generate pdf
     set_time_limit(600);
 
-//    try {
-//      $tcpdf = new TCPDF();
-//      $tcpdf->SetAutoPageBreak(TRUE);
-//      $tcpdf->AddPage();
-//      $tcpdf->writeHTML($html);
-//      $tcpdf->lastPage();
-
-//      if (!$output = $tcpdf->output(NULL, 'S')) throw new Exception();
-
-//      $dompdf = new DOMPDF();
-//      $dompdf->set_paper("A4");
-//      $dompdf->load_html($html);
-//      $dompdf->render();
-//      if (!$output = $dompdf->output()) throw new Exception();
-//    } catch (Exception $e) {
-//      Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
-//      return FALSE;
-//    }
-
     // save file
     $ext = 'pdf';
     $newdir = implode(DIRECTORY_SEPARATOR, array(
@@ -359,10 +340,6 @@ class Controller_Invoices extends Controller {
     }
 
     $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
-//    if (!(file_put_contents($fullname, $output) and chmod($fullname, 0777))) {
-//      Notify::msg('Sorry, cannot create invoice. Check file operation capabilities with the site administrator and try again.', 'error');
-//      return FALSE;
-//    }
 
     try {
       $snappy = new \Knp\Snappy\Pdf();
@@ -373,6 +350,7 @@ class Controller_Invoices extends Controller {
         'margin-right' => 0,
         'margin-top' => 0,
         'lowquality' => TRUE,
+        'page-size'  => 'A4',
         'disable-smart-shrinking' => TRUE,
         'footer-html' => View::factory('invoices/st')
           ->set('invoice', $invoice)

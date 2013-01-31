@@ -57,146 +57,163 @@ $num = $cntr;
     height: 32px;
   }
 
-  .invoice {
+  .specs {
     padding: 20px 25px;
   }
 
-  .st-invoice {}
-
-  .invoice-page-break {
+  .specs-page-break {
     page-break-before: always;
   }
 
-  .invoice-header {}
+  .specs-header {}
 
-  .invoice-header,
-  .invoice-info,
-  .invoice-summary {
+  .specs-header,
+  .specs-info,
+  .specs-summary {
     width: 100%;
   }
 
-  .invoice-summary-table,
-  .invoice-details-table,
-  .invoice-signature-table,
-  .invoice-info-table,
-  .invoice-header-table {
+  .specs-summary-table,
+  .specs-details-table,
+  .specs-signature-table,
+  .specs-info-table,
+  .specs-header-table {
     width: 100%;
     border-collapse: collapse;
   }
 
-  .invoice-summary-table tr td,
-  .invoice-details-table tr td,
-  .invoice-info-table tr td {
+  .specs-summary-table tr td,
+  .specs-details-table tr td,
+  .specs-info-table tr td {
     padding: 2px 5px;
     border: 1px solid #000;
   }
 
-  .invoice-summary-table tr.head td,
-  .invoice-details-table tr.head td {
+  .specs-summary-table tr.head td,
+  .specs-details-table tr.head td {
     padding: 6px 5px;
     background-color: #bfbfbf;
     font-weight: bold;
   }
 
-  .invoice-summary-table tr td.blank-slim {
+  .specs-summary-table tr td.blank-slim {
     border: none;
     font-size: 6px;
   }
 
-  .invoice-summary-table tr td.volume,
-  .invoice-summary-table tr td.species_code,
-  .invoice-summary-table tr td.species_class,
-  .invoice-summary-table tr td.fob_price,
-  .invoice-summary-table tr td.tax_code,
-  .invoice-summary-table tr td.total {
+  .specs-summary-table tr td.volume,
+  .specs-summary-table tr td.species_code,
+  .specs-summary-table tr td.species_class,
+  .specs-summary-table tr td.fob_price,
+  .specs-summary-table tr td.tax_code,
+  .specs-summary-table tr td.total {
     text-align: center;
   }
 
-  .invoice-summary-table tr td.fee_desc,
-  .invoice-summary-table tr td.fee_desc em {
+  .specs-summary-table tr td.fee_desc,
+  .specs-summary-table tr td.fee_desc em {
     font-size: 8px;
     white-space: nowrap;
   }
 
-  .invoice-summary-table tr.head td.fee_desc {
+  .specs-summary-table tr.head td.fee_desc {
     font-size: 10px;
   }
 
-  .invoice-details-table tr td.barcode,
-  .invoice-details-table tr td.scan_date,
-  .invoice-details-table tr td.volume,
-  .invoice-details-table tr td.species_code,
-  .invoice-details-table tr td.species_class,
-  .invoice-details-table tr td.diameter,
-  .invoice-details-table tr td.bottom,
-  .invoice-details-table tr td.top,
-  .invoice-details-table tr td.bottom_min,
-  .invoice-details-table tr td.bottom_max,
-  .invoice-details-table tr td.top_min,
-  .invoice-details-table tr td.top_max,
-  .invoice-details-table tr td.length,
-  .invoice-details-table tr td.grade,
-    .invoice-details-table tr td.total {
+  .specs-details-table tr td {
+    white-space: nowrap;
+  }
+
+  .specs-details-table tr td.barcode,
+  .specs-details-table tr td.scan_date,
+  .specs-details-table tr td.volume,
+  .specs-details-table tr td.species_code,
+  .specs-details-table tr td.species_class,
+  .specs-details-table tr td.diameter,
+  .specs-details-table tr td.bottom,
+  .specs-details-table tr td.top,
+  .specs-details-table tr td.bottom_min,
+  .specs-details-table tr td.bottom_max,
+  .specs-details-table tr td.top_min,
+  .specs-details-table tr td.top_max,
+  .specs-details-table tr td.length,
+  .specs-details-table tr td.grade,
+  .specs-details-table tr td.total {
     text-align: center;
   }
 
-  .invoice-details-table tr td.total_volume {
+  .specs-details-table tr td.number {
+    text-align: right;
+  }
+
+  .specs-details-table tr td.diameter,
+  .specs-details-table tr td.bottom,
+  .specs-details-table tr td.top,
+  .specs-details-table tr td.bottom_min,
+  .specs-details-table tr td.bottom_max,
+  .specs-details-table tr td.top_min,
+  .specs-details-table tr td.top_max {
+    padding: 2px 5px;
+  }
+
+  .specs-details-table tr td.total_volume {
     border-left: none;
     text-align: center;
   }
 
-  .invoice-details-table tr td.total_species {
+  .specs-details-table tr td.total_species {
     border-right: none;
   }
 
-  .invoice-details-table tr.even {
+  .specs-details-table tr.even {
     background-color: #f2f2f2;
   }
 
-  .invoice-signature-table tr td {
+  .specs-signature-table tr td {
     padding: 5px;
     border: 1px solid #000;
   }
 
-  .invoice-signature-table tr td.signature {
+  .specs-signature-table tr td.signature {
     width: 24%;
     height: 150px;
     vertical-align: top;
   }
 
-  .invoice-signature-table tr td.half-signature {
+  .specs-signature-table tr td.half-signature {
     height: 75px;
   }
 
-  .invoice-info-table {
-    margin-bottom: 5px;
+  .specs-info-table {
+    margin-bottom: 8px;
   }
 
-  .invoice-info-table tr td {
-    padding: 10px 5px;
+  .specs-info-table tr td {
+    padding: 6px 5px;
     vertical-align: top;
-    width: 25%;
+    width: 24%;
   }
 
-  .invoice-info-table tr td.label {
+  .specs-info-table tr td.label {
     font-weight: bold;
     background-color: #bfbfbf;
+    width: 26%;
   }
 
-  .invoice-info-table tr td.from,
-  .invoice-info-table tr td.to {
+  .specs-info-table tr td.from,
+  .specs-info-table tr td.to {
      text-align: right;
   }
 
-  .invoice-titles {}
+  .specs-titles {}
 
-  .invoice-title {
-    margin: 7px 0 15px;
-    font-size: 20px;
+  .specs-title {
+    margin: 2px 0 8px;
+    font-size: 22px;
     text-align: center;
   }
 
-  .invoice-subtitle {
+  .specs-subtitle {
     margin-bottom: 25px;
     text-align: center;
     text-transform: uppercase;
@@ -218,22 +235,22 @@ $num = $cntr;
 </style>
 <?php endif; ?>
 
-<div class="st-invoice invoice <?php if ($options['break']) echo 'invoice-page-break'; ?>">
+<div class="specs <?php if ($options['break']) echo 'specs-page-break'; ?>">
   <?php if ($options['header']): ?>
-  <div class="invoice-header">
-    <table class="invoice-header-table">
+  <div class="specs-header">
+    <table class="specs-header-table">
       <tr>
         <td class="liberfor-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_liberfor.jpg" /></td>
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="invoice-title">Export Shipment Specification - Logs</div>
+    <div class="specs-title">Export Shipment Specification - Logs</div>
   </div>
   <?php endif; ?>
 
   <?php if ($options['info']): ?>
-  <div class="invoice-info">
-    <table class="invoice-info-table">
+  <div class="specs-info">
+    <table class="specs-info-table">
       <tr>
         <td class="label">Shipment Specification Barcode:</td>
         <td><?php echo $info['specs_barcode']; ?></td>
@@ -268,15 +285,15 @@ $num = $cntr;
         <td class="label">Submitted By:</td>
         <td><?php echo $info['submitted_by']; ?></td>
         <td class="label">Date:</td>
-        <td><?php echo $info['create_date']; ?></td>
+        <td><?php echo SGS::date($info['create_date'], SGS::US_DATE_FORMAT); ?></td>
       </tr>
     </table>
   </div>
   <?php endif; ?>
 
   <?php if ($options['details']): ?>
-  <div class="invoice-details">
-    <table class="invoice-details-table">
+  <div class="specs-details">
+    <table class="specs-details-table">
       <?php if ($data): ?>
       <tr class="head">
         <td class="number" rowspan="3">No.</td>
@@ -322,7 +339,6 @@ $num = $cntr;
   </div>
   <?php endif; ?>
 
-
   <?php if ($options['footer']): ?>
   <script>
   window.onload = function() {
@@ -343,7 +359,7 @@ $num = $cntr;
   <style>
     * {
       font-family: "Arial";
-      font-size: 12px;
+      font-size: 13px;
     }
 
     img.liberfor-bw {
@@ -358,48 +374,49 @@ $num = $cntr;
       height: 20px;
     }
 
-    .invoice-footer {
+    .specs-footer {
       margin: 0 25px;
     }
 
-    .invoice-footer-table {
+    .specs-footer-table {
       margin-top: 15px;
       width: 100%;
       border-collapse: collapse;
     }
 
-    .invoice-footer-table tr td.date,
-    .invoice-footer-table tr td.info,
-    .invoice-footer-table tr td.pageinfo {
+    .specs-footer-table tr td.date,
+    .specs-footer-table tr td.info,
+    .specs-footer-table tr td.pageinfo {
       vertical-align: bottom;
+      white-space: nowrap;
     }
 
-    .invoice-footer-table tr td.date,
-    .invoice-footer-table tr td.pageinfo {
-      width: 110px;
+    .specs-footer-table tr td.date,
+    .specs-footer-table tr td.pageinfo {
+      width: 120px;
     }
 
-    .invoice-footer-table tr td.date {
+    .specs-footer-table tr td.date {
       text-align: left;
     }
 
-    .invoice-footer-table tr td.info {
+    .specs-footer-table tr td.info {
       text-align: center;
     }
 
-    .invoice-footer-table tr td.pageinfo {
+    .specs-footer-table tr td.pageinfo {
       text-align: right;
       position: relative;
     }
 
-    .invoice-footer-table tr td.pageinfo .ref {
+    .specs-footer-table tr td.pageinfo .ref {
       margin-bottom: 12px;
     }
   </style>
-  <div class="invoice-footer">
-    <table class="invoice-footer-table">
+  <div class="specs-footer">
+    <table class="specs-footer-table">
       <tr>
-        <td class="date"><?php echo SGS::date($invoice->created_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td class="date"><?php echo SGS::date('now', SGS::PRETTY_DATE_FORMAT); ?></td>
         <td class="info">
           <img class="liberfor-bw" src="<?php echo DOCROOT; ?>images/invoice/st_liberfor_bw.jpg" /> &nbsp; is operated by &nbsp; <img class="sgs-bw" src="<?php echo DOCROOT; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img class="fda-bw" src="<?php echo DOCROOT; ?>images/invoice/st_fda_small.jpg" /><br />
           LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
@@ -414,6 +431,6 @@ $num = $cntr;
   <?php endif; ?>
 </div>
 
-<?php if ($invoice->is_draft): ?>
+<?php if ($info['is_draft']): ?>
 <!-- <img class="floater" src="<?php // echo DOCROOT; ?>images/invoice/draft_copy.png" /> -->
 <?php endif; ?>

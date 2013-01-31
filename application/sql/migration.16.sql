@@ -127,37 +127,37 @@ create trigger t_barcodes_locks
   execute procedure barcodes_locks();
 
 create trigger t_check_barcode_locks
-  before update or delete on ssf_data
+  before delete on ssf_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before update or delete on tdf_data
+  before delete on tdf_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before update or delete on ldf_data
+  before delete on ldf_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before update or delete on mof_data
+  before delete on mof_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before update or delete on mif_data
+  before delete on mif_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before update or delete on specs_data
+  before delete on specs_data
   for each row
   execute procedure check_barcode_locks();
 
 create trigger t_check_barcode_locks
-  before update or delete on epr_data
+  before delete on epr_data
   for each row
   execute procedure check_barcode_locks();
 

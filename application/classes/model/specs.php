@@ -19,10 +19,36 @@ class Model_SPECS extends SGS_Form_ORM {
     'user'     => array(),
   );
 
+  protected $_ignored_columns = array(
+    'specs_number',
+    'epr_number'
+  );
+
   protected function _initialize()
   {
     parent::_initialize();
     $this->_object_plural = 'specs';
+  }
+
+  public function __get($column) {
+    switch ($column) {
+      case 'specs_number':
+        if ($result = reset(DB::select('id', 'number')
+          ->from('specs')
+          ->where('id', '=', $this->specs_id)
+          ->execute()
+          ->as_array())) return $result['number'] ? 'SPECS '.$result['number'] : 'DRAFT'; break;
+
+      case 'epr_number':
+        if ($result = reset(DB::select('id', 'number')
+          ->from('epr')
+          ->where('id', '=', $this->epr_id)
+          ->execute()
+          ->as_array())) return $result['number'] ? 'EP '.$result['number'] : 'DRAFT'; break;
+
+      default:
+        return parent::__get($column);
+    }
   }
 
   public static $type = 'SPECS';

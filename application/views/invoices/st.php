@@ -108,12 +108,16 @@ $options = (array) $options + array(
 
   .invoice-summary-table tr td.fee_desc,
   .invoice-summary-table tr td.fee_desc em {
-    font-size: 8px;
+    font-size: 9px;
     white-space: nowrap;
   }
 
   .invoice-summary-table tr.head td.fee_desc {
     font-size: 10px;
+  }
+
+  .invoice-details-table tr td {
+    white-space: nowrap;
   }
 
   .invoice-details-table tr td.barcode,
@@ -161,24 +165,28 @@ $options = (array) $options + array(
 
   .invoice-info-table tr td {
     padding: 5px;
+    width: 25%;
     vertical-align: top;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .invoice-info-table tr td.label {
-    width: 102px;
     font-weight: bold;
+    white-space: inherit;
+    overflow: visible;
   }
 
   .invoice-info-table tr td.from,
   .invoice-info-table tr td.to {
-     text-align: right;
+     /* text-align: right; */
   }
 
   .invoice-titles {}
 
   .invoice-title {
-    margin: 7px 0 15px;
-    font-size: 24px;
+    margin: 2px 0 8px;
+    font-size: 22px;
     text-align: center;
   }
 
@@ -421,7 +429,7 @@ $options = (array) $options + array(
   <style>
     * {
       font-family: "Arial";
-      font-size: 12px;
+      font-size: 13px;
     }
 
     img.liberfor-bw {
@@ -450,11 +458,12 @@ $options = (array) $options + array(
     .invoice-footer-table tr td.info,
     .invoice-footer-table tr td.pageinfo {
       vertical-align: bottom;
+      white-space: nowrap;
     }
 
     .invoice-footer-table tr td.date,
     .invoice-footer-table tr td.pageinfo {
-      width: 110px;
+      width: 120px;
     }
 
     .invoice-footer-table tr td.date {
@@ -472,6 +481,7 @@ $options = (array) $options + array(
 
     .invoice-footer-table tr td.pageinfo .ref {
       margin-bottom: 12px;
+      white-space: nowrap;
     }
   </style>
   <div class="invoice-footer">

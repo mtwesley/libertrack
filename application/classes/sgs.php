@@ -93,9 +93,9 @@ class SGS {
     'invoices/list'   => 'List Invoices',
     'invoices/create' => 'Create Invoice',
 
-    'exporting'        => 'Exporting',
-    'exporting/list'   => 'List Shipment Specifications',
-    'exporting/create' => 'Create Shipment Specification',
+    'exporting'              => 'Exporting',
+    'exporting/specs'        => 'List Final Shipment Specifications',
+    'exporting/specs/create' => 'Create Final Shipment Specification',
 
     'reports'         => 'Reports',
     'reports/ssf'     => 'Stock Survey Reports',
@@ -264,6 +264,7 @@ class SGS {
     'MOF'   => 'Mill Output Form',
     'SPECS' => 'Shipping Specification Form',
     'EPR'   => 'Export Permit Request Form',
+    'INV'   => 'Invoice',
     'PJ'    => 'Print Job',
     'UNKWN' => 'Unknown'
   );
@@ -765,8 +766,9 @@ class SGS {
   {
     if (is_string($value)) $value = strtolower($value);
     switch ($value) {
-      case TRUE:  case 'yes': case 'y': case 't': case '1': return TRUE;
-      case FALSE: case 'no':  case 'n': case 'f': case '0': return FALSE;
+      case 'yes': case 'y': case 't': case '1': return TRUE;
+      case 'no':  case 'n': case 'f': case '0': return FALSE;
+      default: return (bool) $value;
     }
   }
 
