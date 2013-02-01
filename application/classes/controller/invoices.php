@@ -225,12 +225,15 @@ class Controller_Invoices extends Controller {
       ->join('species')
       ->on('species_id', '=', 'species.id')
       ->where('ldf_data.id', 'IN', (array) $data_ids)
+      ->order_by('barcode')
       ->execute() as $result) $details_data[$result['species_code']][] = $result;
 
-    $summary_page_count      = 0;
-    $summary_first_page_max  = 9;
-    $summary_last_page_max   = 10;
-    $summary_normal_page_max = 12;
+    $summary_page_count         = 0;
+    $summary_signature_page_max = 3;
+    $summary_one_page_max       = 7;
+    $summary_first_page_max     = 9;
+    $summary_last_page_max      = 10;
+    $summary_normal_page_max    = 12;
 
     $summary_count = count($summary_data);
     $summary_page_count = ceil(($summary_count - $summary_first_page_max - $summary_last_page_max) / $summary_normal_page_max) + 2;
@@ -249,28 +252,56 @@ class Controller_Invoices extends Controller {
     }
 
     $signature_page_count = 1;
+    $signature_remaining  = TRUE;
+
     $page_count = $summary_page_count + $signature_page_count + $details_page_count;
 
-    $cntr = 0;
-    for ($page = 1; $page <= $summary_page_count; $page++) {
+    $cntr  = 0;
+    while ($cntr < $summary_count) {
       $options = array();
-      if ($page == 1) {
+      if ($cntr == 0) $first = TRUE;
+      if (($summary_count - $cntr) <= $summary_last_page_max) $last = TRUE;
+      if (($cntr == 0) and ($summary_count <= $summary_one_page_max)) $one = TRUE;
+      if (($summary_count - $cntr) <= $summary_signature_page_max) $sign = TRUE;
+
+      if ($first) {
         $max = $summary_first_page_max;
         $options = array(
-          'break' => FALSE,
+          'break'  => FALSE,
           'styles' => TRUE,
-          'info' => TRUE
+          'info'   => TRUE
         );
-      } else if ($page == $summary_page_count) {
-        $max = $summary_last_page_max;
-      } else {
-        $max = $summary_normal_page_max;
       }
 
-      if ($page == $summary_page_count) $options['total'] = TRUE;
+      if ($last and !$first) {
+        $max = $summary_last_page_max;
+        $options = array(
+          'total' => TRUE
+        );
+      }
+
+      if ($first and $last) {
+        $max = $summary_first_page_max;
+        if ($one) {
+          $max = $summary_one_page_max;
+          $options = array(
+            'break'  => FALSE,
+            'styles' => TRUE,
+            'info'   => TRUE,
+            'total'  => TRUE
+          );
+        }
+      }
+
+      $max = $max ?: $summary_normal_page_max;
+
+      if ((!$first or $summary_count <= 1) and $last and $sign) {
+        $signature_remaining  = FALSE;
+        $options['signature'] = TRUE;
+      }
 
       $set = array_filter(array_slice($summary_data, $cntr, $max));
-      $html .= View::factory('invoices/st')
+      if ($set) $html .= View::factory('invoices/st')
         ->set('invoice', $invoice)
         ->set('data', $set)
         ->set('from', $from)
@@ -278,21 +309,33 @@ class Controller_Invoices extends Controller {
         ->set('site', $invoice->site)
         ->set('operator', $invoice->site->operator)
         ->set('options', array('summary' => TRUE) + (array) $options)
-        ->set('page', $page)
-        ->set('page_count', $page_count)
         ->set('total', array('summary' => $summary_total))
         ->render();
 
+      if ($last and (($summary_count - $max) <= 0)) {
+        $signature_remaining = FALSE;
+        $html .= View::factory('invoices/st')
+          ->set('invoice', $invoice)
+          ->set('options', array(
+              'summary'   => TRUE,
+              'total'     => TRUE,
+              'break'     => TRUE,
+              'signature' => TRUE
+            ))
+          ->set('total', array('summary' => $summary_total))
+          ->render();
+      }
+
       $cntr += $max;
+      $first = $last = FALSE;
     }
 
-    $html .= View::factory('invoices/st')
-      ->set('invoice', $invoice)
-      ->set('options', array('signature' => TRUE))
-      ->set('page', $page)
-      ->set('page_count', $page_count)
-      ->render();
-    $page++;
+    if ($signature_remaining) {
+      $html .= View::factory('invoices/st')
+        ->set('invoice', $invoice)
+        ->set('options', array('signature' => TRUE))
+        ->render();
+    }
 
     $max = $details_page_max;
     foreach ($details_data as $code => $records) {
@@ -306,12 +349,9 @@ class Controller_Invoices extends Controller {
             'details' => TRUE,
             'total'   => count($records) > ($cntr + $max) ? FALSE : TRUE
           ))
-          ->set('page', $page)
-          ->set('page_count', $page_count)
           ->set('total', array('details' => $details_total))
           ->render();
         $cntr += $max;
-        $page++;
       }
     }
 
@@ -358,8 +398,6 @@ class Controller_Invoices extends Controller {
             'header' => FALSE,
             'footer' => TRUE,
             'break'  => FALSE))
-          ->set('page', $page)
-          ->set('page_count', $page_count)
           ->render()
       ));
     } catch (Exception $e) {

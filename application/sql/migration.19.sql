@@ -6,8 +6,8 @@ alter table epr alter column number drop not null;
 
 create index specs_data_specs_barcode_id on specs_data (id,specs_barcode_id);
 create index specs_data_epr_barcode_id on specs_data (id,epr_barcode_id);
-create index specs_data_specs_number on specs_data (id,specs_number);
-create index specs_data_epr_number on specs_data (id,epr_number);
+create index specs_data_specs_id on specs_data (id,specs_id);
+create index specs_data_epr_id on specs_data (id,epr_id);
 
 create or replace function specs_data_update_barcodes()
   returns trigger as

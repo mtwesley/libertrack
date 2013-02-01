@@ -120,7 +120,10 @@ $options = (array) $options + array(
     white-space: nowrap;
   }
 
-  .invoice-details-table tr td.barcode,
+  .invoice-details-table tr td.barcode {
+    text-align: left;
+  }
+
   .invoice-details-table tr td.scan_date,
   .invoice-details-table tr td.volume,
   .invoice-details-table tr td.species_code,
@@ -164,8 +167,8 @@ $options = (array) $options + array(
   }
 
   .invoice-info-table tr td {
-    padding: 5px;
     width: 25%;
+    padding: 5px;
     vertical-align: top;
     white-space: nowrap;
     overflow: hidden;
@@ -175,6 +178,15 @@ $options = (array) $options + array(
     font-weight: bold;
     white-space: inherit;
     overflow: visible;
+  }
+
+  .invoice-info-table tr td.label-left {
+    white-space: inherit;
+    width: 35%;
+  }
+
+  .invoice-info-table tr td.label-left {
+    width: 15%;
   }
 
   .invoice-info-table tr td.from,
@@ -207,6 +219,7 @@ $options = (array) $options + array(
     font-style: italic;
     text-align: center;
     border: 1px solid #000;
+    clear: both;
   }
 
 </style>
@@ -230,20 +243,20 @@ $options = (array) $options + array(
   <div class="invoice-info">
     <table class="invoice-info-table">
       <tr>
-        <td class="label">Contact:</td>
-        <td><?php echo $invoice->site->operator->contact; ?></td>
+        <td class="label label-left">Contact:</td>
+        <td class="desc-left"><?php echo $invoice->site->operator->contact; ?></td>
         <td class="label">Reference No:</td>
         <td><?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->number; ?></td>
       </tr>
       <tr>
-        <td class="label">Company:</td>
-        <td><?php echo $invoice->site->operator->name; ?></td>
+        <td class="label label-left">Company:</td>
+        <td class="desc-left"><?php echo $invoice->site->operator->name; ?></td>
         <td class="label">Date Created:</td>
         <td><?php echo SGS::date($invoice->created_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
-        <td rowspan="3" class="label">Address:</td>
-        <td rowspan="3"><?php echo $invoice->site->operator->address; ?></td>
+        <td rowspan="3" class="label label-left">Address:</td>
+        <td class="desc-left" rowspan="3"><?php echo $invoice->site->operator->address; ?></td>
         <td class="label">Date Due:</td>
         <td><?php echo SGS::date($invoice->due_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
@@ -256,14 +269,14 @@ $options = (array) $options + array(
         <td><?php if ($invoice->to_date) echo SGS::date($invoice->to_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
-        <td class="label">Telephone:</td>
-        <td><?php echo $operator->phone; ?></td>
+        <td class="label label-left">Telephone:</td>
+        <td class="desc-left"><?php echo $operator->phone; ?></td>
         <td class="label">Site Reference:</td>
         <td><?php echo $site->type.'/'.$site->name; ?></td>
       </tr>
       <tr>
-        <td class="label">E-mail:</td>
-        <td><?php echo $operator->email; ?></td>
+        <td class="label label-left">E-mail:</td>
+        <td class="desc-left"><?php echo $operator->email; ?></td>
         <td class="label">Payee TIN:</td>
         <td><?php echo $operator->tin; ?></td>
       </tr>
@@ -342,6 +355,12 @@ $options = (array) $options + array(
       <tr>
         <td colspan="5" class="blank">&nbsp;</td>
         <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total']); ?></td>
+      </tr>
+      <tr>
+        <td colspan="7" class="blank">&nbsp;</td>
+      </tr>
+      <tr>
+        <td colspan="7" class="blank">&nbsp;</td>
       </tr>
       <?php endif; ?>
     </table>
@@ -494,7 +513,7 @@ $options = (array) $options + array(
         </td>
         <td class="pageinfo">
           <div class="ref"><?php echo $invoice->is_draft ? 'DRAFT' : 'Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ST-'.$invoice->number; ?></div>
-          Page <span class="page"><?php echo $page; ?></span> of <span class="topage"><?php echo $page_count; ?></span>
+          Page <span class="page"></span> of <span class="topage"></span>
         </td>
       </tr>
     </table>
