@@ -46,11 +46,25 @@ class Controller_Exporting extends Controller {
       $specs_info  = $form->specs_info->val();
 
       Session::instance()->set('pagination.specs.data', array(
-        'operator_id' => $site_id,
-        'specs_info'  => $type,
+        'operator_id' => $operator_id,
+        'specs_info'  => $specs_info,
+        'format'      => $format
       ));
+    }
+    else if ($settings = Session::instance()->get('pagination.specs.data')) {
+      $form->operator_id->val($operator_id = $settings['operator_id']);
+      $form->specs_info->val($specs_info = $settings['specs_info']);
 
-      $data = ORM::factory('SPECS')->where('specs_id', '=', NULL);
+      $format = $settings['format'];
+    }
+
+    if ($specs_info) {
+      $data = ORM::factory('SPECS')
+        ->where('specs_id', '=', NULL)
+        ->where('status', '=', 'A')
+        ->join('barcodes')
+        ->on('barcode_id', '=', 'barcodes.id')
+        ->order_by('barcode');
 
       if (Valid::is_barcode($specs_info))   $data->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
       else if (Valid::numeric($specs_info)) $data->where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
@@ -128,10 +142,6 @@ class Controller_Exporting extends Controller {
             }
         }
       } else Notify::msg('No data found. Skipping document.', 'warning');
-    }
-    else if ($settings = Session::instance()->get('pagination.specs.data')) {
-      $form->operator_id->val($operator_id = $settings['operator_id']);
-      $form->specs_info->val($specs_info = $settings['specs_info']);
     }
 
     if ($form) $content .= $form;
@@ -300,22 +310,23 @@ class Controller_Exporting extends Controller {
 
     $item = reset($records);
 
-    $details_page_count = 0;
-    $details_page_max   = 30;
+    $page_count = 0;
+    $page_max   = 32;
 
-    $page_count = $details_page_count;
-    $max        = $details_page_max;
+    $total = 0;
+    foreach ($records as $record) $total += $record->volume;
 
-    $page = 1;
-    $cntr = 0;
+    $cntr   = 0;
+    $styles = TRUE;
     while ($cntr < count($records)) {
+      $max = $page_max;
       $set = array_slice($records, $cntr, $max);
       $html .= View::factory('documents/specs')
         ->set('data', $set)
         ->set('options', array(
           'info'    => TRUE,
           'details' => TRUE,
-          'styles'  => $page == 1 ? TRUE : FALSE,
+          'styles'  => $styles ? TRUE : FALSE,
           'total'   => count($records) > ($cntr + $max) ? FALSE : TRUE
         ))
         ->set('info', array(
@@ -332,14 +343,14 @@ class Controller_Exporting extends Controller {
           // 'buyer'         => $item->buyer,
           // 'submitted_by'  => $item->submitted_by,
           'create_date'   => $item->create_date,
+          'total'         => $total
         ))
         ->set('cntr', $cntr)
-        ->set('page', $page)
-        ->set('page_count', $page_count)
-        ->set('total', array('details' => $details_total))
+        ->set('total', $total)
         ->render();
+
       $cntr += $max;
-      $page++;
+      $styles = FALSE;
     }
 
     // generate pdf
@@ -371,7 +382,7 @@ class Controller_Exporting extends Controller {
       $snappy = new \Knp\Snappy\Pdf();
       $snappy->generateFromHtml($html, $fullname, array(
         'load-error-handling' => 'ignore',
-        'margin-bottom' => 25,
+        'margin-bottom' => 22,
         'margin-left' => 0,
         'margin-right' => 0,
         'margin-top' => 0,

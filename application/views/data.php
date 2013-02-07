@@ -65,6 +65,10 @@ $classes[] = 'data';
         case 'site_id':
         case 'block_name':
         case 'block_id':
+        case 'specs_barcode':
+        case 'specs_number':
+        case 'epr_barcode':
+        case 'epr_number':
           $header_columns++;
           continue 2;
       endswitch;
@@ -103,6 +107,10 @@ $classes[] = 'data';
         case 'site_id':
         case 'block_name':
         case 'block_id':
+        case 'specs_barcode':
+        case 'specs_number':
+        case 'epr_barcode':
+        case 'epr_number':
           continue 2;
       endswitch;
     ?>

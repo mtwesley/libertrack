@@ -205,22 +205,25 @@ class Controller_Ajax extends Controller {
   public function action_specsopts() {
     if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
 
-    $operator_id = $this->request->post('operator_id');
+    $operator_id  = $this->request->post('operator_id');
+    $numbers_only = $this->request->post('numbers_only');
 
     if ($operator_id) {
       $output = '<optgroup label=""><option value=""></option>';
 
-      $sql = "SELECT distinct barcode
-              FROM barcodes
-              JOIN specs_data ON specs_data.specs_barcode_id = barcodes.id
-              ORDER BY barcode";
+      if (!$numbers_only) {
+        $sql = "SELECT distinct barcode
+                FROM barcodes
+                JOIN specs_data ON specs_data.specs_barcode_id = barcodes.id
+                ORDER BY barcode";
 
-      if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
-        ->execute()
-        ->as_array(NULL, 'barcode'))) {
-        $output .= '<optgroup label="Shipment Specification Barcode">';
-        foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'<option>';
-        $output .= '</optgroup>';
+        if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
+          ->execute()
+          ->as_array(NULL, 'barcode'))) {
+          $output .= '<optgroup label="Shipment Specification Barcode">';
+          foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'<option>';
+          $output .= '</optgroup>';
+        }
       }
 
       $sql = "SELECT distinct number

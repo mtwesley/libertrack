@@ -117,7 +117,14 @@ if (!$command && !is_numeric($id)) {
 
     <?php elseif ($primary == 'invoices'): ?>
     <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('invoices/list', SGS::title('invoices/list')); ?></li>
-    <li class="<?php if ($secondary == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('invoices/create', SGS::title('invoices/create')); ?></li>
+    <li class="<?php if ($secondary == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('invoices/create', SGS::title('invoices/create')); ?>
+      <?php if ($secondary == 'create'): ?>
+      <ul class="nav commands">
+        <li class="<?php if ($command == 'st')   echo 'active'; ?>"><?php echo HTML::anchor('invoices/create/st', SGS::title('invoices/create/st')); ?></li>
+        <li class="<?php if ($command == 'exf')   echo 'active'; ?>"><?php echo HTML::anchor('invoices/create/exf', SGS::title('invoices/create/exf')); ?></li>
+      </ul>
+      <?php endif; ?>
+    </li>
 
     <?php elseif ($primary == 'exporting'): ?>
     <!-- <li class="<?php if ($secondary == 'epr')     echo 'active'; ?>"><?php echo HTML::anchor('exporting/epr', SGS::title('exporting/epr')); ?></li> -->

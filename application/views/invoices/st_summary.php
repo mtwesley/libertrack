@@ -26,13 +26,13 @@ $classes[] = 'data';
     <td rowspan="2"><?php echo $record['species_code']; ?></td>
     <td rowspan="2"><?php echo $record['species_class']; ?></td>
     <td rowspan="2"><?php echo SGS::quantitify($record['volume']); ?></td>
-    <td>Stumpage Fee <em>(FDA Regulation 107-7 section 22b)</em></td>
+    <td>Stumpage Fee <em>(FDA Regulation 107-7, Section 22(b))</em></td>
     <td>1415-12</td>
-    <td rowspan="2"><?php echo $record['fob_price']; ?></td>
+    <td rowspan="2"><?php echo SGS::amountify($record['fob_price']); ?></td>
     <td><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_GOL_RATE); ?></td>
   </tr>
   <tr>
-    <td class="split-row">Chain of Custody Stumpage Share <em>(GoL-SGS contract)</em></td>
+    <td class="split-row">Chain of Custody Stumpage Share <em>(GoL-SGS Contract)</em></td>
     <td class="split-row">1415-01</td>
     <td class="split-row"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_SGS_RATE); ?></td>
   </tr>
@@ -53,15 +53,26 @@ $classes[] = 'data';
   <tr>
     <td rowspan="2" colspan="2">Total</td>
     <td rowspan="2"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
-    <td>Stumpage Fee <em>(FDA Regulation 107-7 section 22b)</em></td>
+    <td>Stumpage Fee <em>(FDA Regulation 107-7, Section 22(b))</em></td>
     <td>1415-12</td>
     <td></td>
-    <td><?php echo SGS::amountify($total['summary']['total'] * SGS::FEE_GOL_RATE); ?></td>
+    <td><?php echo SGS::amountify($gol_total = $total['summary']['total'] * SGS::FEE_GOL_RATE); ?></td>
   </tr>
   <tr>
-    <td class="split-row">Chain of Custody Stumpage Share <em>(GoL-SGS contract)</em></td>
+    <td class="split-row">Chain of Custody Stumpage Share <em>(GoL-SGS Contract)</em></td>
     <td class="split-row">1415-01</td>
     <td class="split-row"></td>
-    <td class="split-row"><?php echo SGS::amountify($total['summary']['total'] * SGS::FEE_SGS_RATE); ?></td>
+    <td class="split-row"><?php echo SGS::amountify($sgs_total = $total['summary']['total'] * SGS::FEE_SGS_RATE); ?></td>
+  </tr>
+  <tr class="blank">
+    <td colspan="7"></td>
+  </tr>
+  <tr>
+    <td colspan="2"></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td><?php echo SGS::amountify($gol_total + $sgs_total); ?></td>
   </tr>
 </table>

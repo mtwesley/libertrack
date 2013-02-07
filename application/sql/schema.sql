@@ -73,7 +73,7 @@ create domain d_ip_address as inet;
 
 create domain d_oid as oid;
 
-create domain d_invoice_type as character varying(3) check (value ~ E'(ST)');
+create domain d_invoice_type as character varying(3) check (value ~ E'(ST|EXF)');
 
 create domain d_specs_number as character(6) check (value ~ E'[0-9]{6}');
 
@@ -284,8 +284,9 @@ create table barcode_coc_activity (
 create table invoices (
   id bigserial not null,
   type d_invoice_type not null,
-  site_id d_id not null,
-  number d_invoice_number unique,
+  operator_id d_id,
+  site_id d_id,
+  number d_invoice_number,
   is_draft d_bool default true not null,
   from_date d_date,
   to_date d_date,
@@ -298,6 +299,8 @@ create table invoices (
   constraint invoices_pkey primary key (id),
   constraint invoices_site_id_fkey foreign key (site_id) references sites (id) on update cascade on delete cascade,
   constraint invoices_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint invoices_number_unique unique(type,number),
 
   constraint invoices_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
 );
@@ -640,7 +643,8 @@ create table settings (
 
 -- sequences
 
-create sequence s_invoices_reference_number minvalue 100100;
+create sequence s_invoices_st_number minvalue 100100;
+create sequence s_invoices_exf_number minvalue 100100;
 create sequence s_specs_specs_number minvalue 1;
 create sequence s_epr_epr_number minvalue 1;
 
@@ -672,7 +676,7 @@ create index barcode_coc_activity_status_trigger on barcode_coc_activity (status
 
 
 create index invoices_site_id on invoices (id,site_id);
-create index invoices_reference_number on invoices (id,reference_number);
+create index invoices_number on invoices (id,type,number);
 create index invoices_type on invoices (id,type);
 
 create index files_operation on files (id,operation);

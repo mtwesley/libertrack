@@ -3,13 +3,14 @@
 class Model_Invoice extends ORM {
 
   protected $_belongs_to = array(
-    'site' => array(),
-    'file' => array(),
-    'user' => array()
+    'operator' => array(),
+    'site'     => array(),
+    'file'     => array(),
+    'user'     => array()
   );
 
-  public static function create_invoice_number() {
-    return DB::query(Database::SELECT, "SELECT nextval('s_invoices_number') number")
+  public static function create_invoice_number($type) {
+    return DB::query(Database::SELECT, "SELECT nextval('s_invoices_{$type}_number') number")
       ->execute()
       ->get('number');
   }

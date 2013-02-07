@@ -8,6 +8,7 @@ $options = (array) $options + array(
   'info'      => FALSE,
   'summary'   => FALSE,
   'signature' => FALSE,
+  'fee'       => FALSE,
   'total'     => FALSE,
   'format'    => 'pdf'
 );
@@ -56,7 +57,7 @@ $options = (array) $options + array(
     padding: 20px 25px;
   }
 
-  .st-invoice {}
+  .exf-invoice {}
 
   .invoice-page-break {
     page-break-before: always;
@@ -85,6 +86,11 @@ $options = (array) $options + array(
     border: 1px solid #000;
   }
 
+  .invoice-summary-table tr.fat td,
+  .invoice-details-table tr.fat td {
+    padding: 3px 5px;
+  }
+
   .invoice-summary-table tr.head td,
   .invoice-details-table tr.head td {
     padding: 6px 5px;
@@ -97,6 +103,7 @@ $options = (array) $options + array(
     font-size: 6px;
   }
 
+  .invoice-summary-table tr td.quantity,
   .invoice-summary-table tr td.volume,
   .invoice-summary-table tr td.species_code,
   .invoice-summary-table tr td.species_class,
@@ -130,6 +137,7 @@ $options = (array) $options + array(
   .invoice-details-table tr td.species_class,
   .invoice-details-table tr td.diameter,
   .invoice-details-table tr td.length,
+  .invoice-details-table tr td.grade,
   .invoice-details-table tr td.total {
     text-align: center;
   }
@@ -168,7 +176,7 @@ $options = (array) $options + array(
   }
 
   .invoice-info-table tr td {
-    width: 25%;
+    width: 15%;
     padding: 4px 5px;
     vertical-align: top;
     white-space: nowrap;
@@ -176,18 +184,19 @@ $options = (array) $options + array(
   }
 
   .invoice-info-table tr td.label {
+    width: 25%;
     font-weight: bold;
-    white-space: inherit;
+    white-space: nowrap;
     overflow: visible;
   }
 
   .invoice-info-table tr td.label-left {
     white-space: inherit;
-    width: 35%;
+    width: 15%;
   }
 
-  .invoice-info-table tr td.label-left {
-    width: 15%;
+  .invoice-info-table tr td.desc-left {
+    width: 25%;
   }
 
   .invoice-info-table tr td.from,
@@ -226,7 +235,7 @@ $options = (array) $options + array(
 </style>
 <?php endif; ?>
 
-<div class="st-invoice invoice <?php if ($options['break']) echo 'invoice-page-break'; ?>">
+<div class="exf-invoice invoice <?php if ($options['break']) echo 'invoice-page-break'; ?>">
   <?php if ($options['header']): ?>
   <div class="invoice-header">
     <table class="invoice-header-table">
@@ -235,7 +244,7 @@ $options = (array) $options + array(
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="invoice-title">Proforma Stumpage Invoice</div>
+    <div class="invoice-title">Export Fee Invoice</div>
     <div class="invoice-subtitle">Request for Payment to the Government of Liberia</div>
   </div>
   <?php endif; ?>
@@ -245,35 +254,39 @@ $options = (array) $options + array(
     <table class="invoice-info-table">
       <tr>
         <td class="label label-left">Contact:</td>
-        <td class="desc-left"><?php echo $invoice->site->operator->contact; ?></td>
+        <td class="desc-left"><?php echo $invoice->operator->contact; ?></td>
         <td class="label">Reference No:</td>
-        <td><?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->number; ?></td>
+        <td><?php echo $invoice->is_draft ? 'DRAFT' : 'EXF-'.$invoice->number; ?></td>
       </tr>
       <tr>
         <td class="label label-left">Company:</td>
-        <td class="desc-left"><?php echo $invoice->site->operator->name; ?></td>
+        <td class="desc-left"><?php echo $invoice->operator->name; ?></td>
         <td class="label">Date Created:</td>
         <td><?php echo SGS::date($invoice->created_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
-        <td rowspan="3" class="label label-left">Address:</td>
-        <td class="desc-left" rowspan="3"><?php echo $invoice->site->operator->address; ?></td>
+        <td rowspan="4" class="label label-left">Address:</td>
+        <td class="desc-left" rowspan="4"><?php echo $invoice->operator->address; ?></td>
         <td class="label">Date Due:</td>
         <td><?php echo SGS::date($invoice->due_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
-        <td class="label from">Logs Declared From:</td>
-        <td><?php if ($invoice->from_date) echo SGS::date($invoice->from_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td class="label specs_barcode">Shipment Specification Barcode:</td>
+        <td><?php if ($specs_barcode) echo $specs_barcode; ?></td>
       </tr>
       <tr>
-        <td class="label to">To:</td>
-        <td><?php if ($invoice->to_date) echo SGS::date($invoice->to_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td class="label specs_number">Shipment Specification Number:</td>
+        <td><?php if ($specs_number) echo $specs_number; ?></td>
+      </tr>
+      <tr>
+        <td class="label epr_barcode">Export Permit Barcode:</td>
+        <td><?php if ($epr_barcode) echo $epr_barcode; ?></td>
       </tr>
       <tr>
         <td class="label label-left">Telephone:</td>
         <td class="desc-left"><?php echo $operator->phone; ?></td>
-        <td class="label">Site Reference:</td>
-        <td><?php echo $site->type.'/'.$site->name; ?></td>
+        <td class="label epr_number">Export Permit Number:</td>
+        <td><?php if ($epr_number) echo $epr_number; ?></td>
       </tr>
       <tr>
         <td class="label label-left">E-mail:</td>
@@ -288,6 +301,30 @@ $options = (array) $options + array(
   <?php if ($options['summary']): ?>
   <div class="invoice-summary">
     <table class="invoice-summary-table">
+      <?php if ($options['fee']): ?>
+      <tr class="head">
+        <td class="quantity">Quantity</td>
+        <td colspan="2"></td>
+        <td class="fee_desc">Fee Description</td>
+        <td class="tax_code">Tax Code</td>
+        <td class="fob_price">Price</td>
+        <td class="total">Total<br />(USD)</td>
+      </tr>
+      <tr class="fat">
+        <td class="quantity">1</td>
+        <td colspan="2"></td>
+        <td class="fee_desc">
+          Timber Export License Fee<br />
+          <em>FDA Regulation 107-7, Section 42(c)</em>
+        </td>
+        <td class="tax_code">1415-09</td>
+        <td class="fob_price"><?php echo SGS::amountify(100); ?></td>
+        <td class="total"><?php echo SGS::amountify(100); ?></td>
+      </tr>
+      <tr>
+        <td colspan="7" class="blank">&nbsp;</td>
+      </tr>
+      <?php endif; ?>
       <?php if ($data): ?>
       <tr class="head">
         <td class="volume">Volume<br />(m<sup>3</sup>)</td>
@@ -304,20 +341,20 @@ $options = (array) $options + array(
         <td class="species_code" rowspan="2"><?php echo $record['species_code']; ?></td>
         <td class="species_class" rowspan="2"><?php echo $record['species_class']; ?></td>
         <td class="fee_desc">
-          Stumpage Fee (GoL share)<br />
-          <em>FDA Regulation 107-7, Section 22(b)</em>
+          Log and Wood Product Export Fee<br />
+          <em>FDA Regulation 107-7, Section 44-45</em>
         </td>
-        <td class="tax_code">1415-12</td>
+        <td class="tax_code">1415-10</td>
         <td class="fob_price" rowspan="2"><?php echo SGS::amountify($record['fob_price']); ?></td>
-        <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_GOL_RATE); ?></td>
+        <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']]); ?></td>
       </tr>
       <tr>
         <td class="fee_desc">
-          Chain of Custody Stumpage Share<br />
-          <em>GoL-SGS Contract</em>
+          Chain of Custody Management Fee<br />
+          <em>GoL-SGS Contract (1.4% of FOB Value)</em>
         </td>
-        <td class="tax_code">1415-01</td>
-        <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_SGS_RATE); ?></td>
+        <td class="tax_code">1415-11</td>
+        <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::FEE_SGS_CONTRACT_RATE); ?></td>
       </tr>
       <?php endforeach; ?>
       <?php endif; ?>
@@ -333,29 +370,37 @@ $options = (array) $options + array(
         <td class="total" colspan="2">Total<br />(USD)</td>
       </tr>
       <tr class="total">
-        <td class="volume" rowspan="2"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
-        <td class="desc" colspan="2" rowspan="2">Total</td>
+        <td class="volume" rowspan="3"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
+        <td class="desc" colspan="2" rowspan="3">Total</td>
         <td class="fee_desc">
-          Stumpage Fee (GoL share)<br />
-          <em>FDA Regulation 107-7, Section 22(b)</em>
+          Timber Export License Fee<br />
+          <em>FDA Regulation 107-7, Section 42(c)</em>
         </td>
-        <td class="tax_code">1415-12</td>
-        <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total'] * SGS::FEE_GOL_RATE); ?></td>
+        <td class="tax_code">1415-09</td>
+        <td class="total" colspan="2"><?php echo SGS::amountify($fee_total = 100); ?></td>
       </tr>
       <tr class="total">
         <td class="fee_desc">
-          Chain of Custody Stumpage Share<br />
-          <em>GoL-SGS Contract</em>
+          Log and Wood Product Export Fee<br />
+          <em>FDA Regulation 107-7, Section 44-45</em>
         </td>
-        <td class="tax_code">1415-01</td>
-        <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total'] * SGS::FEE_SGS_RATE); ?></td>
+        <td class="tax_code">1415-10</td>
+        <td class="total" colspan="2"><?php echo SGS::amountify($gol_total = $total['summary']['total']); ?></td>
+      </tr>
+      <tr class="total">
+        <td class="fee_desc">
+          Chain of Custody Management Fee<br />
+          <em>GoL-SGS Contract (1.4% of FOB Value)</em>
+        </td>
+        <td class="tax_code">1415-11</td>
+        <td class="total" colspan="2"><?php echo SGS::amountify($sgs_total = $total['summary']['fob_total'] * SGS::FEE_SGS_CONTRACT_RATE); ?></td>
       </tr>
       <tr>
         <td colspan="7" class="blank blank-slim">&nbsp;</td>
       </tr>
       <tr>
         <td colspan="5" class="blank">&nbsp;</td>
-        <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total']); ?></td>
+        <td class="total" colspan="2"><?php echo SGS::amountify($fee_total + $gol_total + $sgs_total); ?></td>
       </tr>
       <tr>
         <td colspan="7" class="blank">&nbsp;</td>
@@ -379,6 +424,7 @@ $options = (array) $options + array(
         <td class="species_class">Species<br />Class</td>
         <td class="diameter">Average<br />Diameter<br />(cm)</td>
         <td class="length">Length<br />(m)</td>
+        <td class="grade">ATIBT<br />Grade</td>
         <td class="volume">Volume<br />(m<sup>3</sup>)</td>
       </tr>
       <?php foreach ($data as $record): ?>
@@ -389,13 +435,14 @@ $options = (array) $options + array(
         <td class="species_class"><?php echo $record['species_class']; ?></td>
         <td class="diameter"><?php echo $record['diameter']; ?></td>
         <td class="length"><?php echo SGS::quantitify($record['length'], 1); ?></td>
+        <td class="grade"><?php echo $record['grade']; ?>
         <td class="volume"><?php echo SGS::quantitify($record['volume']); ?></td>
       </tr>
       <?php endforeach; ?>
       <?php endif; ?>
       <?php if ($options['total']): ?>
       <tr>
-        <td class="total_species" colspan="6"><strong>Total:</strong> <?php echo $record['species_botanic_name']; ?></td>
+        <td class="total_species" colspan="7"><strong>Total:</strong> <?php echo $record['species_botanic_name']; ?></td>
         <td class="total_volume"><?php echo SGS::quantitify($total['details'][$record['species_code']]['volume']); ?></td>
       </tr>
       <?php endif; ?>
@@ -513,7 +560,7 @@ $options = (array) $options + array(
           LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
         </td>
         <td class="pageinfo">
-          <div class="ref"><?php echo $invoice->is_draft ? 'DRAFT' : 'Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ST-'.$invoice->number; ?></div>
+          <div class="ref"><?php echo $invoice->is_draft ? 'DRAFT' : 'Ref No: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; EXF-'.$invoice->number; ?></div>
           Page <span class="page"></span> of <span class="topage"></span>
         </td>
       </tr>

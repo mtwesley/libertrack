@@ -4,7 +4,7 @@
     <th class="type"></th>
     <th class="image"></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'number')), 'Reference Number'); ?></th>
-    <th>Operator</th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'operator_id')), 'Operator'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'site_id')), 'Site'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'from_date')), 'From'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'to_date')), 'To'); ?></th>
@@ -17,7 +17,7 @@
     <td class="type"><span class="data-type"><?php echo $invoice->type; ?></span></td>
     <td class="image"><?php echo HTML::image('images/layout.png'); ?></td>
     <td><?php echo $invoice->is_draft ? 'DRAFT' : $invoice->type.'-'.$invoice->number; ?></td>
-    <td><?php echo $invoice->site->operator->name; ?></td>
+    <td><?php echo $invoice->operator->name; ?></td>
     <td><?php echo $invoice->site->name; ?></td>
     <td><?php if ($invoice->from_date) echo SGS::date($invoice->from_date); ?></td>
     <td><?php if ($invoice->to_date) echo SGS::date($invoice->to_date); ?></td>

@@ -33,6 +33,8 @@ class SGS {
   const FEE_SGS_RATE = 0.348;
   const FEE_GOL_RATE = 0.652;
 
+  const FEE_SGS_CONTRACT_RATE = 0.014;
+
   public static $path = array(
     'index'           => 'Home',
 
@@ -89,9 +91,11 @@ class SGS {
     'analysis/checks/specs' => 'Shipment Specification',
     'analysis/tolerances'   => 'Manage Accuracy and Tolerance',
 
-    'invoices'        => 'Invoicing',
-    'invoices/list'   => 'List Invoices',
-    'invoices/create' => 'Create Invoice',
+    'invoices'            => 'Invoicing',
+    'invoices/list'       => 'List Invoices',
+    'invoices/create'     => 'Create Invoice',
+    'invoices/create/st'  => 'Stumpage Invoice',
+    'invoices/create/exf' => 'Export Fee Invoice',
 
     'exporting'              => 'Exporting',
     'exporting/specs'        => 'List Final Shipment Specifications',
@@ -311,7 +315,8 @@ class SGS {
   );
 
   public static $invoice_type = array(
-    'ST' => 'Stumpage Invoice'
+    'ST'  => 'Stumpage Invoice',
+    'EXF' => 'Export Fee Invoice'
   );
 
   public static $error_type = array(

@@ -130,13 +130,19 @@ $(function() {
   $("select.specs_operatoropts").change(function() {
     $("select.specsopts").load(
       '/ajax/specsopts',
-      {operator_id: $(this).val()}
+      {
+        operator_id: $(this).val(),
+        numbers_only: $(this).hasClass('numbers-only') ? 1 : 0
+      }
     );
   });
 
   $("select.specsopts").load(
     '/ajax/specsopts',
-    {operator_id: $("select.specs_operatoropts").val()}
+    {
+      operator_id: $("select.specs_operatoropts").val(),
+      numbers_only: $("select.specs_operatoropts").hasClass('numbers-only') ? 1 : 0
+    }
   );
 
 //  .next(".field.select").children("label").children(".field").children("select.blockopts").load(

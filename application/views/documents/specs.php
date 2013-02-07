@@ -124,7 +124,10 @@ $num = $cntr;
     white-space: nowrap;
   }
 
-  .specs-details-table tr td.barcode,
+  .specs-details-table tr td.barcode {
+    text-align: left;
+  }
+
   .specs-details-table tr td.scan_date,
   .specs-details-table tr td.volume,
   .specs-details-table tr td.species_code,
@@ -161,7 +164,7 @@ $num = $cntr;
     text-align: center;
   }
 
-  .specs-details-table tr td.total_species {
+  .specs-details-table tr td.total_label {
     border-right: none;
   }
 
@@ -189,7 +192,7 @@ $num = $cntr;
   }
 
   .specs-info-table tr td {
-    padding: 6px 5px;
+    padding: 4px 5px;
     vertical-align: top;
     width: 24%;
   }
@@ -198,6 +201,7 @@ $num = $cntr;
     font-weight: bold;
     background-color: #bfbfbf;
     width: 26%;
+    white-space: nowrap;
   }
 
   .specs-info-table tr td.from,
@@ -208,13 +212,13 @@ $num = $cntr;
   .specs-titles {}
 
   .specs-title {
-    margin: 2px 0 8px;
+    margin: 0 0 5px;
     font-size: 22px;
     text-align: center;
   }
 
   .specs-subtitle {
-    margin-bottom: 25px;
+    margin-bottom: 8px;
     text-align: center;
     text-transform: uppercase;
   }
@@ -255,7 +259,7 @@ $num = $cntr;
         <td class="label">Shipment Specification Barcode:</td>
         <td><?php echo $info['specs_barcode']; ?></td>
         <td class="label">Shipment Specification Number:</td>
-        <td><?php echo $info['specs_number']; ?></td>
+        <td><?php echo 'SPECS '.$info['specs_number']; ?></td>
       </tr>
       <tr>
         <td class="label">Permit Request Barcode:</td>
@@ -323,16 +327,16 @@ $num = $cntr;
         <td class="bottom_min"><?php echo $record->bottom_min; ?></td>
         <td class="top_max"><?php echo $record->top_max; ?></td>
         <td class="top_min"><?php echo $record->top_min; ?></td>
-        <td class="length"><?php echo $record->length; ?></td>
+        <td class="length"><?php echo SGS::quantitify($record->length, 1); ?></td>
         <td class="grade"><?php echo $record->grade; ?></td>
-        <td class="volume"><?php echo $record->volume; ?></td>
+        <td class="volume"><?php echo SGS::quantitify($record->volume); ?></td>
       </tr>
       <?php endforeach; ?>
       <?php endif; ?>
       <?php if ($options['total']): ?>
       <tr>
-        <td class="total_label" colspan="6"><strong>Total volume (m<sup)3</sup>)</strong></td>
-        <td class="total_volume"><?php echo $info['total']; ?></td>
+        <td class="total_label" colspan="9"><strong>Total volume (m<sup)3</sup>)</strong></td>
+        <td class="total_volume"><?php echo SGS::quantitify($info['total']); ?></td>
       </tr>
       <?php endif; ?>
     </table>
@@ -379,7 +383,7 @@ $num = $cntr;
     }
 
     .specs-footer-table {
-      margin-top: 15px;
+      margin-top: 0;
       width: 100%;
       border-collapse: collapse;
     }

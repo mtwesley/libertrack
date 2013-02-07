@@ -1,7 +1,7 @@
 <?php
 $classes[] = 'data';
 ?>
-<?php foreach ($checks as $type => $info): ?>
+<?php if ($checks) foreach ($checks as $type => $info): ?>
 <table class="<?php echo SGS::render_classes($classes); ?> report-summary">
   <tr class="head">
     <th class="type"></th>
