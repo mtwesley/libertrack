@@ -75,16 +75,31 @@ class Controller_Admin extends Controller {
   }
 
   public function action_sites() {
-    $id = $this->request->param('id');
+    if (!Request::$current->query()) Session::instance()->delete('pagination.sites.list');
+
+    $id   = $this->request->param('id');
+    $form = $this->request->post('form');
 
     $site = ORM::factory('site', $id);
-    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
+    $add_form = Formo::form(array('attr' => array('style' => ($id or $form == 'add_form') ? '' : 'display: none;')))
       ->orm('load', $site, array('blocks', 'printjobs', 'invoices', 'user_id', 'timestamp'), true)
+      ->add('form', 'hidden', 'add_form')
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Site' : 'Add a New Site'
       ));
 
-    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+    $operator_ids = DB::select('id', 'name')
+      ->from('operators')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    $filter_form = Formo::form()
+      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator'))
+      ->add('form', 'hidden', 'filter_form')
+      ->add('filter', 'submit', 'Filter');
+
+    if ($form == 'add_form' and $add_form->sent($_REQUEST) and $add_form->load($_REQUEST)->validate()) {
       try {
         $site->save();
         if ($id) Notify::msg('Site successfully updated.', 'success', TRUE);
@@ -96,6 +111,16 @@ class Controller_Admin extends Controller {
       } catch (Exception $e) {
         Notify::msg('Sorry, site failed to be saved. Please try again.', 'error');
       }
+    } elseif ($form == 'filter_form' and $filter_form->sent($_REQUEST) and $filter_form->load($_REQUEST)->validate()) {
+      Session::instance()->delete('pagination.sites.list');
+
+      $operator_id = $filter_form->operator_id->val();
+
+      Session::instance()->set('pagination.sites.list', array(
+        'operator_id' => $operator_id,
+      ));
+    } elseif ($settings = Session::instance()->get('pagination.sites.list')) {
+      $form->operator_id->val($operator_id = $settings['operator_id']);
     }
 
     if ($id === null) {
@@ -106,6 +131,7 @@ class Controller_Admin extends Controller {
       $sites = ORM::factory('site')
         ->offset($pagination->offset)
         ->limit($pagination->items_per_page);
+      if ($operator_id) $sites = $sites->where('operator_id', '=', $operator_id);
       if ($sort = $this->request->query('sort')) $sites->order_by($sort);
       $sites = $sites->order_by('name')
         ->find_all()
@@ -120,7 +146,8 @@ class Controller_Admin extends Controller {
       else Notify::msg('No sites found');
     }
 
-    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= ($id or $form == 'add_form') ? $add_form->render() : SGS::render_form_toggle($add_form->save->get('label')).$add_form->render();
+    if (!$id) $content .= $filter_form->render();
     $content .= $table;
     $content .= $pagination;
 
@@ -129,17 +156,33 @@ class Controller_Admin extends Controller {
   }
 
   public function action_blocks() {
-    $id = $this->request->param('id');
+    if (!Request::$current->query()) Session::instance()->delete('pagination.blocks.list');
+
+    $id   = $this->request->param('id');
+    $form = $this->request->post('form');
+
 
     $block = ORM::factory('block', $id);
-    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
+    $add_form = Formo::form(array('attr' => array('style' => ($id or $form == 'add_form') ? '' : 'display: none;')))
       ->orm('load', $block, array('user_id', 'timestamp'), true)
+      ->add('form', 'hidden', 'add_form')
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Block' : 'Add a New Block'
       ))
       ->order(array('name' => 0));
 
-    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+    $site_ids = DB::select('id', 'name')
+      ->from('sites')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    $filter_form = Formo::form()
+      ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
+      ->add('form', 'hidden', 'filter_form')
+      ->add('filter', 'submit', 'Filter');
+
+    if ($add_form->sent($_REQUEST) and $add_form->load($_REQUEST)->validate()) {
       try {
         $block->save();
         if ($id) Notify::msg('Block successfully updated.', 'success', TRUE);
@@ -151,6 +194,16 @@ class Controller_Admin extends Controller {
       } catch (Exception $e) {
         Notify::msg('Sorry, block failed to be saved. Please try again.', 'error');
       }
+    } elseif ($form == 'filter_form' and $filter_form->sent($_REQUEST) and $filter_form->load($_REQUEST)->validate()) {
+      Session::instance()->delete('pagination.blocks.list');
+
+      $site_id = $filter_form->site_id->val();
+
+      Session::instance()->set('pagination.blocks.list', array(
+        'site_id' => $site_id,
+      ));
+    } elseif ($settings = Session::instance()->get('pagination.blocks.list')) {
+      $form->site_id->val($site_id = $settings['site_id']);
     }
 
     if ($id === null) {
@@ -161,6 +214,7 @@ class Controller_Admin extends Controller {
       $blocks = ORM::factory('block')
         ->offset($pagination->offset)
         ->limit($pagination->items_per_page);
+      if ($site_id) $blocks = $blocks->where('site_id', '=', $site_id);
       if ($sort = $this->request->query('sort')) $blocks->order_by($sort);
       $blocks = $blocks->order_by('site_id')
         ->order_by('name')
@@ -176,7 +230,8 @@ class Controller_Admin extends Controller {
       else Notify::msg('No blocks found');
     }
 
-    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= ($id or $form == 'add_form') ? $add_form->render() : SGS::render_form_toggle($add_form->save->get('label')).$add_form->render();
+    if (!$id) $content .= $filter_form->render();
     $content .= $table;
     $content .= $pagination;
 
