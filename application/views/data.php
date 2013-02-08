@@ -157,38 +157,59 @@ $classes[] = 'data';
   <?php endif; // rows ?>
   <?php if ($options['details']): ?>
   <?php
-    $errors   = SGS::flattenify($record->get_errors());
-    $warnings = SGS::flattenify($record->get_warnings());
+    $errors = $record->get_errors(TRUE, FALSE);
+    $warnings = $record->get_warnings(TRUE, FALSE);
   ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td colspan="<?php echo (count($fields) + $additional_columns - $header_columns); ?>">
       <table class="details-checks">
-        <tr>
-          <?php
-            foreach ($record::$checks as $type => $info)
-            foreach ($info['checks'] as $check => $array):
-          ?>
-          <th><?php print $array['title']; ?></th>
-          <?php endforeach; ?>
+        <tr class="head">
+          <th class="result"></th>
+          <th class="type">Type</th>
+          <th>Check</th>
+          <th>Fields Checked</th>
+          <th class="value">Value</th>
+          <th class="value">Comparison</th>
         </tr>
+        <?php
+          foreach ($record::$checks as $type => $info) if (!in_array($type, array('consistency', 'reliability')))
+          foreach ($info['checks'] as $check => $array):
+        ?>
         <tr>
-          <?php
-            foreach ($record::$checks as $type => $info)
-            foreach ($info['checks'] as $check => $array):
-          ?>
-          <td>
+          <td class="result">
             <?php if ($record->status == 'P'): ?>
             <div class="warning">Unchecked</div>
 
-            <?php elseif (in_array($check, $errors)): ?>
+            <?php elseif (in_array($check, array_keys($errors))): ?>
             <div class="error">Failed</div>
 
-            <?php elseif (in_array($check, $warnings)): ?>
+            <?php elseif (in_array($check, array_keys($warnings))): ?>
             <div class="warning"><?php print 'Warned'; // $array['warning']; ?></div>
 
             <?php else: ?>
             <div class="success">Passed</div>
             <?php endif; ?>
+          </td>
+          <td class="type"><span class="data-type"><?php print $info['title']; ?></span></td>
+          <td><?php print $array['title']; ?></td>
+          <td>
+            <?php
+              $flds = array();
+              foreach (array_filter(array_unique(array_merge(array_keys((array) $errors[$check]), array_keys((array) $warnings[$check])))) as $fld) $flds[] = $fields[$fld];
+              if ($flds) print SGS::implodify($flds);
+            ?>
+          </td>
+          <td class="value">
+            <?php
+              if ($errors[$check]) print $errors[$check][$fld]['value'];
+              else if ($warnings[$check]) print $warnings[$check][$fld]['value'];
+              ?>
+          </td>
+          <td class="value">
+            <?php
+              if ($errors[$check]) print $errors[$check][$fld]['comparison'];
+              else if ($warnings[$check]) print $warnings[$check][$fld]['comparison'];
+              ?>
           </td>
           <?php endforeach; ?>
         </tr>

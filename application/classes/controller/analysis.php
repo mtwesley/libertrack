@@ -320,16 +320,15 @@ class Controller_Analysis extends Controller {
         if (in_array($record->status, (array) $status)) {
           $total_checked = TRUE;
           try {
-            list($errors, $warnings) = $record->run_checks();
+            list($raw['errors'], $raw['warnings']) = $record->run_checks();
+            foreach ($raw['errors'] as $re) $errors += array_keys($re);
+            foreach ($raw['warnings'] as $rw) $warnings += array_keys($rw);
           } catch (ORM_Validation_Exception $e) {
             foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
-          } /* catch (Exception $e) {
+          } catch (Exception $e) {
             $unable++;
-          } */
+          }
         }
-
-        $errors   = SGS::flattenify($errors);
-        $warnings = SGS::flattenify($warnings);
 
         if ($total_checked) {
           $total_warned = FALSE;

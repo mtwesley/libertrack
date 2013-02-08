@@ -2,30 +2,33 @@
 .details-checks .warning,
 .details-checks .success {
   margin: 0;
-  padding: 4px;
-  display: block;
+  padding: 2px 4px;
+  width: 50px;
+  display: inline-block;
+  border: 1px solid;
+  text-align: center;
 }
 
 .details-checks .error {
   background-color: #fcdfe0;
-  border-left: 2px solid #f38284;
+  border-color: #f38284;
   color: #ae3636;
 }
 
 .details-checks .warning {
   background-color: #f8f5e1;
-  border-left: 2px solid #efe9b7;
+  border-color: #efe9b7;
   color: #a5890b;
 }
 
 .details-checks .success {
   background-color: #dde5c5;
-  border-left: 2px solid #99c494;
+  border-color: #99c494;
   color: #63922d;
 }
 
 table.details-checks {
-  margin: 2px 0;
+  margin: 2px 0 0;
   width: 100%;
   font-size: 10px;
   /* table-layout: fixed; */
@@ -33,21 +36,56 @@ table.details-checks {
 
 table.details-checks tr {}
 table.details-checks tr th {
-  width: 20px;
-  padding: 2px 2px 2px 0 !important;
-  font-style: italic;
-  vertical-align: bottom;
-}
-table.details-checks tr td {
-  width: 5%;
-  padding: 2px 2px 2px 0 !important;
-  vertical-align: top;
+  padding: 2px 6px !important;
+  background-color: #e5dbcc !important;
+  border: 1px solid #f0ede8;
+  /* font-style: italic; */
 }
 
-table.details-checks tr,
-table.details-checks tr th:hover,
-table.details-checks tr td:hover {
+table.details-checks tr th.result,
+table.details-checks tr td.result {
+  padding: 2px !important;
+  width: 65px;
+}
+
+table.details-checks tr th.value,
+table.details-checks tr td.value {
+  width: 50px;
+  text-align: center !important;
+}
+
+table.details-checks tr th.type,
+table.details-checks tr td.type {
+  padding: 2px !important;
+  width: 80px !important;
+  text-align: center !important;
+}
+
+/* table.details-checks tr th.type,
+table.details-checks tr th.type:hover , */
+table.details-checks tr th.result,
+table.details-checks tr th.result:hover {
   background-color: #f0ede8 !important;
+}
+
+table.details-checks tr td.type .data-type {
+  background: none !important;
+}
+
+table.details-checks tr td {
+  /* width: 5%; */
+  padding: 2px 6px !important;
+  background-color: #eee8df !important;
+  border: 1px solid #f0ede8;
+  white-space: inherit;
+}
+
+table.details-checks tr th:hover {
+  background-color: #e5dbcc !important;
+}
+
+table.details-checks tr td:hover {
+  background-color: #eee8df !important;
 }
 
 table.details-checks tr td.error-desc {}

@@ -314,11 +314,14 @@
 }
 
 #content table.data td span.data-type {
-  padding: 2px 4px 1px;
+  padding: 3px 4px;
+  width: 90%;
   background-color: #e5dbcc;
   color: #86704e;
+  display: block;
   font-size: 10px;
   font-weight: bold;
+  text-align: center;
 }
 
 #content table.data th.type,

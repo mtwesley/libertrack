@@ -427,34 +427,34 @@ class Model_TDF extends SGS_Form_ORM {
     $this->unset_warnings();
 
     // reliability
-    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
-    if (!($this->operator_id == $this->tree_barcode->printjob->site->operator_id)) $warnings['tree_barcode_id'][] = 'is_consistent_operator';
-    if (!($this->operator_id == $this->stump_barcode->printjob->site->operator_id)) $warnings['stump_barcode_id'][] = 'is_consistent_operator';
-    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id']['is_consistent_operator'] = array();
+    if (!($this->operator_id == $this->tree_barcode->printjob->site->operator_id)) $warnings['tree_barcode_id']['is_consistent_operator'] = array();
+    if (!($this->operator_id == $this->stump_barcode->printjob->site->operator_id)) $warnings['stump_barcode_id']['is_consistent_operator'] = array();
+    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id']['is_consistent_operator'] = array();
 
-    if (!($this->site_id == $this->barcode->printjob->site_id)) $warnings['barcode_id'][] = 'is_consistent_site';
-    if (!($this->site_id == $this->tree_barcode->printjob->site_id)) $warnings['tree_barcode_id'][] = 'is_consistent_site';
-    if (!($this->site_id == $this->stump_barcode->printjob->site_id)) $warnings['stump_barcode_id'][] = 'is_consistent_site';
+    if (!($this->site_id == $this->barcode->printjob->site_id)) $warnings['barcode_id']['is_consistent_site'] = array();
+    if (!($this->site_id == $this->tree_barcode->printjob->site_id)) $warnings['tree_barcode_id']['is_consistent_site'] = array();
+    if (!($this->site_id == $this->stump_barcode->printjob->site_id)) $warnings['stump_barcode_id']['is_consistent_site'] = array();
 
-    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id']['is_consistent_site'] = array();
 
-    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id'][] = 'is_consistent_block';
-    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id'][] = 'is_consistent_block';
+    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id']['is_consistent_block'] = array();
+    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id']['is_consistent_block'] = array();
 
     // consistency
     switch ($this->barcode->type) {
       case 'F': break;
-      default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
+      default:  $errors['barcode_id']['is_valid_barcode'] = array(); break;
     }
 
     switch ($this->tree_barcode->type) {
       case 'T': break;
-      default:  $errors['tree_barcode_id'][] = 'is_valid_tree_barcode'; break;
+      default:  $errors['tree_barcode_id']['is_valid_tree_barcode'] = array(); break;
     }
 
     switch ($this->stump_barcode->type) {
       case 'S': break;
-      default:  $errors['stump_barcode_id'][] = 'is_valid_stump_barcode'; break;
+      default:  $errors['stump_barcode_id']['is_valid_stump_barcode'] = array(); break;
     }
 
     // traceability
@@ -463,34 +463,34 @@ class Model_TDF extends SGS_Form_ORM {
       ->find();
 
     if ($parent->loaded()) {
-      if ($parent->status != 'A') $errors['tree_barcode_id'][] = 'is_valid_parent';
+      if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array();
 
-      if (!(ord($this->species->class) >= ord($parent->species->class))) $errors['species_id'][] = 'is_matching_species';
-      if (!($this->species->code  == $parent->species->code))  $warnings['species_id'][]  = 'is_matching_species';
-      if (!($this->survey_line    == $parent->survey_line))    $warnings['survey_line'][] = 'is_matching_survey_line';
+      if (!(ord($this->species->class) >= ord($parent->species->class))) $errors['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $parent->species->class);
+      if (!($this->species->code == $parent->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);
+      if (!($this->survey_line == $parent->survey_line)) $warnings['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
 
-      if (!($this->operator_id == $parent->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
-      if (!($this->site_id     == $parent->site_id))     $errors['site_id'][]     = 'is_matching_site';
-      if (!($this->block_id    == $parent->block_id))    $errors['block_id'][]    = 'is_matching_block';
+      if (!($this->operator_id == $parent->operator_id)) $errors['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $parent->operator->tin);
+      if (!($this->site_id == $parent->site_id)) $errors['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $parent->site->name);
+      if (!($this->block_id == $parent->block_id)) $errors['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $parent->block->name);
 
-      if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_TOLERANCE)) $errors['survey_line'][] = 'is_matching_survey_line';
-      else if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_ACCURACY)) $warnings['survey_line'][] = 'is_matching_survey_line';
+      if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_TOLERANCE)) $errors['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
+      else if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_ACCURACY)) $warnings['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
 
-      if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_matching_length';
-      else if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_LENGTH_ACCURACY)) $warnings['length'][] = 'is_matching_length';
+      if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_LENGTH_TOLERANCE)) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
+      else if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_LENGTH_ACCURACY)) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
 
-      if (!Valid::meets_tolerance((($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
-        $errors['bottom_min'][] = 'is_matching_diameter';
-        $errors['bottom_max'][] = 'is_matching_diameter';
+      if (!Valid::meets_tolerance($diameter = (($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
+        $errors['bottom_min']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
+        $errors['bottom_max']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
       }
-      else if (!Valid::meets_tolerance((($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::TDF_DIAMETER_ACCURACY)) {
-        $warnings['bottom_min'][] = 'is_matching_diameter';
-        $warnings['bottom_max'][] = 'is_matching_diameter';
+      else if (!Valid::meets_tolerance($diameter = (($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::TDF_DIAMETER_ACCURACY)) {
+        $warnings['bottom_min']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
+        $warnings['bottom_max']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
       }
     }
     else {
-      $errors['tree_barcode_id'][] = 'is_existing_parent';
-      $errors['tree_barcode_id'][] = 'is_valid_parent';
+      $errors['tree_barcode_id']['is_existing_parent'] = array();
+      $errors['tree_barcode_id']['is_valid_parent'] = array();
     }
 
     // all tolerance checks fail if any traceability checks fail
@@ -499,13 +499,13 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     if ($warnings) foreach ($warnings as $field => $array) {
-      foreach (array_filter(array_unique($array)) as $warning) $this->set_warning($field, $warning);
+      foreach ($array as $warning => $params) $this->set_warning($field, $warning, $params);
     }
 
     if ($errors) {
       $this->status = 'R';
       foreach ($errors as $field => $array) {
-        foreach (array_filter(array_unique($array)) as $error) $this->set_error($field, $error);
+        foreach ($array as $error => $params) $this->set_error($field, $error, $params);
       }
     } else $this->status = 'A';
 

@@ -464,13 +464,13 @@ class Model_SPECS extends SGS_Form_ORM {
     $this->unset_warnings();
 
     // warnings
-    if (!($this->operator_id == $this->specs_barcode->printjob->site->operator_id)) $warnings['specs_barcode_id'][] = 'is_consistent_operator';
-    if (!($this->operator_id == $this->epr_barcode->printjob->site->operator_id)) $warnings['epr_barcode_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->specs_barcode->printjob->site->operator_id)) $warnings['specs_barcode_id']['is_consistent_operator'] = array();
+    if (!($this->operator_id == $this->epr_barcode->printjob->site->operator_id)) $warnings['epr_barcode_id']['is_consistent_operator'] = array();
 
     // errors
     switch ($this->barcode->type) {
       case 'L': break;
-      default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
+      default:  $errors['barcode_id']['is_valid_barcode'] = array(); break;
     }
 
     $ldf = ORM::factory('LDF')
@@ -478,42 +478,42 @@ class Model_SPECS extends SGS_Form_ORM {
       ->find();
 
     if ($ldf->loaded()) {
-      if ($ldf->status != 'A') $errors['barcode_id'][] = 'is_valid_parent';
+      if ($ldf->status != 'A') $errors['barcode_id']['is_valid_parent'] = array();
 
-      if (!(ord($this->species->class) >= ord($ldf->species->class))) $errors['species_id'][] = 'is_matching_species';
-      if (!($this->species->code  == $ldf->species->code))  $warnings['species_id'][] = 'is_matching_species';
+      if (!(ord($this->species->class) >= ord($ldf->species->class))) $errors['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $ldf->species->class);
+      if (!($this->species->code == $ldf->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $ldf->species->code);
 
-      if (!($this->operator_id == $ldf->operator_id)) $errors['operator_id'][] = 'is_matching_operator';
+      if (!($this->operator_id == $ldf->operator_id)) $errors['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $ldf->operator->tin);
 
-      if (!Valid::meets_tolerance($this->volume, $ldf->volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume'][] = 'is_matching_volume';
-      else if (!Valid::meets_tolerance($this->volume, $ldf->volume, SGS::LDF_VOLUME_ACCURACY)) $warnings['volume'][] = 'is_matching_volume';
+      if (!Valid::meets_tolerance($this->volume, $ldf->volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $ldf->volume);
+      else if (!Valid::meets_tolerance($this->volume, $ldf->volume, SGS::LDF_VOLUME_ACCURACY)) $warnings['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $ldf->volume);
 
-      if (!Valid::meets_tolerance($this->length, $ldf->length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length'][] = 'is_matching_length';
-      else if (!Valid::meets_tolerance($this->length, $ldf->length, SGS::LDF_LENGTH_ACCURACY)) $warnings['length'][] = 'is_matching_length';
+      if (!Valid::meets_tolerance($this->length, $ldf->length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $ldf->length);
+      else if (!Valid::meets_tolerance($this->length, $ldf->length, SGS::LDF_LENGTH_ACCURACY)) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $ldf->length);
 
       $diameter = ($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4;
 
-      if (!Valid::meets_tolerance($diameter, (($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_TOLERANCE)) {
-        $errors['top_min'][] = 'is_matching_diameter';
-        $errors['top_max'][] = 'is_matching_diameter';
-        $errors['bottom_min'][] = 'is_matching_diameter';
-        $errors['bottom_max'][] = 'is_matching_diameter';
+      if (!Valid::meets_tolerance($diameter, ($diameter = ($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_TOLERANCE)) {
+        $errors['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $diameter);
+        $errors['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $diameter);
+        $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $diameter);
+        $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $diameter);
       }
-      else if (!Valid::meets_tolerance($diameter, (($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_ACCURACY)) {
-        $warnings['top_min'][] = 'is_matching_diameter';
-        $warnings['top_max'][] = 'is_matching_diameter';
-        $warnings['bottom_min'][] = 'is_matching_diameter';
-        $warnings['bottom_max'][] = 'is_matching_diameter';
+      else if (!Valid::meets_tolerance($diameter, ($diameter = ($ldf->top_min + $ldf->top_max + $ldf->bottom_min + $ldf->bottom_max) / 4), SGS::LDF_DIAMETER_ACCURACY)) {
+        $warnings['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $diameter);
+        $warnings['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $diameter);
+        $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $diameter);
+        $warnings['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $diameter);
       }
     }
     else {
-      $errors['barcode_id'][] = 'is_existing_parent';
-      $errors['barcode_id'][] = 'is_valid_parent';
+      $errors['barcode_id']['is_existing_parent'] = array();
+      $errors['barcode_id']['is_valid_parent'] = array();
     }
 
     // payment
 
-    if (!$ldf->is_invoiced()) $errors['barcode_id'][] = 'is_invoiced_st';
+    if (!$ldf->is_invoiced()) $errors['barcode_id']['is_invoiced_st'] = array();
 
     // all tolerance checks fail if any traceability checks fail
     if (array_intersect(SGS::flattenify($errors), array_keys(self::$checks['traceability']['checks']))) {
@@ -521,16 +521,15 @@ class Model_SPECS extends SGS_Form_ORM {
     }
 
     if ($warnings) foreach ($warnings as $field => $array) {
-      foreach (array_filter(array_unique($array)) as $warning) $this->set_warning($field, $warning);
+      foreach ($array as $warning => $params) $this->set_warning($field, $warning, $params);
     }
 
     if ($errors) {
       $this->status = 'R';
       foreach ($errors as $field => $array) {
-        foreach (array_filter(array_unique($array)) as $error) $this->set_error($field, $error);
+        foreach ($array as $error => $params) $this->set_error($field, $error, $params);
       }
-    }
-    else $this->status = 'A';
+    } else $this->status = 'A';
 
     $this->save();
 

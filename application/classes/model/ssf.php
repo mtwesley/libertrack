@@ -360,31 +360,30 @@ class Model_SSF extends SGS_Form_ORM {
     $this->unset_warnings();
 
     // warnings
-    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id'][] = 'is_consistent_operator';
-    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id'][] = 'is_consistent_operator';
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id']['is_consistent_operator'] = array();
+    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id']['is_consistent_operator'] = array();
 
-    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id'][] = 'is_consistent_site';
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id']['is_consistent_site'] = array();
 
-    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id'][] = 'is_consistent_block';
-    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id'][] = 'is_consistent_block';
+    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id']['is_consistent_block'] = array();
+    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id']['is_consistent_block'] = array();
 
     // errors
     switch ($this->barcode->type) {
       case 'T': break;
-      default:  $errors['barcode_id'][] = 'is_valid_barcode'; break;
+      default:  $errors['barcode_id']['is_valid_barcode'] = array(); break;
     }
 
     if ($warnings) foreach ($warnings as $field => $array) {
-      foreach (array_filter(array_unique($array)) as $warning) $this->set_warning($field, $warning);
+      foreach ($array as $warning => $params) $this->set_warning($field, $warning, $params);
     }
 
     if ($errors) {
       $this->status = 'R';
       foreach ($errors as $field => $array) {
-        foreach (array_filter(array_unique($array)) as $error) $this->set_error($field, $error);
+        foreach ($array as $error => $params) $this->set_error($field, $error, $params);
       }
-    }
-    else $this->status = 'A';
+    } else $this->status = 'A';
 
     $this->save();
 
