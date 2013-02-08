@@ -120,7 +120,7 @@ class Controller_Admin extends Controller {
         'operator_id' => $operator_id,
       ));
     } elseif ($settings = Session::instance()->get('pagination.sites.list')) {
-      $form->operator_id->val($operator_id = $settings['operator_id']);
+      $filter_form->operator_id->val($operator_id = $settings['operator_id']);
     }
 
     if ($id === null) {
@@ -203,7 +203,7 @@ class Controller_Admin extends Controller {
         'site_id' => $site_id,
       ));
     } elseif ($settings = Session::instance()->get('pagination.blocks.list')) {
-      $form->site_id->val($site_id = $settings['site_id']);
+      $filter_form->site_id->val($site_id = $settings['site_id']);
     }
 
     if ($id === null) {
