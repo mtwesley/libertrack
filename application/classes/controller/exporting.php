@@ -89,11 +89,25 @@ class Controller_Exporting extends Controller {
 
             $operator = ORM::factory('operator', $operator_id);
 
+            if ($specs_info) {
+              $sample = reset($data);
+              $info['specs'] = array(
+                'number'  => $sample->specs_number,
+                'barcode' => $sample->specs_barcode->barcode
+              );
+              if (Valid::numeric($specs_info)) $info['epr'] = array(
+                'number'  => $sample->epr_number,
+                'barcode' => $sample->epr_barcode->barcode
+              );
+            }
+
             $table = View::factory('data')
               ->set('classes', array('has-pagination'))
               ->set('form_type', 'SPECS')
               ->set('data', $data)
               ->set('operator', $operator)
+              ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
+              ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
               ->set('options', array(
                 'links'  => FALSE,
                 'header' => TRUE

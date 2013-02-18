@@ -404,6 +404,7 @@
   width: 125px;
   font-weight: bold;
   text-align: right;
+  white-space: nowrap;
 }
 
 ul.roles {

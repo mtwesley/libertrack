@@ -62,7 +62,7 @@ class Model_SPECS extends SGS_Form_ORM {
     'origin'          => 'Port of Origin',
     'destination'     => 'Port of Destination',
     'specs_barcode'   => 'Shipment Specification Barcode',
-    'epr_barcode'     => 'Export Permit Request Barcode',
+    'epr_barcode'     => 'Permit Request Barcode',
     'barcode'         => 'Log Barcode',
     'species_code'    => 'Species Code',
     'bottom_max'      => 'Butt Max',
@@ -169,15 +169,18 @@ class Model_SPECS extends SGS_Form_ORM {
 
   public function formo() {
     $array = array(
-      'id'            => array('render' => FALSE),
-      'barcode'       => array('render' => FALSE),
-      'specs_barcode' => array('render' => FALSE),
-      'epr_barcode'   => array('render' => FALSE),
-      'operator'      => array('render' => FALSE),
-      'status'        => array('render' => FALSE),
-      'user'          => array('render' => FALSE),
-      'timestamp'     => array('render' => FALSE),
-      'species'       => array(
+      'id'              => array('render' => FALSE),
+      'barcode'         => array('render' => FALSE),
+      'contract_number' => array('render' => FALSE),
+      'specs_barcode'   => array('render' => FALSE),
+      'epr_barcode'     => array('render' => FALSE),
+      'specs_id'        => array('render' => FALSE),
+      'epr_id'          => array('render' => FALSE),
+      'operator'        => array('render' => FALSE),
+      'status'          => array('render' => FALSE),
+      'user'            => array('render' => FALSE),
+      'timestamp'       => array('render' => FALSE),
+      'species'         => array(
         'orm_primary_val' => 'code',
         'label' => 'Species'
       ),

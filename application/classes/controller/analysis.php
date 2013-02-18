@@ -128,6 +128,18 @@ class Controller_Analysis extends Controller {
       if (!$block)    $block    = ORM::factory('block', (int) $block_id);
       if (!$operator) $operator = ORM::factory('operator', (int) $operator_id);
 
+      if ($specs_info) {
+        $sample = reset($data);
+        $info['specs'] = array(
+          'number'  => $sample->specs_number,
+          'barcode' => $sample->specs_barcode->barcode
+        );
+        if (Valid::numeric($specs_info)) $info['epr'] = array(
+          'number'  => $sample->epr_number,
+          'barcode' => $sample->epr_barcode->barcode
+        );
+      }
+
       $table = View::factory('data')
         ->set('classes', array('has-pagination'))
         ->set('form_type', $form_type)
@@ -135,6 +147,8 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
+        ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
+        ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
         ->render();
     }
 
@@ -166,12 +180,25 @@ class Controller_Analysis extends Controller {
       }
     }
 
+    if ($form_type == 'SPECS') {
+      $info['specs'] = array(
+        'number'  => $item->specs_number,
+        'barcode' => $item->specs_barcode->barcode
+      );
+      $info['epr'] = array(
+        'number'  => $item->epr_number,
+        'barcode' => $item->epr_barcode->barcode
+      );
+    }
+
     $table = View::factory('data')
       ->set('classes', array('has-pagination'))
       ->set('form_type', $item::$type)
       ->set('data', array($item))
       ->set('site', isset($item->site) ? $item->site : NULL)
       ->set('block', isset($item->block) ? $item->block : NULL)
+      ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
+      ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
       ->render();
 
     if ($form) $content .= $form->render();
@@ -465,12 +492,26 @@ class Controller_Analysis extends Controller {
       $site     = ORM::factory('site', $site_id ?: NULL);
       $block    = ORM::factory('block', $block_id ?: NULL);
 
+      if ($specs_info) {
+        $sample = reset($data);
+        $info['specs'] = array(
+          'number'  => $sample->specs_number,
+          'barcode' => $sample->specs_barcode->barcode
+        );
+        if (Valid::numeric($specs_info)) $info['epr'] = array(
+          'number'  => $sample->epr_number,
+          'barcode' => $sample->epr_barcode->barcode
+        );
+      }
+
       $header = View::factory('data')
         ->set('form_type', $form_type)
         ->set('data', $_data)
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
+        ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
+        ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
         ->set('options', array(
           'table'   => FALSE,
           'rows'    => FALSE,
@@ -488,6 +529,8 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
+        ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
+        ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
         ->set('options', array(
           'hide_header_info' => TRUE,
           'header'  => FALSE,

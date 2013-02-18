@@ -8,7 +8,7 @@ $options = (array) $options + array(
   'details' => TRUE,
   'links'   => TRUE,
   'actions' => FALSE,
-  'header'  => $site or $operator ? TRUE : FALSE,
+  'header'  => ($site or $operator or $specs_info or $epr_info) ? TRUE : FALSE,
 );
 
 $header_columns = 0;
@@ -25,14 +25,38 @@ $classes[] = 'data';
   <tr>
     <td class="label">Operator:</td>
     <td><?php if ($operator) echo $operator->name; ?></td>
-    <td class="label"><?php if ($site) echo 'Site:'; ?></td>
-    <td><?php if ($site) echo $site->name; ?></td>
+    <td class="label">
+      <?php
+        if ($site) echo 'Site:';
+        else if ($specs_info) echo 'Shipment Specification Barcode:';
+      ?>
+    </td>
+    <td>
+      <?php
+        if ($site) echo $site->name;
+        else if ($specs_info) echo $specs_info['barcode'];
+      ?>
+    </td>
+    <td class="label"><?php if ($epr_info) echo 'Permit Request Barcode:'; ?></td>
+    <td><?php if ($epr_info) echo $epr_info['barcode']; ?></td>
   </tr>
   <tr>
     <td class="label">TIN:</td>
     <td><?php if ($operator) echo $operator->tin; ?></td>
-    <td class="label"><?php if ($block) echo 'Block:'; ?></td>
-    <td><?php if ($block) echo $block->name; ?></td>
+    <td class="label">
+      <?php
+        if ($block) echo 'Block:';
+        else if ($specs_info) echo 'Shipment Specification Number:';
+      ?>
+    </td>
+    <td>
+      <?php
+        if ($block) echo $block->name;
+        else if ($specs_info) echo $specs_info['number'];
+      ?>
+    </td>
+    <td class="label"><?php if ($epr_info) echo 'Permit Request Number:'; ?></td>
+    <td><?php if ($epr_info) echo $epr_info['number']; ?></td>
   </tr>
 </table>
 <?php endif; ?>
@@ -66,8 +90,12 @@ $classes[] = 'data';
         case 'block_name':
         case 'block_id':
         case 'specs_barcode':
+        case 'specs_barcode_id';
+        case 'specs_id':
         case 'specs_number':
         case 'epr_barcode':
+        case 'epr_barcode_id':
+        case 'epr_id':
         case 'epr_number':
           $header_columns++;
           continue 2;
@@ -108,8 +136,12 @@ $classes[] = 'data';
         case 'block_name':
         case 'block_id':
         case 'specs_barcode':
+        case 'specs_barcode_id';
+        case 'specs_id':
         case 'specs_number':
         case 'epr_barcode':
+        case 'epr_barcode_id':
+        case 'epr_id':
         case 'epr_number':
           continue 2;
       endswitch;
