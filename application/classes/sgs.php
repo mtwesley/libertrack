@@ -311,7 +311,7 @@ class SGS {
     'L' => 'Log',
     'R' => 'Sawnmill Timber',
     'H' => 'Shipment Specification',
-    'E' => 'Export Permit Request'
+    'E' => 'Permit Request'
   );
 
   public static $invoice_type = array(
@@ -320,6 +320,7 @@ class SGS {
   );
 
   public static $error_type = array(
+    'S' => 'Success',
     'E' => 'Error',
     'W' => 'Warning'
   );

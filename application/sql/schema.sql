@@ -55,7 +55,7 @@ create domain d_barcode as character varying(13) check (value ~ E'^[0123456789AC
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHE]$');
 
-create domain d_error_type as character(1) check (value ~ E'^[EW]$');
+create domain d_error_type as character(1) check (value ~ E'^[EWP]$');
 
 create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value < 1));
 

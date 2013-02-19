@@ -89,6 +89,7 @@ class Controller_Exporting extends Controller {
 
             $operator = ORM::factory('operator', $operator_id);
 
+            unset($info);
             if ($specs_info) {
               $sample = reset($data);
               $info['specs'] = array(
@@ -106,8 +107,8 @@ class Controller_Exporting extends Controller {
               ->set('form_type', 'SPECS')
               ->set('data', $data)
               ->set('operator', $operator)
-              ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
-              ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
+              ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+              ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
               ->set('options', array(
                 'links'  => FALSE,
                 'header' => TRUE

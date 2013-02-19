@@ -11,6 +11,18 @@ class SGS_Form_ORM extends ORM {
     return call_user_func(array('Model_'.($form_type ? $form_type : static::$type), 'fields'));
   }
 
+  public function process_check($error_test, $warning_test, $field, $check, $params = array(), &$errors = array(), &$warnings = array()) {
+    if ($error_test) {
+      $this->set_error($field, $error, $params);
+      $errors[$field][$check] = (array) $params;
+    } else if ($warning_test) {
+      $this->set_warning($field, $warning, $params);
+      $warnings[$field][$check] = (array) $params;
+    } else {
+      $this->set_success($field, $error, $params);
+    }
+  }
+
   public function validate_data($data, $form_type, $return = 'validation')
   {
     $valid = FALSE;
@@ -42,6 +54,42 @@ class SGS_Form_ORM extends ORM {
   public static function get_messages()
   {
     return array();
+  }
+
+  public function reset_checks() {
+    $query = DB::delete('errors')
+      ->where('form_type', '=', static::$type)
+      ->and_where('form_data_id', '=', $this->id);
+    $query->execute();
+  }
+
+  public function get_successes($with_params = FALSE, $by_field = TRUE, $args = array()) {
+    $query = DB::select()
+      ->from('errors')
+      ->where('form_type', '=', static::$type)
+      ->and_where('form_data_id', '=', $this->id)
+      ->and_where('type', '=', 'S');
+    foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
+    foreach ($query->execute() as $result) {
+      if ($with_params) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
+      else $errors[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
+    }
+    return (array) $errors;
+  }
+
+  public function unset_successes($args = array()) {
+    $query = DB::delete('errors')
+      ->where('form_type', '=', static::$type)
+      ->and_where('form_data_id', '=', $this->id)
+      ->and_where('type', '=', 'S');
+    foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
+    $query->execute();
+  }
+
+  public function set_success($field, $error, $params = array()) {
+    DB::insert('errors', array('form_type', 'form_data_id', 'field', 'error', 'type', 'params'))
+      ->values(array(static::$type, $this->id, $field, $error, 'S', $params ? serialize($params) : NULL))
+      ->execute();
   }
 
   public function get_errors($with_params = FALSE, $by_field = TRUE, $args = array()) {
@@ -108,7 +156,8 @@ class SGS_Form_ORM extends ORM {
       ->join('invoice_data')
       ->on('invoices.id', '=', 'invoice_data.invoice_id')
       ->where('form_type', '=', static::$type)
-      ->and_where('form_data_id', '=', $this->id);
+      ->and_where('form_data_id', '=', $this->id)
+      ->and_where('number', 'IS NOT', NULL);
     if ($type) $query->and_where('invoices.type', '=', $type);
     return (bool) $query
       ->execute()

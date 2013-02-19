@@ -348,7 +348,7 @@
   padding: 0 4px;
   border-top: none;
   /* border-bottom: 1px dotted #e6dfd4; */
-  white-space: normal;
+  white-space: nowrap;
 }
 
 #content table.data td.wrap-normal {

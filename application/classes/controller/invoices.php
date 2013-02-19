@@ -151,6 +151,7 @@ class Controller_Invoices extends Controller {
             $func = strtolower('generate_'.$invoice_type.'_preview');
             $summary = self::$func((array) $ids);
 
+            unset($info);
             if ($specs_info) {
               $sample = reset($data);
               $info['specs'] = array(
@@ -168,8 +169,8 @@ class Controller_Invoices extends Controller {
               ->set('data', $data)
               ->set('site', $site_id ? $site : NULL)
               ->set('operator', $operator_id ? $operator : NULL)
-              ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
-              ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
+              ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+              ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
               ->set('options', array(
                 'table'   => FALSE,
                 'rows'    => FALSE,
@@ -186,8 +187,8 @@ class Controller_Invoices extends Controller {
               ->set('data', $data)
               ->set('site', $site_id ? $site : NULL)
               ->set('operator', $operator_id ? $operator : NULL)
-              ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
-              ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
+              ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+              ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
               ->set('options', array(
                 'links'  => FALSE,
                 'header' => FALSE,

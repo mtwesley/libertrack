@@ -128,6 +128,7 @@ class Controller_Analysis extends Controller {
       if (!$block)    $block    = ORM::factory('block', (int) $block_id);
       if (!$operator) $operator = ORM::factory('operator', (int) $operator_id);
 
+      unset($info);
       if ($specs_info) {
         $sample = reset($data);
         $info['specs'] = array(
@@ -147,8 +148,8 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
-        ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
         ->render();
     }
 
@@ -180,6 +181,7 @@ class Controller_Analysis extends Controller {
       }
     }
 
+    unset($info);
     if ($form_type == 'SPECS') {
       $info['specs'] = array(
         'number'  => $item->specs_number,
@@ -197,8 +199,8 @@ class Controller_Analysis extends Controller {
       ->set('data', array($item))
       ->set('site', isset($item->site) ? $item->site : NULL)
       ->set('block', isset($item->block) ? $item->block : NULL)
-      ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
-      ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
+      ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+      ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
       ->render();
 
     if ($form) $content .= $form->render();
@@ -492,8 +494,9 @@ class Controller_Analysis extends Controller {
       $site     = ORM::factory('site', $site_id ?: NULL);
       $block    = ORM::factory('block', $block_id ?: NULL);
 
+      unset($info);
       if ($specs_info) {
-        $sample = reset($data);
+        $sample = reset($_data);
         $info['specs'] = array(
           'number'  => $sample->specs_number,
           'barcode' => $sample->specs_barcode->barcode
@@ -510,8 +513,8 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
-        ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
         ->set('options', array(
           'table'   => FALSE,
           'rows'    => FALSE,
@@ -529,8 +532,8 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_info', $info ? array_filter($info['specs']) : NULL)
-        ->set('epr_info', $info ? array_filter($info['epr']) : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
         ->set('options', array(
           'hide_header_info' => TRUE,
           'header'  => FALSE,

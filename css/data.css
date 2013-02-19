@@ -46,6 +46,7 @@ table.details-checks tr th.result,
 table.details-checks tr td.result {
   padding: 2px !important;
   width: 65px;
+  text-align: center !important;
 }
 
 table.details-checks tr th.value,
@@ -62,11 +63,7 @@ table.details-checks tr td.type {
 }
 
 /* table.details-checks tr th.type,
-table.details-checks tr th.type:hover , */
-table.details-checks tr th.result,
-table.details-checks tr th.result:hover {
-  background-color: #f0ede8 !important;
-}
+table.details-checks tr th.type:hover {} */
 
 table.details-checks tr td.type .data-type {
   background: none !important;
