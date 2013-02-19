@@ -123,28 +123,33 @@ class Controller_Admin extends Controller {
       $filter_form->operator_id->val($operator_id = $settings['operator_id']);
     }
 
-    if ($id === null) {
-      $pagination = Pagination::factory(array(
-        'items_per_page' => 20,
-        'total_items' => $site->find_all()->count()));
-
-      $sites = ORM::factory('site')
-        ->offset($pagination->offset)
-        ->limit($pagination->items_per_page);
+    if ($id) {
+      $sites = array_filter(array(ORM::factory('site', $id)));
+    } else {
+      $sites = ORM::factory('site');
       if ($operator_id) $sites = $sites->where('operator_id', '=', $operator_id);
-      if ($sort = $this->request->query('sort')) $sites->order_by($sort);
-      $sites = $sites->order_by('name')
-        ->find_all()
-        ->as_array();
-
-      $table .= View::factory('sites')
-        ->set('classes', array('has-pagination'))
-        ->set('sites', $sites);
-
-      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' site found');
-      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' sites found');
-      else Notify::msg('No sites found');
     }
+
+    $clone = clone($sites);
+    $pagination = Pagination::factory(array(
+      'items_per_page' => 20,
+      'total_items' => $clone->find_all()->count()));
+
+    $sites = $sites
+      ->offset($pagination->offset)
+      ->limit($pagination->items_per_page);
+    if ($sort = $this->request->query('sort')) $sites->order_by($sort);
+    $sites = $sites->order_by('name')
+      ->find_all()
+      ->as_array();
+
+    $table .= View::factory('sites')
+      ->set('classes', array('has-pagination'))
+      ->set('sites', $sites);
+
+    if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' site found');
+    elseif ($pagination->total_items) Notify::msg($pagination->total_items.' sites found');
+    else Notify::msg('No sites found');
 
     $content .= ($id or $form == 'add_form') ? $add_form->render() : SGS::render_form_toggle($add_form->save->get('label')).$add_form->render();
     if (!$id) $content .= $filter_form->render();
@@ -206,29 +211,34 @@ class Controller_Admin extends Controller {
       $filter_form->site_id->val($site_id = $settings['site_id']);
     }
 
-    if ($id === null) {
-      $pagination = Pagination::factory(array(
-        'items_per_page' => 20,
-        'total_items' => $block->find_all()->count()));
-
-      $blocks = ORM::factory('block')
-        ->offset($pagination->offset)
-        ->limit($pagination->items_per_page);
+    if ($id) {
+      $blocks = array_filter(array(ORM::factory('block', $id)));
+    } else {
+      $blocks = ORM::factory('block');
       if ($site_id) $blocks = $blocks->where('site_id', '=', $site_id);
-      if ($sort = $this->request->query('sort')) $blocks->order_by($sort);
-      $blocks = $blocks->order_by('site_id')
-        ->order_by('name')
-        ->find_all()
-        ->as_array();
-
-      $table = View::factory('blocks')
-        ->set('classes', array('has-pagination'))
-        ->set('blocks', $blocks);
-
-      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' block found');
-      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' blocks found');
-      else Notify::msg('No blocks found');
     }
+
+    $clone = clone($blocks);
+    $pagination = Pagination::factory(array(
+      'items_per_page' => 20,
+      'total_items' => $clone->find_all()->count()));
+
+    $blocks = $blocks
+      ->offset($pagination->offset)
+      ->limit($pagination->items_per_page);
+    if ($sort = $this->request->query('sort')) $blocks->order_by($sort);
+    $blocks = $blocks->order_by('site_id')
+      ->order_by('name')
+      ->find_all()
+      ->as_array();
+
+    $table = View::factory('blocks')
+      ->set('classes', array('has-pagination'))
+      ->set('blocks', $blocks);
+
+    if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' block found');
+    elseif ($pagination->total_items) Notify::msg($pagination->total_items.' blocks found');
+    else Notify::msg('No blocks found');
 
     $content .= ($id or $form == 'add_form') ? $add_form->render() : SGS::render_form_toggle($add_form->save->get('label')).$add_form->render();
     if (!$id) $content .= $filter_form->render();
@@ -238,7 +248,6 @@ class Controller_Admin extends Controller {
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
   }
-
 
   public function action_species() {
     $id = $this->request->param('id');
