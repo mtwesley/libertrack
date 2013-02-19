@@ -429,8 +429,8 @@ class Model_LDF extends SGS_Form_ORM {
           $siblings['volume']   += $child->volume;
         }
 
-        $siblings['diameter'] = $siblings['diameter'] / count($siblings);
-        $siblings['volume']   = $siblings['volume'] / count($siblings);
+        $siblings['diameter'] = $siblings['diameter'] / count($siblngs);
+        $siblings['volume']   = $siblings['volume'] / count($siblngs);
 
         if ($parent::$type == 'LDF') {
           if (!Valid::meets_tolerance($siblings['volume'], $parent->volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
