@@ -582,57 +582,26 @@ class Controller_Analysis extends Controller {
       $this->request->redirect('analysis');
     }
 
-    $id = $this->request->param('id');
+    if ($values = $this->request->post()) {
+      foreach ($values as $key => $value) {
+        list($form_type, $check, $type) = explode('-', $key);
+        try {
+          DB::update('tolerances')
+            ->set(array($type => (float) $value))
+            ->where('form_type', '=', $form_type)
+            ->and_where('check', '=', $check)
+            ->execute();
+        } catch (Database_Exception $e) {
+          Notify::msg('Sorry, tolerance failed to be saved due to input. Please try again.', 'error');
+        } catch (Exception $e) {
+          Notify::msg('Sorry, tolerance failed to be updated. Please try again.', 'error');
+        }
+      }
 
-//    $tolerance = ORM::factory('tolerance', $id);
-//    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
-//      ->orm('load', $tolerance, array('user_id', 'timestamp'), true)
-//      ->add('save', 'submit', array(
-//        'label' => $id ? 'Update Tolerance' : 'Add a New Tolerance'
-//      ))
-//      ->order(array('name' => 0));
-//
-//    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-//      try {
-//        $tolerance->save();
-//        if ($id) Notify::msg('Tolerance successfully updated.', 'success', TRUE);
-//        else Notify::msg('Tolerance successfully added.', 'success', TRUE);
-//
-//        $this->request->redirect('admin/tolerances');
-//      } catch (Database_Exception $e) {
-//        Notify::msg('Sorry, unable to save tolerance due to incorrect or missing input. Please try again.', 'error');
-//      } catch (Exception $e) {
-//        Notify::msg('Sorry, tolerance failed to be saved. Please try again.', 'error');
-//      }
-//    }
-
-    $id = NULL;
-
-    if ($id === null) {
-//      $pagination = Pagination::factory(array(
-//        'items_per_page' => 20,
-//        'total_items' => $tolerance->find_all()->count()));
-
-      $tolerances = ORM::factory('tolerance')
-        ->offset($pagination->offset)
-        ->limit($pagination->items_per_page);
-      if ($sort = $this->request->query('sort')) $tolerances->order_by($sort);
-      $tolerances = $tolerances->order_by('form_type')
-        ->find_all()
-        ->as_array();
-
-      $table = View::factory('tolerances')
-        ->set('classes', array('has-pagination'))
-        ->set('tolerances', $tolerances);
-
-//      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' tolerance found');
-//      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' tolerances found');
-//      else Notify::msg('No tolerances found');
+      Notify::msg($success.'Tolerances updated.', 'success');
     }
 
-//    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
-    $content .= $table;
-//    $content .= $pagination;
+    $content .= View::factory('tolerances');
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

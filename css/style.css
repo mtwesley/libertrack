@@ -292,7 +292,7 @@
 
 #content table.data th,
 #content table.data td {
-  padding: 2px 4px;
+  padding: 2px 6px 2px 3px;
   text-align: left;
   height: 18px;
 }
@@ -405,6 +405,98 @@
   font-weight: bold;
   text-align: right;
   white-space: nowrap;
+}
+
+#content table.form {
+  margin: 0 0 2px;
+  width: 100%;
+  border-collapse: collapse;
+  border-top: none;
+  table-layout: auto;
+}
+
+#content table.has-actions {
+  margin-top: 0;
+}
+
+#content table.form tr {}
+
+#content table.form tr,
+#content table.form tr.odd,
+#content table.form tr.even {
+/*  background-color: #eee8df;*/
+  background-color: #ffd6ba;
+}
+
+#content table.form tr.head {
+  background-color: #ffc09b;
+  border-bottom: 3px solid #ffd6ba;
+}
+
+#content table.form tr.head a,
+#content table.form tr.head a:visited {
+  color: #333;
+  text-decoration: none;
+}
+
+#content table.form tr.head a:hover {
+  text-decoration: underline;
+}
+
+#content table.form tr:hover,
+#content table.form tr.odd:hover,
+#content table.form tr.even:hover {
+  background-color: #ffdfcb;
+}
+
+#content table.form tr.head:hover {
+  /*background-color: #e5dbcc;*/
+}
+
+#content table.form th,
+#content table.form td {
+  padding: 2px 6px 2px 3px;
+  text-align: left;
+  height: 18px;
+}
+
+#content table.form td {
+  border-top: 1px dotted #ffb685;
+  /* border-top: 1px dotted #d9c7ad; */
+  white-space: nowrap;
+}
+
+#content table.form td.links {
+  text-align: right;
+}
+
+#content table.form td.split-row {
+  border-top: none !important;
+}
+
+#content table.form a.link,
+#content table.form span.link,
+.action-bar span.link {
+  padding: 2px 4px;
+  display: inline-block;
+  color: #eee8df;
+  font-size: 10px;
+  font-weight: bold;
+  text-decoration: none;
+  background-color: #887250;
+  cursor: pointer;
+}
+
+#content table.form a.link:hover,
+#content table.form span.link:hover,
+.action-bar span.link:hover  {
+  background-color: #564832;
+}
+
+#content table.form input {
+  padding: 3px 4px;
+  background-color: #fff0e7;
+  border: none;
 }
 
 ul.roles {

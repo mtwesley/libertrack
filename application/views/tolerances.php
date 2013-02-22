@@ -1,28 +1,50 @@
-<?php $classes[] = 'data'; ?>
-<table class="<?php echo SGS::render_classes($classes); ?>">
-  <tr class="head">
-    <th class="type"></th>
-    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'form_type')), 'Form'); ?></th>
-    <th>Fields</th>
-    <th>Accuracy Range</th>
-    <th>Tolerance Range</th>
-    <th class="links"></th>
-  </tr>
-  <?php foreach ($tolerances as $tolerance): ?>
-  <tr class="<?php print SGS::odd_even($odd); ?>">
-    <td class="type"><span class="data-type"><?php echo $tolerance->form_type; ?></span></td>
-    <td><?php echo SGS::$form_type[$tolerance->form_type]; ?></td>
-    <td>
-      <?php
-        $form_fields = array();
-        $labels = ORM::factory($tolerance->form_type)->labels();
-        foreach ($tolerance->form_fields as $field) $form_fields[] = $labels[$field];
-        echo SGS::implodify($form_fields);
-      ?>
-    </td>
-    <td><?php echo $tolerance->accuracy_range; ?></td>
-    <td><?php echo $tolerance->tolerance_range; ?></td>
-    <td class="links"></td>
-  </tr>
-  <?php endforeach; ?>
-</table>
+<?php
+
+$classes[] = 'form';
+
+$tolerances = DB::select()
+  ->from('tolerances')
+  ->order_by('form_type')
+  ->order_by('check')
+  ->execute()
+  ->as_array();
+
+?>
+<style>
+  table tr td.form-type {
+    width: 225px;
+    white-space: nowrap;
+  }
+  table tr td.measurement {
+    width: 100px;
+  }
+  table tr td.measurement input {
+    width: 100px;
+  }
+  div.submit {
+    padding: 6px 0 5px;
+    text-align: right;
+  }
+</style>
+<form method="post">
+  <table class="<?php echo SGS::render_classes($classes); ?>">
+    <tr class="head">
+      <th>Form</th>
+      <th>Check</th>
+      <th>Accuracy Range</th>
+      <th>Tolerance Range</th>
+    </tr>
+    <?php foreach ($tolerances as $tolerance): ?>
+    <?php $model = ORM::factory($tolerance['form_type']); ?>
+    <tr class="<?php print SGS::odd_even($odd); ?>">
+      <td class="form-type"><?php echo SGS::$form_type[$tolerance['form_type']]; ?></td>
+      <td><?php echo $model::$checks['tolerance']['checks'][$tolerance['check']]['title']; ?></td>
+      <td class="measurement"><input name="<?php echo "{$tolerance['form_type']}-{$tolerance['check']}-accuracy_range"; ?>" type="text" value="<?php echo $tolerance['accuracy_range']; ?>" /></td>
+      <td class="measurement"><input name="<?php echo "{$tolerance['form_type']}-{$tolerance['check']}-tolerance_range"; ?>" type="text" value="<?php echo $tolerance['tolerance_range']; ?>" /></td>
+    </tr>
+    <?php endforeach; ?>
+  </table>
+  <div class="submit">
+    <input type="submit" value="Update Tolerances" />
+  </div>
+</form>

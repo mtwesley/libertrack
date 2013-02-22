@@ -19,7 +19,7 @@ class Model_Tolerance extends ORM {
   public static function fields() {
     return array(
       'form_type'       => 'Form',
-      'form_fields'     => 'Field',
+      'check'           => 'Check',
       'accuracy_range'  => 'Accuracy Range',
       'tolerance_range' => 'Tolerance Range'
     );
@@ -29,7 +29,7 @@ class Model_Tolerance extends ORM {
   {
     return array(
       'form_type'       => array(array('not_empty')),
-      'form_fields'     => array(array('not_empty')),
+      'check'           => array(array('not_empty')),
       'accuracy_range'  => array(array('not_empty'),
                            array('is_measurement_float')),
       'tolerance_range' => array(array('not_empty'),
@@ -37,17 +37,6 @@ class Model_Tolerance extends ORM {
       'user_id'   => array(),
       'timestamp' => array()
     );
-  }
-
-  public function __get($column) {
-    switch ($column) {
-      case 'form_fields':
-        $value = parent::__get($column);
-        $value = is_string($value) ? explode(',', $value) : $value; // remove when serialization is used
-        return is_string($value) ? unserialize($value) : $value;
-      default:
-        return parent::__get($column);
-    }
   }
 
 }

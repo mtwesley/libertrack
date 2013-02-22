@@ -256,15 +256,15 @@ $num = $cntr;
   <div class="specs-info">
     <table class="specs-info-table">
       <tr>
-        <td class="label">Shipment Specification Barcode:</td>
+        <td class="label">SPEC Barcode:</td>
         <td><?php echo $info['specs_barcode']; ?></td>
-        <td class="label">Shipment Specification Number:</td>
+        <td class="label">SPEC Number:</td>
         <td><?php echo 'SPECS '.$info['specs_number']; ?></td>
       </tr>
       <tr>
-        <td class="label">Permit Request Barcode:</td>
+        <td class="label">EP Barcode:</td>
         <td><?php echo $info['epr_barcode']; ?></td>
-        <td class="label">Permit Request Number:</td>
+        <td class="label">EP Number:</td>
         <td><?php echo $info['epr_number']; ?></td>
       </tr>
       <tr>

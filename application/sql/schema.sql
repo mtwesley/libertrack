@@ -619,9 +619,8 @@ create table revisions (
 
 create table tolerances (
   id bigserial not null,
-  type d_text_short not null,
   form_type d_form_type not null,
-  form_fields d_text_long not null,
+  check d_text_short not null,
   accuracy_range d_measurement_float default 0 not null,
   tolerance_range d_measurement_float default 0 not null,
   user_id d_id default 1 not null,
@@ -630,7 +629,7 @@ create table tolerances (
   -- constraint tolerances_pkey primary key (id),
   constraint tolerances_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
-  constraint tolerances_unique unique(form_type,form_fields)
+  constraint tolerances_unique unique(form_type,check)
 );
 
 create table settings (

@@ -79,7 +79,7 @@ class SGS {
     'users/list'      => 'Manage Users',
 
     'analysis'              => 'Analysis',
-    'analysis/review'       => 'Reveiw Data',
+    'analysis/review'       => 'Review Data',
     'analysis/review/ssf'   => 'Stock Survey',
     'analysis/review/tdf'   => 'Tree Data',
     'analysis/review/ldf'   => 'Log Data',
@@ -442,6 +442,26 @@ class SGS {
     );
   }
 
+  public static function accuracy($form_type, $check)
+  {
+    return DB::select('accuracy_range')
+      ->from('tolerances')
+      ->where('form_type', '=', $form_type)
+      ->and_where('check', '=', $check)
+      ->execute()
+      ->get('accuracy_range');
+  }
+
+  public static function tolerance($form_type, $check)
+  {
+    return DB::select('tolerance_range')
+      ->from('tolerances')
+      ->where('form_type', '=', $form_type)
+      ->and_where('check', '=', $check)
+      ->execute()
+      ->get('tolerance_range');
+  }
+
   public static function lookup_operator($tin, $returning_id = FALSE)
   {
     $id = DB::select('id')
@@ -768,6 +788,11 @@ class SGS {
     return array_unique(array_filter($return));
   }
 
+  public static function breakify($string)
+  {
+    return nl2br($string);
+  }
+
   public static function booleanify($value)
   {
     if (is_string($value)) $value = strtolower($value);
@@ -778,22 +803,31 @@ class SGS {
     }
   }
 
-  public static function barcodify($string) {
+  public static function barcodify($string)
+  {
     $string = preg_replace('/[^0123456789ACEFHJKLMNPRYXW]/', '', $string);
     if (strlen($string) > 8) $string = substr($string, 0, 8).'-'.substr($string, 8);
     return $string;
   }
 
-  public static function implodify($array) {
+  public static function implodify($array)
+  {
     return implode(' and ', array_filter(array_merge(array(implode(', ', array_slice($array, 0, -1))), array_slice($array, -1))));
   }
 
-  public static function quantitify($float, $precision = 3) {
+  public static function quantitify($float, $precision = 3)
+  {
     return number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
   }
 
-  public static function amountify($float, $precision = 2) {
+  public static function amountify($float, $precision = 2)
+  {
     return number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
+  }
+
+  public static function locationify($string)
+  {
+    return substr($string, $slash) ?: $string;
   }
 
   public static function internationalify($string)

@@ -326,7 +326,7 @@ class Controller_Exporting extends Controller {
     $item = reset($records);
 
     $page_count = 0;
-    $page_max   = 32;
+    $page_max   = 30;
 
     $total = 0;
     foreach ($records as $record) $total += $record->volume;

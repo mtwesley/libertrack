@@ -480,7 +480,7 @@ class Model_TDF extends SGS_Form_ORM {
       ->where('barcode_id', '=', $this->tree_barcode->id)
       ->find();
 
-    if ($parent->loaded()) {
+    if ($parent and $parent->loaded()) {
       if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
       else $successes['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
 
@@ -491,23 +491,22 @@ class Model_TDF extends SGS_Form_ORM {
       if (!($this->site_id == $parent->site_id)) $errors['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $parent->site->name);
       if (!($this->block_id == $parent->block_id)) $errors['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $parent->block->name);
 
-      if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_TOLERANCE)) $errors['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
-      else if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::TDF_SURVEY_LINE_ACCURACY)) $warnings['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
+      if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::tolerance('TDF', 'is_matching_survey_line'))) $errors['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
+      else if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::accuracy('TDF', 'is_matching_survey_line'))) $warnings['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
 
-      if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_LENGTH_TOLERANCE)) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
-      else if (!Valid::meets_tolerance($this->length, $parent->height, SGS::TDF_LENGTH_ACCURACY)) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
+      if (!Valid::meets_tolerance($this->length, $parent->height, SGS::tolerance('TDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
+      else if (!Valid::meets_tolerance($this->length, $parent->height, SGS::accuracy('TDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
 
-      if (!Valid::meets_tolerance($diameter = (($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::TDF_DIAMETER_TOLERANCE)) {
+      if (!Valid::meets_tolerance($diameter = (($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::tolerance('TDF', 'is_matching_diameter'))) {
         $errors['bottom_min']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
         $errors['bottom_max']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
       }
-      else if (!Valid::meets_tolerance($diameter = (($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::TDF_DIAMETER_ACCURACY)) {
+      else if (!Valid::meets_tolerance($diameter = (($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::accuracy('TDF', 'is_matching_diameter'))) {
         $warnings['bottom_min']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
         $warnings['bottom_max']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
       }
 
       $successes['tree_barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Found');
-      $successes['tree_barcode_id']['is_valid_parent'] = array('value' => 'Found', 'comparison' => 'Found');
     }
     else {
       $errors['tree_barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Not Found');
@@ -520,7 +519,7 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     // tolerance successes checks
-    if ($parent->loaded()) {
+    if (is_object($parent) and $parent->loaded()) {
       if (!(in_array('is_matching_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $parent->operator->tin);
       if (!(in_array('is_matching_site', SGS::flattenify($errors + $warnings)))) $successes['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $parent->site->name);
       if (!(in_array('is_matching_block', SGS::flattenify($errors + $warnings)))) $successes['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $parent->block->name);

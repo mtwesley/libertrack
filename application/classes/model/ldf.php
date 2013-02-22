@@ -429,24 +429,24 @@ class Model_LDF extends SGS_Form_ORM {
           $siblings['volume']   += $child->volume;
         }
 
-        $siblings['diameter'] = $siblings['diameter'] / count($siblngs);
-        $siblings['volume']   = $siblings['volume'] / count($siblngs);
+        $siblings['diameter'] = (float) SGS::amountify($siblings['diameter'] / count($siblngs), 1);
+        $siblings['volume']   = (float) SGS::quantitify($siblings['volume'] / count($siblngs));
 
         if ($parent::$type == 'LDF') {
-          if (!Valid::meets_tolerance($siblings['volume'], $parent->volume, SGS::LDF_VOLUME_TOLERANCE)) $errors['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
-          else if (!Valid::meets_tolerance($siblings['volume'], $parent->volume, SGS::LDF_VOLUME_ACCURACY)) $warnings['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
+          if (!Valid::meets_tolerance($siblings['volume'], $parent->volume, SGS::tolerance('LDF', 'is_matching_volume'))) $errors['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
+          else if (!Valid::meets_tolerance($siblings['volume'], $parent->volume, SGS::accuracy('LDF', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
         }
 
-        if (!Valid::meets_tolerance($siblings['length'], $parent->length, SGS::LDF_LENGTH_TOLERANCE)) $errors['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
-        else if (!Valid::meets_tolerance($siblings['length'], $parent->length, SGS::LDF_LENGTH_ACCURACY)) $warnings['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
+        if (!Valid::meets_tolerance($siblings['length'], $parent->length, SGS::tolerance('LDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
+        else if (!Valid::meets_tolerance($siblings['length'], $parent->length, SGS::accuracy('LDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
 
-        if (!Valid::meets_tolerance($siblings['diameter'], $parent->diameter, SGS::LDF_DIAMETER_TOLERANCE)) {
+        if (!Valid::meets_tolerance($siblings['diameter'], $parent->diameter, SGS::tolerance('LDF', 'is_matching_diameter'))) {
           $errors['top_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $errors['top_max']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $errors['bottom_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $errors['bottom_max']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
         }
-        else if (!Valid::meets_tolerance($siblings['diameter'], $parent->diameter, SGS::LDF_DIAMETER_ACCURACY)) {
+        else if (!Valid::meets_tolerance($siblings['diameter'], $parent->diameter, SGS::accuracy('LDF', 'is_matching_diameter'))) {
           $warnings['top_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $warnings['top_max']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $warnings['bottom_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
@@ -454,7 +454,6 @@ class Model_LDF extends SGS_Form_ORM {
         }
       }
       $successes['parent_barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Found');
-      $successes['parent_barcode_id']['is_valid_parent'] = array('value' => 'Found', 'comparison' => 'Found');
     }
     else {
       $errors['parent_barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Not Found');
@@ -467,7 +466,7 @@ class Model_LDF extends SGS_Form_ORM {
     }
 
     // tolerance successes checks
-    if ($parent->loaded()){
+    if (is_object($parent) and $parent->loaded()) {
       if (!(in_array('is_matching_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $parent->operator->tin);
       if (!(in_array('is_matching_site', SGS::flattenify($errors + $warnings)))) $successes['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $parent->site->name);
       if (!(in_array('is_matching_species', SGS::flattenify($errors + $warnings)))) $successes['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);

@@ -191,7 +191,7 @@ $options = (array) $options + array(
   }
 
   .invoice-info-table tr td.label-left {
-    white-space: inherit;
+    white-space: normal;
     width: 15%;
   }
 
@@ -202,6 +202,10 @@ $options = (array) $options + array(
   .invoice-info-table tr td.from,
   .invoice-info-table tr td.to {
      /* text-align: right; */
+  }
+
+  .invoice-info-table tr td.address {
+    white-space: normal;
   }
 
   .invoice-titles {}
@@ -266,7 +270,7 @@ $options = (array) $options + array(
       </tr>
       <tr>
         <td rowspan="4" class="label label-left">Address:</td>
-        <td class="desc-left" rowspan="4"><?php echo $invoice->operator->address; ?></td>
+        <td class="desc-left address" rowspan="4"><?php echo SGS::breakify($invoice->operator->address); ?></td>
         <td class="label">Date Due:</td>
         <td><?php echo SGS::date($invoice->due_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>

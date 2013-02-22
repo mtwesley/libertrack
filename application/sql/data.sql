@@ -229,11 +229,16 @@ update species set fob_price = 170 where code = 'XYLO';
 
 -- tolerances
 
-insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('TDF','survey_line','survey_line',2,20);
-insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('TDF','diameter','bottom_min,bottom_max',5,40);
-insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('TDF','length','length',2,10);
+insert into tolerances (form_type,check,accuracy_range,tolerance_range) values ('TDF','is_matching_survey_line',2,20);
+insert into tolerances (form_type,check,accuracy_range,tolerance_range) values ('TDF','is_matching_diameter',5,40);
+insert into tolerances (form_type,check,accuracy_range,tolerance_range) values ('TDF','is_matching_length',2,10);
 
-insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('LDF','diameter','top_min,top_max,bottom_min,bottom_max',5,30);
-insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('LDF','length','length',0.5,2);
-insert into tolerances (form_type,type,form_fields,accuracy_range,tolerance_range) values ('LDF','volume','volume',0.2,2);
+insert into tolerances (form_type,check,accuracy_range,tolerance_range) values ('LDF','is_matching_diameter',5,30);
+insert into tolerances (form_type,check,accuracy_range,tolerance_range) values ('LDF','is_matching_length',0.5,2);
+insert into tolerances (form_type,check,accuracy_range,tolerance_range) values ('LDF','is_matching_volume',0.2,2);
+
+insert into tolerances (form_type,check,accuracy_range,tolerance_range) values ('SPECS','is_matching_diameter',5,30);
+insert into tolerances (form_type,check,accuracy_range,tolerance_range) values ('SPECS','is_matching_length',0.5,2);
+insert into tolerances (form_type,check,accuracy_range,tolerance_range) values ('SPECS','is_matching_volume',0.2,2);
+
 
