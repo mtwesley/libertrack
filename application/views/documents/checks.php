@@ -382,7 +382,8 @@ $num = $cntr;
   <?php if ($options['summary']): ?>
   <div class="checks-summary">
     <table class="<?php echo SGS::render_classes($classes); ?> checks-summary-table">
-      <?php if ($checks) foreach ($checks as $type => $info): ?>
+      <?php if ($checks): ?>
+      <?php foreach ($checks as $type => $info): ?>
       <tr class="head">
         <td colspan="2"><?php print $info['title']; ?></td>
         <td class="check-info">Total<br />Records</td>
@@ -426,6 +427,7 @@ $num = $cntr;
         <td colspan="8" class="blank-slim">&nbsp;</td>
       </tr>
       <?php endforeach; ?>
+      <?php endif; ?>
       <tr class="head">
         <td colspan="2">Summary</td>
         <td class="check-info">Total<br />Records</td>
@@ -473,14 +475,14 @@ $num = $cntr;
       <?php if ($data): $chks = $checks; unset($chks['traceability']); ?>
       <tr class="head">
         <td class="check-type" colspan="3">Traceability</td>
-        <?php foreach ($chks as $chk) foreach ($chk['checks'] as $ck): ?>
+        <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $ck): ?>
         <td class="check-type" colspan="3"><?php echo $ck['name']; ?></td>
         <?php endforeach; ?>
       </tr>
       <tr class="head">
         <td colspan="2">Barcode</td>
         <td>Parent Barcode</td>
-        <?php foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
+        <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="value" colspan="2">Value</td>
         <td class="comparison">Comp</td>
         <?php endforeach; ?>
@@ -512,7 +514,7 @@ $num = $cntr;
             else if ($form_type == 'SPECS') echo $record->barcode->barcode;
           ?>
         </td>
-        <?php foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
+        <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="status">
           <?php if (in_array($kck, array_keys($errors))): ?>
           <div class="error">F</div>
