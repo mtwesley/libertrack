@@ -83,7 +83,7 @@ class Controller_Analysis extends Controller {
 
     switch ($form_type) {
       case 'SSF':
-        $newname = SGS::wordify('SSF_'.$site->name.'_'.$block->name.SGS::date('now', 'm_d_Y')).'.'.$ext;
+        $newname = SGS::wordify('SSF_'.$site->name.'_'.$block->name.'_'.SGS::date('now', 'm_d_Y')).'.'.$ext;
         break;
 
       case 'TDF':
