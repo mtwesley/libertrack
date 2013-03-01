@@ -201,7 +201,7 @@ $num = $cntr;
   .checks-details-table {}
 
   .checks-details-table tr td.check-type {
-    padding: 6px 3px;
+    padding: 5px 3px;
     text-align: center;
   }
 
