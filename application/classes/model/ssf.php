@@ -45,6 +45,7 @@ class Model_SSF extends SGS_Form_ORM {
       'title'  => 'Data Consistency',
       'checks' => array(
         'is_valid_barcode' => array(
+          'name'  => 'Tree Barcode',
           'title' => 'Tree barcode assignment is valid',
           'error' => 'Tree barcode assignment is invalid',
         )
@@ -53,14 +54,17 @@ class Model_SSF extends SGS_Form_ORM {
       'title'  => 'Data Reliability',
       'checks' => array(
         'is_consistent_operator' => array(
+          'name'    => 'Operator Assignements',
           'title'   => 'Operator assignments are consistent',
           'warning' => 'Operator assignments are inconsistent'
         ),
         'is_consistent_site' => array(
+          'name'    => 'Site Assignments',
           'title'   => 'Site assignments are consistent',
           'warning' => 'Site assignments are inconsistent'
         ),
         'is_consistent_block' => array(
+          'name'    => 'Block Assignments',
           'title'   => 'Block assignments are consistent',
           'warning' => 'Block assignments are inconsistent'
         )
@@ -374,7 +378,7 @@ class Model_SSF extends SGS_Form_ORM {
     // errors
     switch ($this->barcode->type) {
       case 'T': $successes['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['T']); break;
-      default:  $errors['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['T']); break;
+      default:  $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['T']); break;
     }
 
     if ($successes) foreach ($successes as $field => $array) {

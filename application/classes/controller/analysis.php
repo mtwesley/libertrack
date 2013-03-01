@@ -17,6 +17,153 @@ class Controller_Analysis extends Controller {
     Session::instance()->write();
   }
 
+  private function download_checks_report($form_type, $records, $info = array()) {
+    if (!$records) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
+    extract($info);
+
+    $html .= View::factory('documents/checks')
+      ->set('form_type', $form_type)
+      ->set('report', $report)
+      ->set('checks', $checks)
+      ->set('operator', $operator)
+      ->set('site', $site)
+      ->set('block', $block)
+      ->set('specs_info', $specs_info)
+      ->set('epr_info', $epr_info)
+      ->set('options', array(
+        'info'    => TRUE,
+        'summary' => TRUE,
+        'details' => FALSE,
+        'styles'  => TRUE
+      ))
+      ->render();
+
+    $page_count = 0;
+    $page_max   = 20;
+
+    $total = 0;
+
+    $cntr   = 0;
+    while ($cntr < count($records)) {
+      $max = $page_max;
+      $set = array_slice($records, $cntr, $max);
+      $html .= View::factory('documents/checks')
+        ->set('form_type', $form_type)
+        ->set('report', $report)
+        ->set('checks', $checks)
+        ->set('operator', $operator)
+        ->set('site', $site)
+        ->set('specs_info', $specs_info)
+        ->set('block', $block)
+        ->set('data', $set)
+        ->set('options', array(
+          'info'    => FALSE,
+          'details' => TRUE,
+          'styles'  => FALSE,
+        ))
+        ->set('cntr', $cntr)
+        ->render();
+
+      $cntr += $max;
+      $styles = FALSE;
+    }
+
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array(
+      'checks',
+    ));
+
+    switch ($form_type) {
+      case 'SSF':
+        $newname = SGS::wordify('SSF_'.$site->name.'_'.$block->name.SGS::date('now', 'm_d_Y')).'.'.$ext;
+        break;
+
+      case 'TDF':
+        $newname = SGS::wordify('TDF_'.$site->name.'_'.$block->name.'_'.SGS::date('now', 'm_d_Y')).'.'.$ext;
+        break;
+
+      case 'LDF':
+        $newname = SGS::wordify('LDF_'.$site->name.'_'.SGS::date('now', 'm_d_Y')).'.'.$ext;
+        break;
+
+      case 'SPECS':
+        $newname = SGS::wordify('SPECS_'.$operator->name.'_'.SGS::date('now', 'm_d_Y')).'.'.$ext;
+        break;
+    }
+
+    if ($is_draft) $newname = 'CHECKS_DRAFT_'.$newname;
+    else $newname = 'CHECKS_'.$newname;
+
+    $version  = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 22,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'orientation' => 'Landscape',
+        'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('documents/checks')
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->set('page', $page)
+          ->set('page_count', $page_count)
+          ->render()
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
+
+    try {
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'A';
+      $file->operation_type = 'CHECKS';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+
+      if ($operator) $file->operator = $operator;
+      if ($site) $file->site = $site;
+      if ($block) $file->block = $block;
+
+      $file->save();
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }
+
+    Notify::clear();
+    $this->response->send_file($fullname);
+  }
+
   private function handle_data_list($form_type, $id = NULL, $command = NULL) {
     if (!Request::$current->query()) Session::instance()->delete('pagination.data');
 
@@ -273,8 +420,8 @@ class Controller_Analysis extends Controller {
       ->as_array('id', 'name');
 
     $form = Formo::form();
-    if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
-    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts')) : array()));
+    if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('required' => TRUE, 'label' => 'Site', 'attr' => array('class' => 'siteopts')));
+    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('required' => TRUE, 'label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts')) : array()));
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
     if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
 
@@ -288,10 +435,14 @@ class Controller_Analysis extends Controller {
       ->add_group('status', 'checkboxes', SGS::$data_status, array('P', 'R'), array('label' => 'Status'))
       ->add_group('display', 'checkboxes', SGS::$data_status, array('P', 'A', 'R'), array('label' => 'Display'))
       ->add_group('checks', 'checkboxes', $check_options, array_diff(array_keys($check_options), array('consistency', 'reliability')), array('label' => 'Check'))
-      ->add('submit', 'submit', 'Run');
+      ->add('submit', 'submit', 'Run')
+      ->add('download', 'submit', 'Download');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       Session::instance()->delete('pagination.checks');
+
+      $download = isset($_POST['download']);
+
       if ($has_site_id) $site_id = $form->site_id->val();
       else $operator_id = $form->operator_id->val();
       if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
@@ -305,6 +456,12 @@ class Controller_Analysis extends Controller {
       $status  = $form->status->val();
       $display = $form->display->val();
       $checks  = $form->checks->val();
+
+      if ($download) {
+        $checks  = array_diff(array_keys($check_options), array('consistency', 'reliability'));
+        $status  = array('P', 'A', 'R');
+        $display = array('P', 'A', 'R');
+      }
 
       $rejected  = 0;
       $accepted  = 0;
@@ -456,14 +613,6 @@ class Controller_Analysis extends Controller {
         if (in_array($type, $checks)) $_checks[$type] = $info;
       }
 
-      $report = View::factory('report')
-        ->set('from', $from)
-        ->set('to', $to)
-        ->set('form_type', $form_type)
-        ->set('report', $data)
-        ->set('checks', $_checks)
-        ->render();
-
       $_data = ORM::factory($form_type);
       if ($has_site_id and $site_id) $_data = $_data->where('site_id', 'IN', (array) $site_id);
       else if ($operator_id) $_data = $_data->where('operator_id', 'IN', (array) $operator_id);
@@ -474,73 +623,115 @@ class Controller_Analysis extends Controller {
 
       if (!$has_specs_info and !$has_epr_info)  $_data = $_data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
-      $_data = $_data
-        ->and_where('status', 'IN', (array) $display);
+      $_data = $_data->and_where('status', 'IN', (array) $display);
 
-      $clone = clone($_data);
-      $pagination = Pagination::factory(array(
-        'items_per_page' => 50,
-        'total_items' => $clone->find_all()->count()));
+      if ($download) {
+        $_data = $_data
+          ->join('barcodes')
+          ->on('barcodes.id', '=', 'barcode_id')
+          ->order_by('barcode')
+          ->find_all()
+          ->as_array();
 
-      $_data = $_data
-        ->offset($pagination->offset)
-        ->limit($pagination->items_per_page);
-      if ($sort = $this->request->query('sort')) $_data->order_by($sort);
-      $_data = $_data->order_by('status')
-        ->find_all()
-        ->as_array();
+        unset($info);
+        if ($specs_info) {
+          $sample = reset($_data);
+          $info['specs'] = array(
+            'number'  => $sample->specs_number,
+            'barcode' => $sample->specs_barcode->barcode
+          );
+          if (Valid::numeric($specs_info)) $info['epr'] = array(
+            'number'  => $sample->epr_number,
+            'barcode' => $sample->epr_barcode->barcode
+          );
+        }
 
-      $operator = ORM::factory('operator', $operator_id ?: NULL);
-      $site     = ORM::factory('site', $site_id ?: NULL);
-      $block    = ORM::factory('block', $block_id ?: NULL);
-
-      unset($info);
-      if ($specs_info) {
-        $sample = reset($_data);
-        $info['specs'] = array(
-          'number'  => $sample->specs_number,
-          'barcode' => $sample->specs_barcode->barcode
-        );
-        if (Valid::numeric($specs_info)) $info['epr'] = array(
-          'number'  => $sample->epr_number,
-          'barcode' => $sample->epr_barcode->barcode
-        );
+        self::download_checks_report($form_type, $_data, array(
+          'specs_info' => $info ? array_filter((array) $info['specs']) : NULL,
+          'epr_info'   => $info ? array_filter((array) $info['epr']) : NULL,
+          'operator'   => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
+          'site'       => $site_id ? ORM::factory('site', $site_id) : NULL,
+          'block'      => $block_id ? ORM::factory('block', $block_id) : NULL,
+          'from'       => $from,
+          'to'         => $to,
+          'checks'     => $_checks,
+          'report'     => $data
+        ));
       }
+      else {
+        $clone = clone($_data);
+        $pagination = Pagination::factory(array(
+          'items_per_page' => 50,
+          'total_items' => $clone->find_all()->count()));
 
-      $header = View::factory('data')
-        ->set('form_type', $form_type)
-        ->set('data', $_data)
-        ->set('operator', $operator->loaded() ? $operator : NULL)
-        ->set('site', $site->loaded() ? $site : NULL)
-        ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-        ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
-        ->set('options', array(
-          'table'   => FALSE,
-          'rows'    => FALSE,
-          'actions' => FALSE,
-          'header'  => TRUE,
-          'details' => FALSE,
-          'links'   => FALSE
-        ))
-        ->render();
+        $_data = $_data
+          ->offset($pagination->offset)
+          ->limit($pagination->items_per_page);
+        if ($sort = $this->request->query('sort')) $_data->order_by($sort);
+        $_data = $_data->order_by('status')
+          ->find_all()
+          ->as_array();
 
-      $table = View::factory('data')
-        ->set('classes', array('has-pagination'))
-        ->set('form_type', $form_type)
-        ->set('data', $_data)
-        ->set('operator', $operator->loaded() ? $operator : NULL)
-        ->set('site', $site->loaded() ? $site : NULL)
-        ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-        ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
-        ->set('options', array(
-          'hide_header_info' => TRUE,
-          'header'  => FALSE,
-          'details' => TRUE,
-          'links'   => FALSE,
-        ))
-        ->render();
+        unset($info);
+        if ($specs_info) {
+          $sample = reset($_data);
+          $info['specs'] = array(
+            'number'  => $sample->specs_number,
+            'barcode' => $sample->specs_barcode->barcode
+          );
+          if (Valid::numeric($specs_info)) $info['epr'] = array(
+            'number'  => $sample->epr_number,
+            'barcode' => $sample->epr_barcode->barcode
+          );
+        }
+
+        $operator = ORM::factory('operator', $operator_id ?: NULL);
+        $site     = ORM::factory('site', $site_id ?: NULL);
+        $block    = ORM::factory('block', $block_id ?: NULL);
+
+        $header = View::factory('data')
+          ->set('form_type', $form_type)
+          ->set('data', $_data)
+          ->set('operator', $operator->loaded() ? $operator : NULL)
+          ->set('site', $site->loaded() ? $site : NULL)
+          ->set('block', $block->loaded() ? $block : NULL)
+          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+          ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
+          ->set('options', array(
+            'table'   => FALSE,
+            'rows'    => FALSE,
+            'actions' => FALSE,
+            'header'  => TRUE,
+            'details' => FALSE,
+            'links'   => FALSE
+          ))
+          ->render();
+
+        $report = View::factory('report')
+          ->set('from', $from)
+          ->set('to', $to)
+          ->set('form_type', $form_type)
+          ->set('report', $data)
+          ->set('checks', $_checks)
+          ->render();
+
+        $table = View::factory('data')
+          ->set('classes', array('has-pagination'))
+          ->set('form_type', $form_type)
+          ->set('data', $_data)
+          ->set('operator', $operator->loaded() ? $operator : NULL)
+          ->set('site', $site->loaded() ? $site : NULL)
+          ->set('block', $block->loaded() ? $block : NULL)
+          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+          ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
+          ->set('options', array(
+            'hide_header_info' => TRUE,
+            'header'  => FALSE,
+            'details' => TRUE,
+            'links'   => FALSE,
+          ))
+          ->render();
+      }
     }
 
     if ($form)   $content .= $form;

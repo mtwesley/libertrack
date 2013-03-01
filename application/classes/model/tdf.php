@@ -69,16 +69,19 @@ class Model_TDF extends SGS_Form_ORM {
       'title'  => 'Data Consistency',
       'checks' => array(
         'is_valid_barcode' => array(
+          'name'    => 'Tree Barcode',
           'title'   => 'Tree barcode assignment is valid',
           'error'   => 'Tree barcode assignment is invalid',
           'warning' => 'Tree barcode is not yet assigned',
          ),
         'is_valid_tree_barcode' => array(
+          'name'    => 'Felled Tree Barcode',
           'title'   => 'Felled tree barcode assignment is valid',
           'error'   => 'Felled tree barcode assignment is invalid',
           'warning' => 'Felled tree barcode is not yet assigned',
          ),
         'is_valid_stump_barcode' => array(
+          'name'    => 'Stump Barcode',
           'title'   => 'Stump barcode assignment is valid',
           'error'   => 'Stump barcode assignment is invalid',
           'warning' => 'Stump barcode is not yet assigned',
@@ -88,14 +91,17 @@ class Model_TDF extends SGS_Form_ORM {
       'title'  => 'Data Reliability',
       'checks' => array(
         'is_consistent_operator' => array(
+          'name'    => 'Operator Assignments',
           'title'   => 'Operator assignments are consistent',
           'warning' => 'Operator assignments are inconsistent'
         ),
         'is_consistent_site' => array(
+          'name'    => 'Site Assignments',
           'title'   => 'Site assignments are consistent',
           'warning' => 'Site assignments are inconsistent'
         ),
         'is_consistent_block' => array(
+          'name'    => 'Block Assignments',
           'title'   => 'Block assignments are consistent',
           'warning' => 'Block assignments are inconsistent'
         )
@@ -104,10 +110,12 @@ class Model_TDF extends SGS_Form_ORM {
       'title'  => 'Traceability',
       'checks' => array(
         'is_existing_parent' => array(
+          'name'  => 'Traceable Parent',
           'title' => 'Traceable to SSF record',
           'error' => 'Not tracable to SSF record'
         ),
         'is_valid_parent' => array(
+          'name'  => 'Parent Status',
           'title' => 'SSF record passed checks and queries',
           'error' => 'SSF record failed checks and queries'
         )
@@ -116,34 +124,41 @@ class Model_TDF extends SGS_Form_ORM {
       'title'  => 'Tolerance',
       'checks' => array(
         'is_matching_survey_line' => array(
-          'title'   => 'Survey line/cell matches data for SSF record',
-          'error'   => 'Survey line/cell does not match data for SSF record',
-          'warning' => 'Survey line/cell matches data for SSF record but is inaccurate'
+          'name'    => 'Survey Line',
+          'title'   => 'Survey line matches data for SSF record',
+          'error'   => 'Survey line does not match data for SSF record',
+          'warning' => 'Survey line matches data for SSF record but is inaccurate'
         ),
         'is_matching_diameter' => array(
+          'name'    => 'Diameter',
           'title'   => 'Diameter matches data for SSF record',
           'error'   => 'Diameter does not match data for SSF record',
           'warning' => 'Diameter matches data for SSF record but is inaccurate'
         ),
         'is_matching_length' => array(
+          'name'    => 'Length',
           'title'   => 'Length matches data for SSF record',
           'error'   => 'Length does not match data for SSF record',
           'warning' => 'Length matches data for SSF record but is inaccurate'
         ),
         'is_matching_species' => array(
+          'name'    => 'Species',
           'title'   => 'Species matches data for SSF record',
           'error'   => 'Species does not match data for SSF record',
           'warning' => 'Species class matches data for SSF record but species code does not'
         ),
         'is_matching_operator' => array(
+          'name'  => 'Operator',
           'title' => 'Operator matches data for SSF record',
           'error' => 'Operator does not match data for SSF record',
         ),
         'is_matching_site' => array(
+          'name'  => 'Site',
           'title' => 'Site matches data for SSF record',
           'error' => 'Site does not match data for SSF record',
         ),
         'is_matching_block' => array(
+          'name'  => 'Block',
           'title' => 'Block matches data for SSF record',
           'error' => 'Block does not match data for SSF record',
         )
@@ -462,17 +477,17 @@ class Model_TDF extends SGS_Form_ORM {
     // consistency
     switch ($this->barcode->type) {
       case 'F': $successes['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['F']); break;
-      default:  $errors['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['F']); break;
+      default:  $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['F']); break;
     }
 
     switch ($this->tree_barcode->type) {
       case 'T': $successes['tree_barcode_id']['is_valid_tree_barcode'] = array('value' => SGS::$barcode_type[$this->tree_barcode->type], 'comparison' => SGS::$barcode_type['T']); break;
-      default:  $errors['tree_barcode_id']['is_valid_tree_barcode'] = array('value' => SGS::$barcode_type[$this->tree_barcode->type], 'comparison' => SGS::$barcode_type['T']); break;
+      default:  $warnings['tree_barcode_id']['is_valid_tree_barcode'] = array('value' => SGS::$barcode_type[$this->tree_barcode->type], 'comparison' => SGS::$barcode_type['T']); break;
     }
 
     switch ($this->stump_barcode->type) {
       case 'S': $successes['stump_barcode_id']['is_valid_stump_barcode'] = array('value' => SGS::$barcode_type[$this->stump_barcode->type], 'comparison' => SGS::$barcode_type['S']); break;
-      default:  $errors['stump_barcode_id']['is_valid_stump_barcode'] = array('value' => SGS::$barcode_type[$this->stump_barcode->type], 'comparison' => SGS::$barcode_type['S']); break;
+      default:  $warnings['stump_barcode_id']['is_valid_stump_barcode'] = array('value' => SGS::$barcode_type[$this->stump_barcode->type], 'comparison' => SGS::$barcode_type['S']); break;
     }
 
     // traceability

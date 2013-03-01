@@ -28,4 +28,9 @@ insert into tolerances (form_type,"check",accuracy_range,tolerance_range) values
 insert into tolerances (form_type,"check",accuracy_range,tolerance_range) values ('SPECS','is_matching_length',0.5,2);
 insert into tolerances (form_type,"check",accuracy_range,tolerance_range) values ('SPECS','is_matching_volume',0.2,2);
 
+-- extra
+
+alter table files alter column operation_type type character varying(6);
+drop domain d_operation_type;
+create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|CHECKS|EPR|PJ|INV|UNKWN)$');
 

@@ -63,7 +63,7 @@ class SGS_Form_ORM extends ORM {
     $query->execute();
   }
 
-  public function get_successes($with_params = FALSE, $by_field = TRUE, $args = array()) {
+  public function get_successes($with_params = FALSE, $by_field = TRUE, $array = TRUE, $args = array()) {
     $query = DB::select()
       ->from('errors')
       ->where('form_type', '=', static::$type)
@@ -71,7 +71,9 @@ class SGS_Form_ORM extends ORM {
       ->and_where('type', '=', 'S');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) {
-      if ($with_params) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
+      if ($with_params)
+        if ($array) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
+        else $errors[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
       else $errors[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
     }
     return (array) $errors;
@@ -92,7 +94,7 @@ class SGS_Form_ORM extends ORM {
       ->execute();
   }
 
-  public function get_errors($with_params = FALSE, $by_field = TRUE, $args = array()) {
+  public function get_errors($with_params = FALSE, $by_field = TRUE, $array = TRUE, $args = array()) {
     $query = DB::select()
       ->from('errors')
       ->where('form_type', '=', static::$type)
@@ -100,7 +102,9 @@ class SGS_Form_ORM extends ORM {
       ->and_where('type', '=', 'E');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) {
-      if ($with_params) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
+      if ($with_params)
+        if ($array) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
+        else $errors[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
       else $errors[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
     }
     return (array) $errors;
@@ -121,7 +125,7 @@ class SGS_Form_ORM extends ORM {
       ->execute();
   }
 
-  public function get_warnings($with_params = FALSE, $by_field = TRUE, $args = array()) {
+  public function get_warnings($with_params = FALSE, $by_field = TRUE, $array = TRUE, $args = array()) {
     $query = DB::select()
       ->from('errors')
       ->where('form_type', '=', static::$type)
@@ -129,7 +133,9 @@ class SGS_Form_ORM extends ORM {
       ->and_where('type', '=', 'W');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) {
-      if ($with_params) $warnings[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
+      if ($with_params)
+        if ($array) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
+        else $errors[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
       else $warnings[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
     }
     return (array) $warnings;

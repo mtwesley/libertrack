@@ -83,16 +83,19 @@ class Model_SPECS extends SGS_Form_ORM {
       'title'  => 'Data Consistency',
       'checks' => array(
         'is_valid_barcode' => array(
+          'name'    => 'Log Barcode Assignment',
           'title'   => 'Log barcode assignment is valid',
           'error'   => 'Log barcode assignment is invalid',
           'warning' => 'Log barcode is not yet assigned',
          ),
         'is_valid_specs_barcode' => array(
+          'name'    => 'Shipment Specification Barcode Assignment',
           'title'   => 'Shipment specification barcode assignment is valid',
           'error'   => 'Shipment specification barcode assignment is invalid',
           'warning' => 'Shipment specification barcode is not yet assigned',
          ),
         'is_valid_epr_barcode' => array(
+          'name'    => 'Export Permit Request Barcode Assignment',
           'title'   => 'Export permit request barcode assignment is valid',
           'error'   => 'Export permit request barcode assignment is invalid',
           'warning' => 'Export permit request barcode is not yet assigned',
@@ -102,6 +105,7 @@ class Model_SPECS extends SGS_Form_ORM {
       'title'  => 'Data Reliability',
       'checks' => array(
         'is_consistent_operator' => array(
+          'name'    => 'Operator Assignments',
           'title'   => 'Operator assignments are consistent',
           'warning' => 'Operator assignments are inconsistent'
         )
@@ -110,10 +114,12 @@ class Model_SPECS extends SGS_Form_ORM {
       'title'  => 'Traceability',
       'checks' => array(
         'is_existing_parent' => array(
+          'name'  => 'Tracebale Parent',
           'title' => 'Traceable to LDF',
           'error' => 'Not tracable to LDF'
         ),
         'is_valid_parent' => array(
+          'name'  => 'Parent Status',
           'title' => 'LDF record passed checks and queries',
           'error' => 'LDF record failed checks and queries'
         )
@@ -122,26 +128,31 @@ class Model_SPECS extends SGS_Form_ORM {
       'title'  => 'Tolerance',
       'checks' => array(
         'is_matching_species' => array(
+          'name'    => 'Species',
           'title'   => 'Species matches data for LDF',
           'error'   => 'Species does not match data for LDF',
           'warning' => 'Species class matches data for LDF but species code does not'
         ),
         'is_matching_length' => array(
+          'name'    => 'Length',
           'title'   => 'Length matches data for LDF',
           'error'   => 'Length does not match data for LDF',
           'warning' => 'Length matches data for LDF but is inaccurate'
         ),
         'is_matching_diameter' => array(
+          'name'    => 'Diameter',
           'title'   => 'Diameter matches data for LDF',
           'error'   => 'Diameter does not match data for LDF',
           'warning' => 'Diameter matches data for LDF but is inaccurate'
         ),
         'is_matching_volume' => array(
+          'name'    => 'Volume',
           'title'   => 'Volume matches data for LDF',
           'error'   => 'Volume does not match data for LDF',
           'warning' => 'Volume matches data for LDF but is inaccurate'
         ),
         'is_matching_operator' => array(
+          'name'  => 'Operator',
           'title' => 'Operator matches data for LDF',
           'error' => 'Operator does not match data for LDF',
         ),
@@ -150,6 +161,7 @@ class Model_SPECS extends SGS_Form_ORM {
       'title'  => 'Payment',
       'checks' => array(
         'is_invoiced_st' => array(
+          'name'    => 'Stumpage Fee Invoiced',
           'title'   => 'Stumpage fee invoiced',
           'error'   => 'Stumpage fee has not been invoiced',
         ),
@@ -479,17 +491,17 @@ class Model_SPECS extends SGS_Form_ORM {
     // consistency
     switch ($this->barcode->type) {
       case 'L': $successes['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['L']); break;
-      default:  $errors['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['L']); break;
+      default:  $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['L']); break;
     }
 
     switch ($this->specs_barcode->type) {
       case 'H': $successes['specs_barcode_id']['is_valid_specs_barcode'] = array('value' => SGS::$barcode_type[$this->specs_barcode->type], 'comparison' => SGS::$barcode_type['H']); break;
-      default:  $errors['specs_barcode_id']['is_valid_specs_barcode'] = array('value' => SGS::$barcode_type[$this->specs_barcode->type], 'comparison' => SGS::$barcode_type['H']); break;
+      default:  $warnings['specs_barcode_id']['is_valid_specs_barcode'] = array('value' => SGS::$barcode_type[$this->specs_barcode->type], 'comparison' => SGS::$barcode_type['H']); break;
     }
 
     switch ($this->epr_barcode->type) {
       case 'E': $successes['epr_barcode_id']['is_valid_epr_barcode'] = array('value' => SGS::$barcode_type[$this->epr_barcode->type], 'comparison' => SGS::$barcode_type['E']); break;
-      default:  $errors['epr_barcode_id']['is_valid_epr_barcode'] = array('value' => SGS::$barcode_type[$this->epr_barcode->type], 'comparison' => SGS::$barcode_type['E']); break;
+      default:  $warnings['epr_barcode_id']['is_valid_epr_barcode'] = array('value' => SGS::$barcode_type[$this->epr_barcode->type], 'comparison' => SGS::$barcode_type['E']); break;
     }
 
     $parent = ORM::factory('LDF')

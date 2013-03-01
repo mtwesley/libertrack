@@ -217,7 +217,7 @@ $classes[] = 'data';
             <div class="error">Failed</div>
 
             <?php elseif (in_array($check, array_keys($warnings))): $sts = 'W'; ?>
-            <div class="warning"><?php print 'Warned'; // $array['warning']; ?></div>
+            <div class="warning">Warned<?php // print $array['warning']; ?></div>
 
             <?php else: $sts = 'S'; ?>
             <div class="success">Passed</div>

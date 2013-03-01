@@ -275,13 +275,13 @@ $num = $cntr;
       </tr>
       <tr>
         <td class="label">Port of Origin:</td>
-        <td><?php echo $info['origin']; ?></td>
+        <td><?php echo SGS::locationify($info['origin']); ?></td>
         <td class="label">Expected Loading Date:</td>
         <td><?php echo $info['loading_date']; ?></td>
       </tr>
       <tr>
         <td class="label">Port of Destination:</td>
-        <td><?php echo $info['destination']; ?></td>
+        <td><?php echo SGS::locationify($info['destination']); ?></td>
         <td class="label">Buyer:</td>
         <td><?php echo $info['buyer']; ?></td>
       </tr>

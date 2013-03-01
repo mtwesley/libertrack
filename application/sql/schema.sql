@@ -31,7 +31,7 @@ create domain d_file_type as character varying(100);
 
 create domain d_operation as character(1) check (value ~ E'^[IEAU]$');
 
-create domain d_operation_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR|PJ|INV|UNKWN)$');
+create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|CHECKS|EPR|PJ|INV|UNKWN)$');
 
 create domain d_species_code as character varying(5) check (value ~ E'^[A-Z]{3,5}$');
 

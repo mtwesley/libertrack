@@ -60,11 +60,13 @@ class Model_LDF extends SGS_Form_ORM {
       'title'  => 'Data Consistency',
       'checks' => array(
         'is_valid_barcode' => array(
+          'name'    => 'New Cross Cut Barcode',
           'title'   => 'New cross cut barcode assignment is valid',
           'error'   => 'New cross cut barcode assignment is invalid',
           'warning' => 'New cross cut barcode is not yet assigned',
          ),
         'is_valid_parent_barcode' => array(
+          'name'    => 'Original Log Barcode',
           'title'   => 'Original log barcode assignment is valid',
           'error'   => 'Original log barcode assignment is invalid',
           'warning' => 'Original log barcode is not yet assigned',
@@ -74,10 +76,12 @@ class Model_LDF extends SGS_Form_ORM {
       'title'  => 'Data Reliability',
       'checks' => array(
         'is_consistent_operator' => array(
+          'name'    => 'Operator Assignments',
           'title'   => 'Operator assignments are consistent',
           'warning' => 'Operator assignments are inconsistent'
         ),
         'is_consistent_site' => array(
+          'name'    => 'Site Assignments',
           'title'   => 'Site assignments are consistent',
           'warning' => 'Site assignments are inconsistent'
         )
@@ -86,10 +90,12 @@ class Model_LDF extends SGS_Form_ORM {
       'title'  => 'Traceability',
       'checks' => array(
         'is_existing_parent' => array(
+          'name'  => 'Traceable Parent',
           'title' => 'Traceable to parent log',
           'error' => 'Not tracable to parent log'
         ),
         'is_valid_parent' => array(
+          'name'  => 'Parent Status',
           'title' => 'Parent log passed checks and queries',
           'error' => 'Parent log failed checks and queries'
         )
@@ -98,30 +104,36 @@ class Model_LDF extends SGS_Form_ORM {
       'title'  => 'Tolerance',
       'checks' => array(
         'is_matching_species' => array(
+          'name'    => 'Species',
           'title'   => 'Species matches data for parent log',
           'error'   => 'Species does not match data for parent log',
           'warning' => 'Species class matches data for parent log but species code does not'
         ),
         'is_matching_diameter' => array(
+          'name'    => 'Diameter',
           'title'   => 'Diameter of all siblings matches data for parent log',
           'error'   => 'Diameter of all siblings does not match data for parent log',
           'warning' => 'Diameter of all siblings matches data for parent log but is inaccurate'
         ),
         'is_matching_length' => array(
+          'name'    => 'Length',
           'title'   => 'Length of all siblings matches data for parent log',
           'error'   => 'Length of all siblings does not match data for parent log',
           'warning' => 'Length of all siblings matches data for parent log but is inaccurate'
         ),
         'is_matching_volume' => array(
+          'name'    => 'Volume',
           'title'   => 'Volume of all siblings matches data for parent log',
           'error'   => 'Volume of all siblings does not match data for parent log',
           'warning' => 'Volume of all siblings matches data for parent log but is inaccurate'
         ),
         'is_matching_operator' => array(
+          'name'  => 'Operator',
           'title' => 'Operator matches data for parent log',
           'error' => 'Operator does not match data for parent log',
         ),
         'is_matching_site' => array(
+          'name'  => 'Site',
           'title' => 'Site matches data for parent log',
           'error' => 'Site does not match data for parent log',
         )
@@ -393,14 +405,18 @@ class Model_LDF extends SGS_Form_ORM {
 
     // consistency
     switch ($this->barcode->type) {
+      case 'F':
+        if ($this->parent_barcode->type == 'F') $successes['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['F']);
+        else $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['L']);
+        break;
       case 'L': $successes['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['L']); break;
-      default:  $errors['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['L']); break;
+      default:  $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::implodify(array(SGS::$barcode_type['F'], SGS::$barcode_type['L']))); break;
     }
 
     switch ($this->parent_barcode->type) {
       case 'F': $successes['parent_barcode_id']['is_valid_parent_barcode'] = array('value' => SGS::$barcode_type[$this->parent_barcode->type], 'comparison' => SGS::$barcode_type['F']); break;
       case 'L': $successes['parent_barcode_id']['is_valid_parent_barcode'] = array('value' => SGS::$barcode_type[$this->parent_barcode->type], 'comparison' => SGS::$barcode_type['L']); break;
-      default:  $errors['parent_barcode_id']['is_valid_parent_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::implodify(array(SGS::$barcode_type['F'], SGS::$barcode_type['L']))); break;
+      default:  $warnings['parent_barcode_id']['is_valid_parent_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::implodify(array(SGS::$barcode_type['F'], SGS::$barcode_type['L']))); break;
     }
 
     // traceability
@@ -429,7 +445,7 @@ class Model_LDF extends SGS_Form_ORM {
           $siblings['volume']   += $child->volume;
         }
 
-        $siblings['diameter'] = (float) SGS::amountify($siblings['diameter'] / count($siblngs), 1);
+        $siblings['diameter'] = (float) SGS::amountify($siblings['diameter'] / count($siblngs), 0);
         $siblings['volume']   = (float) SGS::quantitify($siblings['volume'] / count($siblngs));
 
         if ($parent::$type == 'LDF') {

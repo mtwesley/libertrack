@@ -825,7 +825,7 @@ class SGS {
     return number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
   }
 
-  public static function locationify($string)
+  public static function locationify($string, $slash = '/')
   {
     return substr($string, $slash) ?: $string;
   }

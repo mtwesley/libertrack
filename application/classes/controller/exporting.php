@@ -377,7 +377,7 @@ class Controller_Exporting extends Controller {
       'specs',
     ));
 
-    if ($is_draft) $newname = 'DRAFT_'.SGS::date('now', 'Y_m_d').'.'.$ext;
+    if ($is_draft) $newname = 'SPECS_DRAFT_'.SGS::date('now', 'Y_m_d').'.'.$ext;
     else $newname = 'SPECS_'.$specs_number.'.'.$ext;
 
     $version = 0;
