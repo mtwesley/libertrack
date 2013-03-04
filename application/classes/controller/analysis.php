@@ -23,6 +23,14 @@ class Controller_Analysis extends Controller {
       return FALSE;
     }
 
+    $passed_records = array();
+    $failed_records = array();
+
+    foreach ($records as $record) {
+      if ($record->status == 'A') $passed_records[] = $record;
+      else $failed_records[] = $record;
+    }
+
     extract($info);
 
     $html .= View::factory('documents/checks')
@@ -35,22 +43,24 @@ class Controller_Analysis extends Controller {
       ->set('specs_info', $specs_info)
       ->set('epr_info', $epr_info)
       ->set('options', array(
-        'info'    => TRUE,
-        'summary' => TRUE,
-        'details' => FALSE,
-        'styles'  => TRUE
+        'info'     => TRUE,
+        'summary'  => TRUE,
+        'details'  => FALSE,
+        'styles'   => TRUE,
+        'subtitle' => 'Results Summary'
       ))
       ->render();
 
     $page_count = 0;
-    $page_max   = 21;
 
-    $total = 0;
+    $first_page_max = 20;
+    $page_max       = 21;
 
-    $cntr   = 0;
-    while ($cntr < count($records)) {
-      $max = $page_max;
-      $set = array_slice($records, $cntr, $max);
+    // passed
+    $cntr  = 0;
+    while ($cntr < count($passed_records)) {
+      $max = $first ? $first_page_max : $page_max;
+      $set = array_slice($passed_records, $cntr, $max);
       $html .= View::factory('documents/checks')
         ->set('form_type', $form_type)
         ->set('report', $report)
@@ -61,15 +71,41 @@ class Controller_Analysis extends Controller {
         ->set('block', $block)
         ->set('data', $set)
         ->set('options', array(
-          'info'    => FALSE,
-          'details' => TRUE,
-          'styles'  => FALSE,
+          'info'     => FALSE,
+          'details'  => TRUE,
+          'styles'   => FALSE,
+          'subtitle' => 'Records with All Checks Passed'
         ))
         ->set('cntr', $cntr)
         ->render();
 
       $cntr += $max;
-      $styles = FALSE;
+    }
+
+    // failed
+    $cntr  = 0;
+    while ($cntr < count($failed_records)) {
+      $max = $first ? $first_page_max : $page_max;
+      $set = array_slice($failed_records, $cntr, $max);
+      $html .= View::factory('documents/checks')
+        ->set('form_type', $form_type)
+        ->set('report', $report)
+        ->set('checks', $checks)
+        ->set('operator', $operator)
+        ->set('site', $site)
+        ->set('specs_info', $specs_info)
+        ->set('block', $block)
+        ->set('data', $set)
+        ->set('options', array(
+          'info'     => FALSE,
+          'details'  => TRUE,
+          'styles'   => FALSE,
+          'subtitle' => 'Records with Any Check Failed'
+        ))
+        ->set('cntr', $cntr)
+        ->render();
+
+      $cntr += $max;
     }
 
     // generate pdf

@@ -205,6 +205,16 @@ $num = $cntr;
     text-align: center;
   }
 
+  .checks-details-table tr td.traceability {
+    padding: 5px 3px;
+    text-align: left;
+  }
+
+  .checks-details-table tr td.title {
+    text-align: left;
+    font-size: 16px;
+  }
+
   .checks-details-table tr td.value,
   .checks-details-table tr td.comparison,
   .checks-details-table tr td.status {
@@ -293,6 +303,9 @@ $num = $cntr;
       </tr>
     </table>
     <div class="checks-title"><?php echo SGS::$form_type[$form_type]; ?> Check Report</div>
+    <?php if ($options['subtitle']): ?>
+    <div class="checks-subtitle"><?php echo $options['subtitle']; ?></div>
+    <?php endif; ?>
   </div>
   <?php endif; ?>
 
@@ -433,8 +446,13 @@ $num = $cntr;
   <div class="checks-details">
     <table class="checks-details-table">
       <?php if ($data): $chks = $checks; unset($chks['traceability']); ?>
+      <?php /* if ($options['title']): ?>
       <tr class="head">
-        <td class="check-type" colspan="3">Traceability</td>
+        <td class="title" colspan="<?php foreach ($chks as $chk) foreach ($chk['checks'] as $ck) $cnt++; echo (($cnt + 1) * 3); ?>"><?php echo $options['title']; ?></td>
+      </tr>
+      <?php endif; */ ?>
+      <tr class="head">
+        <td class="check-type traceability" colspan="3">Traceability</td>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $ck): ?>
         <td class="check-type" colspan="3"><?php echo $ck['name']; ?></td>
         <?php endforeach; ?>
