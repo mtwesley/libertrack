@@ -72,7 +72,7 @@ class Controller_Analysis extends Controller {
           'info'     => FALSE,
           'details'  => TRUE,
           'styles'   => FALSE,
-          'subtitle' => 'Records with All Checks Passed'
+          'subtitle' => 'Records Where All Checks Passed'
         ))
         ->set('cntr', $cntr)
         ->render();
@@ -98,7 +98,7 @@ class Controller_Analysis extends Controller {
           'info'     => FALSE,
           'details'  => TRUE,
           'styles'   => FALSE,
-          'subtitle' => 'Records with Any Check Failed'
+          'subtitle' => 'Records Where Any Check Failed'
         ))
         ->set('cntr', $cntr)
         ->render();
