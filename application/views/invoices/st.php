@@ -202,7 +202,7 @@ $options = (array) $options + array(
   .invoice-titles {}
 
   .invoice-title {
-    margin: 0 0 8px;
+    margin: 0 0 5px;
     font-size: 22px;
     text-align: center;
   }

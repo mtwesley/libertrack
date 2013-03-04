@@ -95,7 +95,7 @@ $num = $cntr;
   }
 
   .checks-details-table tr td {
-    padding: 2px 3px;
+    padding: 1px 3px;
     border: 1px solid #000;
   }
 
@@ -151,7 +151,7 @@ $num = $cntr;
   }
 
   .checks-details-table tr td.status {
-    padding: 2px;
+    padding: 1px;
   }
 
   .checks-summary-table tr td.status .error,
@@ -296,7 +296,7 @@ $num = $cntr;
   .checks-titles {}
 
   .checks-title {
-    margin: 0 0 8px;
+    margin: 0 0 5px;
     font-size: 22px;
     text-align: center;
   }

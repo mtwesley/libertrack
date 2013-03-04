@@ -71,12 +71,12 @@ class SGS_Form_ORM extends ORM {
       ->and_where('type', '=', 'S');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) {
-      if ($with_params)
-        if ($array) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
-        else $errors[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
-      else $errors[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
+      if ($with_params) {
+        if ($array) $successes[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
+        else $successes[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
+      } else $successes[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
     }
-    return (array) $errors;
+    return (array) $successes;
   }
 
   public function unset_successes($args = array()) {
@@ -102,10 +102,10 @@ class SGS_Form_ORM extends ORM {
       ->and_where('type', '=', 'E');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) {
-      if ($with_params)
+      if ($with_params) {
         if ($array) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
         else $errors[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
-      else $errors[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
+      } else $errors[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
     }
     return (array) $errors;
   }
@@ -133,10 +133,10 @@ class SGS_Form_ORM extends ORM {
       ->and_where('type', '=', 'W');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) {
-      if ($with_params)
-        if ($array) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
-        else $errors[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
-      else $warnings[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
+      if ($with_params) {
+        if ($array) $warnings[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
+        else $warnings[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
+      } else $warnings[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
     }
     return (array) $warnings;
   }
