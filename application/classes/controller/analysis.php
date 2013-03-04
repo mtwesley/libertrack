@@ -52,14 +52,12 @@ class Controller_Analysis extends Controller {
       ->render();
 
     $page_count = 0;
-
-    $first_page_max = 20;
-    $page_max       = 21;
+    $page_max   = 20;
 
     // passed
     $cntr  = 0;
     while ($cntr < count($passed_records)) {
-      $max = $first ? $first_page_max : $page_max;
+      $max = $page_max;
       $set = array_slice($passed_records, $cntr, $max);
       $html .= View::factory('documents/checks')
         ->set('form_type', $form_type)
@@ -85,7 +83,7 @@ class Controller_Analysis extends Controller {
     // failed
     $cntr  = 0;
     while ($cntr < count($failed_records)) {
-      $max = $first ? $first_page_max : $page_max;
+      $max = $page_max;
       $set = array_slice($failed_records, $cntr, $max);
       $html .= View::factory('documents/checks')
         ->set('form_type', $form_type)
