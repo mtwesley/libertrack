@@ -43,7 +43,7 @@ class Controller_Analysis extends Controller {
       ->render();
 
     $page_count = 0;
-    $page_max   = 22;
+    $page_max   = 21;
 
     $total = 0;
 

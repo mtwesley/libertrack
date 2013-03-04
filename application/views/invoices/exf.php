@@ -80,9 +80,13 @@ $options = (array) $options + array(
     border-collapse: collapse;
   }
 
-  .invoice-summary-table tr td,
-  .invoice-details-table tr td {
+  .invoice-summary-table tr td {
     padding: 2px 5px;
+    border: 1px solid #000;
+  }
+
+  .invoice-details-table tr td {
+    padding: 1px 5px;
     border: 1px solid #000;
   }
 
