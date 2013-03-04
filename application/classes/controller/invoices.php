@@ -497,7 +497,7 @@ class Controller_Invoices extends Controller {
       $summary_total['total'] += $record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']];
     }
 
-    $details_page_max = 39;
+    $details_page_max = 40;
     foreach ($details_data as $code => $records) {
       foreach ($records as $record) foreach ($record as $key => $value) $details_total[$code][$key] += $value;
     }
@@ -731,7 +731,7 @@ class Controller_Invoices extends Controller {
       $summary_total['fob_total'] += $record['volume'] * $record['fob_price'];
     }
 
-    $details_page_max = 39;
+    $details_page_max = 40;
     foreach ($details_data as $code => $records) {
       foreach ($records as $record) foreach ($record as $key => $value) $details_total[$code][$key] += $value;
     }

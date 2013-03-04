@@ -174,7 +174,7 @@ $num = $cntr;
   .checks-details-table tr td.status .warning,
   .checks-details-table tr td.status .success {
     padding: 2px;
-    width: 7px;
+    width: 10px;
   }
 
   .checks-summary-table tr td.status .error,
@@ -217,46 +217,6 @@ $num = $cntr;
 
   .checks-details-table tr td.barcode {
     text-align: left;
-  }
-
-  .checks-details-table tr td.scan_date,
-  .checks-details-table tr td.volume,
-  .checks-details-table tr td.species_code,
-  .checks-details-table tr td.species_class,
-  .checks-details-table tr td.diameter,
-  .checks-details-table tr td.bottom,
-  .checks-details-table tr td.top,
-  .checks-details-table tr td.bottom_min,
-  .checks-details-table tr td.bottom_max,
-  .checks-details-table tr td.top_min,
-  .checks-details-table tr td.top_max,
-  .checks-details-table tr td.length,
-  .checks-details-table tr td.grade,
-  .checks-details-table tr td.total {
-    text-align: center;
-  }
-
-  .checks-details-table tr td.number {
-    text-align: right;
-  }
-
-  .checks-details-table tr td.diameter,
-  .checks-details-table tr td.bottom,
-  .checks-details-table tr td.top,
-  .checks-details-table tr td.bottom_min,
-  .checks-details-table tr td.bottom_max,
-  .checks-details-table tr td.top_min,
-  .checks-details-table tr td.top_max {
-    padding: 2px 5px;
-  }
-
-  .checks-details-table tr td.total_volume {
-    border-left: none;
-    text-align: center;
-  }
-
-  .checks-details-table tr td.total_label {
-    border-right: none;
   }
 
   .checks-details-table tr.even {
@@ -480,8 +440,8 @@ $num = $cntr;
         <?php endforeach; ?>
       </tr>
       <tr class="head">
-        <td colspan="2">Barcode</td>
-        <td>Parent Barcode</td>
+        <td class="barcode" colspan="2">Barcode</td>
+        <td class="barcode">Parent Barcode</td>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="value" colspan="2">Value</td>
         <td class="comparison">Comp</td>
@@ -505,8 +465,8 @@ $num = $cntr;
           <div class="success">P</div>
           <?php endif; ?>
         </td>
-        <td class="value"><?php echo $record->barcode->barcode; ?></td>
-        <td class="comparison">
+        <td class="barcode value"><?php echo $record->barcode->barcode; ?></td>
+        <td class="barcode comparison">
           <?php
             if ($form_type == 'SSF') echo 'N/A';
             else if ($form_type == 'TDF') echo $record->tree_barcode->barcode;
