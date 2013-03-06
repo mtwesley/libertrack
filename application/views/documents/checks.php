@@ -327,8 +327,8 @@ $num = $cntr;
             else if ($specs_info) echo $specs_info['barcode'];
           ?>
         </td>
-        <td class="label"><?php if ($epr_info) echo 'Permit Request Barcode:'; ?></td>
-        <td><?php if ($epr_info) echo $epr_info['barcode']; ?></td>
+        <td class="label"><?php if ($exp_info) echo 'Export Permit Barcode:'; ?></td>
+        <td><?php if ($exp_info) echo $exp_info['barcode']; ?></td>
       </tr>
       <tr>
         <td class="label">TIN:</td>
@@ -345,8 +345,8 @@ $num = $cntr;
             else if ($specs_info) echo $specs_info['number'];
           ?>
         </td>
-        <td class="label"><?php if ($epr_info) echo 'Permit Request Number:'; ?></td>
-        <td><?php if ($epr_info) echo $epr_info['number']; ?></td>
+        <td class="label"><?php if ($exp_info) echo 'Export Permit Number:'; ?></td>
+        <td><?php if ($exp_info) echo $exp_info['number']; ?></td>
       </tr>
     </table>
   </div>

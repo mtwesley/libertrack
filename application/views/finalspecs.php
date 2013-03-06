@@ -5,8 +5,8 @@
     <th class="image"></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'number')), 'Shipment Specification Number'); ?></th>
     <th>Shipment Specification Barcode</th>
-    <th>Permit Request Number</th>
-    <th>Shipment Specification Barcode</th>
+    <th>Export Permit Number</th>
+    <th>Export Permit Barcode</th>
     <th>Operator</th>
     <th>Port of Origin</th>
     <th>Port of Destination</th>
@@ -27,8 +27,8 @@
     <td class="image"><?php echo HTML::image('images/layout.png'); ?></td>
     <td><?php echo $spec['number'] ? 'SPECS '.$spec['number'] : 'DRAFT'; ?></td>
     <td><?php echo $item->specs_barcode->barcode; ?></td>
-    <td><?php echo $item->epr_number; ?></td>
-    <td><?php echo $item->epr_barcode->barcode; ?></td>
+    <td><?php echo $item->exp_number; ?></td>
+    <td><?php echo $item->exp_barcode->barcode; ?></td>
     <td><?php echo $item->operator->name; ?></td>
     <td><?php echo $item->origin; ?></td>
     <td><?php echo $item->destination; ?></td>

@@ -263,9 +263,9 @@ $num = $cntr;
       </tr>
       <tr>
         <td class="label">EP Barcode:</td>
-        <td><?php echo $info['epr_barcode']; ?></td>
+        <td><?php echo $info['exp_barcode']; ?></td>
         <td class="label">EP Number:</td>
-        <td><?php echo $info['epr_number']; ?></td>
+        <td><?php echo $info['exp_number']; ?></td>
       </tr>
       <tr>
         <td class="label">Exporter TIN:</td>

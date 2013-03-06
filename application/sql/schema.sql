@@ -77,7 +77,7 @@ create domain d_invoice_type as character varying(3) check (value ~ E'(ST|EXF)')
 
 create domain d_specs_number as character(6) check (value ~ E'[0-9]{6}');
 
-create domain d_epr_number as character(6) check (value ~ E'[0-9]{6,10}');
+create domain d_exp_number as character(6) check (value ~ E'[0-9]{6,10}');
 
 create domain d_invoice_number as numeric(6) check ((value > 100000) and (value < 200000));
 
@@ -330,17 +330,17 @@ create table specs (
   constraint specs_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
 );
 
-create table epr (
+create table exp (
   id bigserial not null,
-  number d_epr_number,
+  number d_exp_number,
   is_draft d_bool default true not null,
   file_id d_id unique not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint epr_pkey primary key (id),
+  constraint exp_pkey primary key (id),
 
-  constraint epr_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
+  constraint exp_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
 );
 
 create table csv (
@@ -537,9 +537,9 @@ create table specs_data (
   id bigserial not null,
   operator_id d_id not null,
   specs_barcode_id d_id,
-  epr_barcode_id d_id,
+  exp_barcode_id d_id,
   specs_id d_id,
-  epr_id d_id,
+  exp_id d_id,
   contract_number d_text_short,
   barcode_id d_id unique not null,
   species_id d_id not null,
@@ -561,14 +561,14 @@ create table specs_data (
   constraint specs_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_specs_barcode_id_fkey foreign key (specs_barcode_id) references barcodes (id) on update cascade,
-  constraint specs_data_epr_barcode_id_fkey foreign key (epr_barcode_id) references barcodes (id) on update cascade,
+  constraint specs_data_exp_barcode_id_fkey foreign key (exp_barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_specs_id_fkey foreign key (specs_id) references specs (id) on update cascade,
-  constraint specs_data_epr_id_fkey foreign key (epr_id) references epr (id) on update cascade,
+  constraint specs_data_exp_id_fkey foreign key (exp_id) references exp (id) on update cascade,
   constraint specs_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
   constraint specs_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
   constraint specs_data_specs_check check (specs_id is not null or specs_barcode_id is not null),
-  constraint specs_data_epr_check check (epr_id is not null or epr_barcode_id is not null)
+  constraint specs_data_exp_check check (exp_id is not null or exp_barcode_id is not null)
 );
 
 create table epr_data (
@@ -644,8 +644,8 @@ create table settings (
 
 create sequence s_invoices_st_number minvalue 100100;
 create sequence s_invoices_exf_number minvalue 100100;
-create sequence s_specs_specs_number minvalue 1;
-create sequence s_epr_epr_number minvalue 1;
+create sequence s_specs_number minvalue 1;
+create sequence s_epr_number minvalue 1;
 
 
 -- indexes
@@ -735,19 +735,19 @@ create index mof_data_status on mof_data (id,status);
 create index specs_data_operator_id on specs_data (id,operator_id);
 create index specs_data_barcode_id on specs_data (id,barcode_id);
 create index specs_data_specs_barcode_id on specs_data (id,specs_barcode_id);
-create index specs_data_epr_barcode_id on specs_data (id,epr_barcode_id);
+create index specs_data_exp_barcode_id on specs_data (id,exp_barcode_id);
 create index specs_data_specs_id on specs_data (id,specs_id);
-create index specs_data_epr_id on specs_data (id,epr_id);
+create index specs_data_exp_id on specs_data (id,exp_id);
 create index specs_data_species_id on specs_data (id,species_id);
 create index specs_data_volume on specs_data (id,volume);
 create index specs_data_grade on specs_data (id,grade);
 create index specs_data_status on specs_data (id,status);
 
-create index epr_data_operator_id on epr_data (id,operator_id);
-create index epr_data_barcode_id on epr_data (id,barcode_id);
-create index epr_data_barcode_type on epr_data (id,barcode_type);
-create index epr_data_request_number on epr_data (id,request_number);
-create index epr_data_status on epr_data (id,status);
+create index exp_data_operator_id on exp_data (id,operator_id);
+create index exp_data_barcode_id on exp_data (id,barcode_id);
+create index exp_data_barcode_type on exp_data (id,barcode_type);
+create index exp_data_request_number on exp_data (id,request_number);
+create index exp_data_status on exp_data (id,status);
 
 create index errors_form_type_data_id on errors (form_type,form_data_id);
 create index errors_field on errors (form_type,form_data_id,field);
@@ -1110,8 +1110,8 @@ begin
     if new.specs_barcode_id is not null then
       update barcodes set type = 'H' where barcodes.id = new.specs_barcode_id;
     end if;
-    if new.epr_barcode_id is not null then
-      update barcodes set type = 'E' where barcodes.id = new.epr_barcode_id;
+    if new.exp_barcode_id is not null then
+      update barcodes set type = 'E' where barcodes.id = new.exp_barcode_id;
     end if;
 
     update barcodes set is_locked = false where id = new.barcode_id;

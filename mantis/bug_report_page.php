@@ -210,7 +210,7 @@
 	</tr>
 <?php
 	}
-	
+
 	if ( $tpl_show_eta ) {
 ?>
 
@@ -226,7 +226,7 @@
 	</tr>
 <?php
 	}
-	
+
 	if ( $tpl_show_severity ) {
 ?>
 	<tr <?php echo helper_alternate_class() ?>>
@@ -571,9 +571,7 @@
 <!-- Autofocus JS -->
 <?php if ( ON == config_get( 'use_javascript' ) ) { ?>
 <script type="text/javascript" language="JavaScript">
-<!--
 	window.document.report_bug_form.category_id.focus();
--->
 </script>
 <?php  }
 if ( $tpl_show_due_date ) {

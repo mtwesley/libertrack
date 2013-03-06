@@ -41,7 +41,7 @@ class Controller_Analysis extends Controller {
       ->set('site', $site)
       ->set('block', $block)
       ->set('specs_info', $specs_info)
-      ->set('epr_info', $epr_info)
+      ->set('exp_info', $exp_info)
       ->set('options', array(
         'info'     => TRUE,
         'summary'  => TRUE,
@@ -204,7 +204,7 @@ class Controller_Analysis extends Controller {
     $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
     $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
-    $has_epr_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
 
     if ($id) {
       Session::instance()->delete('pagination.data');
@@ -316,9 +316,9 @@ class Controller_Analysis extends Controller {
           'number'  => $sample->specs_number,
           'barcode' => $sample->specs_barcode->barcode
         );
-        if (Valid::numeric($specs_info)) $info['epr'] = array(
-          'number'  => $sample->epr_number,
-          'barcode' => $sample->epr_barcode->barcode
+        if (Valid::numeric($specs_info)) $info['exp'] = array(
+          'number'  => $sample->exp_number,
+          'barcode' => $sample->exp_barcode->barcode
         );
       }
 
@@ -330,7 +330,7 @@ class Controller_Analysis extends Controller {
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
         ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-        ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
+        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->render();
     }
 
@@ -368,9 +368,9 @@ class Controller_Analysis extends Controller {
         'number'  => $item->specs_number,
         'barcode' => $item->specs_barcode->barcode
       );
-      $info['epr'] = array(
-        'number'  => $item->epr_number,
-        'barcode' => $item->epr_barcode->barcode
+      $info['exp'] = array(
+        'number'  => $item->exp_number,
+        'barcode' => $item->exp_barcode->barcode
       );
     }
 
@@ -381,7 +381,7 @@ class Controller_Analysis extends Controller {
       ->set('site', isset($item->site) ? $item->site : NULL)
       ->set('block', isset($item->block) ? $item->block : NULL)
       ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-      ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
+      ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
       ->render();
 
     if ($form) $content .= $form->render();
@@ -440,7 +440,7 @@ class Controller_Analysis extends Controller {
     $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
     $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
-    $has_epr_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
 
     if ($has_site_id) $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -459,7 +459,7 @@ class Controller_Analysis extends Controller {
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
     if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
 
-    if (!$has_specs_info and !$has_epr_info) {
+    if (!$has_specs_info and !$has_exp_info) {
       $form = $form
         ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
         ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
@@ -482,7 +482,7 @@ class Controller_Analysis extends Controller {
       if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
       if ($has_specs_info) $specs_info = $form->specs_info->val();
 
-      if (!$has_specs_info and !$has_epr_info) {
+      if (!$has_specs_info and !$has_exp_info) {
         $from = $form->from->val();
         $to   = $form->to->val();
       }
@@ -510,7 +510,7 @@ class Controller_Analysis extends Controller {
       if (Valid::is_barcode($specs_info))   $records = $records->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
       else if (Valid::numeric($specs_info)) $records = $records->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
 
-      if (!$has_specs_info and !$has_epr_info) {
+      if (!$has_specs_info and !$has_exp_info) {
         $records = $records->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
       }
 
@@ -633,7 +633,7 @@ class Controller_Analysis extends Controller {
       $form->display->val($display = $settings['display']);
       $form->checks->val($checks = $settings['checks']);
 
-      if (!$has_specs_info and !$has_epr_info) {
+      if (!$has_specs_info and !$has_exp_info) {
         $form->from->val($from = $settings['from']);
         $form->to->val($to = $settings['to']);
       }
@@ -655,7 +655,7 @@ class Controller_Analysis extends Controller {
       if (Valid::is_barcode($specs_info))   $_data = $_data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
       else if (Valid::numeric($specs_info)) $_data = $_data->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
 
-      if (!$has_specs_info and !$has_epr_info)  $_data = $_data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
+      if (!$has_specs_info and !$has_exp_info)  $_data = $_data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       $_data = $_data->and_where('status', 'IN', (array) $display);
 
@@ -674,15 +674,15 @@ class Controller_Analysis extends Controller {
             'number'  => $sample->specs_number,
             'barcode' => $sample->specs_barcode->barcode
           );
-          if (Valid::numeric($specs_info)) $info['epr'] = array(
-            'number'  => $sample->epr_number,
-            'barcode' => $sample->epr_barcode->barcode
+          if (Valid::numeric($specs_info)) $info['exp'] = array(
+            'number'  => $sample->exp_number,
+            'barcode' => $sample->exp_barcode->barcode
           );
         }
 
         self::download_checks_report($form_type, $_data, array(
           'specs_info' => $info ? array_filter((array) $info['specs']) : NULL,
-          'epr_info'   => $info ? array_filter((array) $info['epr']) : NULL,
+          'exp_info'   => $info ? array_filter((array) $info['exp']) : NULL,
           'operator'   => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
           'site'       => $site_id ? ORM::factory('site', $site_id) : NULL,
           'block'      => $block_id ? ORM::factory('block', $block_id) : NULL,
@@ -713,9 +713,9 @@ class Controller_Analysis extends Controller {
             'number'  => $sample->specs_number,
             'barcode' => $sample->specs_barcode->barcode
           );
-          if (Valid::numeric($specs_info)) $info['epr'] = array(
-            'number'  => $sample->epr_number,
-            'barcode' => $sample->epr_barcode->barcode
+          if (Valid::numeric($specs_info)) $info['exp'] = array(
+            'number'  => $sample->exp_number,
+            'barcode' => $sample->exp_barcode->barcode
           );
         }
 
@@ -730,7 +730,7 @@ class Controller_Analysis extends Controller {
           ->set('site', $site->loaded() ? $site : NULL)
           ->set('block', $block->loaded() ? $block : NULL)
           ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-          ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
+          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
           ->set('options', array(
             'table'   => FALSE,
             'rows'    => FALSE,
@@ -757,7 +757,7 @@ class Controller_Analysis extends Controller {
           ->set('site', $site->loaded() ? $site : NULL)
           ->set('block', $block->loaded() ? $block : NULL)
           ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-          ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
+          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
           ->set('options', array(
             'hide_header_info' => TRUE,
             'header'  => FALSE,

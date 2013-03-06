@@ -32,7 +32,7 @@ class Controller_Exporting extends Controller {
       ->add('format', 'radios', 'preview', array(
         'options' => array(
           'preview' => 'Preview',
-//          'draft'   => 'Draft Copy',
+          'draft'   => 'Draft Copy',
           'final'   => 'Final Copy'),
         'label' => '&nbsp;',
         'required' => TRUE,
@@ -96,9 +96,9 @@ class Controller_Exporting extends Controller {
                 'number'  => $sample->specs_number,
                 'barcode' => $sample->specs_barcode->barcode
               );
-              if (Valid::numeric($specs_info)) $info['epr'] = array(
-                'number'  => $sample->epr_number,
-                'barcode' => $sample->epr_barcode->barcode
+              if (Valid::numeric($specs_info)) $info['exp'] = array(
+                'number'  => $sample->exp_number,
+                'barcode' => $sample->exp_barcode->barcode
               );
             }
 
@@ -108,7 +108,7 @@ class Controller_Exporting extends Controller {
               ->set('data', $data)
               ->set('operator', $operator)
               ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-              ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
+              ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
               ->set('options', array(
                 'links'  => FALSE,
                 'header' => TRUE
@@ -348,8 +348,8 @@ class Controller_Exporting extends Controller {
           'is_draft'      => $is_draft,
           'specs_barcode' => $item->specs_barcode->barcode,
           'specs_number'  => $specs_number,
-          'epr_barcode'   => $item->epr_barcode->barcode,
-          'epr_number'    => $item->epr_number,
+          'exp_barcode'   => $item->exp_barcode->barcode,
+          'exp_number'    => $item->exp_number,
           'operator_tin'  => $item->operator->tin,
           'operator_name' => $item->operator->name,
           'origin'        => $item->origin,

@@ -472,7 +472,7 @@ class Controller_Import extends Controller {
     $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
     $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
-    $has_epr_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
 
     if ($id) {
       Session::instance()->delete('pagination.csv');

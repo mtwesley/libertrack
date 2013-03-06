@@ -145,12 +145,12 @@ class Valid extends Kohana_Valid {
 
   public static function is_operation_type($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR|PJ|UNKWN)$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^(SSF|TDF|LDF|MIF|MOF|SPECS|EXP|PJ|UNKWN)$/', (string) $value));
   }
 
   public static function is_form_type($value)
   {
-    return (bool) (self::is_varchar($value, 5) AND preg_match('/^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR)$/', (string) $value));
+    return (bool) (self::is_varchar($value, 5) AND preg_match('/^(SSF|TDF|LDF|MIF|MOF|SPECS|EXP)$/', (string) $value));
   }
 
   public static function is_grade($value)

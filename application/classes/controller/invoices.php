@@ -90,14 +90,18 @@ class Controller_Invoices extends Controller {
           $form_type = 'LDF';
           $ids = DB::select('ldf_data.id')
             ->from('ldf_data')
-            ->join('barcodes')
-            ->on('ldf_data.parent_barcode_id', '=', 'barcodes.id')
+            ->join(DB::expr('"barcodes" as "parent_barcodes"'))
+            ->on('ldf_data.parent_barcode_id', '=', 'parent_barcodes.id')
+            ->join('barcode_hops_cached')
+            ->on('ldf_data.barcode_id', '=', 'barcode_hops_cached.barcode_id')
+            ->on('ldf_data.parent_barcode_id', '=', 'barcode_hops_cached.parent_id')
             ->join('invoice_data', 'LEFT OUTER')
             ->on('ldf_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'LDF'"))
             ->where('ldf_data.site_id', '=', $site_id)
             ->and_where('ldf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
-            ->and_where('barcodes.type', '=', 'F')
+            ->and_where('parent_barcodes.type', '=', 'F')
+            ->and_where('barcode_hops_cached.hops', '=', '1')
             ->and_where('invoice_data.form_data_id', '=', NULL)
             ->execute()
             ->as_array(NULL, 'id');
@@ -158,9 +162,9 @@ class Controller_Invoices extends Controller {
                 'number'  => $sample->specs_number,
                 'barcode' => $sample->specs_barcode->barcode
               );
-              if (Valid::numeric($specs_info)) $info['epr'] = array(
-                'number'  => $sample->epr_number,
-                'barcode' => $sample->epr_barcode->barcode
+              if (Valid::numeric($specs_info)) $info['exp'] = array(
+                'number'  => $sample->exp_number,
+                'barcode' => $sample->exp_barcode->barcode
               );
             }
 
@@ -170,7 +174,7 @@ class Controller_Invoices extends Controller {
               ->set('site', $site_id ? $site : NULL)
               ->set('operator', $operator_id ? $operator : NULL)
               ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-              ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
+              ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
               ->set('options', array(
                 'table'   => FALSE,
                 'rows'    => FALSE,
@@ -188,7 +192,7 @@ class Controller_Invoices extends Controller {
               ->set('site', $site_id ? $site : NULL)
               ->set('operator', $operator_id ? $operator : NULL)
               ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-              ->set('epr_info', $info ? array_filter((array) $info['epr']) : NULL)
+              ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
               ->set('options', array(
                 'links'  => FALSE,
                 'header' => FALSE,
@@ -792,8 +796,8 @@ class Controller_Invoices extends Controller {
         ->set('total', array('summary' => $summary_total))
         ->set('specs_barcode', $sample->specs_barcode->barcode)
         ->set('specs_number', $sample->specs_number)
-        ->set('epr_barcode', $sample->epr_barcode->barcode)
-        ->set('epr_number', $sample->epr_number)
+        ->set('exp_barcode', $sample->exp_barcode->barcode)
+        ->set('exp_number', $sample->exp_number)
         ->render();
 
       if ($signature_remaining and $last and (($summary_count - $max) <= 0)) {

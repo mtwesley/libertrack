@@ -267,7 +267,7 @@ class SGS {
     'MIF'   => 'Mill Input Form',
     'MOF'   => 'Mill Output Form',
     'SPECS' => 'Shipping Specification Form',
-    'EPR'   => 'Export Permit Request Form',
+    'EXP'   => 'Export Permit Request Form',
     'INV'   => 'Invoice',
     'PJ'    => 'Print Job',
     'UNKWN' => 'Unknown'
@@ -300,7 +300,7 @@ class SGS {
     'MIF'   => 'Mill Input Form',
     'MOF'   => 'Mill Output Form',
     'SPECS' => 'Shipping Specification Form',
-    'EPR'   => 'Export Permit Request Form'
+    'EXP'   => 'Export Permit Request Form'
   );
 
   public static $barcode_type = array(
@@ -523,16 +523,16 @@ class SGS {
       ->as_array();
   }
 
-  public static function lookup_epr($number, $returning_id = FALSE)
+  public static function lookup_exp($number, $returning_id = FALSE)
   {
     $id = DB::select('id')
-      ->from('epr')
+      ->from('exp')
       ->where('number', '=', (string) $number)
       ->execute()
       ->get('id');
 
-    return $returning_id ? $id : ORM::factory('EPR')
-      ->where('epr_id', '=', $id)
+    return $returning_id ? $id : ORM::factory('EXP')
+      ->where('exp_id', '=', $id)
       ->find_all()
       ->as_array();
   }
@@ -743,13 +743,13 @@ class SGS {
     );
   }
 
-  public static function parse_epr_number($text)
+  public static function parse_exp_number($text)
   {
     $matches = array();
     preg_match('/^EP\D+(\d+)/', $text, $matches);
 
     return array(
-      'epr_number'  => str_pad($matches[1], 6, '0', STR_PAD_LEFT)
+      'exp_number'  => str_pad($matches[1], 6, '0', STR_PAD_LEFT)
     );
   }
 

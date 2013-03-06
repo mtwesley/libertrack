@@ -140,7 +140,7 @@ class Controller_Export extends Controller {
     $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
     $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
-    $has_epr_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
 
     if ($has_site_id) $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -165,7 +165,7 @@ class Controller_Export extends Controller {
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
     if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
 
-    if (!$has_specs_info and !$has_epr_info) {
+    if (!$has_specs_info and !$has_exp_info) {
       $form = $form
         ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
         ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
@@ -189,7 +189,7 @@ class Controller_Export extends Controller {
       if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
       if ($has_specs_info) $specs_info = $form->specs_info->val();
 
-      if (!$has_specs_info and !$has_epr_info) {
+      if (!$has_specs_info and !$has_exp_info) {
         $from = $form->from->val();
         $to   = $form->to->val();
       }

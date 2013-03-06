@@ -12,16 +12,16 @@ class Model_SPECS extends SGS_Form_ORM {
     'specs_barcode'  => array(
       'model'       => 'barcode',
       'foreign_key' => 'specs_barcode_id'),
-    'epr_barcode'  => array(
+    'exp_barcode'  => array(
       'model'       => 'barcode',
-      'foreign_key' => 'epr_barcode_id'),
+      'foreign_key' => 'exp_barcode_id'),
     'species'  => array(),
     'user'     => array(),
   );
 
   protected $_ignored_columns = array(
     'specs_number',
-    'epr_number',
+    'exp_number',
     'diameter'
   );
 
@@ -43,10 +43,10 @@ class Model_SPECS extends SGS_Form_ORM {
           ->execute()
           ->as_array())) return $result['number'] ? 'SPECS '.$result['number'] : 'DRAFT'; break;
 
-      case 'epr_number':
+      case 'exp_number':
         if ($result = reset(DB::select('id', 'number')
-          ->from('epr')
-          ->where('id', '=', $this->epr_id)
+          ->from('exp')
+          ->where('id', '=', $this->exp_id)
           ->execute()
           ->as_array())) return $result['number'] ? 'EP '.$result['number'] : 'DRAFT'; break;
 
@@ -61,12 +61,12 @@ class Model_SPECS extends SGS_Form_ORM {
     'create_date'     => 'Date Surveyed',
     'operator_tin'    => 'Operator TIN',
     'specs_number'    => 'Shipment Specification Number',
-    'epr_number'      => 'Permit Request Number',
+    'exp_number'      => 'Permit Request Number',
 //    'contract_number' => 'Contract Summary Number',
     'origin'          => 'Port of Origin',
     'destination'     => 'Port of Destination',
     'specs_barcode'   => 'Shipment Specification Barcode',
-    'epr_barcode'     => 'Permit Request Barcode',
+    'exp_barcode'     => 'Permit Request Barcode',
     'barcode'         => 'Log Barcode',
     'species_code'    => 'Species Code',
     'bottom_max'      => 'Butt Max',
@@ -94,7 +94,7 @@ class Model_SPECS extends SGS_Form_ORM {
           'error'   => 'Shipment specification barcode assignment is invalid',
           'warning' => 'Shipment specification barcode is not yet assigned',
          ),
-        'is_valid_epr_barcode' => array(
+        'is_valid_exp_barcode' => array(
           'name'    => 'Export Permit Request Barcode Assignment',
           'title'   => 'Export permit request barcode assignment is valid',
           'error'   => 'Export permit request barcode assignment is invalid',
@@ -189,9 +189,9 @@ class Model_SPECS extends SGS_Form_ORM {
       'barcode'         => array('render' => FALSE),
       'contract_number' => array('render' => FALSE),
       'specs_barcode'   => array('render' => FALSE),
-      'epr_barcode'     => array('render' => FALSE),
+      'exp_barcode'     => array('render' => FALSE),
       'specs_id'        => array('render' => FALSE),
-      'epr_id'          => array('render' => FALSE),
+      'exp_id'          => array('render' => FALSE),
       'operator'        => array('render' => FALSE),
       'status'          => array('render' => FALSE),
       'user'            => array('render' => FALSE),
@@ -216,7 +216,7 @@ class Model_SPECS extends SGS_Form_ORM {
   {
     extract(SGS::parse_grade(trim($row[J])));
     extract(SGS::parse_specs_number(trim($csv[2][I] ?: $csv[2][J] ?: $csv[2][K])));
-    extract(SGS::parse_epr_number(trim($csv[3][I] ?: $csv[3][J] ?: $csv[3][K])));
+    extract(SGS::parse_exp_number(trim($csv[3][I] ?: $csv[3][J] ?: $csv[3][K])));
     $data = array(
       'barcode'         => SGS::barcodify(trim($row[B] ?: $row[C])),
       'species_code'    => trim($row[D]),
@@ -234,11 +234,11 @@ class Model_SPECS extends SGS_Form_ORM {
       'operator_tin'    => trim($csv[4][C] ?: $csv[4][D]),
 //      'contract_number' => trim($csv[3][I] ?: $csv[3][J] ?: $csv[3][K]),
       'specs_number'    => $specs_number,
-      'epr_number'      => $epr_number,
+      'exp_number'      => $exp_number,
       'origin'          => trim($csv[5][C] ?: $csv[5][D]),
       'destination'     => trim($csv[6][C] ?: $csv[6][D]),
       'specs_barcode'   => SGS::barcodify(trim($csv[2][C] ?: $csv[2][D])),
-      'epr_barcode'     => SGS::barcodify(trim($csv[3][C] ?: $csv[3][D])),
+      'exp_barcode'     => SGS::barcodify(trim($csv[3][C] ?: $csv[3][D])),
     ) + $data);
   }
 
@@ -250,14 +250,14 @@ class Model_SPECS extends SGS_Form_ORM {
 
       case 'barcode':
       case 'specs_barcode':
-      case 'epr_barcode':
+      case 'exp_barcode':
         $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
 
       case 'specs_number':
         $this->specs_id = SGS::lookup_specs($value, TRUE); break;
 
-      case 'epr_number':
-        $this->epr_id = SGS::lookup_epr($value, TRUE); break;
+      case 'exp_number':
+        $this->exp_id = SGS::lookup_exp($value, TRUE); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;
@@ -325,10 +325,10 @@ class Model_SPECS extends SGS_Form_ORM {
     }
 
     $excel->getActiveSheet()->SetCellValue('C2', $this->specs_barcode->barcode);
-    $excel->getActiveSheet()->SetCellValue('C3', $this->epr_barcode->barcode);
+    $excel->getActiveSheet()->SetCellValue('C3', $this->exp_barcode->barcode);
 //    $excel->getActiveSheet()->SetCellValue('I3', $this->contract_number);
     $excel->getActiveSheet()->SetCellValue('I2', $this->specs_number);
-    $excel->getActiveSheet()->SetCellValue('I3', $this->epr_number);
+    $excel->getActiveSheet()->SetCellValue('I3', $this->exp_number);
     $excel->getActiveSheet()->SetCellValue('C4', $this->operator->tin);
     $excel->getActiveSheet()->SetCellValue('I4', $this->operator->name);
     $excel->getActiveSheet()->SetCellValue('C5', $this->origin);
@@ -404,7 +404,7 @@ class Model_SPECS extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('C3', $values['barcode']);
 //    $excel->getActiveSheet()->SetCellValue('I3', $values['contract_number']);
     $excel->getActiveSheet()->SetCellValue('I2', $values['specs_number']);
-    $excel->getActiveSheet()->SetCellValue('I3', $values['epr_number']);
+    $excel->getActiveSheet()->SetCellValue('I3', $values['exp_number']);
     $excel->getActiveSheet()->SetCellValue('C4', $values['operator_tin']);
     $excel->getActiveSheet()->SetCellValue('I4', SGS::lookup_operator($values['operator_tin'])->name);
     $excel->getActiveSheet()->SetCellValue('C5', $values['origin']);
@@ -434,7 +434,7 @@ class Model_SPECS extends SGS_Form_ORM {
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', $options['min_length'], $options['limit'], $options['offset']);
           break;
-        case 'epr_barcode':
+        case 'exp_barcode':
           $args = array(
             'barcodes.type' => array('P', 'E'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
@@ -485,7 +485,7 @@ class Model_SPECS extends SGS_Form_ORM {
     // reliability
     if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->barcode->printjob->site->operator->tin);
     if (!($this->operator_id == $this->specs_barcode->printjob->site->operator_id)) $warnings['specs_barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->specs_barcode->printjob->site->operator->tin);
-    if (!($this->operator_id == $this->epr_barcode->printjob->site->operator_id)) $warnings['epr_barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->epr_barcode->printjob->site->operator->tin);
+    if (!($this->operator_id == $this->exp_barcode->printjob->site->operator_id)) $warnings['exp_barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->exp_barcode->printjob->site->operator->tin);
     if (!(in_array('is_consistent_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->operator->tin);
 
     // consistency
@@ -499,9 +499,9 @@ class Model_SPECS extends SGS_Form_ORM {
       default:  $warnings['specs_barcode_id']['is_valid_specs_barcode'] = array('value' => SGS::$barcode_type[$this->specs_barcode->type], 'comparison' => SGS::$barcode_type['H']); break;
     }
 
-    switch ($this->epr_barcode->type) {
-      case 'E': $successes['epr_barcode_id']['is_valid_epr_barcode'] = array('value' => SGS::$barcode_type[$this->epr_barcode->type], 'comparison' => SGS::$barcode_type['E']); break;
-      default:  $warnings['epr_barcode_id']['is_valid_epr_barcode'] = array('value' => SGS::$barcode_type[$this->epr_barcode->type], 'comparison' => SGS::$barcode_type['E']); break;
+    switch ($this->exp_barcode->type) {
+      case 'E': $successes['exp_barcode_id']['is_valid_exp_barcode'] = array('value' => SGS::$barcode_type[$this->exp_barcode->type], 'comparison' => SGS::$barcode_type['E']); break;
+      default:  $warnings['exp_barcode_id']['is_valid_exp_barcode'] = array('value' => SGS::$barcode_type[$this->exp_barcode->type], 'comparison' => SGS::$barcode_type['E']); break;
     }
 
     $parent = ORM::factory('LDF')
@@ -592,7 +592,7 @@ class Model_SPECS extends SGS_Form_ORM {
       'barcode_id'         => array(array('not_empty'),
                                     array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'specs_barcode_id'   => array(array('not_empty')),
-      'epr_barcode_id'     => array(array('not_empty')),
+      'exp_barcode_id'     => array(array('not_empty')),
       'top_min'            => array(array('not_empty'),
                                     array('is_measurement_int')),
       'top_max'            => array(array('not_empty'),
@@ -627,7 +627,7 @@ class Model_SPECS extends SGS_Form_ORM {
                                 array('is_existing_barcode')),
       'specs_barcode'  => array(array('is_barcode', array(':value', TRUE)),
                                 array('is_existing_barcode')),
-      'epr_barcode'    => array(array('is_barcode', array(':value', TRUE)),
+      'exp_barcode'    => array(array('is_barcode', array(':value', TRUE)),
                                 array('is_existing_barcode')),
       'species_code'   => array(array('not_empty'),
                                 array('is_species_code'),
@@ -643,10 +643,10 @@ class Model_SPECS extends SGS_Form_ORM {
       'species_id'       => 'Species',
       'barcode_id'       => self::$fields['barcode'],
       'specs_barcode_id' => self::$fields['specs_barcode'],
-      'epr_barcode_id'   => self::$fields['epr_barcode'],
+      'exp_barcode_id'   => self::$fields['exp_barcode'],
 //      'contract_number'  => self::$fields['contract_number'],
       'specs_id'         => self::$fields['specs_number'],
-      'epr_id'           => self::$fields['epr_number'],
+      'exp_id'           => self::$fields['exp_number'],
       'origin'           => self::$fields['origin'],
       'destination'      => self::$fields['destination'],
       'bottom_max'       => self::$fields['bottom_max'],

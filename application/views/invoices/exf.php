@@ -287,14 +287,14 @@ $options = (array) $options + array(
         <td><?php if ($specs_number) echo $specs_number; ?></td>
       </tr>
       <tr>
-        <td class="label epr_barcode">Export Permit Barcode:</td>
-        <td><?php if ($epr_barcode) echo $epr_barcode; ?></td>
+        <td class="label exp_barcode">Export Permit Barcode:</td>
+        <td><?php if ($exp_barcode) echo $exp_barcode; ?></td>
       </tr>
       <tr>
         <td class="label label-left">Telephone:</td>
         <td class="desc-left"><?php echo $operator->phone; ?></td>
-        <td class="label epr_number">Export Permit Number:</td>
-        <td><?php if ($epr_number) echo $epr_number; ?></td>
+        <td class="label exp_number">Export Permit Number:</td>
+        <td><?php if ($exp_number) echo $exp_number; ?></td>
       </tr>
       <tr>
         <td class="label label-left">E-mail:</td>

@@ -8,7 +8,7 @@ $options = (array) $options + array(
   'details' => TRUE,
   'links'   => TRUE,
   'actions' => FALSE,
-  'header'  => ($site or $operator or $specs_info or $epr_info) ? TRUE : FALSE,
+  'header'  => ($site or $operator or $specs_info or $exp_info) ? TRUE : FALSE,
 );
 
 $header_columns = 0;
@@ -37,8 +37,8 @@ $classes[] = 'data';
         else if ($specs_info) echo $specs_info['barcode'];
       ?>
     </td>
-    <td class="label"><?php if ($epr_info) echo 'Permit Request Barcode:'; ?></td>
-    <td><?php if ($epr_info) echo $epr_info['barcode']; ?></td>
+    <td class="label"><?php if ($exp_info) echo 'Export Permit Barcode:'; ?></td>
+    <td><?php if ($exp_info) echo $exp_info['barcode']; ?></td>
   </tr>
   <tr>
     <td class="label">TIN:</td>
@@ -55,8 +55,8 @@ $classes[] = 'data';
         else if ($specs_info) echo $specs_info['number'];
       ?>
     </td>
-    <td class="label"><?php if ($epr_info) echo 'Permit Request Number:'; ?></td>
-    <td><?php if ($epr_info) echo $epr_info['number']; ?></td>
+    <td class="label"><?php if ($exp_info) echo 'Export Permit Number:'; ?></td>
+    <td><?php if ($exp_info) echo $exp_info['number']; ?></td>
   </tr>
 </table>
 <?php endif; ?>
@@ -93,10 +93,10 @@ $classes[] = 'data';
         case 'specs_barcode_id';
         case 'specs_id':
         case 'specs_number':
-        case 'epr_barcode':
-        case 'epr_barcode_id':
-        case 'epr_id':
-        case 'epr_number':
+        case 'exp_barcode':
+        case 'exp_barcode_id':
+        case 'exp_id':
+        case 'exp_number':
           $header_columns++;
           continue 2;
       endswitch;
@@ -139,10 +139,10 @@ $classes[] = 'data';
         case 'specs_barcode_id';
         case 'specs_id':
         case 'specs_number':
-        case 'epr_barcode':
-        case 'epr_barcode_id':
-        case 'epr_id':
-        case 'epr_number':
+        case 'exp_barcode':
+        case 'exp_barcode_id':
+        case 'exp_id':
+        case 'exp_number':
           continue 2;
       endswitch;
     ?>
@@ -155,12 +155,12 @@ $classes[] = 'data';
           case 'species_id': if ($record->species) echo $record->species->code; break;
 
           case 'specs_id': echo $record->specs_number; break;
-          case 'epr_id': echo $record->epr_number; break;
+          case 'exp_id': echo $record->exp_number; break;
 
           case 'barcode_id':
           case 'tree_barcode_id':
           case 'stump_barcode_id':
-          case 'epr_barcode_id':
+          case 'exp_barcode_id':
           case 'specs_barcode_id':
           case 'parent_barcode_id': echo ORM::factory('barcode', $record->$field)->barcode; break;
 
