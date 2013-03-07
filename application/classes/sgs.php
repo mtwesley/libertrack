@@ -261,16 +261,17 @@ class SGS {
   );
 
   public static $operation_type = array(
-    'SSF'   => 'Stock Survey Form',
-    'TDF'   => 'Tree Data Form',
-    'LDF'   => 'Log Data Form',
-    'MIF'   => 'Mill Input Form',
-    'MOF'   => 'Mill Output Form',
-    'SPECS' => 'Shipping Specification Form',
-    'EXP'   => 'Export Permit Request Form',
-    'INV'   => 'Invoice',
-    'PJ'    => 'Print Job',
-    'UNKWN' => 'Unknown'
+    'SSF'    => 'Stock Survey',
+    'TDF'    => 'Tree Data',
+    'LDF'    => 'Log Data',
+    'MIF'    => 'Mill Input',
+    'MOF'    => 'Mill Output',
+    'SPECS'  => 'Shipping Specification',
+    'EXP'    => 'Export Permit',
+    'CHECKS' => 'Checks and Queries Report',
+    'INV'    => 'Invoice',
+    'PJ'     => 'Print Job',
+    'UNKWN'  => 'Unknown'
   );
 
   public static $species_code = array(
@@ -300,7 +301,6 @@ class SGS {
     'MIF'   => 'Mill Input Form',
     'MOF'   => 'Mill Output Form',
     'SPECS' => 'Shipping Specification Form',
-    'EXP'   => 'Export Permit Request Form'
   );
 
   public static $barcode_type = array(
@@ -866,6 +866,14 @@ class SGS {
 
   public static function render_form_toggle($title) {
     return '<div class="toggle-form"><span>'.$title.'</span></div>';
+  }
+
+  public static function barcode_to_form_type($type) {
+    switch ($type) {
+      case 'T': return 'SSF';
+      case 'F': return 'TDF';
+      case 'L': return 'LDF';
+    }
   }
 
 }

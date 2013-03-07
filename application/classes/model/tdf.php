@@ -491,9 +491,7 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     // traceability
-    $parent = ORM::factory('SSF')
-      ->where('barcode_id', '=', $this->tree_barcode->id)
-      ->find();
+    $parent = $this->parent();
 
     if ($parent and $parent->loaded()) {
       if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);

@@ -423,6 +423,7 @@ class Model_LDF extends SGS_Form_ORM {
     $parent = $this->parent();
 
     if ($parent and $parent->loaded()) {
+      if ($parent->status != 'U') $parent->run_checks();
       if ($parent->status != 'A') $errors['parent_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
       else $successes['parent_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
 
@@ -595,67 +596,66 @@ class Model_LDF extends SGS_Form_ORM {
     );
   }
 
-  public function siblings() {
-    $sql = "SELECT barcode_id
-            FROM barcode_hops_cached
-            WHERE parent_id = $this->parent_barcode_id
-              AND hops = 1";
-
-    return ORM::factory('LDF')
-      ->where('barcode_id', 'IN', DB::expr("($sql)"))
-      ->find_all()
+  public function parents($max_hops = NULL, $type = NULL) {
+    $query = DB::select('barcode_hops_cached.parent_id', 'type')
+      ->from('barcode_hops_cached')
+      ->join('barcodes')
+      ->on('barcode_hops_cached.parent_id', '=', 'barcodes.id')
+      ->where('barcode_hops_cached.barcode_id', '=', $this->barcode->id);
+    if ($max_hops) $query->and_where('hops', '<=', $max_hops);
+    $results = $query
+      ->order_by('hops', 'ASC')
+      ->execute()
       ->as_array();
-  }
 
-  public function children($hops = array()) {
-    $sql = "SELECT barcode_id
-            FROM barcode_hops_cached
-            WHERE parent_id = $this->barcode_id
-              AND hops = 1";
+    foreach ($results as $result) {
+      $form_type = SGS::barcode_to_form_type($result['type']);
+      if (!$form_type or ($type and ($type != $form_type))) continue;
 
-    return ORM::factory('LDF')
-      ->where('barcode_id', 'IN', DB::expr("($sql)"))
-      ->find_all()
-      ->as_array();
-  }
+      $parent = ORM::factory($form_type)
+        ->where('barcode_id', '=', $result['parent_id'])
+        ->find();
 
-  public function childrens($hops = array()) {
-    $sql = "SELECT barcode_id
-            FROM barcode_hops_cached
-            WHERE parent_id = $this->barcode_id";
-    if ($hops) $sql .= " AND hops IN (".implode(',', $hops).")";
+      if ($parent->loaded() and $this->barcode->type == 'L' and $parent->barcode->type == 'F' and
+          $parent_parent = $parent->parent() and $parent_parent->barcode->type == 'F')
+        $parent = ORM::factory($type ?: 'LDF')
+          ->where('barcode_id', '=', $result['parent_id'])
+          ->find();
 
-    return ORM::factory('LDF')
-      ->where('barcode_id', 'IN', DB::expr("($sql)"))
-      ->find_all()
-      ->as_array();
-  }
-
-  public function parents($hops = array()) {
-    $sql = "SELECT parent_id
-            FROM barcode_hops_cached
-            WHERE barcode_id = $this->barcode_id";
-    if ($hops) $sql .= " AND hops IN (".implode(',', $hops).")";
-
-    return ORM::factory('LDF')
-        ->where('barcode_id', 'IN', DB::expr("($sql)"))
-        ->find_all()
-        ->as_array() +
-      ORM::facotry('TDF')
-        ->where('barcode_id', 'IN', DB::expr("($sql)"))
-        ->find_all()
-        ->as_array();
-  }
-
-  public function parent() {
-    switch ($this->parent_barcode->type) {
-      case 'F': $form_type = 'TDF'; break;
-      case 'L': $form_type = 'LDF'; break;
+      if ($parent->loaded()) $parents[] = $parent;
     }
 
-    return $form_type ? ORM::factory('TDF')
-      ->where('barcode_id', '=', $this->parent_barcode->id)
-      ->find() : NULL;
+    return array_filter((array) $parents);
   }
 
+  public function childrens($max_hops = NULL, $type = NULL) {
+    $query = DB::select('barcode_hops_cached.barcode_id', 'type')
+      ->from('barcode_hops_cached')
+      ->join('barcodes')
+      ->on('barcode_hops_cached.barcode_id', '=', 'barcodes.id')
+      ->where('barcode_hops_cached.parent_id', '=', $this->barcode->id);
+    if ($max_hops) $query->and_where('hops', '<=', $max_hops);
+    $results = $query
+      ->order_by('hops', 'ASC')
+      ->execute()
+      ->as_array();
+
+    foreach ($results as $result) {
+      $form_type = SGS::barcode_to_form_type($result['type']);
+      if (!$form_type or ($type and ($type != $form_type))) continue;
+
+      $child = ORM::factory($form_type)
+        ->where('barcode_id', '=', $result['barcode_id'])
+        ->find();
+
+      if ($child->loaded() and $this->barcode->type == 'F' and $child->barcode->type == 'F')
+        $child = ORM::factory($type ?: 'LDF')
+          ->where('barcode_id', '=', $result['barcode_id'])
+          ->find();
+
+      if ($child->loaded()) $children[] = $child;
+    }
+
+    return array_filter((array) $children);
+  }
 }

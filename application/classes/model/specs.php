@@ -15,6 +15,12 @@ class Model_SPECS extends SGS_Form_ORM {
     'exp_barcode'  => array(
       'model'       => 'barcode',
       'foreign_key' => 'exp_barcode_id'),
+    'specs' => array(
+      'model'       => 'specsdocument',
+      'foreign_key' => 'specs_id'),
+    'exp' => array(
+      'model'       => 'expdocument',
+      'foreign_key' => 'exp_id'),
     'species'  => array(),
     'user'     => array(),
   );

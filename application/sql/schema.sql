@@ -31,7 +31,7 @@ create domain d_file_type as character varying(100);
 
 create domain d_operation as character(1) check (value ~ E'^[IEAU]$');
 
-create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|CHECKS|EPR|PJ|INV|UNKWN)$');
+create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR|CHECKS|EXP|PJ|INV|UNKWN)$');
 
 create domain d_species_code as character varying(5) check (value ~ E'^[A-Z]{3,5}$');
 
@@ -55,7 +55,7 @@ create domain d_barcode as character varying(13) check (value ~ E'^[0123456789AC
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHE]$');
 
-create domain d_error_type as character(1) check (value ~ E'^[EWP]$');
+create domain d_error_type as character(1) check (value ~ E'^[EWS]$');
 
 create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value < 1));
 
@@ -264,7 +264,8 @@ create table barcode_hops_cached (
   constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
   constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
 
-  constraint barcode_hops_cached_unique unique(barcode_id,parent_id)
+  constraint barcode_hops_cached_unique unique(barcode_id,parent_id),
+  constraint barcode_hops_cached_unique_parent unique(barcode_id,hops)
 );
 
 create table barcode_coc_activity (
@@ -562,8 +563,8 @@ create table specs_data (
   constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_specs_barcode_id_fkey foreign key (specs_barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_exp_barcode_id_fkey foreign key (exp_barcode_id) references barcodes (id) on update cascade,
-  constraint specs_data_specs_id_fkey foreign key (specs_id) references specs (id) on update cascade,
-  constraint specs_data_exp_id_fkey foreign key (exp_id) references exp (id) on update cascade,
+  constraint specs_data_specs_id_fkey foreign key (specs_id) references specs (id) on update cascade on delete set null,
+  constraint specs_data_exp_id_fkey foreign key (exp_id) references exp (id) on update cascade on delete set null,
   constraint specs_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
   constraint specs_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
@@ -620,7 +621,7 @@ create table revisions (
 create table tolerances (
   id bigserial not null,
   form_type d_form_type not null,
-  check d_text_short not null,
+  "check" d_text_short not null,
   accuracy_range d_measurement_float default 0 not null,
   tolerance_range d_measurement_float default 0 not null,
   user_id d_id default 1 not null,
@@ -629,7 +630,7 @@ create table tolerances (
   -- constraint tolerances_pkey primary key (id),
   constraint tolerances_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
-  constraint tolerances_unique unique(form_type,check)
+  constraint tolerances_unique unique(form_type,"check")
 );
 
 create table settings (
@@ -743,11 +744,11 @@ create index specs_data_volume on specs_data (id,volume);
 create index specs_data_grade on specs_data (id,grade);
 create index specs_data_status on specs_data (id,status);
 
-create index exp_data_operator_id on exp_data (id,operator_id);
-create index exp_data_barcode_id on exp_data (id,barcode_id);
-create index exp_data_barcode_type on exp_data (id,barcode_type);
-create index exp_data_request_number on exp_data (id,request_number);
-create index exp_data_status on exp_data (id,status);
+create index epr_data_operator_id on epr_data (id,operator_id);
+create index epr_data_barcode_id on epr_data (id,barcode_id);
+create index epr_data_barcode_type on epr_data (id,barcode_type);
+create index epr_data_request_number on epr_data (id,request_number);
+create index epr_data_status on epr_data (id,status);
 
 create index errors_form_type_data_id on errors (form_type,form_data_id);
 create index errors_field on errors (form_type,form_data_id,field);
@@ -904,7 +905,7 @@ $$
   declare x_id d_id;
   declare x_hops d_positive_int;
 begin
-  if x_barcode_id is null then
+  if (x_barcode_id is null) then
     truncate barcode_hops_cached;
 
     for x_id in select id from barcodes where parent_id is not null loop
@@ -957,7 +958,7 @@ create function barcodes_locks()
   returns trigger as
 $$
 begin
-  if (old.is_locked <> new.is_locked) and (new.is_locked = true) then
+  if (new.is_locked = true) then
     perform rebuild_barcode_locks(new.id, true);
   end if;
 

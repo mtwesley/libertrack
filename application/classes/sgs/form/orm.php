@@ -170,4 +170,62 @@ class SGS_Form_ORM extends ORM {
       ->get('id', NULL);
   }
 
+  public function parent($type = NULL) {
+    return reset($this->parents(1, $type)) ?: NULL;
+  }
+
+  public function parents($max_hops = NULL, $type = NULL) {
+    $query = DB::select('barcode_hops_cached.parent_id', 'type')
+      ->from('barcode_hops_cached')
+      ->join('barcodes')
+      ->on('barcode_hops_cached.parent_id', '=', 'barcodes.id')
+      ->where('barcode_hops_cached.barcode_id', '=', $this->barcode->id);
+    if ($max_hops) $query->and_where('hops', '<=', $max_hops);
+    $results = $query
+      ->order_by('hops', 'ASC')
+      ->execute()
+      ->as_array();
+
+    foreach ($results as $result) {
+      $form_type = SGS::barcode_to_form_type($result['type']);
+      if (!$form_type or ($type and ($type != $form_type))) continue;
+      $parents[] = ORM::factory($form_type)
+        ->where('barcode_id', '=', $result['parent_id'])
+        ->find();
+    }
+
+    return array_filter((array) $parents);
+  }
+
+  public function children($type = NULL) {
+    return $this->childrens(1, $type);
+  }
+
+  public function childrens($max_hops = NULL, $type = NULL) {
+    $query = DB::select('barcode_hops_cached.barcode_id', 'type')
+      ->from('barcode_hops_cached')
+      ->join('barcodes')
+      ->on('barcode_hops_cached.barcode_id', '=', 'barcodes.id')
+      ->where('barcode_hops_cached.parent_id', '=', $this->barcode->id);
+    if ($max_hops) $query->and_where('hops', '<=', $max_hops);
+    $results = $query
+      ->order_by('hops', 'ASC')
+      ->execute()
+      ->as_array();
+
+    foreach ($results as $result) {
+      $form_type = SGS::barcode_to_form_type($result['type']);
+      if (!$form_type or ($type and ($type != $form_type))) continue;
+      $children[] = ORM::factory($form_type)
+        ->where('barcode_id', '=', $result['barcode_id'])
+        ->find();
+    }
+
+    return array_filter((array) $children);
+  }
+
+  public function siblings($type = NULL) {
+    if ($parent = $this->parent()) return $parent->children($type);
+  }
+
 }
