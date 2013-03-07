@@ -5,17 +5,15 @@ alter table files alter column operation_type type character varying(6);
 drop domain d_operation_type;
 create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR|CHECKS|EXP|PJ|INV|UNKWN)$');
 
-create sequence s_epr_number minvalue 1;
-
 create domain d_exp_number as character(6) check (value ~ E'[0-9]{6,10}');
 
+alter table epr alter column number type d_exp_number;
 alter table epr rename to exp;
-alter table epr alter column number type exp_number;
 
 drop domain d_epr_number;
 
-alter table specs_data alter column epr_barcode_id rename to exp_barcode_id;
-alter table specs_data alter column epr_id rename to exp_id;
+alter table specs_data rename column epr_barcode_id to exp_barcode_id;
+alter table specs_data rename column epr_id to exp_id;
 
 create or replace function specs_data_update_barcodes()
   returns trigger as
@@ -69,11 +67,11 @@ alter table specs_data drop constraint specs_data_epr_barcode_id_fkey;
 drop index specs_data_epr_barcode_id;
 drop index specs_data_epr_id;
 
-drop sequence epr_id_seq;
+alter sequence epr_id_seq rename to exp_id_seq;
 
-alter table "epr" drop constraint epr_pkey;
-alter table "epr" drop constraint epr_final_check;
-alter table "epr" drop constraint epr_file_id_key;
+alter table "exp" drop constraint epr_pkey;
+alter table "exp" drop constraint epr_final_check;
+alter table "exp" drop constraint epr_file_id_key;
 
 alter table "exp" add constraint exp_pkey primary key (id);
 alter table "exp" add constraint exp_final_check check ((not ((((is_draft)::boolean = false) and (number is not null)) and (((is_draft)::boolean <> false) and (number is null)))));
