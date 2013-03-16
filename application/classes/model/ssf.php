@@ -139,8 +139,7 @@ class Model_SSF extends SGS_Form_ORM {
         $this->operator = SGS::lookup_operator($value); break;
 
       case 'site_name':
-        $this->site = SGS::lookup_site($value);
-        break;
+        $this->site = SGS::lookup_site($value); break;
 
       case 'block_name':
         $this->block = SGS::lookup_block($data['site_name'], $value); break;
@@ -154,8 +153,14 @@ class Model_SSF extends SGS_Form_ORM {
       case 'create_date':
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
+      case 'diameter':
+        $this->$key = SGS::floatify($value); break;
+
+      case 'height':
+        $this->$key = SGS::floatify($value, 1); break;
+
       default:
-        try { $this->$key = $value; } catch (Exception $e) {}
+        try { $this->$key = $value; } catch (Exception $e) {} break;
     }
   }
 
@@ -296,22 +301,22 @@ class Model_SSF extends SGS_Form_ORM {
             'barcodes.type' => array('T', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 5, $offset ?: 0);
           break;
         case 'operator_tin':
           $args = array(
             'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
           );
-          $suggest = SGS::suggest_operator($values[$field], $args, 'tin', TRUE, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
+          $suggest = SGS::suggest_operator($values[$field], $args, 'tin', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0);
           break;
         case 'site_name':
           $args = array(
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_site($values[$field], $args, 'name', TRUE, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
+          $suggest = SGS::suggest_site($values[$field], $args, 'name', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0);
           break;
         case 'species_code':
-          $suggest = SGS::suggest_species($values[$field], array(), 'code', TRUE, $min_length ?: 2, $limit ?: 10, $offset ?: 0);
+          $suggest = SGS::suggest_species($values[$field], array(), 'code', TRUE, $min_length ?: 2, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0);
           break;
       }
       if ($suggest) $suggestions[$field] = $suggest;
@@ -329,7 +334,7 @@ class Model_SSF extends SGS_Form_ORM {
         case 'barcode':
           $query = DB::select('id')
             ->from($this->_table_name)
-            ->where($field.'_id', '=', ($val = SGS::lookup_barcode($values[$field], TRUE)) ? $val : NULL);
+            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field], 'T', TRUE) ?: NULL);
 
           if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
           if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
@@ -345,14 +350,16 @@ class Model_SSF extends SGS_Form_ORM {
       ->from($this->_table_name)
       ->where('survey_line', '=', (int) $values['survey_line'])
       ->and_where('cell_number', '=', (int) $values['cell_number'])
-      ->and_where('tree_map_number', '=', (int) $values['tree_map_number']);
+      ->and_where('tree_map_number', '=', (int) $values['tree_map_number'])
+      ->and_where('diameter', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['diameter']), SGS::accuracy('TDF', 'is_matching_diameter')))
+      ->and_where('length', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['length'], 1), SGS::accuracy('TDF', 'is_matching_length')));
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
     if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
     if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
     if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
 
-    if ($duplicate = $query->execute()->get('id')) $duplicates[] = $duplicate;
+    if ($results = $query->execute()->as_array(NULL, 'id')) foreach (array_filter(array_unique($results)) as $duplicate) $duplicates[] = $duplicate;
     return $duplicates;
   }
 

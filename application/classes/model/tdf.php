@@ -34,11 +34,25 @@ class Model_TDF extends SGS_Form_ORM {
   public function __get($column) {
     switch ($column) {
       case 'diameter':
-        return (($this->bottom_min + $this->bottom_max) / 2);
+        return SGS::floatify(($this->bottom_min + $this->bottom_max) / 2);
 
       default:
         return parent::__get($column);
     }
+  }
+
+  public function save(Validation $validation = NULL) {
+    if ($this->barcode->type == 'L') {
+      if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P'))) $this->barcode = $barcode;
+      else try {
+        $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        unset($barcode->printjob);
+        $barcode->save();
+        $this->barcode = $barcode;
+      } catch (Exception $e) {die("Unable to fix TDF barcode.");}
+    }
+
+    parent::save($validation);
   }
 
   public static $type = 'TDF';
@@ -229,18 +243,15 @@ class Model_TDF extends SGS_Form_ORM {
         $this->operator = SGS::lookup_operator($value); break;
 
       case 'site_name':
-        $this->site = SGS::lookup_site($value);
-        break;
+        $this->site = SGS::lookup_site($value); break;
 
       case 'block_name':
-        $this->block = SGS::lookup_block($data['site_name'], $value);
-        break;
+        $this->block = SGS::lookup_block($data['site_name'], $value); break;
 
       case 'barcode':
       case 'tree_barcode':
       case 'stump_barcode':
         $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
-        break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;
@@ -248,8 +259,17 @@ class Model_TDF extends SGS_Form_ORM {
       case 'create_date':
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
+      case 'bottom_min':
+      case 'bottom_max':
+      case 'top_min':
+      case 'top_max':
+        $this->$key = SGS::floatify($value); break;
+
+      case 'length':
+        $this->$key = SGS::floatify($value, 1); break;
+
       default:
-        try { $this->$key = $value; } catch (Exception $e) {}
+        try { $this->$key = $value; } catch (Exception $e) {} break;
     }
   }
 
@@ -374,35 +394,41 @@ class Model_TDF extends SGS_Form_ORM {
     foreach ($errors as $field => $options) {
       extract($options);
       switch ($field) {
+        case 'barcode':
+          $args = array(
+            'barcodes.type' => array('F', 'L', 'P'), // could be either type, but must be assigned correct one later
+            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
+          );
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 5, $offset ?: 0);
+          break;
         case 'tree_barcode':
           $args = array(
-            'barcodes.type' => array('P', 'S'),
+            'barcodes.type' => array('T', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 5, $offset ?: 0);
           break;
-        case 'barcode':
         case 'stump_barcode':
           $args = array(
-            'barcodes.type' => array('F', 'P'),
+            'barcodes.type' => array('S', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 5, $offset ?: 0);
           break;
         case 'operator_tin':
           $args = array(
             'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
           );
-          $suggest = SGS::suggest_operator($values[$field], $args, 'tin', TRUE, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
+          $suggest = SGS::suggest_operator($values[$field], $args, 'tin', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0);
           break;
         case 'site_name':
           $args = array(
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_site($values[$field], $args, 'name', TRUE, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
+          $suggest = SGS::suggest_site($values[$field], $args, 'name', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0);
           break;
         case 'species_code':
-          $suggest = SGS::suggest_species($values[$field], array(), 'code', TRUE, $min_length ?: 2, $limit ?: 10, $offset ?: 0);
+          $suggest = SGS::suggest_species($values[$field], array(), 'code', TRUE, $min_length ?: 2, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0);
           break;
       }
       $suggestions[$field] = $suggest;
@@ -418,11 +444,14 @@ class Model_TDF extends SGS_Form_ORM {
       $duplicate = NULL;
       switch ($field) {
         case 'barcode':
+          $type = 'F';
         case 'tree_barcode':
+          $type = $type ?: 'T';
         case 'stump_barcode':
+          $type = $type ?: 'S';
           $query = DB::select('id')
             ->from($this->_table_name)
-            ->where($field.'_id', '=', ($val = SGS::lookup_barcode($values[$field], TRUE)) ? $val : NULL);
+            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field], $type, TRUE) ?: NULL);
 
           if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
           if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
@@ -437,14 +466,19 @@ class Model_TDF extends SGS_Form_ORM {
     $query = DB::select('id')
       ->from($this->_table_name)
       ->where('survey_line', '=', (int) $values['survey_line'])
-      ->and_where('cell_number', '=', (int) $values['cell_number']);
+      ->and_where('cell_number', '=', (int) $values['cell_number'])
+      ->and_where('bottom_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('bottom_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('length', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['length'], 1), SGS::accuracy(self::$type, 'is_matching_length')));
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
     if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
     if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
     if ($block_id    = SGS::lookup_block($values['site_name'], $values['block_name'], TRUE)) $query->and_where('block_id', '=', $block_id);
 
-    if ($duplicate = $query->execute()->get('id')) $duplicates[] = $duplicate;
+    if ($results = $query->execute()->as_array(NULL, 'id')) foreach (array_filter(array_unique($results)) as $duplicate) $duplicates[] = $duplicate;
     return $duplicates;
   }
 
@@ -491,7 +525,7 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     // traceability
-    $parent = $this->parent();
+    $parent = $this->parent('SSF');
 
     if ($parent and $parent->loaded()) {
       if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
@@ -504,19 +538,19 @@ class Model_TDF extends SGS_Form_ORM {
       if (!($this->site_id == $parent->site_id)) $errors['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $parent->site->name);
       if (!($this->block_id == $parent->block_id)) $errors['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $parent->block->name);
 
-      if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::tolerance('TDF', 'is_matching_survey_line'))) $errors['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
-      else if (!Valid::meets_tolerance($this->survey_line, $parent->survey_line, SGS::accuracy('TDF', 'is_matching_survey_line'))) $warnings['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
+      if (!Valid::is_accurate($this->survey_line, $parent->survey_line, SGS::tolerance('TDF', 'is_matching_survey_line'))) $errors['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
+      else if (!Valid::is_accurate($this->survey_line, $parent->survey_line, SGS::accuracy('TDF', 'is_matching_survey_line'))) $warnings['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
 
-      if (!Valid::meets_tolerance($this->length, $parent->height, SGS::tolerance('TDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
-      else if (!Valid::meets_tolerance($this->length, $parent->height, SGS::accuracy('TDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
+      if (!Valid::is_accurate($this->length, $parent->height, SGS::tolerance('TDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
+      else if (!Valid::is_accurate($this->length, $parent->height, SGS::accuracy('TDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
 
-      if (!Valid::meets_tolerance($diameter = (($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::tolerance('TDF', 'is_matching_diameter'))) {
-        $errors['bottom_min']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
-        $errors['bottom_max']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
+      if (!Valid::is_accurate($this->diameter, $parent->diameter, SGS::tolerance('TDF', 'is_matching_diameter'))) {
+        $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
+        $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
       }
-      else if (!Valid::meets_tolerance($diameter = (($this->bottom_min + $this->bottom_max) / 2), $parent->diameter, SGS::accuracy('TDF', 'is_matching_diameter'))) {
-        $warnings['bottom_min']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
-        $warnings['bottom_max']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
+      else if (!Valid::is_accurate($this->diameter, $parent->diameter, SGS::accuracy('TDF', 'is_matching_diameter'))) {
+        $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
+        $warnings['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
       }
 
       $successes['tree_barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Found');

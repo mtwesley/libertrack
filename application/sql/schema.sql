@@ -25,6 +25,12 @@ create domain d_measurement_int as int check (value >= 0);
 
 create domain d_measurement_float as real check (value >= 0);
 
+create domain d_length as numeric(8,1) check (value >= 0);
+
+create domain d_volume as numeric(8,3) check (value >= 0);
+
+create domain d_diameter as smallint (check value >= 0);
+
 create domain d_password as character(32) check (value ~ E'[0-9abcdef]');
 
 create domain d_file_type as character varying(100);
@@ -240,7 +246,7 @@ create table printjobs (
 
 create table barcodes (
   id bigserial not null,
-  barcode d_barcode unique not null,
+  barcode d_barcode not null,
   type d_barcode_type default 'P' not null,
   parent_id d_id default null,
   printjob_id d_id not null,
@@ -251,7 +257,9 @@ create table barcodes (
   constraint barcodes_pkey primary key (id),
   constraint barcodes_parent_id_fkey foreign key (parent_id) references barcodes (id) on update cascade on delete set null,
   constraint barcodes_printjob_id_fkey foreign key (printjob_id) references printjobs (id) on update cascade on delete cascade,
-  constraint barcodes_user_id_fkey foreign key (user_id) references users (id) on update cascade
+  constraint barcodes_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint barcodes_unique_type unique(barcode,type)
 );
 
 create table barcode_hops_cached (
@@ -405,8 +413,8 @@ create table ssf_data (
   survey_line d_survey_line not null,
   cell_number d_positive_int not null,
   tree_map_number d_positive_int not null,
-  diameter d_measurement_int not null,
-  height d_measurement_float not null,
+  diameter d_diameter not null,
+  height d_length not null,
   is_requested d_bool default true not null,
   is_fda_approved d_bool default true not null,
   fda_remarks d_text_long,
@@ -435,11 +443,11 @@ create table tdf_data (
   species_id d_id not null,
   survey_line d_survey_line not null,
   cell_number d_positive_int not null,
-  top_min d_measurement_int not null,
-  top_max d_measurement_int not null,
-  bottom_min d_measurement_int not null,
-  bottom_max d_measurement_int not null,
-  length d_measurement_float not null,
+  top_min d_diameter not null,
+  top_max d_diameter not null,
+  bottom_min d_diameter not null,
+  bottom_max d_diameter not null,
+  length d_length not null,
   action d_text_long,
   comment d_text_long,
   create_date d_date not null,
@@ -465,12 +473,12 @@ create table ldf_data (
   barcode_id d_id unique not null,
   parent_barcode_id d_id not null,
   species_id d_id not null,
-  top_min d_measurement_int not null,
-  top_max d_measurement_int not null,
-  bottom_min d_measurement_int not null,
-  bottom_max d_measurement_int not null,
-  length d_measurement_float not null,
-  volume d_measurement_float not null,
+  top_min d_diameter not null,
+  top_max d_diameter not null,
+  bottom_min d_diameter not null,
+  bottom_max d_diameter not null,
+  length d_length not null,
+  volume d_volume not null,
   action d_text_long,
   comment d_text_long,
   create_date d_date not null,
@@ -494,12 +502,12 @@ create table mif_data (
   barcode_id d_id unique not null,
   species_id d_id not null,
   batch_number d_positive_int not null,
-  top_min d_measurement_int not null,
-  top_max d_measurement_int not null,
-  bottom_min d_measurement_int not null,
-  bottom_max d_measurement_int not null,
-  length d_measurement_float not null,
-  volume d_measurement_float not null,
+  top_min d_diameter not null,
+  top_max d_diameter not null,
+  bottom_min d_diameter not null,
+  bottom_max d_diameter not null,
+  length d_length not null,
+  volume d_volume not null,
   status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -520,9 +528,9 @@ create table mof_data (
   batch_number d_positive_int not null,
   width d_measurement_float not null,
   height d_measurement_float not null,
-  length d_measurement_float not null,
+  length d_length not null,
   grade d_grade not null,
-  volume d_measurement_float not null,
+  volume d_volume not null,
   status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -544,13 +552,13 @@ create table specs_data (
   contract_number d_text_short,
   barcode_id d_id unique not null,
   species_id d_id not null,
-  top_min d_measurement_int not null,
-  top_max d_measurement_int not null,
-  bottom_min d_measurement_int not null,
-  bottom_max d_measurement_int not null,
-  length d_measurement_float not null,
+  top_min d_diameter not null,
+  top_max d_diameter not null,
+  bottom_min d_diameter not null,
+  bottom_max d_diameter not null,
+  length d_length not null,
   grade d_grade not null,
-  volume d_measurement_float not null,
+  volume d_volume not null,
   origin d_text_short,
   destination d_text_short,
   create_date d_date not null,
@@ -570,23 +578,6 @@ create table specs_data (
 
   constraint specs_data_specs_check check (specs_id is not null or specs_barcode_id is not null),
   constraint specs_data_exp_check check (exp_id is not null or exp_barcode_id is not null)
-);
-
-create table epr_data (
-  id bigserial not null,
-  request_number d_text_short not null,
-  operator_id d_id not null,
-  proposed_loading_date d_date not null,
-  barcode_id d_id unique not null,
-  barcode_type d_barcode_type not null,
-  status d_data_status default 'P' not null,
-  user_id d_id default 1 not null,
-  timestamp d_timestamp default current_timestamp not null,
-
-  constraint epr_data_pkey primary key (id),
-  constraint epr_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
-  constraint epr_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
-  constraint epr_data_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table errors (
@@ -668,6 +659,8 @@ create index barcodes_parent_id on barcodes (id,parent_id);
 create index barcodes_type on barcodes (id,type);
 create index barcodes_is_locked on barcodes (id,is_locked);
 
+create unique index barcodes_unique on barcodes (barcode) where type not in ('F','L','P');
+
 create index barcode_hops_cached_parent_id on barcode_hops_cached (barcode_id,parent_id);
 
 create index barcode_coc_activity_barcode_id_status on barcode_coc_activity (barcode_id,status);
@@ -744,12 +737,6 @@ create index specs_data_volume on specs_data (id,volume);
 create index specs_data_grade on specs_data (id,grade);
 create index specs_data_status on specs_data (id,status);
 
-create index epr_data_operator_id on epr_data (id,operator_id);
-create index epr_data_barcode_id on epr_data (id,barcode_id);
-create index epr_data_barcode_type on epr_data (id,barcode_type);
-create index epr_data_request_number on epr_data (id,request_number);
-create index epr_data_status on epr_data (id,status);
-
 create index errors_form_type_data_id on errors (form_type,form_data_id);
 create index errors_field on errors (form_type,form_data_id,field);
 create index errors_errors on errors (form_type,form_data_id,error);
@@ -762,13 +749,16 @@ create language plpgsql;
 
 -- functions
 
-create function lookup_barcode_id(x_barcode character varying(13))
+create function lookup_barcode_id(x_barcode character varying(13), x_type character varying(1))
   returns d_id as
 $$
   declare x_id d_id;
 begin
 
-  select id from barcodes where barcode = x_barcode limit 1 into x_id;
+  if x_type is null then
+    select id from barcodes where barcode = x_barcode limit 1 into x_id;
+  else
+    select id from barcodes where barcode = x_barcode and type = x_type limit 1 into x_id;
   return x_id;
 
 end
@@ -1123,19 +1113,6 @@ end
 $$ language 'plpgsql';
 
 
-create function epr_data_update_barcodes()
-  returns trigger as
-$$
-begin
-  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
-    update barcodes set is_locked = false where id = new.barcode_id;
-  end if;
-
-  return null;
-end
-$$ language 'plpgsql';
-
-
 create function invoice_data_update_barcodes()
   returns trigger as
 $$
@@ -1159,7 +1136,6 @@ begin
     when 'MIF'   then select barcode_id from mif_data where id = x_form_data_id into x_barcode_id;
     when 'MOF'   then select barcode_id from mof_data where id = x_form_data_id into x_barcode_id;
     when 'SPECS' then select barcode_id from specs_data where id = x_form_data_id into x_barcode_id;
-    when 'EPR'   then select barcode_id from epr_data where id = x_form_data_id into x_barcode_id;
     else return null;
   end case;
 
@@ -1257,11 +1233,6 @@ create trigger t_check_barcode_locks
 
 create trigger t_check_barcode_locks
   before delete on specs_data
-  for each row
-  execute procedure check_barcode_locks();
-
-create trigger t_check_barcode_locks
-  before delete on epr_data
   for each row
   execute procedure check_barcode_locks();
 

@@ -58,6 +58,7 @@ class Controller_Ajax extends Controller {
 
     $id      = $this->request->post('id');
     $actions = $this->request->post('actions');
+    $details = $this->request->post('details');
     $header  = $this->request->post('header');
 
     $csv   = ORM::factory('CSV', $id);
@@ -71,7 +72,7 @@ class Controller_Ajax extends Controller {
       ->set('fields', $fields)
       ->set('options', array(
         'table'   => FALSE,
-        'details' => FALSE,
+        'details' => $details ? TRUE: FALSE,
         'header'  => FALSE,
         'actions' => $actions ? TRUE : FALSE,
         'hide_header_info' => $header ? TRUE : FALSE

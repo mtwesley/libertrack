@@ -87,11 +87,11 @@ create index specs_data_exp_id on specs_data using btree (id, exp_id);
 
 -- other stuff
 
-drop sequence tolerances_id_seq;
 alter table invoices add constraint invoices_number_unique unique (type, number);
 
 alter table tdf_data add constraint tdf_data_barcode_id_key unique (barcode_id);
 alter table tdf_data add constraint tdf_data_stump_barcode_id_key unique (stump_barcode_id);
+
 alter table tdf_data add constraint tdf_data_barcode_id_fkey foreign key (barcode_id) references barcodes(id) on update cascade;
 alter table tdf_data add constraint tdf_data_stump_barcode_id_fkey foreign key (stump_barcode_id) references barcodes(id) on update cascade;
 
@@ -126,3 +126,5 @@ drop table epr_data cascade;
 
 alter domain d_error_type drop constraint d_error_type_check;
 alter domain d_error_type add check (value ~ E'^[EWS]$');
+
+

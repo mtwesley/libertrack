@@ -15,7 +15,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_existing_barcode($value)
   {
-    return (bool) SGS::lookup_barcode($value, TRUE);
+    return (bool) SGS::lookup_barcode($value, NULL, TRUE);
   }
 
   public static function is_existing_operator($value)
@@ -194,7 +194,7 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_char($value) AND preg_match('/^[0-9A-Za-z_]{3,24}$/', (string) $value));
   }
 
-  public static function meets_tolerance($value, $test, $tolerance = 0)
+  public static function is_accurate($value, $test, $tolerance = 0)
   {
     return (bool) ((($value - $tolerance) <= $test) AND (($value + $tolerance) >= $test));
   }

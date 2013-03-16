@@ -35,6 +35,19 @@ class SGS {
 
   const FEE_SGS_CONTRACT_RATE = 0.014;
 
+  const CONDITION_MATCHING = 'is_matching';
+  const CONDITION_EXISTING = 'is_existing';
+  const CONDITION_VALID = 'is_valid';
+
+  const PENDING_BARCODE = 'P';
+  const STANDING_TREE_BARCODE = 'T';
+  const FELLED_TREE_BARCODE = 'F';
+  const STUMP_BARCODE = 'S';
+  const LOG_BARCODE = 'L';
+  const SAWNMILL_TIMBER_BARCODE = 'R';
+  const SHIPMENT_SPECIFICATION_BARCODE = 'H';
+  const EXPORT_PERMIT_BARCODE = 'E';
+
   public static $path = array(
     'index'           => 'Home',
 
@@ -311,7 +324,7 @@ class SGS {
     'L' => 'Log',
     'R' => 'Sawnmill Timber',
     'H' => 'Shipment Specification',
-    'E' => 'Permit Request'
+    'E' => 'Export Permit'
   );
 
   public static $invoice_type = array(
@@ -428,17 +441,22 @@ class SGS {
 
   public static function db_range($from = NULL, $to = NULL, $is_us_date = FALSE, $fix = TRUE)
   {
-    if ($from) $from = self::datetime($from, self::PGSQL_DATETIME_FORMAT, $is_us_date, $fix);
-    else $from = '-infinity';
-
-    if ($to) $to = self::datetime($to, self::PGSQL_DATETIME_FORMAT, $is_us_date, $fix);
-    else $to = 'infinity';
+    $from = $from ? self::datetime($from, self::PGSQL_DATETIME_FORMAT, $is_us_date, $fix) : '-infinity';
+    $to = $to ? self::datetime($to, self::PGSQL_DATETIME_FORMAT, $is_us_date, $fix) : 'infinity';
 
     return array(
       $from,
       $to,
       'from' => $from,
       'to' => $to
+    );
+  }
+
+  public static function deviation_range($value, $deviation)
+  {
+    return array(
+      $value - $deviation,
+      $value + $deviation
     );
   }
 
@@ -460,6 +478,11 @@ class SGS {
       ->and_where('check', '=', $check)
       ->execute()
       ->get('tolerance_range');
+  }
+
+  public static function check($condition, $field)
+  {
+    return implode('_', array_filter(array($condition, $field)));
   }
 
   public static function lookup_operator($tin, $returning_id = FALSE)
@@ -498,15 +521,28 @@ class SGS {
     return $returning_id ? $id : ORM::factory('block', $id);
   }
 
-  public static function lookup_barcode($barcode, $returning_id = FALSE)
+  public static function create_or_lookup_barcode($barcode, $type, $returning_id = FALSE)
+  {
+    if ($barcode = self::lookup_barcode($barcode, $type, $returning_id)) return $barcode;
+    else if ($existing_barcode = self::lookup_barcode($barcode)) {
+
+    }
+  }
+
+  public static function lookup_barcode($barcode, $type = array(), $returning_id = FALSE, $returning_multiple = FALSE)
   {
     $id = DB::select('id')
       ->from('barcodes')
-      ->where('barcode', '=', (string) $barcode)
+      ->where('barcode', '=', (string) $barcode);
+    if ($type) $id->and_where('type', 'IN', (array) $type);
+    $id = $id
       ->execute()
-      ->get('id');
+      ->as_array(NULL, 'id');
 
-    return $returning_id ? $id : ORM::factory('barcode', $id);
+    if (count($id) == 1 or $returning_multiple == FALSE) return $returning_id ? reset($id) : ORM::factory('barcode', reset($id));
+    else $returning_id ? $id : ORM::factory('barcode')
+      ->where('id', 'IN', $id)
+      ->find_all();
   }
 
   public static function lookup_specs($number, $returning_id = FALSE)
@@ -559,7 +595,9 @@ class SGS {
     return $returning_id ? $id : ORM::factory('species', $id);
   }
 
-  public static function suggest($search, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset)
+
+
+  public static function suggest($search, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset)
   {
     try {
       DB::query(Database::SELECT, "SELECT similarity('a'::text, 'a'::text)")->execute();
@@ -568,8 +606,15 @@ class SGS {
       $similarity = FALSE;
     }
 
-    $objects  = array();
+    try {
+      DB::query(Database::SELECT, "SELECT levenshtein('a'::text, 'a'::text)")->execute();
+      $distance = TRUE;
+    } catch (Exception $e) {
+      $distance = FALSE;
+    }
+
     $ids      = array();
+    $objects  = array();
     $fetches  = array();
     $count    = 0;
     $grab     = 0;
@@ -591,13 +636,17 @@ class SGS {
             $query = call_user_func_array(array('DB', 'select'), array_merge(array(array($table.'.id', 'id')), (array) $fields))
               ->from($table);
             if ($similarity) {
-              $query = $query->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), 'DESC')
+              $query = $query
+                ->where(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), '>=', $min_similarity)
+                ->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), 'DESC')
                 ->offset($offset)
                 ->limit($limit);
             }
             else {
               $query = $query->where(DB::expr("regexp_replace(upper($match::text), E'[^0-9A-Z]', '')"), 'LIKE', '%'.preg_replace('/[^0-9A-Z]/', '', strtoupper($str)).'%');
             }
+
+            if ($distance) $query->where(DB::expr("levenshtein(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), '<=', $max_distance);
 
             foreach ((array) $query_args as $_query_args) {
               foreach ($_query_args as $key => $value) $query = call_user_func_array(array($query, $key), $value);
@@ -606,7 +655,7 @@ class SGS {
             foreach (array_filter((array) $args) as $key => $value) if ($value) $query = $query->and_where($key, 'IN', (array) $value);
             if ($ids) $query = $query->and_where($table.'.id', 'NOT IN', $ids);
 
-            foreach ($query->execute() as $result) {
+            foreach ($query->execute() as $result) if (!in_array($result['id'], $ids)) {
               $count++;
               $ids[] = $result['id'];
               if ($offset < $count && $return) $fetches[$count] = $return ? $result[$return] : $result['id'];
@@ -631,7 +680,7 @@ class SGS {
     }
   }
 
-  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 20, $offset = 0)
+  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $min_similarity = 0.7, $max_distance = 3, $limit = 20, $offset = 0)
   {
     $table  = 'barcodes';
     $model  = 'barcode';
@@ -651,10 +700,10 @@ class SGS {
     if (strlen($barcode) >= 10) $query_args[] = array('where' => array(DB::expr('character_length(barcodes.barcode)'), '=', 13));
     else $query_args[] = array('where' => array(DB::expr('character_length(barcodes.barcode)'), '=', 8));
 
-    return self::suggest($barcode, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
+    return self::suggest($barcode, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset);
   }
 
-  public static function suggest_operator($tin, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 5, $limit = 10, $offset = 0)
+  public static function suggest_operator($tin, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 5, $min_similarity = 0.7, $max_distance = 3, $limit = 10, $offset = 0)
   {
     $table  = 'operators';
     $model  = 'operator';
@@ -667,10 +716,10 @@ class SGS {
       $query_args[] = array('on' => array('operators.id', '=', 'sites.operator_id'));
 //      unset($args['sites.id']);
     }
-    return self::suggest($tin, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
+    return self::suggest($tin, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset);
   }
 
-  public static function suggest_site($name, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 5, $limit = 10, $offset = 0)
+  public static function suggest_site($name, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 5, $min_similarity = 0.7, $max_distance = 3, $limit = 10, $offset = 0)
   {
     $table  = 'sites';
     $model  = 'site';
@@ -686,10 +735,10 @@ class SGS {
 //      unset($args['operators.id']);
     }
 
-    return self::suggest($name, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
+    return self::suggest($name, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset);
   }
 
-  public static function suggest_species($code, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 2, $limit = 10, $offset = 0)
+  public static function suggest_species($code, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 2, $min_similarity = 0.7, $max_distance = 3, $limit = 10, $offset = 0)
   {
     $table  = 'species';
     $model  = 'species';
@@ -698,7 +747,7 @@ class SGS {
 
     $query_args = array();
 
-    return self::suggest($code, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $limit, $offset);
+    return self::suggest($code, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset);
   }
 
   public static function decode_error($field, $error, $values = array(), $errors = array())
@@ -815,14 +864,19 @@ class SGS {
     return implode(' and ', array_filter(array_merge(array(implode(', ', array_slice($array, 0, -1))), array_slice($array, -1))));
   }
 
-  public static function quantitify($float, $precision = 3)
+  public static function floatify($float, $precision = 0)
   {
     return number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
   }
 
-  public static function amountify($float, $precision = 2)
+  public static function quantitify($quantity, $precision = 3)
   {
-    return number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
+    return number_format(floor($quantity * pow(10, $precision)) / pow(10, $precision), $precision);
+  }
+
+  public static function amountify($amount, $precision = 2)
+  {
+    return number_format(floor($amount * pow(10, $precision)) / pow(10, $precision), $precision);
   }
 
   public static function locationify($string, $slash = '/')

@@ -29,11 +29,35 @@ class Model_LDF extends SGS_Form_ORM {
   public function __get($column) {
     switch ($column) {
       case 'diameter':
-        return (($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
+        return SGS::floatify(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
       default:
         return parent::__get($column);
     }
+  }
+
+  public function save(Validation $validation = NULL) {
+    if ($this->barcode->type == 'F') {
+      if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('L', 'P'))) $this->barcode = $barcode;
+      else try {
+        $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        unset($barcode->printjob);
+        $barcode->save();
+        $this->barcode = $barcode;
+      } catch (Exception $e) {die("Unable to fix LDF barcode.");}
+    }
+
+    if (($this->barcode->barcode == $this->parent_barcode) and ($this->parent_barcode->type == 'L')) {
+      if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P'))) $this->barcode = $barcode;
+      else try {
+        $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        unset($barcode->printjob);
+        $barcode->save();
+        $this->barcode = $barcode;
+      } catch (Exception $e) {die("Unable to fix LDF parent barcode.");}
+    }
+
+    parent::save($validation);
   }
 
   public static $type = 'LDF';
@@ -194,8 +218,7 @@ class Model_LDF extends SGS_Form_ORM {
         $this->operator = SGS::lookup_operator($value); break;
 
       case 'site_name':
-        $this->site = SGS::lookup_site($value);
-        break;
+        $this->site = SGS::lookup_site($value); break;
 
       case 'barcode':
       case 'parent_barcode':
@@ -207,8 +230,17 @@ class Model_LDF extends SGS_Form_ORM {
       case 'create_date':
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
+      case 'bottom_min':
+      case 'bottom_max':
+      case 'top_min':
+      case 'top_max':
+        $this->$key = SGS::floatify($value); break;
+
+      case 'length':
+        $this->$key = SGS::floatify($value, 1); break;
+
       default:
-        try { $this->$key = $value; } catch (Exception $e) {}
+        try { $this->$key = $value; } catch (Exception $e) {} break;
     }
   }
 
@@ -329,32 +361,32 @@ class Model_LDF extends SGS_Form_ORM {
       switch ($field) {
         case 'barcode':
           $args = array(
-            'barcodes.type' => array('L', 'P'),
+            'barcodes.type' => array('F', 'L', 'P'), // could be either type, but must be assigned correct one later
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 2, $limit ?: 10, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 5, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
           break;
         case 'parent_barcode':
           $args = array(
-            'barcodes.type' => array('P', 'F', 'L'),
+            'barcodes.type' => array('F', 'L', 'P'), // could be either type, but must be assigned correct one later
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 2, $limit ?: 10, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 5, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
           break;
         case 'operator_tin':
           $args = array(
             'sites.id' => SGS::suggest_site($values['site_name'], array(), 'id'),
           );
-          $suggest = SGS::suggest_operator($values[$field], $args, 'tin', TRUE, $min_length ?: 2, $limit ?: 10, $offset ?: 0, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
+          $suggest = SGS::suggest_operator($values[$field], $args, 'tin', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
           break;
         case 'site_name':
           $args = array(
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_site($values[$field], $args, 'name', TRUE, $min_length ?: 2, $limit ?: 10, $offset ?: 0, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
+          $suggest = SGS::suggest_site($values[$field], $args, 'name', TRUE, $min_length ?: 2, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
           break;
         case 'species_code':
-          $suggest = SGS::suggest_species($values[$field], array(), 'code', TRUE, $min_length ?: 2, $limit ?: 10, $offset ?: 0, $min_length ?: 2, $limit ?: 10, $offset ?: 0);
+          $suggest = SGS::suggest_species($values[$field], array(), 'code', TRUE, $min_length ?: 2, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0, $min_length ?: 2, $limit ?: 10, $offset ?: 0);
           break;
       }
       $suggestions[$field] = $suggest;
@@ -382,6 +414,21 @@ class Model_LDF extends SGS_Form_ORM {
       }
     }
 
+    // everything else
+    $query = DB::select('id')
+      ->from($this->_table_name)
+      ->where('bottom_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('bottom_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('length', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['length'], 1), SGS::accuracy(self::$type, 'is_matching_length')))
+      ->and_where('volume', 'BETWEEN', SGS::deviation_range(SGS::quantitify($values['volume']), SGS::accuracy(self::$type, 'is_matching_volume')));
+
+    if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
+    if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
+    if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);
+
+    if ($results = $query->execute()->as_array(NULL, 'id')) foreach (array_filter(array_unique($results)) as $duplicate) $duplicates[] = $duplicate;
     return $duplicates;
   }
 
@@ -446,24 +493,24 @@ class Model_LDF extends SGS_Form_ORM {
           $siblings['volume']   += $child->volume;
         }
 
-        $siblings['diameter'] = (float) SGS::amountify($siblings['diameter'] / count($siblngs), 0);
+        $siblings['diameter'] = (float) SGS::floatify($siblings['diameter'] / count($siblngs));
         $siblings['volume']   = (float) SGS::quantitify($siblings['volume'] / count($siblngs));
 
         if ($parent::$type == 'LDF') {
-          if (!Valid::meets_tolerance($siblings['volume'], $parent->volume, SGS::tolerance('LDF', 'is_matching_volume'))) $errors['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
-          else if (!Valid::meets_tolerance($siblings['volume'], $parent->volume, SGS::accuracy('LDF', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
+          if (!Valid::is_accurate($siblings['volume'], $parent->volume, SGS::tolerance('LDF', 'is_matching_volume'))) $errors['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
+          else if (!Valid::is_accurate($siblings['volume'], $parent->volume, SGS::accuracy('LDF', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
         }
 
-        if (!Valid::meets_tolerance($siblings['length'], $parent->length, SGS::tolerance('LDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
-        else if (!Valid::meets_tolerance($siblings['length'], $parent->length, SGS::accuracy('LDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
+        if (!Valid::is_accurate($siblings['length'], $parent->length, SGS::tolerance('LDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
+        else if (!Valid::is_accurate($siblings['length'], $parent->length, SGS::accuracy('LDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
 
-        if (!Valid::meets_tolerance($siblings['diameter'], $parent->diameter, SGS::tolerance('LDF', 'is_matching_diameter'))) {
+        if (!Valid::is_accurate($siblings['diameter'], $parent->diameter, SGS::tolerance('LDF', 'is_matching_diameter'))) {
           $errors['top_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $errors['top_max']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $errors['bottom_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $errors['bottom_max']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
         }
-        else if (!Valid::meets_tolerance($siblings['diameter'], $parent->diameter, SGS::accuracy('LDF', 'is_matching_diameter'))) {
+        else if (!Valid::is_accurate($siblings['diameter'], $parent->diameter, SGS::accuracy('LDF', 'is_matching_diameter'))) {
           $warnings['top_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $warnings['top_max']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $warnings['bottom_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
@@ -628,7 +675,7 @@ class Model_LDF extends SGS_Form_ORM {
     return array_filter((array) $parents);
   }
 
-  public function childrens($max_hops = NULL, $type = NULL) {
+  public function childrens($max_hops = NULL, $types = array()) {
     $query = DB::select('barcode_hops_cached.barcode_id', 'type')
       ->from('barcode_hops_cached')
       ->join('barcodes')
@@ -641,18 +688,19 @@ class Model_LDF extends SGS_Form_ORM {
       ->as_array();
 
     foreach ($results as $result) {
-      $form_type = SGS::barcode_to_form_type($result['type']);
-      if (!$form_type or ($type and ($type != $form_type))) continue;
+      $_types   = $types;
+      $_types[] = SGS::barcode_to_form_type($result['type']);
 
-      $child = ORM::factory($form_type)
-        ->where('barcode_id', '=', $result['barcode_id'])
-        ->find();
-
-      if ($child->loaded() and $this->barcode->type == 'F' and $child->barcode->type == 'F')
-        $child = ORM::factory($type ?: 'LDF')
+      foreach ($_types as $_type) {
+        $child = ORM::factory($_type)
           ->where('barcode_id', '=', $result['barcode_id'])
           ->find();
 
+        if ($child->loaded() and $this->barcode->type == 'F' and $child->barcode->type == 'F')
+          $child = ORM::factory($types ?: 'LDF')
+            ->where('barcode_id', '=', $result['barcode_id'])
+            ->find();
+      }
       if ($child->loaded()) $children[] = $child;
     }
 

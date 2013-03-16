@@ -23,18 +23,18 @@ var bPopupOptions = {
 
 $(function() {
 
-  $(".toggle-details").click(function() {
+  $(".toggle-details").live('click', function() {
     $(this).parent().parent("tr").next("tr.details").toggle();
   });
 
-  $(".details-tips-link").click(function() {
+  $(".details-tips-link").live('click', function() {
     $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
     $("#popup .popup-text").load('/ajax/tips', {id: $(this).attr('id')}, function() {
       $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
     });
   });
 
-  $(".details-suggestions-link").click(function() {
+  $(".details-suggestions-link").live('click', function() {
     $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
     $("#popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
       $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
@@ -52,7 +52,7 @@ $(function() {
     });
   });
 
-  $(".details-resolutions-link").click(function() {
+  $(".details-resolutions-link").live('click', function() {
     $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
     $("#popup .popup-text").load('/ajax/resolutions', {id: $(this).attr('id')}, function() {
       $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
@@ -156,20 +156,22 @@ function update_csv(id, new_id) {
   new_id = new_id || id;
 
   $("#csv-"+id).addClass('loading');
-  $("#csv-"+id).addClass('loading-small');
+//  $("#csv-"+id).addClass('loading-small');
   $("#csv-"+id).attr("id", "csv-"+id+"-deleted");
   $.post(
     "/ajax/update",
     {
       id: new_id,
       actions: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
+      details: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
       header: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0
     },
     function(data) {
+      $("#csv-"+id+"-deleted").next("tr.details").remove();
       $("#csv-"+id+"-deleted").replaceWith(data);
       $("#csv-"+new_id+" .csv-eip").editable("/ajax/csv", editableOptions);
-      $("#csv-"+new_id).next("tr.details").hide();
-      $("#csv-"+new_id).next("tr.details").children("td").text("").addClass('loading');
+//      $("#csv-"+new_id).next("tr.details").hide();
+//      $("#csv-"+new_id).next("tr.details").children("td").text("").addClass('loading');
     },
     "html"
   );

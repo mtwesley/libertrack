@@ -395,7 +395,7 @@ $options = (array) $options + array(
         <td class="scan_date"><?php echo $record['scan_date']; ?></td>
         <td class="species_code"><?php echo $record['species_code']; ?></td>
         <td class="species_class"><?php echo $record['species_class']; ?></td>
-        <td class="diameter"><?php echo $record['diameter']; ?></td>
+        <td class="diameter"><?php echo SGS::floatify($record['diameter']); ?></td>
         <td class="length"><?php echo SGS::quantitify($record['length'], 1); ?></td>
         <td class="volume"><?php echo SGS::quantitify($record['volume']); ?></td>
       </tr>
@@ -531,5 +531,5 @@ $options = (array) $options + array(
 </div>
 
 <?php if ($invoice->is_draft): ?>
-<!-- <img class="floater" src="<?php // echo DOCROOT; ?>images/invoice/draft_copy.png" /> -->
+<!-- <img class="floater" src="<?php // echo DOCROOT; ?>/images/invoice/draft_copy.png" /> -->
 <?php endif; ?>

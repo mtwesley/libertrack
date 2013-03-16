@@ -66,7 +66,7 @@ class Controller_Exporting extends Controller {
         ->on('barcode_id', '=', 'barcodes.id')
         ->order_by('barcode');
 
-      if (Valid::is_barcode($specs_info))   $data->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
+      if (Valid::is_barcode($specs_info))   $data->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
       else if (Valid::numeric($specs_info)) $data->where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
 
       if ($data) {
@@ -237,7 +237,7 @@ class Controller_Exporting extends Controller {
       if ($specs_info) {
         $ids = DB::select('id')
           ->from('specs_data');
-        if (Valid::is_barcode($specs_info))   $ids->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, TRUE));
+        if (Valid::is_barcode($specs_info))   $ids->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
         else if (Valid::numeric($specs_info)) $ids->where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
         $ids = $ids->compile(Database::instance());
 

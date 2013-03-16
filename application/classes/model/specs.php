@@ -67,12 +67,12 @@ class Model_SPECS extends SGS_Form_ORM {
     'create_date'     => 'Date Surveyed',
     'operator_tin'    => 'Operator TIN',
     'specs_number'    => 'Shipment Specification Number',
-    'exp_number'      => 'Permit Request Number',
+    'exp_number'      => 'Export Permit Number',
 //    'contract_number' => 'Contract Summary Number',
     'origin'          => 'Port of Origin',
     'destination'     => 'Port of Destination',
     'specs_barcode'   => 'Shipment Specification Barcode',
-    'exp_barcode'     => 'Permit Request Barcode',
+    'exp_barcode'     => 'Export Permit Barcode',
     'barcode'         => 'Log Barcode',
     'species_code'    => 'Species Code',
     'bottom_max'      => 'Butt Max',
@@ -101,10 +101,10 @@ class Model_SPECS extends SGS_Form_ORM {
           'warning' => 'Shipment specification barcode is not yet assigned',
          ),
         'is_valid_exp_barcode' => array(
-          'name'    => 'Export Permit Request Barcode Assignment',
-          'title'   => 'Export permit request barcode assignment is valid',
-          'error'   => 'Export permit request barcode assignment is invalid',
-          'warning' => 'Export permit request barcode is not yet assigned',
+          'name'    => 'Export Permit Barcode Assignment',
+          'title'   => 'Export permit barcode assignment is valid',
+          'error'   => 'Export permit barcode assignment is invalid',
+          'warning' => 'Export permit barcode is not yet assigned',
          )
     )),
     'reliability' => array(
@@ -271,8 +271,17 @@ class Model_SPECS extends SGS_Form_ORM {
       case 'create_date':
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
+      case 'bottom_min':
+      case 'bottom_max':
+      case 'top_min':
+      case 'top_max':
+        $this->$key = SGS::floatify($value); break;
+
+      case 'length':
+        $this->$key = SGS::floatify($value, 1); break;
+
       default:
-        try { $this->$key = $value; } catch (Exception $e) {}
+        try { $this->$key = $value; } catch (Exception $e) {} break;
     }
   }
 
@@ -311,7 +320,7 @@ class Model_SPECS extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('A1', 'Export Shipment Specification Form - Logs');
       $excel->getActiveSheet()->SetCellValue('I1', 'SF19C-1'); // don't know what this is for
       $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number');
-      $excel->getActiveSheet()->SetCellValue('A3', 'Permit Request Number');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Export Permit Number');
       $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number');
       $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN');
       $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name');
@@ -387,7 +396,7 @@ class Model_SPECS extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('A1', 'Export Shipment Specification Form - Logs');
       $excel->getActiveSheet()->SetCellValue('I1', 'SF19C-1'); // don't know what this is for
       $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number');
-      $excel->getActiveSheet()->SetCellValue('A3', 'Permit Request Number');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Export Permit Number');
       $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number');
       $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN');
       $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name');
@@ -424,34 +433,34 @@ class Model_SPECS extends SGS_Form_ORM {
   public function make_suggestions($values, $errors) {
     $suggestions = array();
     foreach ($errors as $field => $options) {
-      $suggest = NULL;
+      extract($options);
       switch ($field) {
         case 'barcode':
           $args = array(
-            'barcodes.type' => array('P', 'L'),
+            'barcodes.type' => array('L', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', $options['min_length'], $options['limit'], $options['offset']);
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 5, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
           break;
         case 'specs_barcode':
           $args = array(
-            'barcodes.type' => array('P', 'H'),
+            'barcodes.type' => array('H', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', $options['min_length'], $options['limit'], $options['offset']);
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 5, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
           break;
         case 'exp_barcode':
           $args = array(
-            'barcodes.type' => array('P', 'E'),
+            'barcodes.type' => array('E', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', $options['min_length'], $options['limit'], $options['offset']);
+          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 5, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
           break;
         case 'operator_tin':
-          $suggest = SGS::suggest_operator($values[$field], array(), 'tin', $options['min_length'], $options['limit'], $options['offset']);
+          $suggest = SGS::suggest_operator($values[$field], $args, 'tin', TRUE, $min_length ?: 5, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
           break;
         case 'species_code':
-          $suggest = SGS::suggest_species($values[$field], array(), 'code', $options['min_length'], $options['limit'], $options['offset']);
+          $suggest = SGS::suggest_species($values[$field], array(), 'code', TRUE, $min_length ?: 2, $min_similarity ?: 0.7, $max_distance ?: 3, $limit ?: 10, $offset ?: 0, $min_length ?: 2, $limit ?: 10, $offset ?: 0);
           break;
       }
       if ($suggest) $suggestions[$field] = $suggest;
@@ -478,6 +487,20 @@ class Model_SPECS extends SGS_Form_ORM {
       }
     }
 
+    // everything else
+    $query = DB::select('id')
+      ->from($this->_table_name)
+      ->where('bottom_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('bottom_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('length', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['length'], 1), SGS::accuracy(self::$type, 'is_matching_length')))
+      ->and_where('volume', 'BETWEEN', SGS::deviation_range(SGS::quantitify($values['volume']), SGS::accuracy(self::$type, 'is_matching_volume')));
+
+    if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
+    if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
+
+    if ($results = $query->execute()->as_array(NULL, 'id')) foreach (array_filter(array_unique($results)) as $duplicate) $duplicates[] = $duplicate;
     return $duplicates;
   }
 
@@ -522,19 +545,19 @@ class Model_SPECS extends SGS_Form_ORM {
       if (!($this->species->code == $parent->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);
       if (!($this->operator_id == $parent->operator_id)) $errors['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $parent->operator->tin);
 
-      if (!Valid::meets_tolerance($this->volume, $parent->volume, SGS::tolerance('SPECS', 'is_matching_volume'))) $errors['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $parent->volume);
-      else if (!Valid::meets_tolerance($this->volume, $parent->volume, SGS::accuracy('SPECS', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $parent->volume);
+      if (!Valid::is_accurate($this->volume, $parent->volume, SGS::tolerance('SPECS', 'is_matching_volume'))) $errors['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $parent->volume);
+      else if (!Valid::is_accurate($this->volume, $parent->volume, SGS::accuracy('SPECS', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $parent->volume);
 
-      if (!Valid::meets_tolerance($this->length, $parent->length, SGS::tolerance('SPECS', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->length);
-      else if (!Valid::meets_tolerance($this->length, $parent->length, SGS::accuracy('SPECS', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->length);
+      if (!Valid::is_accurate($this->length, $parent->length, SGS::tolerance('SPECS', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->length);
+      else if (!Valid::is_accurate($this->length, $parent->length, SGS::accuracy('SPECS', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->length);
 
-      if (!Valid::meets_tolerance($this->diameter, $parent->diameter, SGS::tolerance('SPECS', 'is_matching_diameter'))) {
+      if (!Valid::is_accurate($this->diameter, $parent->diameter, SGS::tolerance('SPECS', 'is_matching_diameter'))) {
         $errors['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
         $errors['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
         $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
         $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
       }
-      else if (!Valid::meets_tolerance($this->diameter, $parent->diameter, SGS::accuracy('SPECS', 'is_matching_diameter'))) {
+      else if (!Valid::is_accurate($this->diameter, $parent->diameter, SGS::accuracy('SPECS', 'is_matching_diameter'))) {
         $warnings['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
         $warnings['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
         $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);

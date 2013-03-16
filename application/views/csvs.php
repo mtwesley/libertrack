@@ -17,6 +17,7 @@ $header_columns = 0;
 $additional_columns = 3;
 
 if ($options['actions']) $classes[] = 'has-actions';
+if ($options['details']) $classes[] = 'has-details';
 if ($options['header'])  $classes[] = 'has-header';
 
 ?>
@@ -125,7 +126,7 @@ if ($options['header'])  $classes[] = 'has-header';
       <!-- <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?> -->
       <?php endif; ?>
 
-      <?php if ($options['details']): ?>
+      <?php if ($options['details'] and $errors = $csv->get_errors()): ?>
       <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
       <?php endif; ?>
 
@@ -142,12 +143,12 @@ if ($options['header'])  $classes[] = 'has-header';
           <?php foreach ($errors as $field => $array): ?>
           <?php foreach ((array) $array as $error): ?>
           <li>
-            <?php echo SGS::decode_error($field, $error, array(':field' => $fields[$field]), $values); ?>
             <?php if ($csv->status == 'U'): ?>
             <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-resolutions" class="details-link details-resolutions-link">Resolutions</span>
             <?php endif; ?>
             <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-suggestions" class="details-link details-suggestions-link">Suggestions</span>
             <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-tips" class="details-link details-tips-link">Tips</span>
+            <?php echo SGS::decode_error($field, $error, array(':field' => $fields[$field]), $values); ?>
           </li>
           <?php endforeach; ?>
           <?php endforeach; ?>

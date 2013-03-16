@@ -149,28 +149,54 @@ $classes[] = 'data';
     <td class="<?php if ($errors[$field]) print 'error'; else if ($warnings[$field]) print 'warning'; ?>">
       <?php
         switch ($field):
-          case 'operator_id': if ($record->operator) echo $record->operator->name; break;
-          case 'site_id': if ($record->site) echo $record->site->name; break;
-          case 'block_id': if ($record->block) echo $record->block->name; break;
-          case 'species_id': if ($record->species) echo $record->species->code; break;
+          case 'operator_id':
+            if ($record->operator) echo $record->operator->name; break;
 
-          case 'specs_id': echo $record->specs_number; break;
-          case 'exp_id': echo $record->exp_number; break;
+          case 'site_id':
+            if ($record->site) echo $record->site->name; break;
+
+          case 'block_id':
+            if ($record->block) echo $record->block->name; break;
+
+          case 'species_id':
+            if ($record->species) echo $record->species->code; break;
+
+          case 'specs_id':
+            echo $record->specs_number; break;
+
+          case 'exp_id':
+            echo $record->exp_number; break;
 
           case 'barcode_id':
           case 'tree_barcode_id':
           case 'stump_barcode_id':
           case 'exp_barcode_id':
           case 'specs_barcode_id':
-          case 'parent_barcode_id': echo ORM::factory('barcode', $record->$field)->barcode; break;
+          case 'parent_barcode_id':
+            echo ORM::factory('barcode', $record->$field)->barcode; break;
 
-          // dates
-          case 'create_date': echo SGS::date($record->$field); break;
+          case 'create_date':
+            echo SGS::date($record->$field); break;
 
-          // booleans
           case 'is_fda_approved':
-          case 'is_requested': echo $record->$field ? 'YES' : 'NO'; break;
-          default: echo $record->$field; break;
+          case 'is_requested':
+            echo $record->$field ? 'YES' : 'NO'; break;
+
+          case 'bottom_min':
+          case 'bottom_max':
+          case 'top_min':
+          case 'top_max':
+            echo SGS::floatify($record->$field); break;
+
+          case 'height':
+          case 'length':
+            echo SGS::floatify($record->$field, 1); break;
+
+          case 'volume':
+            echo SGS::quantitify($record->$field); break;
+
+          default:
+            echo $record->$field; break;
         endswitch;
       ?>
     </td>

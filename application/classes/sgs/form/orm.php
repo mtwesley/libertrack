@@ -170,11 +170,11 @@ class SGS_Form_ORM extends ORM {
       ->get('id', NULL);
   }
 
-  public function parent($type = NULL) {
-    return reset($this->parents(1, $type)) ?: NULL;
+  public function parent($types = array()) {
+    return reset($this->parents(1, $types)) ?: NULL;
   }
 
-  public function parents($max_hops = NULL, $type = NULL) {
+  public function parents($max_hops = NULL, $types = array()) {
     $query = DB::select('barcode_hops_cached.parent_id', 'type')
       ->from('barcode_hops_cached')
       ->join('barcodes')
@@ -187,21 +187,27 @@ class SGS_Form_ORM extends ORM {
       ->as_array();
 
     foreach ($results as $result) {
-      $form_type = SGS::barcode_to_form_type($result['type']);
-      if (!$form_type or ($type and ($type != $form_type))) continue;
-      $parents[] = ORM::factory($form_type)
-        ->where('barcode_id', '=', $result['parent_id'])
-        ->find();
+      $_types   = $types;
+      $_types[] = SGS::barcode_to_form_type($result['type']);
+      foreach ($_types as $_type) {
+        $parent = ORM::factory($_type)
+          ->where('barcode_id', '=', $result['parent_id'])
+          ->find();
+        if ($parent->loaded()) {
+          $parents[] = $parent;
+          break;
+        }
+      }
     }
 
     return array_filter((array) $parents);
   }
 
-  public function children($type = NULL) {
+  public function children($types = array()) {
     return $this->childrens(1, $type);
   }
 
-  public function childrens($max_hops = NULL, $type = NULL) {
+  public function childrens($max_hops = NULL, $types = array()) {
     $query = DB::select('barcode_hops_cached.barcode_id', 'type')
       ->from('barcode_hops_cached')
       ->join('barcodes')
@@ -214,11 +220,17 @@ class SGS_Form_ORM extends ORM {
       ->as_array();
 
     foreach ($results as $result) {
-      $form_type = SGS::barcode_to_form_type($result['type']);
-      if (!$form_type or ($type and ($type != $form_type))) continue;
-      $children[] = ORM::factory($form_type)
-        ->where('barcode_id', '=', $result['barcode_id'])
-        ->find();
+      $_types   = $types;
+      $_types[] = SGS::barcode_to_form_type($result['type']);
+      foreach ($_types as $_type) {
+        $child = ORM::factory($_type)
+          ->where('barcode_id', '=', $result['barcode_id'])
+          ->find();
+        if ($child->loaded()) {
+          $children[] = $child;
+          break;
+        }
+      }
     }
 
     return array_filter((array) $children);

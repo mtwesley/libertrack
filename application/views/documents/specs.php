@@ -323,11 +323,11 @@ $num = $cntr;
         <td class="number"><?php echo ++$num; ?></td>
         <td class="barcode"><?php echo $record->barcode->barcode; ?></td>
         <td class="species_code"><?php echo $record->species->code; ?></td>
-        <td class="bottom_max"><?php echo $record->bottom_max; ?></td>
-        <td class="bottom_min"><?php echo $record->bottom_min; ?></td>
-        <td class="top_max"><?php echo $record->top_max; ?></td>
-        <td class="top_min"><?php echo $record->top_min; ?></td>
-        <td class="length"><?php echo SGS::quantitify($record->length, 1); ?></td>
+        <td class="bottom_max"><?php echo SGS::floatify($record->bottom_max); ?></td>
+        <td class="bottom_min"><?php echo SGS::floatify($record->bottom_min); ?></td>
+        <td class="top_max"><?php echo SGS::floatify($record->top_max); ?></td>
+        <td class="top_min"><?php echo SGS::floatify($record->top_min); ?></td>
+        <td class="length"><?php echo SGS::floatify($record->length, 1); ?></td>
         <td class="grade"><?php echo $record->grade; ?></td>
         <td class="volume"><?php echo SGS::quantitify($record->volume); ?></td>
       </tr>
