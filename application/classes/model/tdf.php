@@ -536,7 +536,7 @@ class Model_TDF extends SGS_Form_ORM {
 
       if (!($this->operator_id == $parent->operator_id)) $errors['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $parent->operator->tin);
       if (!($this->site_id == $parent->site_id)) $errors['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $parent->site->name);
-      if (!($this->block_id == $parent->block_id)) $errors['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $parent->block->name);
+      if (!($this->block_id == $parent->block_id)) $warnings['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $parent->block->name);
 
       if (!Valid::is_accurate($this->survey_line, $parent->survey_line, SGS::tolerance('TDF', 'is_matching_survey_line'))) $errors['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
       else if (!Valid::is_accurate($this->survey_line, $parent->survey_line, SGS::accuracy('TDF', 'is_matching_survey_line'))) $warnings['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $parent->survey_line);
