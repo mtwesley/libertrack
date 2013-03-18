@@ -145,6 +145,32 @@ $(function() {
     }
   );
 
+  $("select.site_operatoropts").change(function() {
+    $("select.siteopts").load(
+      '/ajax/siteopts',
+      {
+        operator_id: $(this).val(),
+        hide_all: $(this).hasClass('hide-all') ? 1 : 0
+      }
+    );
+  });
+
+  $("select.siteopts").load(
+    '/ajax/siteopts',
+    {
+      operator_id: $("select.site_operatoropts").val(),
+      hide_all: $("select.site_operatoropts").hasClass('hide-all') ? 1 : 0
+    }
+  );
+
+
+  $(".autocomplete-barcode-barcode").autocomplete({
+    source: '/ajax/autocompletebarcode',
+    minLength: 3,
+    delay: 300,
+    appendTo: $(".autocomplete-barcode-barcode").parent()
+  });
+
 //  .next(".field.select").children("label").children(".field").children("select.blockopts").load(
 //    '/ajax/blockopts',
 //    {site_id: $(this).val()}

@@ -188,6 +188,26 @@ class Controller_Ajax extends Controller {
     $csv->resolve($new_id);
   }
 
+  public function action_siteopts() {
+    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+
+    $hide_all    = $this->request->post('hide_all') ? TRUE : FALSE;
+    $operator_id = $this->request->post('operator_id');
+
+    if ($hide_all and !$operator_id) return;
+
+    $query = DB::select('id', 'name')
+      ->from('sites')
+      ->order_by('name');
+    if ($operator_id) $query->where('operator_id', '=', $operator_id);
+
+    foreach (array('' => '') + $query
+      ->execute()
+      ->as_array('id', 'name') as $id => $name) $output .= '<option value="'.$id.'">'.$name.'</option>';
+
+    $this->response->body($output);
+  }
+
   public function action_blockopts() {
     if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
 
@@ -241,6 +261,15 @@ class Controller_Ajax extends Controller {
 
       $this->response->body($output);
     }
+  }
+
+  public function action_autocompletebarcode() {
+    $term = $this->request->post('term') ?: $this->request->query('term');
+
+    print json_encode(
+      array_filter(
+        array_values(SGS::suggest_barcode(strtoupper($term), array(), 'barcode', FALSE, 2, 0.5, 6, 5, 0))
+    ));
   }
 
 }

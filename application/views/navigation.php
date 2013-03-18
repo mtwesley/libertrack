@@ -132,6 +132,7 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($command == 'create')     echo 'active'; ?>"><?php echo HTML::anchor('exporting/specs/create', SGS::title('exporting/specs/create')); ?></li>
 
     <?php elseif ($primary == 'barcodes'): ?>
+    <li class="<?php if ($secondary == 'query')    echo 'active'; ?>"><?php echo HTML::anchor('barcodes/query', SGS::title('barcodes/query')); ?></li>
     <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('barcodes/list', SGS::title('barcodes/list')); ?></li>
     <li class="<?php if ($secondary == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('barcodes/upload', SGS::title('barcodes/upload')); ?></li>
     <li class="<?php if ($secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('barcodes/download', SGS::title('barcodes/download')); ?></li>

@@ -149,6 +149,8 @@
   top: -1px;
   color: #fafafa;
   background-color: #323232;
+  white-space: nowrap;
+  z-index: 100;
 }
 
 #content form p span.arrow {
@@ -159,6 +161,151 @@
   top: 2px;
   background-image: url('/images/err_msg_arrow.gif');
   background-repeat: no-repeat;
+}
+
+#content form.search {
+  margin: 5px 0;
+  padding: 2px 6px 4px;
+  border-top: 2px solid #c7d9ee;
+  background-color: #dde9f6;
+  clear: both;
+}
+
+#content form.search span.label {
+  padding: 0 5px 0 0;
+  width: auto;
+  display: inline;
+  float: none;
+  font-weight: bold;
+  text-align: left;
+}
+
+#content form.search span.field {}
+
+#content form.search p {
+  margin: 4px 10px 4px 0;
+  padding: 0;
+  clear: none;
+  display: inline-block;
+  position: relative;
+}
+
+#content form.search p.input input,
+#content form.search p.password input,
+#content form.search p.submit input,
+#content form.search p.textarea textarea,
+#content form.search p.forceselect select,
+#content form.search p.select select {
+  font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
+  font-size: 12px;
+  color: #333;
+}
+
+#content form.search p.input {}
+#content form.search p.password {}
+
+#content form.search p.input input,
+#content form.search p.textarea textarea,
+#content form.search p.password input {
+  padding: 4px;
+  border: none;
+  width: 400px;
+  background-color: #f1f6fb;
+}
+
+#content form.search p.submit {
+  margin-left: 0;
+  padding: 0;
+  text-align: left;
+}
+#content form.search p.submit input {
+  width: auto;
+  cursor: pointer;
+}
+
+#content form.search p.forceselect {}
+#content form.search p.select {}
+
+#content form.search p.forceselect select,
+#content form.search p.select select {
+  width: auto;
+}
+
+#content form.search p.textarea textarea {
+  height: 50px;
+}
+
+#content form.search p.checkboxes {}
+
+#content form.search p.checkboxes span.field {
+/*
+  margin-left: 165px;
+  margin-top: -20px;
+  display: inline-block;
+  clear: left;
+*/
+}
+
+#content form.search p.checkboxes span.checkbox {
+  white-space: nowrap;
+}
+
+#content form.search p span.error-message {
+  margin-left: 0;
+  padding: 5px 8px;
+  display: block;
+  position: absolute;
+  top: 28px;
+  color: #fafafa;
+  background-color: #323232;
+}
+
+#content form.search p span.arrow {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  left: 16px;
+  top: -16px;
+  background-image: url('/images/search_err_msg_arrow.png');
+  background-repeat: no-repeat;
+}
+
+#content form.search .ui-autocomplete,
+#content form.search .ui-autocomplete.ui-menu {
+  margin: 0;
+  padding: 20px 0 0 0;
+  width: 400px;
+  position: absolute !important;
+  top: 8px !important;
+  list-style: none;
+  background-image: url('/images/search_autocomplete_arrow.png');
+  background-position: center 2px;
+  background-repeat: no-repeat;
+}
+
+#content form.search .ui-autocomplete.ui-menu .ui-menu-item a {
+  padding: 4px;
+  border-top: 1px dotted #dde9f6;
+  border-left: 1px solid #c7d9ee;
+  border-right: 1px solid #c7d9ee;
+  background-color: #f8fafb;
+  color: #3c7fcb;
+  cursor: pointer;
+  display: block;
+}
+
+#content form.search .ui-autocomplete.ui-menu .ui-menu-item:first-child a {
+  border-top: 2px solid #c7d9ee;
+}
+
+#content form.search .ui-autocomplete.ui-menu .ui-menu-item:last-child a {
+  border-bottom: 1px solid #c7d9ee;
+}
+
+#content form.search .ui-autocomplete.ui-menu .ui-menu-item a:hover,
+#content form.search .ui-autocomplete.ui-menu .ui-menu-item a.ui-state-hover {
+  background-color: #f1f6fb;
+  color: #1764bd;
 }
 
 
@@ -507,4 +654,8 @@ ul.roles {
   padding: 3px 4px 1px;
   background-color: #d9c7ad;
   font-size: 10px;
+}
+
+.barcode-text {
+  text-transform: uppercase;
 }

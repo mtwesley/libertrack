@@ -84,6 +84,7 @@ class SGS {
     'admin/species'   => 'Species Configuration',
 
     'barcodes'          => 'Barcodes',
+    'barcodes/query'    => 'Query Barcodes',
     'barcodes/list'     => 'List Print Jobs',
     'barcodes/upload'   => 'Upload Print Jobs',
     'barcodes/download' => 'Download Print Jobs',
@@ -680,7 +681,7 @@ class SGS {
     }
   }
 
-  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 2, $min_similarity = 0.7, $max_distance = 3, $limit = 20, $offset = 0)
+  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 5, $min_similarity = 0.7, $max_distance = 3, $limit = 10, $offset = 0)
   {
     $table  = 'barcodes';
     $model  = 'barcode';

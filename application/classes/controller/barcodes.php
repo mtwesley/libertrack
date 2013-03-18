@@ -124,7 +124,7 @@ class Controller_Barcodes extends Controller {
       }
     }
 
-    if ($barcodes)  $table .= View::factory('barcodes')
+    if ($barcodes) $table .= View::factory('barcodes')
       ->set('classes', array('has-pagination'))
       ->set('barcodes', $barcodes);
 
@@ -403,6 +403,58 @@ class Controller_Barcodes extends Controller {
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
 
+  }
+
+  public function action_query() {
+    $operator_ids = DB::select('id', 'name')
+      ->from('operators')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    $site_ids = DB::select('id', 'name')
+      ->from('sites')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    $form = Formo::form(array('attr' => array('class' => 'search')))
+      ->add('barcode', 'input', array('label' => 'Barcode', 'rules' => array(array('min_length', array(':value', 3))), 'attr' => array('class' => 'barcode-text autocomplete-barcode-barcode')))
+      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'site_operatoropts')))
+      ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
+      ->add('submit', 'submit', 'Query');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $barcode     = strtoupper($form->barcode->val());
+      $operator_id = $form->operator_id->val();
+      $site_id     = $form->site_id->val();
+
+      if ($site_id)     $args['sites.id'] = $site_id;
+      if ($operator_id) $args['operators.id'] = $operator_id;
+
+      if (!$suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'barcode', TRUE, 2, 0.7, 6, 20, 0)) Notify::msg('No results found.');
+      else if (count($suggestions) == 1) Notify::msg('1 result found.', 'success');
+      else Notify::msg(count($suggestions). ' results found.', 'success');
+
+      $barcodes = array();
+      foreach ($suggestions as $suggestion) $barcodes[] = ORM::factory('barcode')
+        ->where('barcode', '=', $suggestion)
+        ->find_all()
+        ->as_array();
+
+      $barcodes = SGS::flattenify($barcodes);
+      if ($barcodes) $table = View::factory('barcodes')
+        ->set('barcodes', $barcodes);
+    }
+
+    $content .= $form->render();
+    $content .= $table;
+
+    $view = View::factory('main')
+      ->set('content', $content)
+      ->set('left', $left);
+
+    $this->response->body($view);
   }
 
 }
