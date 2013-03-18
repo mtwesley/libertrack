@@ -268,7 +268,7 @@ class Controller_Ajax extends Controller {
 
     print json_encode(
       array_filter(
-        array_values(SGS::suggest_barcode(strtoupper($term), array(), 'barcode', FALSE, 2, 0.5, 6, 5, 0))
+        array_values(SGS::suggest_barcode(strtoupper($term), array(), 'barcode', FALSE, 2, 0, 6, 5, 0))
     ));
   }
 
