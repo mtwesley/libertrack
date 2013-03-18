@@ -645,7 +645,7 @@ class SGS {
             if ($distance) {
               $query = $query
                 ->where(DB::expr("levenshtein(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), '<=', $max_distance)
-                ->order_by(DB::expr("levenshtein(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), 'ÅSC');
+                ->order_by(DB::expr("levenshtein(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), 'ASC');
             }
 
             if ($similarity or $distance) {
