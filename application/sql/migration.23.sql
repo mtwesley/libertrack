@@ -3,7 +3,7 @@
 
 create domain d_length as numeric(8,1) check (value >= 0);
 create domain d_volume as numeric(8,3) check (value >= 0);
-create domain d_diameter as smallint (check value >= 0);
+create domain d_diameter as smallint check (value >= 0);
 
 -- length and height
 
