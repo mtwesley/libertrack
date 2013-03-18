@@ -681,7 +681,7 @@ class SGS {
     }
   }
 
-  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 5, $min_similarity = 0.7, $max_distance = 3, $limit = 10, $offset = 0)
+  public static function suggest_barcode($barcode, $args = array('type' => 'P'), $return = FALSE, $match_exact = TRUE, $min_length = 5, $min_similarity = 0.3, $max_distance = 3, $limit = 10, $offset = 0)
   {
     $table  = 'barcodes';
     $model  = 'barcode';
@@ -704,7 +704,7 @@ class SGS {
     return self::suggest($barcode, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset);
   }
 
-  public static function suggest_operator($tin, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 5, $min_similarity = 0.7, $max_distance = 3, $limit = 10, $offset = 0)
+  public static function suggest_operator($tin, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 5, $min_similarity = 0.3, $max_distance = 3, $limit = 10, $offset = 0)
   {
     $table  = 'operators';
     $model  = 'operator';
@@ -720,7 +720,7 @@ class SGS {
     return self::suggest($tin, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset);
   }
 
-  public static function suggest_site($name, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 5, $min_similarity = 0.7, $max_distance = 3, $limit = 10, $offset = 0)
+  public static function suggest_site($name, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 5, $min_similarity = 0.3, $max_distance = 3, $limit = 10, $offset = 0)
   {
     $table  = 'sites';
     $model  = 'site';
@@ -739,7 +739,7 @@ class SGS {
     return self::suggest($name, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset);
   }
 
-  public static function suggest_species($code, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 2, $min_similarity = 0.7, $max_distance = 3, $limit = 10, $offset = 0)
+  public static function suggest_species($code, $args = array(), $return = FALSE, $match_exact = TRUE, $min_length = 2, $min_similarity = 0.3, $max_distance = 3, $limit = 10, $offset = 0)
   {
     $table  = 'species';
     $model  = 'species';

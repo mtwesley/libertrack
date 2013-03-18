@@ -432,7 +432,7 @@ class Controller_Barcodes extends Controller {
       if ($site_id)     $args['sites.id'] = $site_id;
       if ($operator_id) $args['operators.id'] = $operator_id;
 
-      if (!$suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'barcode', TRUE, 2, 0.7, 6, 20, 0)) Notify::msg('No results found.');
+      if (!$suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'barcode', TRUE, 2, 0.3, 6, 20, 0)) Notify::msg('No results found.');
       else if (count($suggestions) == 1) Notify::msg('1 result found.', 'success');
       else Notify::msg(count($suggestions). ' results found.', 'success');
 
