@@ -639,15 +639,22 @@ class SGS {
             if ($similarity) {
               $query = $query
                 ->where(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), '>=', $min_similarity)
-                ->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), 'DESC')
-                ->offset($offset)
-                ->limit($limit);
-            }
-            else {
-              $query = $query->where(DB::expr("regexp_replace(upper($match::text), E'[^0-9A-Z]', '')"), 'LIKE', '%'.preg_replace('/[^0-9A-Z]/', '', strtoupper($str)).'%');
+                ->order_by(DB::expr("similarity(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), 'DESC');
             }
 
-            if ($distance) $query->where(DB::expr("levenshtein(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), '<=', $max_distance);
+            if ($distance) {
+              $query = $query
+                ->where(DB::expr("levenshtein(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), '<=', $max_distance)
+                ->order_by(DB::expr("levenshtein(regexp_replace(upper($match::text), E'[^0-9A-Z]', '')::text, '".preg_replace('/[^0-9A-Z]/', '', strtoupper($search))."'::text)"), 'ÅSC');
+            }
+
+            if ($similarity or $distance) {
+              $query = $query
+                ->offset($offset)
+                ->limit($limit);
+            } else {
+              $query = $query->where(DB::expr("regexp_replace(upper($match::text), E'[^0-9A-Z]', '')"), 'LIKE', '%'.preg_replace('/[^0-9A-Z]/', '', strtoupper($str)).'%');
+            }
 
             foreach ((array) $query_args as $_query_args) {
               foreach ($_query_args as $key => $value) $query = call_user_func_array(array($query, $key), $value);

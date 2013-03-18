@@ -175,6 +175,7 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function parents($max_hops = NULL, $types = array()) {
+    $types = (array) $types;
     $query = DB::select('barcode_hops_cached.parent_id', 'type')
       ->from('barcode_hops_cached')
       ->join('barcodes')
@@ -208,6 +209,7 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function childrens($max_hops = NULL, $types = array()) {
+    $types = (array) $types;
     $query = DB::select('barcode_hops_cached.barcode_id', 'type')
       ->from('barcode_hops_cached')
       ->join('barcodes')
