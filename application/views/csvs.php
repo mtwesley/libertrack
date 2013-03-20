@@ -148,7 +148,7 @@ if ($options['header'])  $classes[] = 'has-header';
             <?php endif; ?>
             <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-suggestions" class="details-link details-suggestions-link">Suggestions</span>
             <span id="csv-<?php echo $csv->id.'-'.$field.'-'.$error; ?>-tips" class="details-link details-tips-link">Tips</span>
-            <?php echo SGS::decode_error($field, $error, array(':field' => $fields[$field]), $values); ?>
+            <?php echo SGS::decode_error($field, $error, array(':field' => $fields[$field] ?: $fields[substr($field, 0, strrpos($field, '_id'))]), $values); ?>
           </li>
           <?php endforeach; ?>
           <?php endforeach; ?>

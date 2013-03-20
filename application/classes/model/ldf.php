@@ -63,20 +63,23 @@ class Model_LDF extends SGS_Form_ORM {
   public static $type = 'LDF';
 
   public static $fields = array(
-    'create_date'    => 'Date Registered',
-    'operator_tin'   => 'Operator TIN',
-    'site_name'      => 'Site Name',
-    'parent_barcode' => 'Original Log Barcode',
-    'species_code'   => 'Species Code',
-    'barcode'        => 'New Cross Cut Barcode',
-    'bottom_max'     => 'Butt Max',
-    'bottom_min'     => 'Butt Min',
-    'top_max'        => 'Top Max',
-    'top_min'        => 'Top Min',
-    'length'         => 'Length',
-    'volume'         => 'Volume',
-    'action'         => 'Action',
-    'comment'        => 'Comment',
+    'create_date'      => 'Date Registered',
+    'operator_tin'     => 'Operator TIN',
+    'site_name'        => 'Site Name',
+    'measured_by'      => 'Log Measurer',
+    'entered_by'       => 'Entered By',
+    'reference_number' => 'Form Reference No.',
+    'parent_barcode'   => 'Original Log Barcode',
+    'species_code'     => 'Species Code',
+    'barcode'          => 'New Cross Cut Barcode',
+    'bottom_max'       => 'Butt Max',
+    'bottom_min'       => 'Butt Min',
+    'top_max'          => 'Top Max',
+    'top_min'          => 'Top Min',
+    'length'           => 'Length',
+    'volume'           => 'Volume',
+    'action'           => 'Action',
+    'comment'          => 'Comment',
   );
 
   public static $checks = array(
@@ -291,9 +294,9 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
     $excel->getActiveSheet()->SetCellValue('G3', ''); // form reference number ?
     $excel->getActiveSheet()->SetCellValue('B4', $this->operator->tin);
-    $excel->getActiveSheet()->SetCellValue('G4', ''); // log measurer
-    $excel->getActiveSheet()->SetCellValue('B5', ''); // date entered into CoCIS
-    $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
+    $excel->getActiveSheet()->SetCellValue('G4', $this->measured_by);
+    $excel->getActiveSheet()->SetCellValue('B5', SGS::date($this->timestamp, SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G5', $this->entered_by);
   }
 
   public function download_data($values, $errors, $excel, $row) {
@@ -349,9 +352,9 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
     $excel->getActiveSheet()->SetCellValue('G3', ''); // form reference number ?
     $excel->getActiveSheet()->SetCellValue('B4', $values['operator_tin']);
-    $excel->getActiveSheet()->SetCellValue('G4', ''); // log measurer
-    $excel->getActiveSheet()->SetCellValue('B5', ''); // date entered into CoCIS
-    $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
+    $excel->getActiveSheet()->SetCellValue('G4', $values['measured_by']);
+    $excel->getActiveSheet()->SetCellValue('B5', SGS::date('now', SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G5', $values['entered_by']);
   }
 
   public function make_suggestions($values, $errors) {
@@ -467,7 +470,10 @@ class Model_LDF extends SGS_Form_ORM {
     }
 
     // traceability
-    $parent = $this->parent();
+    // $parent = $this->parent();
+
+    $parent = ORM::factory('LDF')->where('barcode_id', '=', $this->parent_barcode->id)->where('id', '!=', $this->id)->find()
+           ?: ORM::factory('TDF')->where('barcode_id', '=', $this->parent_barcode->id)->find();
 
     if ($parent and $parent->loaded()) {
       if ($parent->status != 'U') $parent->run_checks();
@@ -486,7 +492,14 @@ class Model_LDF extends SGS_Form_ORM {
         'volume'   => 0
       );
 
-      if ($siblngs = $this->siblings()) {
+      // $siblngs = $this->siblings();
+
+      $siblngs = ORM::factory('LDF')
+        ->where('parent_barcode_id', '=', $parent->barcode->id)
+        ->find_all()
+        ->as_array();
+
+      if ($siblngs) {
         foreach ($siblngs as $child) {
           $siblings['length']   += $child->length;
           $siblings['diameter'] += $child->diameter;
@@ -630,6 +643,9 @@ class Model_LDF extends SGS_Form_ORM {
       'species_id'         => 'Species',
       'barcode_id'         => self::$fields['barcode'],
       'parent_barcode_id'  => self::$fields['parent_barcode'],
+      'measured_by'        => self::$fields['measured_by'],
+      'entered_by'         => self::$fields['entered_by'],
+      'reference_number'   => self::$fields['reference_number'],
       'top_min'            => self::$fields['top_min'],
       'top_max'            => self::$fields['top_max'],
       'bottom_min'         => self::$fields['bottom_min'],

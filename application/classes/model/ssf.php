@@ -28,6 +28,11 @@ class Model_SSF extends SGS_Form_ORM {
     'operator_tin'    => 'Operator TIN',
     'site_name'       => 'Site Name',
     'block_name'      => 'Block Name',
+    'enumerator'      => 'Enumerator',
+    'entered_date'    => 'Date Entered',
+    'entered_by'      => 'Entered By',
+    'checked_date'    => 'Date Checked',
+    'checked_by'      => 'Checked By',
     'barcode'         => 'Tree Barcode',
     'tree_map_number' => 'Tree Map Number',
     'survey_line'     => 'Survey Line',
@@ -125,6 +130,11 @@ class Model_SSF extends SGS_Form_ORM {
       'operator_tin'    => trim($csv[2][H] ?: $csv[2][I] ?: $csv[2][J]),
       'site_name'       => $site_name,
       'block_name'      => $block_name,
+      'enumerator'      => trim($csv[3][H] ?: $csv[3][I] ?: $csv[3][J]),
+      'entered_date'    => SGS::date(trim($csv[9][B] ?: $csv[9][C] ?: $csv[9][D]), SGS::US_DATE_FORMAT, TRUE, TRUE),
+      'entered_by'      => trim($csv[9][H] ?: $csv[9][I] ?: $csv[9][J]),
+      'checked_date'    => SGS::date(trim($csv[10][B] ?: $csv[10][C] ?: $csv[10][D]), SGS::US_DATE_FORMAT, TRUE, TRUE),
+      'checked_by'      => trim($csv[10][H] ?: $csv[10][I] ?: $csv[10][J]),
     ) + $data + array(
       'is_requested'    => trim($row[H]) == 'NO' ? 'NO' : 'YES',
       'is_fda_approved' => trim($row[I]) == 'NO' ? 'NO' : 'YES',
@@ -213,15 +223,15 @@ class Model_SSF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name.'/'.$this->block->name);
     $excel->getActiveSheet()->SetCellValue('H2', $this->operator->tin);
     $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
-    $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
+    $excel->getActiveSheet()->SetCellValue('H3', $this->enumerator);
     $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
     $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
     $excel->getActiveSheet()->SetCellValue('B7', ''); // north/south from previous
     $excel->getActiveSheet()->SetCellValue('B8', ''); // west from previous
-    $excel->getActiveSheet()->SetCellValue('B9', ''); // date entered
-    $excel->getActiveSheet()->SetCellValue('H9', ''); // entered by
-    $excel->getActiveSheet()->SetCellValue('B10', ''); // date checked
-    $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
+    $excel->getActiveSheet()->SetCellValue('B9', SGS::date($this->entered_date, SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('H9', $this->entered_by);
+    $excel->getActiveSheet()->SetCellValue('B10', SGS::date($this->checked_date, SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('F10', $this->checked_by);
   }
 
   public function download_data($values, $errors, $excel, $row) {
@@ -279,15 +289,15 @@ class Model_SSF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name'].'/'.$values['block_name']);
     $excel->getActiveSheet()->SetCellValue('H2', $values['operator_tin']);
     $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
-    $excel->getActiveSheet()->SetCellValue('H3', ''); // enumerator
+    $excel->getActiveSheet()->SetCellValue('H3', $values['enumerator']); // enumerator
     $excel->getActiveSheet()->SetCellValue('B5', ''); // origin
     $excel->getActiveSheet()->SetCellValue('B6', ''); // east from origin
     $excel->getActiveSheet()->SetCellValue('B7', ''); // north/south from previous
     $excel->getActiveSheet()->SetCellValue('B8', ''); // west from previous
-    $excel->getActiveSheet()->SetCellValue('B9', ''); // date entered
-    $excel->getActiveSheet()->SetCellValue('H9', ''); // entered by
-    $excel->getActiveSheet()->SetCellValue('B10', ''); // date checked
-    $excel->getActiveSheet()->SetCellValue('F10', ''); // checked by
+    $excel->getActiveSheet()->SetCellValue('B9', $values['entered_date']);
+    $excel->getActiveSheet()->SetCellValue('H9', $values['entered_by']);
+    $excel->getActiveSheet()->SetCellValue('B10', $values['checked_date']);
+    $excel->getActiveSheet()->SetCellValue('F10', $values['checked_by']);
   }
 
   public function make_suggestions($values, $errors) {
@@ -467,6 +477,11 @@ class Model_SSF extends SGS_Form_ORM {
       'site_id'         => 'Site',
       'block_id'        => 'Block',
       'species_id'      => 'Species',
+      'enumerator'      => self::$fields['enumerator'],
+      'entered_date'    => self::$fields['entered_date'],
+      'entered_by'      => self::$fields['entered_by'],
+      'checked_date'    => self::$fields['checked_date'],
+      'checked_by'      => self::$fields['checked_by'],
       'barcode_id'      => self::$fields['barcode'],
       'survey_line'     => self::$fields['survey_line'],
       'cell_number'     => self::$fields['cell_number'],

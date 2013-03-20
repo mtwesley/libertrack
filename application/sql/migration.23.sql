@@ -87,6 +87,29 @@ alter table barcodes add constraint barcodes_unique_type unique(barcode,type);
 drop index barcodes_unique;
 create unique index barcodes_unique on barcodes (barcode) where type not in ('F','L','P');
 
+-- adding additional fields
+
+alter table ssf_data add column enumerator d_text_short;
+alter table ssf_data add column entered_date d_date;
+alter table ssf_data add column entered_by d_text_short;
+alter table ssf_data add column checked_date d_date;
+alter table ssf_data add column checked_by d_text_short;
+
+alter table tdf_data add column measured_by d_text_short;
+alter table tdf_data add column entered_by d_text_short;
+alter table tdf_data add column signed_by d_text_short;
+
+alter table ldf_data add column measured_by d_text_short;
+alter table ldf_data add column entered_by d_text_short;
+alter table ldf_data add column form_number d_text_short;
+
+alter table specs_data add column loading_date d_date;
+alter table specs_data add column buyer d_text_short;
+alter table specs_data add column submitted_by d_text_short;
+
+alter table csv add column original_values d_text_long;
+update csv set original_values = values;
+alter table csv alter column original_values set not null;
 
 -- fixes
 

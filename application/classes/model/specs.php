@@ -69,6 +69,9 @@ class Model_SPECS extends SGS_Form_ORM {
     'specs_number'    => 'Shipment Specification Number',
     'exp_number'      => 'Export Permit Number',
 //    'contract_number' => 'Contract Summary Number',
+    'loading_date'    => 'Expected Loading Date',
+    'buyer'           => 'Buyer',
+    'submitted_by'    => 'Submitted By',
     'origin'          => 'Port of Origin',
     'destination'     => 'Port of Destination',
     'specs_barcode'   => 'Shipment Specification Barcode',
@@ -239,6 +242,9 @@ class Model_SPECS extends SGS_Form_ORM {
       'create_date'     => SGS::date(trim($csv[7][I] ?: $csv[7][J] ?: $csv[7][K]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'operator_tin'    => trim($csv[4][C] ?: $csv[4][D]),
 //      'contract_number' => trim($csv[3][I] ?: $csv[3][J] ?: $csv[3][K]),
+      'loading_date'    => SGS::date(trim($csv[5][I] ?: $csv[5][J] ?: $csv[5][K]), SGS::US_DATE_FORMAT, TRUE, TRUE),
+      'buyer'           => trim($csv[6][I] ?: $csv[6][J] ?: $csv[6][K]),
+      'submitted_by'    => trim($csv[7][C] ?: $csv[7][D]),
       'specs_number'    => $specs_number,
       'exp_number'      => $exp_number,
       'origin'          => trim($csv[5][C] ?: $csv[5][D]),
@@ -347,10 +353,10 @@ class Model_SPECS extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('C4', $this->operator->tin);
     $excel->getActiveSheet()->SetCellValue('I4', $this->operator->name);
     $excel->getActiveSheet()->SetCellValue('C5', $this->origin);
-    $excel->getActiveSheet()->SetCellValue('I5', ''); // expected loading date
+    $excel->getActiveSheet()->SetCellValue('I5', $this->loading_date);
     $excel->getActiveSheet()->SetCellValue('C6', $this->destination);
-    $excel->getActiveSheet()->SetCellValue('I6', ''); // buyer
-    $excel->getActiveSheet()->SetCellValue('C7', ''); // submitted by
+    $excel->getActiveSheet()->SetCellValue('I6', $this->buyer);
+    $excel->getActiveSheet()->SetCellValue('C7', $this->submitted_by);
     $excel->getActiveSheet()->SetCellValue('I7', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
   }
 
@@ -674,6 +680,9 @@ class Model_SPECS extends SGS_Form_ORM {
       'specs_barcode_id' => self::$fields['specs_barcode'],
       'exp_barcode_id'   => self::$fields['exp_barcode'],
 //      'contract_number'  => self::$fields['contract_number'],
+      'loading_date'     => self::$fields['loading_date'],
+      'buyer'            => self::$fields['buyer'],
+      'submitted_by'     => self::$fields['submitted_by'],
       'specs_id'         => self::$fields['specs_number'],
       'exp_id'           => self::$fields['exp_number'],
       'origin'           => self::$fields['origin'],

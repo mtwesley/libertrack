@@ -331,6 +331,18 @@ create table specs (
   number d_specs_number,
   is_draft d_bool default true not null,
   file_id d_id unique not null,
+  operator_id d_id not null,
+  specs_barcode_id d_id,
+  exp_barcode_id d_id,
+  exp_id d_id,
+  contract_number d_text_short,
+  loading_date d_date,
+  buyer d_text_short,
+  submitted_by d_text_short,
+  volume d_volume not null,
+  origin d_text_short,
+  destination d_text_short,
+  create_date d_date not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -344,6 +356,25 @@ create table exp (
   number d_exp_number,
   is_draft d_bool default true not null,
   file_id d_id unique not null,
+
+origin d_text_short,
+destination d_text_short,
+eta_date d_date,
+vessel d_text_short,
+
+product_type d_text_short,
+producet_description d_text_short,
+
+volume d_volume not null,
+
+buyer_name d_text_short,
+buyer_contact d_text_short,
+
+buyer_address d_text_medium,
+buyer_email d_text_short,
+buyer_phone d_text_short,
+
+
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -362,8 +393,9 @@ create table csv (
   operator_id d_id,
   site_id d_id,
   block_id d_id,
+  original_values not null,
   values d_text_long,
-  content_md5 d_text_short unique,
+  content_md5 d_text_short,
   status d_csv_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -390,8 +422,8 @@ create table csv_errors (
 
 create table csv_duplicates (
   id bigserial not null,
-  csv_id d_id not null,
-  duplicate_csv_id d_id not null,
+  csv_id d_id,
+  duplicate_csv_id d_id,
   field d_text_short,
 
   -- constraint csv_duplicates_pkey primary key (id),
@@ -399,8 +431,9 @@ create table csv_duplicates (
   constraint csv_duplicates_duplicate_csv_id_fkey foreign key (duplicate_csv_id) references csv (id) on update cascade on delete cascade,
 
   constraint csv_duplicates_unique unique(csv_id,duplicate_csv_id,field),
+  constraint csv_duplicates_exist check (csv_id is not null or duplicate_csv_id is not null),
 
-  constraint csv_duplicates_check check (csv_id < duplicate_csv_id)
+  constraint csv_duplicates_check check (!((csv_id is not null and duplicate_csv_id is not null) and (csv_id > duplicate_csv_id)))
 );
 
 create table ssf_data (
@@ -410,6 +443,11 @@ create table ssf_data (
   block_id d_id not null,
   barcode_id d_id unique not null,
   species_id d_id not null,
+  enumerator d_text_short,
+  entered_date d_date,
+  entered_by d_text_short,
+  checked_date d_date,
+  checked_by d_text_short,
   survey_line d_survey_line not null,
   cell_number d_positive_int not null,
   tree_map_number d_positive_int not null,
@@ -441,6 +479,9 @@ create table tdf_data (
   tree_barcode_id d_id not null,
   stump_barcode_id d_id unique not null,
   species_id d_id not null,
+  measured_by d_text_short,
+  entered_by d_text_short,
+  signed_by d_text_short,
   survey_line d_survey_line not null,
   cell_number d_positive_int not null,
   top_min d_diameter not null,
@@ -473,6 +514,9 @@ create table ldf_data (
   barcode_id d_id unique not null,
   parent_barcode_id d_id not null,
   species_id d_id not null,
+  measured_by d_text_short,
+  entered_by d_text_short,
+  form_number d_text_short,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -552,6 +596,9 @@ create table specs_data (
   contract_number d_text_short,
   barcode_id d_id unique not null,
   species_id d_id not null,
+  loading_date d_date,
+  buyer d_text_short,
+  submitted_by d_text_short,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -653,7 +700,7 @@ create index sites_operator_id on sites (id,operator_id);
 create index printjobs_number on printjobs (id,number);
 create index printjobs_site_id on printjobs (id,site_id);
 
-create index barcodes_barcode_id on barcodes (id,barcode);
+create index barcodes_barcode on barcodes (id,barcode);
 create index barcodes_printjob_id on barcodes (id,printjob_id);
 create index barcodes_parent_id on barcodes (id,parent_id);
 create index barcodes_type on barcodes (id,type);

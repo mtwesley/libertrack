@@ -62,6 +62,9 @@ class Model_TDF extends SGS_Form_ORM {
     'operator_tin'   => 'Operator TIN',
     'site_name'      => 'Site Name',
     'block_name'     => 'Block Name',
+    'measured_by'    => 'Log Measurer',
+    'entered_by'     => 'Entered By',
+    'signed_by'      => 'Signed By',
     'survey_line'    => 'Survey Line',
     'cell_number'    => 'Cell Number',
     'tree_barcode'   => 'Tree Barcode',
@@ -230,6 +233,9 @@ class Model_TDF extends SGS_Form_ORM {
       'operator_tin'   => trim($csv[2][G] ?: $csv[2][H] ?: $csv[2][I] ?: $csv[2][J] ?: $csv[2][K]),
       'site_name'      => $site_name,
       'block_name'     => $block_name,
+      'measured_by'    => trim($csv[3][G] ?: $csv[3][H] ?: $csv[3][I] ?: $csv[3][J] ?: $csv[3][K]),
+      'signed_by'      => trim($csv[4][G] ?: $csv[4][H] ?: $csv[4][I] ?: $csv[4][J] ?: $csv[4][K]),
+      'entered_by'     => trim($csv[5][G] ?: $csv[5][H] ?: $csv[5][I] ?: $csv[5][J] ?: $csv[5][K]),
     ) + $data + array(
       'action'            => trim($row[L]),
       'comment'           => trim($row[M]),
@@ -322,10 +328,10 @@ class Model_TDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('B2', $this->site->type.'/'.$this->site->name.'/'.$this->block->name);
     $excel->getActiveSheet()->SetCellValue('G2', $this->operator->tin);
     $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
-    $excel->getActiveSheet()->SetCellValue('G3', ''); // log measurer
-    $excel->getActiveSheet()->SetCellValue('G4', ''); // signed
-    $excel->getActiveSheet()->SetCellValue('B5', ''); // date entered into CoCIS
-    $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
+    $excel->getActiveSheet()->SetCellValue('G3', $this->measured_by);
+    $excel->getActiveSheet()->SetCellValue('G4', $this->signed_by);
+    $excel->getActiveSheet()->SetCellValue('B5', SGS::date($this->timestamp, SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G5', $this->entered_by);
   }
 
   public function download_data($values, $errors, $excel, $row) {
@@ -383,10 +389,10 @@ class Model_TDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('B2', substr($values['site_name'], 0 , 3).'/'.$values['site_name'].'/'.$values['block_name']);
     $excel->getActiveSheet()->SetCellValue('G2', $values['operator_tin']);
     $excel->getActiveSheet()->SetCellValue('B3', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
-    $excel->getActiveSheet()->SetCellValue('G3', ''); // log measurer
-    $excel->getActiveSheet()->SetCellValue('G4', ''); // signed
-    $excel->getActiveSheet()->SetCellValue('B5', ''); // date entered into CoCIS
-    $excel->getActiveSheet()->SetCellValue('G5', ''); // entered by
+    $excel->getActiveSheet()->SetCellValue('G3', $values['measured_by']);
+    $excel->getActiveSheet()->SetCellValue('G4', $values['signed_by']);
+    $excel->getActiveSheet()->SetCellValue('B5', SGS::date('now', SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G5', $values['entered_by']);
   }
 
   public function make_suggestions($values, $errors) {
@@ -525,7 +531,11 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     // traceability
-    $parent = $this->parent('SSF');
+//    $parent = $this->parent('SSF');
+
+    $parent = ORM::factory('SSF')
+      ->where('barcode_id', '=', $this->tree_barcode->id)
+      ->find();
 
     if ($parent and $parent->loaded()) {
       if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
@@ -669,6 +679,8 @@ class Model_TDF extends SGS_Form_ORM {
       'site_id'          => 'Site',
       'block_id'         => 'Block',
       'species_id'       => 'Species',
+      'entered_by'       => self::$fields['entered_by'],
+      'signed_by'        => self::$fields['signed_by'],
       'barcode_id'       => self::$fields['barcode'],
       'tree_barcode_id'  => self::$fields['tree_barcode'],
       'stump_barcode_id' => self::$fields['stump_barcode'],

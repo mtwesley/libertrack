@@ -178,7 +178,7 @@ class Controller_Exporting extends Controller {
     $invoice->number = $invoice::create_number();
 
     switch ($invoice->type) {
-      case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, array_keys($invoice->get_data()));
+      case 'ST': $invoice->file_id = self::generate_specs($invoice, array_keys($invoice->get_data()));
     }
 
     if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);

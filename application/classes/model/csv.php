@@ -44,11 +44,17 @@ class Model_CSV extends ORM {
   public function __get($column) {
     switch ($column) {
       case 'values':
+      case 'original_values':
         $value = parent::__get($column);
         return is_string($value) ? unserialize($value) : $value;
       default:
         return parent::__get($column);
     }
+  }
+
+  public function create(Validation $validation = NULL) {
+    $this->original_values = $this->values;
+    parent::create($validation);
   }
 
   public function delete() {
@@ -118,7 +124,9 @@ class Model_CSV extends ORM {
       ->and_where('id', '!=', $this->id)
       ->execute() as $dup) $duplicates[] = $dup['id'];
 
-    $duplicates = array_filter($duplicates);
+    // FIXME: handle issues with NO duplicate CSV id found !!!
+    // $duplicates = array_filter($duplicates);
+
     if ($duplicates) foreach ($duplicates as $field => $duplicate_csv_id) {
       $this->set_duplicate($duplicate_csv_id, is_int($field) ? NULL : $field);
     }
