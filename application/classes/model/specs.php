@@ -551,10 +551,10 @@ class Model_SPECS extends SGS_Form_ORM {
       if (!($this->species->code == $parent->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);
       if (!($this->operator_id == $parent->operator_id)) $errors['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $parent->operator->tin);
 
-      if (!Valid::is_accurate($this->volume, $parent->volume, SGS::tolerance('SPECS', 'is_matching_volume'))) $errors['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $parent->volume);
+      if (!Valid::is_accurate($this->volume, $parent->volume, SGS::tolerance('SPECS', 'is_matching_volume'), FALSE)) $errors['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $parent->volume);
       else if (!Valid::is_accurate($this->volume, $parent->volume, SGS::accuracy('SPECS', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $parent->volume);
 
-      if (!Valid::is_accurate($this->length, $parent->length, SGS::tolerance('SPECS', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->length);
+      if (!Valid::is_accurate($this->length, $parent->length, SGS::tolerance('SPECS', 'is_matching_length'), FALSE)) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->length);
       else if (!Valid::is_accurate($this->length, $parent->length, SGS::accuracy('SPECS', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->length);
 
       if (!Valid::is_accurate($this->diameter, $parent->diameter, SGS::tolerance('SPECS', 'is_matching_diameter'))) {

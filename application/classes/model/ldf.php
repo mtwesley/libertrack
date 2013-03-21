@@ -475,8 +475,11 @@ class Model_LDF extends SGS_Form_ORM {
     // traceability
     // $parent = $this->parent();
 
-    $parent = ORM::factory('LDF')->where('barcode_id', '=', $this->parent_barcode->id)->where('id', '!=', $this->id)->find()
-           ?: ORM::factory('TDF')->where('barcode_id', '=', $this->parent_barcode->id)->find();
+    $ldf_parent = ORM::factory('LDF')->where('barcode_id', '=', $this->parent_barcode->id)->where('id', '!=', $this->id)->find();
+    $tdf_parent = ORM::factory('TDF')->where('barcode_id', '=', $this->parent_barcode->id)->find();
+
+    if ($ldf_parent->loaded()) $parent = $ldf_parent;
+    else if ($tdf_parent->loaded()) $parent = $tdf_parent;
 
     if ($parent and $parent->loaded()) {
       if ($parent->status != 'U') $parent->run_checks();
@@ -513,11 +516,11 @@ class Model_LDF extends SGS_Form_ORM {
         $siblings['volume']   = (float) SGS::quantitify($siblings['volume'] / count($siblngs));
 
         if ($parent::$type == 'LDF') {
-          if (!Valid::is_accurate($siblings['volume'], $parent->volume, SGS::tolerance('LDF', 'is_matching_volume'))) $errors['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
+          if (!Valid::is_accurate($siblings['volume'], $parent->volume, SGS::tolerance('LDF', 'is_matching_volume'), FALSE)) $errors['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
           else if (!Valid::is_accurate($siblings['volume'], $parent->volume, SGS::accuracy('LDF', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
         }
 
-        if (!Valid::is_accurate($siblings['length'], $parent->length, SGS::tolerance('LDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
+        if (!Valid::is_accurate($siblings['length'], $parent->length, SGS::tolerance('LDF', 'is_matching_length'), FALSE)) $errors['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
         else if (!Valid::is_accurate($siblings['length'], $parent->length, SGS::accuracy('LDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
 
         if (!Valid::is_accurate($siblings['diameter'], $parent->diameter, SGS::tolerance('LDF', 'is_matching_diameter'))) {
