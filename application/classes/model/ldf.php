@@ -38,23 +38,24 @@ class Model_LDF extends SGS_Form_ORM {
 
   public function save(Validation $validation = NULL) {
     if ($this->barcode->type == 'F') {
-      if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('L', 'P'))) $this->barcode = $barcode;
-      else try {
+      if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('L', 'P')) and $barcode->loaded()) $this->barcode = $barcode;
+      else {
         $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        $barcode->type = 'L';
         unset($barcode->printjob);
         $barcode->save();
         $this->barcode = $barcode;
-      } catch (Exception $e) {die("Unable to fix LDF barcode.");}
+      }
     }
 
     if (($this->barcode->barcode == $this->parent_barcode) and ($this->parent_barcode->type == 'L')) {
-      if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P'))) $this->barcode = $barcode;
-      else try {
-        $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
-        unset($barcode->printjob);
-        $barcode->save();
-        $this->barcode = $barcode;
-      } catch (Exception $e) {die("Unable to fix LDF parent barcode.");}
+      if ($parent_barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P')) and $parent_barcode->loaded()) $this->barcode = $parent_barcode;
+      else {
+        $parent_barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        $parent_barcode->type = 'F';
+        $parent_barcode->save();
+        $this->parent_barcode = $parent_barcode;
+      }
     }
 
     parent::save($validation);
@@ -208,6 +209,8 @@ class Model_LDF extends SGS_Form_ORM {
       'create_date'    => SGS::date(trim($csv[3][B] ?: $csv[3][C] ?: $csv[3][D] ?: $csv[3][E]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'operator_tin'   => trim($csv[4][B] ?: $csv[4][C] ?: $csv[4][D] ?: $csv[4][E]),
       'site_name'      => $site_name,
+      'measured_by'    => trim($csv[4][G] ?: $csv[4][H] ?: $csv[4][I] ?: $csv[4][J] ?: $csv[4][K]),
+      'entered_by'     => trim($csv[5][G] ?: $csv[5][H] ?: $csv[5][I] ?: $csv[5][J] ?: $csv[5][K]),
     ) + $data + array(
       'action'         => trim($row[J]),
       'comment'        => trim($row[K]),

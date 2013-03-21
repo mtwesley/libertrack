@@ -43,13 +43,13 @@ class Model_TDF extends SGS_Form_ORM {
 
   public function save(Validation $validation = NULL) {
     if ($this->barcode->type == 'L') {
-      if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P'))) $this->barcode = $barcode;
-      else try {
+      if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P')) and $barcode->loaded()) $this->barcode = $barcode;
+      else {
         $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
-        unset($barcode->printjob);
+        $barcode->type = 'F';
         $barcode->save();
         $this->barcode = $barcode;
-      } catch (Exception $e) {die("Unable to fix TDF barcode.");}
+      }
     }
 
     parent::save($validation);
