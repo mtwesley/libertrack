@@ -541,7 +541,7 @@ class SGS {
       ->as_array(NULL, 'id');
 
     if (count($id) == 1 or $returning_multiple == FALSE) return $returning_id ? reset($id) : ORM::factory('barcode', reset($id));
-    else $returning_id ? $id : ORM::factory('barcode')
+    else return $returning_id ? $id : ORM::factory('barcode')
       ->where('id', 'IN', $id)
       ->find_all();
   }
