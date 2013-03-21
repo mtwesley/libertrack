@@ -101,7 +101,7 @@ alter table tdf_data add column signed_by d_text_short;
 
 alter table ldf_data add column measured_by d_text_short;
 alter table ldf_data add column entered_by d_text_short;
-alter table ldf_data add column form_number d_text_short;
+alter table ldf_data add column reference_number d_text_short;
 
 alter table specs_data add column loading_date d_date;
 alter table specs_data add column buyer d_text_short;
