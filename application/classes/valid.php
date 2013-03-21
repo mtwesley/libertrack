@@ -196,6 +196,6 @@ class Valid extends Kohana_Valid {
 
   public static function is_accurate($value, $test, $tolerance = 0, $lower_bound = TRUE, $upper_bound = TRUE)
   {
-    return (bool) ((($lower_bound ? ($value - $tolerance) : $test) <= $test) AND (($upper_bound ? ($value + $tolerance) : $test) >= $test));
+    return (bool) ((($upper_bound ? ($value - $tolerance) : $test) <= $test) AND (($lower_bound ? ($value + $tolerance) : $test) >= $test));
   }
 }
