@@ -194,8 +194,8 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_char($value) AND preg_match('/^[0-9A-Za-z_]{3,24}$/', (string) $value));
   }
 
-  public static function is_accurate($value, $test, $tolerance = 0)
+  public static function is_accurate($value, $test, $tolerance = 0, $lower_bound = TRUE, $upper_bound = TRUE)
   {
-    return (bool) ((($value - $tolerance) <= $test) AND (($value + $tolerance) >= $test));
+    return (bool) ((($lower_bound ? ($value - $tolerance) : $test) <= $test) AND (($upper_bound ? ($value + $tolerance) : $test) >= $test));
   }
 }
