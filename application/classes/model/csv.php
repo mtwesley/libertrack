@@ -82,8 +82,9 @@ class Model_CSV extends ORM {
     $validation->check();
     if (!$errors = $validation->errors()) {
       try {
-        $model->csv = $this;
+        $model->csv_id = $this->id;
         $model->save();
+        if (!$model->loaded()) throw new Exception();
         $this->form_data_id = $model->id;
       } catch (ORM_Validation_Exception $e) {
         $errors = $e->errors();

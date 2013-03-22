@@ -73,6 +73,8 @@ class Model_SPECS extends SGS_Form_ORM {
         $this->barcode = $barcode;
       }
     }
+
+    parent::save($validation);
   }
 
   public static $type = 'SPECS';
