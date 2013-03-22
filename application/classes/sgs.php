@@ -895,7 +895,7 @@ class SGS {
 
   public static function locationify($string, $slash = '/')
   {
-    return substr($string, $slash) ?: $string;
+    return substr($string, strrpos($string, $slash)) ?: $string;
   }
 
   public static function internationalify($string)

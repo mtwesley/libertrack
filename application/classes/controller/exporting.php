@@ -168,31 +168,31 @@ class Controller_Exporting extends Controller {
   }
 
   private function handle_specs_finalize($id) {
-    $invoice = ORM::factory('invoice', $id);
-    if (!($invoice->loaded() and $invoice->is_draft)) {
-      Notify::msg('Invoice already finalized.', 'warning', TRUE);
-      $this->request->redirect('invoices/'.$id);
-    }
-
-    $invoice->is_draft = FALSE;
-    $invoice->number = $invoice::create_number();
-
-    switch ($invoice->type) {
-      case 'ST': $invoice->file_id = self::generate_specs($invoice, array_keys($invoice->get_data()));
-    }
-
-    if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
-    else Notify::msg('Sorry, invoice file failed to be generated. Please try again.', 'error', TRUE);
-
-    try {
-      $invoice->save();
-
-      Notify::msg('Invoice finalized.', 'success', TRUE);
-      $this->request->redirect('invoices/'.$invoice->id);
-    } catch (Exception $e) {
-      Notify::msg('Sorry, unable to create invoice. Please try again.', 'error');
-      $this->request->redirect('invoices/'.$invoice->id);
-    }
+//    $invoice = ORM::factory('invoice', $id);
+//    if (!($invoice->loaded() and $invoice->is_draft)) {
+//      Notify::msg('Invoice already finalized.', 'warning', TRUE);
+//      $this->request->redirect('invoices/'.$id);
+//    }
+//
+//    $invoice->is_draft = FALSE;
+//    $invoice->number = $invoice::create_number();
+//
+//    switch ($invoice->type) {
+//      case 'ST': $invoice->file_id = self::generate_specs($invoice, array_keys($invoice->get_data()));
+//    }
+//
+//    if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
+//    else Notify::msg('Sorry, invoice file failed to be generated. Please try again.', 'error', TRUE);
+//
+//    try {
+//      $invoice->save();
+//
+//      Notify::msg('Invoice finalized.', 'success', TRUE);
+//      $this->request->redirect('invoices/'.$invoice->id);
+//    } catch (Exception $e) {
+//      Notify::msg('Sorry, unable to create invoice. Please try again.', 'error');
+//      $this->request->redirect('invoices/'.$invoice->id);
+//    }
 
   }
 
@@ -281,38 +281,38 @@ class Controller_Exporting extends Controller {
   }
 
   private function handle_specs_delete($id) {
-    $invoice  = ORM::factory('invoice', $id);
-
-    if (!$invoice->loaded()) {
-      Notify::msg('No invoice found.', 'warning', TRUE);
-      $this->request->redirect('invoices');
-    }
-
-    if (!$invoice->is_draft) {
-      Notify::msg('Sorry, cannot delete final invoices.', 'warning', TRUE);
-      $this->request->redirect('invoices/'.$invoice->id);
-    }
-
-    $form = Formo::form()
-      ->add('confirm', 'text', 'Are you sure you want to delete this draft invoice?')
-      ->add('delete', 'submit', 'Delete');
-
-    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      try {
-        $invoice->delete();
-        if ($invoice->loaded()) throw new Exception();
-        Notify::msg('Draft invoice successfully deleted.', 'success', TRUE);
-      } catch (Exception $e) {
-        Notify::msg('Draft invoice failed to be deleted.', 'error', TRUE);
-      }
-
-      $this->request->redirect('invoices');
-    }
-
-    $content .= $form->render();
-
-    $view = View::factory('main')->set('content', $content);
-    $this->response->body($view);
+//    $invoice  = ORM::factory('invoice', $id);
+//
+//    if (!$invoice->loaded()) {
+//      Notify::msg('No invoice found.', 'warning', TRUE);
+//      $this->request->redirect('invoices');
+//    }
+//
+//    if (!$invoice->is_draft) {
+//      Notify::msg('Sorry, cannot delete final invoices.', 'warning', TRUE);
+//      $this->request->redirect('invoices/'.$invoice->id);
+//    }
+//
+//    $form = Formo::form()
+//      ->add('confirm', 'text', 'Are you sure you want to delete this draft invoice?')
+//      ->add('delete', 'submit', 'Delete');
+//
+//    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+//      try {
+//        $invoice->delete();
+//        if ($invoice->loaded()) throw new Exception();
+//        Notify::msg('Draft invoice successfully deleted.', 'success', TRUE);
+//      } catch (Exception $e) {
+//        Notify::msg('Draft invoice failed to be deleted.', 'error', TRUE);
+//      }
+//
+//      $this->request->redirect('invoices');
+//    }
+//
+//    $content .= $form->render();
+//
+//    $view = View::factory('main')->set('content', $content);
+//    $this->response->body($view);
   }
 
   private function generate_specs($records, $info = array()) {
@@ -354,9 +354,9 @@ class Controller_Exporting extends Controller {
           'operator_name' => $item->operator->name,
           'origin'        => $item->origin,
           'destination'   => $item->destination,
-          // 'loading_date'  => $item->loading_date,
-          // 'buyer'         => $item->buyer,
-          // 'submitted_by'  => $item->submitted_by,
+          'loading_date'  => $item->loading_date,
+          'buyer'         => $item->buyer,
+          'submitted_by'  => $item->submitted_by,
           'create_date'   => $item->create_date,
           'total'         => $total
         ))
