@@ -7,6 +7,7 @@ class Model_LDF extends SGS_Form_ORM {
   protected $_table_name = 'ldf_data';
 
   protected $_belongs_to = array(
+    'csv'      => array(),
     'site'     => array(),
     'operator' => array(),
     'barcode'  => array(),

@@ -111,6 +111,29 @@ alter table csv add column original_values d_text_long;
 update csv set original_values = values;
 alter table csv alter column original_values set not null;
 
+
+-- adding csv_id to data tables
+
+alter table ssf_data add column csv_id d_id unique;
+alter table ssf_data add constraint ssf_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade;
+
+alter table tdf_data add column csv_id d_id unique;
+alter table tdf_data add constraint tdf_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade;
+
+alter table ldf_data add column csv_id d_id unique;
+alter table ldf_data add constraint ldf_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade;
+
+alter table mif_data add column csv_id d_id unique;
+alter table mif_data add constraint mif_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade;
+
+alter table mof_data add column csv_id d_id unique;
+alter table mof_data add constraint mof_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade;
+
+alter table specs_data add column csv_id d_id unique;
+alter table specs_data add constraint specs_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade;
+
+
+
 -- fixes
 
 delete from csv where id = 88943 and form_data_id is null;

@@ -16,11 +16,11 @@ class Model_Invoice extends ORM {
   }
 
   public function get_data($args = array()) {
-    $query = DB::select('form_type', 'form_data_id')
+    $query = DB::select('form_data_id')
       ->from('invoice_data')
       ->where('invoice_id', '=', $this->id);
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
-    return $query->execute()->as_array('form_data_id');
+    return $query->execute()->as_array(NULL, 'form_data_id');
   }
 
   public function unset_data($args = array()) {

@@ -120,7 +120,7 @@ class Controller_Exporting extends Controller {
             $is_draft = TRUE;
 
           case 'final':
-            set_time_limit(600);
+            set_time_limit(1800);
             $data = $data->find_all()->as_array();
 
             $model = ORM::factory('SPECS');

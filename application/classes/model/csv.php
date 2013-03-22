@@ -82,16 +82,11 @@ class Model_CSV extends ORM {
     $validation->check();
     if (!$errors = $validation->errors()) {
       try {
+        $model->csv = $this;
         $model->save();
         $this->form_data_id = $model->id;
       } catch (ORM_Validation_Exception $e) {
         $errors = $e->errors();
-        try {
-          // $model->delete();
-          // can not actually delete already validated data for consistency
-        } catch (Exception $e) {
-          // do nothing
-        }
       }
     }
 

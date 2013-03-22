@@ -205,7 +205,7 @@ class Controller_Invoices extends Controller {
             $is_draft = TRUE;
 
           case 'final':
-            set_time_limit(600);
+            set_time_limit(1800);
             $invoice = ORM::factory('invoice');
 
             if ($operator->loaded()) $invoice->operator = $operator;

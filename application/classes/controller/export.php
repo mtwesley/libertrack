@@ -133,7 +133,7 @@ class Controller_Export extends Controller {
   }
 
   private function handle_download($form_type) {
-    set_time_limit(600);
+    set_time_limit(0);
 
     $model = ORM::factory($form_type);
 

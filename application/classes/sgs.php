@@ -696,6 +696,12 @@ class SGS {
     $fields = 'barcode';
 
     $query_args = array();
+
+    // FIXME: fix for operator using two sets of printjobs
+    $FMC_I = SGS::lookup_site('FMC I')->operator->id;
+    $PUP_2 = SGS::lookup_site('PUP 2')->operator->id;
+    if (($args['operators.id'] == $FMC_I) or ($args['operators.id'] == $PUP_2)) $args['operators.id'] = array($FMC_I, $PUP_2);
+
     if ($args['operators.id']) {
       $query_args[] = array('join' => array('printjobs'));
       $query_args[] = array('on' => array('barcodes.printjob_id', '=', 'printjobs.id'));
@@ -703,7 +709,6 @@ class SGS {
       $query_args[] = array('on' => array('printjobs.site_id', '=', 'sites.id'));
       $query_args[] = array('join' => array('operators'));
       $query_args[] = array('on' => array('sites.operator_id', '=', 'operators.id'));
-//      unset($args['operators.id']);
     }
     if (strlen($barcode) >= 10) $query_args[] = array('where' => array(DB::expr('character_length(barcodes.barcode)'), '=', 13));
     else $query_args[] = array('where' => array(DB::expr('character_length(barcodes.barcode)'), '=', 8));
@@ -722,7 +727,6 @@ class SGS {
     if ($args['sites.id']) {
       $query_args[] = array('join' => array('sites'));
       $query_args[] = array('on' => array('operators.id', '=', 'sites.operator_id'));
-//      unset($args['sites.id']);
     }
     return self::suggest($tin, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset);
   }
@@ -740,7 +744,6 @@ class SGS {
     if ($args['operators.id']) {
       $query_args[] = array('join' => array('operators'));
       $query_args[] = array('on' => array('sites.operator_id', '=', 'operators.id'));
-//      unset($args['operators.id']);
     }
 
     return self::suggest($name, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset);

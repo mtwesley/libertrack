@@ -7,6 +7,7 @@ class Model_SSF extends SGS_Form_ORM {
   protected $_table_name = 'ssf_data';
 
   protected $_belongs_to = array(
+    'csv'      => array(),
     'site'     => array(),
     'operator' => array(),
     'block'    => array(),

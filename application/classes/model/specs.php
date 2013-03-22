@@ -7,6 +7,7 @@ class Model_SPECS extends SGS_Form_ORM {
   protected $_table_name = 'specs_data';
 
   protected $_belongs_to = array(
+    'csv'      => array(),
     'operator' => array(),
     'barcode'  => array(),
     'specs_barcode'  => array(
@@ -58,6 +59,19 @@ class Model_SPECS extends SGS_Form_ORM {
 
       default:
         return parent::__get($column);
+    }
+  }
+
+  public function save(Validation $validation = NULL) {
+    if ($this->barcode->type == 'F') {
+      if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('L', 'P')) and $barcode->loaded()) $this->barcode = $barcode;
+      else {
+        $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        $barcode->type = 'L';
+        unset($barcode->printjob);
+        $barcode->save();
+        $this->barcode = $barcode;
+      }
     }
   }
 

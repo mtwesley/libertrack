@@ -531,7 +531,7 @@ class Controller_Analysis extends Controller {
       );
 
       $unable = 0;
-      set_time_limit(600);
+      set_time_limit(0);
       foreach ($records as $record) {
         $errors   = array();
         $warnings = array();

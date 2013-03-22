@@ -438,6 +438,7 @@ create table csv_duplicates (
 
 create table ssf_data (
   id bigserial not null,
+  csv_id d_id unique,
   site_id d_id not null,
   operator_id d_id not null,
   block_id d_id not null,
@@ -462,6 +463,7 @@ create table ssf_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint ssf_data_pkey primary key (id),
+  constraint ssf_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade,
   constraint ssf_data_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
   constraint ssf_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint ssf_data_block_id_fkey foreign key (block_id) references blocks (id) on update cascade,
@@ -472,6 +474,7 @@ create table ssf_data (
 
 create table tdf_data (
   id bigserial not null,
+  csv_id d_id unique,
   site_id d_id not null,
   operator_id d_id not null,
   block_id d_id not null,
@@ -497,6 +500,7 @@ create table tdf_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint tdf_data_pkey primary key (id),
+  constraint tdf_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade,
   constraint tdf_data_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
   constraint tdf_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint tdf_data_block_id_fkey foreign key (block_id) references blocks (id) on update cascade,
@@ -509,6 +513,7 @@ create table tdf_data (
 
 create table ldf_data (
   id bigserial not null,
+  csv_id d_id unique,
   site_id d_id not null,
   operator_id d_id not null,
   barcode_id d_id unique not null,
@@ -531,6 +536,7 @@ create table ldf_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint ldf_data_pkey primary key (id),
+  constraint ldf_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade,
   constraint ldf_data_site_id_fkey foreign key (site_id) references sites (id) on update cascade,
   constraint ldf_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint ldf_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
@@ -541,6 +547,7 @@ create table ldf_data (
 
 create table mif_data (
   id bigserial not null,
+  csv_id d_id unique,
   operator_id d_id not null,
   conversion_factor d_conversion_factor not null,
   barcode_id d_id unique not null,
@@ -557,6 +564,7 @@ create table mif_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint mif_data_pkey primary key (id),
+  constraint mif_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade,
   constraint mif_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint mif_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint mif_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
@@ -565,6 +573,7 @@ create table mif_data (
 
 create table mof_data (
   id bigserial not null,
+  csv_id d_id unique,
   operator_id d_id not null,
   conversion_factor d_conversion_factor not null,
   barcode_id d_id unique not null,
@@ -580,6 +589,7 @@ create table mof_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint mof_data_pkey primary key (id),
+  constraint mof_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade,
   constraint mof_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint mof_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint mof_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
@@ -588,6 +598,7 @@ create table mof_data (
 
 create table specs_data (
   id bigserial not null,
+  csv_id d_id unique,
   operator_id d_id not null,
   specs_barcode_id d_id,
   exp_barcode_id d_id,
@@ -614,6 +625,7 @@ create table specs_data (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint specs_data_pkey primary key (id),
+  constraint specs_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade,
   constraint specs_data_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
   constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_specs_barcode_id_fkey foreign key (specs_barcode_id) references barcodes (id) on update cascade,
@@ -1056,14 +1068,14 @@ begin
     end if;
   end if;
 
-  if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
-    if old.barcode_id is not null then
-      update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
-    end if;
-    if old.stump_barcode_id is not null then
-      update barcodes set type = 'P', parent_id = null where barcodes.id = old.stump_barcode_id;
-    end if;
-  end if;
+--   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
+--     if old.barcode_id is not null then
+--       update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
+--     end if;
+--     if old.stump_barcode_id is not null then
+--       update barcodes set type = 'P', parent_id = null where barcodes.id = old.stump_barcode_id;
+--     end if;
+--   end if;
 
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
     if new.barcode_id is not null then
@@ -1098,11 +1110,11 @@ begin
     end if;
   end if;
 
-  if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
-    if old.barcode_id is not null then
-      update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
-    end if;
-  end if;
+--   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
+--     if old.barcode_id is not null then
+--       update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
+--     end if;
+--   end if;
 
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
     if new.barcode_id is not null then
@@ -1123,11 +1135,11 @@ create function mof_data_update_barcodes()
   returns trigger as
 $$
 begin
-  if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
-    if old.barcode_id is not null then
-      update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
-    end if;
-  end if;
+--   if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
+--     if old.barcode_id is not null then
+--       update barcodes set type = 'P', parent_id = null where barcodes.id = old.barcode_id;
+--     end if;
+--   end if;
 
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
     if new.barcode_id is not null then
@@ -1144,10 +1156,21 @@ create function specs_data_update_barcodes()
   returns trigger as
 $$
 begin
+  if (tg_op <> 'DELETE') then
+    if (new.barcode_id = new.specs_barcode_id) or (new.barcode_id = new.exp_barcode_id) or (new.exp_barcode_id = new.specs_barcode_id) then
+      return null;
+    end if;
+  end if;
+
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    if new.barcode_id is not null then
+      update barcodes set type = 'L' where barcodes.id = new.barcode_id;
+    end if;
+
     if new.specs_barcode_id is not null then
       update barcodes set type = 'H' where barcodes.id = new.specs_barcode_id;
     end if;
+
     if new.exp_barcode_id is not null then
       update barcodes set type = 'E' where barcodes.id = new.exp_barcode_id;
     end if;
