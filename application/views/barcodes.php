@@ -8,6 +8,7 @@
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'type')), 'Type'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'is_locked')), 'Locked'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'coc_status')), 'Status'); ?></th>
+    <th class="links"></th>
   </tr>
   <?php foreach ($barcodes as $barcode): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
@@ -18,6 +19,10 @@
     <td><?php echo SGS::value($barcode->type, 'barcode_type', 'Unknown'); ?></td>
     <td><?php echo $barcode->is_locked ? 'YES' : 'NO'; ?></td>
     <td><?php echo SGS::$coc_status[$barcode->get_coc_activity() ?: 'P']; ?></td>
+    <td class="links">
+      <?php echo HTML::anchor('barcodes/'.$barcode->id, 'View', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('barcodes/'.$barcode->id.'/edit', 'Edit', array('class' => 'link')); ?>
+    </td>
   </tr>
   <?php endforeach; ?>
 </table>

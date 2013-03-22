@@ -231,7 +231,7 @@ class Controller_Analysis extends Controller {
       if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts')) : array()));
       if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
-      if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+      if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
       $form = $form
         ->add_group('status', 'checkboxes', SGS::$data_status, NULL, array('label' => 'Status'))
         ->add('search', 'submit', 'Filter');

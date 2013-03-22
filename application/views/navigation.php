@@ -131,11 +131,13 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'specs')    echo 'active'; ?>"><?php echo HTML::anchor('exporting/specs', SGS::title('exporting/specs')); ?></li>
     <li class="<?php if ($command == 'create')     echo 'active'; ?>"><?php echo HTML::anchor('exporting/specs/create', SGS::title('exporting/specs/create')); ?></li>
 
-    <?php elseif ($primary == 'barcodes'): ?>
-    <li class="<?php if ($secondary == 'query')    echo 'active'; ?>"><?php echo HTML::anchor('barcodes/query', SGS::title('barcodes/query')); ?></li>
-    <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('barcodes/list', SGS::title('barcodes/list')); ?></li>
-    <li class="<?php if ($secondary == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('barcodes/upload', SGS::title('barcodes/upload')); ?></li>
-    <li class="<?php if ($secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('barcodes/download', SGS::title('barcodes/download')); ?></li>
+    <?php elseif ($primary == 'barcodes' or $primary == 'printjobs'): ?>
+    <li class="<?php if ($primary == 'barcodes' and $secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('barcodes/list', SGS::title('barcodes/list')); ?></li>
+    <li class="<?php if ($primary == 'barcodes' and $secondary == 'query')    echo 'active'; ?>"><?php echo HTML::anchor('barcodes/query', SGS::title('barcodes/query')); ?></li>
+
+    <li class="<?php if ($primary == 'printjobs' and $secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('printjobs/list', SGS::title('printjobs/list')); ?></li>
+    <li class="<?php if ($primary == 'printjobs' and $secondary == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('printjobs/upload', SGS::title('printjobs/upload')); ?></li>
+    <li class="<?php if ($primary == 'printjobs' and $secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('printjobs/download', SGS::title('printjobs/download')); ?></li>
 
     <?php elseif ($primary == 'users'): ?>
     <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('users/list', SGS::title('users/list')); ?></li>

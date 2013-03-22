@@ -8,8 +8,8 @@ class Controller_Ajax extends Controller {
     $vars    = explode('-', $this->request->post('id'));
     $model   = $vars[0];
     $id      = $vars[1];
-    $key     = $vars[2];
-    $value   = $this->request->post('data');
+    $key     = trim($vars[2]);
+    $value   = trim($this->request->post('data'));
     $process = $this->request->post('process');
 
     $csv = ORM::factory('CSV', $id);
@@ -236,6 +236,7 @@ class Controller_Ajax extends Controller {
         $sql = "SELECT distinct barcode
                 FROM barcodes
                 JOIN specs_data ON specs_data.specs_barcode_id = barcodes.id
+                WHERE specs_data.operator_id = $operator_id
                 ORDER BY barcode";
 
         if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
@@ -249,6 +250,8 @@ class Controller_Ajax extends Controller {
 
       $sql = "SELECT distinct number
               FROM specs
+              JOIN specs_data ON specs_data.specs_id = specs.id
+              WHERE specs_data.operator_id = $operator_id
               ORDER BY number";
 
       if ($numbers = array_filter(DB::query(Database::SELECT, $sql)
@@ -264,7 +267,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_autocompletebarcode() {
-    $term = $this->request->post('term') ?: $this->request->query('term');
+    $term = trim($this->request->post('term') ?: $this->request->query('term'));
 
     print json_encode(
       array_filter(

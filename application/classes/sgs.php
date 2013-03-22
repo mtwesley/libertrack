@@ -85,9 +85,11 @@ class SGS {
 
     'barcodes'          => 'Barcodes',
     'barcodes/query'    => 'Query Barcodes',
-    'barcodes/list'     => 'List Print Jobs',
-    'barcodes/upload'   => 'Upload Print Jobs',
-    'barcodes/download' => 'Download Print Jobs',
+    'barcodes/list'     => 'List Barcodes',
+
+    'printjobs/list'     => 'List Print Jobs',
+    'printjobs/upload'   => 'Upload Print Jobs',
+    'printjobs/download' => 'Download Print Jobs',
 
     'users'           => 'Users',
     'users/list'      => 'Manage Users',
@@ -698,9 +700,10 @@ class SGS {
     $query_args = array();
 
     // FIXME: fix for operator using two sets of printjobs
-    $FMC_I = SGS::lookup_site('FMC I')->operator->id;
-    $PUP_2 = SGS::lookup_site('PUP 2')->operator->id;
-    if (($args['operators.id'] == $FMC_I) or ($args['operators.id'] == $PUP_2)) $args['operators.id'] = array($FMC_I, $PUP_2);
+    $FMC_I = SGS::lookup_operator(406824004, TRUE);
+    $PUP_2 = SGS::lookup_operator(406820009, TRUE);
+    if ((is_array($args['operators.id'])) and
+        (in_array($FMC_I, $args['operators.id']) or in_array($PUP_2, $args['operators.id']))) $args['operators.id'] = array($FMC_I, $PUP_2);
 
     if ($args['operators.id']) {
       $query_args[] = array('join' => array('printjobs'));
