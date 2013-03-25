@@ -37,6 +37,9 @@ class Model_TDF extends SGS_Form_ORM {
       case 'diameter':
         return SGS::floatify(($this->bottom_min + $this->bottom_max) / 2);
 
+      case 'volume':
+        return SGS::quantify(pi() * (((($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4) / 2) / 100) * $this->length);
+
       default:
         return parent::__get($column);
     }
@@ -532,15 +535,15 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     // traceability
-//    $parent = $this->parent('SSF');
+    // $parent = $this->parent('SSF');
 
     $parent = ORM::factory('SSF')
       ->where('barcode_id', '=', $this->tree_barcode->id)
       ->find();
 
     if ($parent and $parent->loaded()) {
-      if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
-      else $successes['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
+      // if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
+      // else $successes['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
 
       if (!(ord($this->species->class) >= ord($parent->species->class))) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $parent->species->class);
       else if (!($this->species->code == $parent->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);
