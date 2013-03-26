@@ -357,7 +357,7 @@ class Controller_Analysis extends Controller {
       ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
       ->render();
 
-    foreach (array_reverse($parents) as $parent) {
+    if ($parents) foreach (array_reverse($parents) as $parent) {
       unset($info);
       if ($parent::$type == 'SPECS') {
         $info['specs'] = array(
@@ -384,7 +384,7 @@ class Controller_Analysis extends Controller {
     }
 
     $_siblings = array();
-    foreach ($siblings as $sibling) $_siblings[$sibling::$type][] = $sibling;
+    if ($siblings) foreach ($siblings as $sibling) if (($sibling->barcode_id != $item->barcode_id) and ($sibling::$type != $item::$type)) $_siblings[$sibling::$type][] = $sibling;
     foreach ($_siblings as $type => $_sibling) {
       unset($info);
       $sample = reset($_sibling);
@@ -413,7 +413,7 @@ class Controller_Analysis extends Controller {
     }
 
     $childrens = array();
-    foreach ($children as $child) $childrens[$child::$type][] = $child;
+    if ($children) foreach ($children as $child) $childrens[$child::$type][] = $child;
     foreach ($childrens as $type => $childs) {
       unset($info);
       $sample = reset($childs);
