@@ -275,7 +275,7 @@ class Controller_Invoices extends Controller {
 
     switch ($invoice->type) {
       case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, array_keys($invoice->get_data()));
-      case 'ST': $invoice->file_id = self::generate_exf_invoice($invoice, array_keys($invoice->get_data()));
+      case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice, array_keys($invoice->get_data()));
     }
 
     if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
@@ -782,7 +782,7 @@ class Controller_Invoices extends Controller {
 
       $max = $max ?: $summary_normal_page_max;
 
-      if ((!$first or $summary_count <= 2) and $last and $sign) {
+      if (!$first and $last and $sign) {
         $signature_remaining  = FALSE;
         $options['signature'] = TRUE;
       }
