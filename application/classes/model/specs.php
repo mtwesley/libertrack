@@ -16,12 +16,6 @@ class Model_SPECS extends SGS_Form_ORM {
     'exp_barcode'  => array(
       'model'       => 'barcode',
       'foreign_key' => 'exp_barcode_id'),
-    'specs' => array(
-      'model'       => 'specsdocument',
-      'foreign_key' => 'specs_id'),
-    'exp' => array(
-      'model'       => 'expdocument',
-      'foreign_key' => 'exp_id'),
     'species'  => array(),
     'user'     => array(),
   );
@@ -44,16 +38,24 @@ class Model_SPECS extends SGS_Form_ORM {
         return (($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
       case 'specs_number':
-        if ($result = reset(DB::select('id', 'number')
-          ->from('specs')
-          ->where('id', '=', $this->specs_id)
+        if ($result = reset(DB::select('documents.id', 'documents.number')
+          ->from('documents')
+          ->join('document_data')
+          ->on('documents.id', '=', 'document_data.document_id')
+          ->where('documents.type', '=', 'SPECS')
+          ->and_where('document_data.form_type', '=', 'SPECS')
+          ->and_where('document_data.form_data_id', '=', $this->id)
           ->execute()
           ->as_array())) return $result['number'] ? 'SPECS '.$result['number'] : 'DRAFT'; break;
 
       case 'exp_number':
-        if ($result = reset(DB::select('id', 'number')
-          ->from('exp')
-          ->where('id', '=', $this->exp_id)
+        if ($result = reset(DB::select('documents.id', 'documents.number')
+          ->from('documents')
+          ->join('document_data')
+          ->on('documents.id', '=', 'document_data.document_id')
+          ->where('documents.type', '=', 'SPECS')
+          ->and_where('document_data.form_type', '=', 'EXP')
+          ->and_where('document_data.form_data_id', '=', $this->id)
           ->execute()
           ->as_array())) return $result['number'] ? 'EP '.$result['number'] : 'DRAFT'; break;
 
@@ -202,15 +204,11 @@ class Model_SPECS extends SGS_Form_ORM {
     return (array) self::$fields;
   }
 
-  public static function create_specs_number($force = FALSE) {
-    return DB::query(Database::SELECT, "SELECT to_char(nextval('s_specs_number'), 'FM000000') specs_number")
-      ->execute()
-      ->get('specs_number');
-  }
-
   public function formo() {
     $array = array(
       'id'              => array('render' => FALSE),
+      'csv'             => array('render' => FALSE),
+      'create_date'     => array('order' => 0, 'attr' => array('class' => 'dpicker')),
       'barcode'         => array('render' => FALSE),
       'contract_number' => array('render' => FALSE),
       'specs_barcode'   => array('render' => FALSE),
@@ -229,7 +227,6 @@ class Model_SPECS extends SGS_Form_ORM {
         'driver'  => 'forceselect',
         'options' => SGS::$grade
       ),
-      'create_date' => array('order' => 0),
     );
     foreach (self::fields() as $field => $label) {
       $array[$field]['label'] = $label;
@@ -281,11 +278,11 @@ class Model_SPECS extends SGS_Form_ORM {
       case 'exp_barcode':
         $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
 
-      case 'specs_number':
-        $this->specs_id = SGS::lookup_specs($value, TRUE); break;
+//      case 'specs_number':
+//        $this->specs_id = SGS::lookup_document('SPECS', $value, TRUE); break;
 
-      case 'exp_number':
-        $this->exp_id = SGS::lookup_exp($value, TRUE); break;
+//      case 'exp_number':
+//        $this->exp_id = SGS::lookup_document('EXP', $value, TRUE); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;

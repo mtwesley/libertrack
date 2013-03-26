@@ -194,6 +194,8 @@ class Model_TDF extends SGS_Form_ORM {
   public function formo() {
     $array = array(
       'id'            => array('render' => FALSE),
+      'csv'           => array('render' => FALSE),
+      'create_date'   => array('order' => 0, 'attr' => array('class' => 'dpicker')),
       'barcode'       => array('render' => FALSE),
       'tree_barcode'  => array('render' => FALSE),
       'stump_barcode' => array('render' => FALSE),
@@ -207,7 +209,6 @@ class Model_TDF extends SGS_Form_ORM {
         'orm_primary_val' => 'code',
         'label' => 'Species'
       ),
-      'create_date' => array('order' => 0),
     );
     foreach (self::fields() as $field => $label) {
       $array[$field]['label'] = $label;
