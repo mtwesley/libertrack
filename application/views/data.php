@@ -9,6 +9,7 @@ $options = (array) $options + array(
   'links'   => TRUE,
   'actions' => FALSE,
   'header'  => ($site or $operator or $specs_info or $exp_info) ? TRUE : FALSE,
+  'hide_hidden_fields' => TRUE
 );
 
 $header_columns = 0;
@@ -101,7 +102,29 @@ $classes[] = 'data';
           continue 2;
       endswitch;
     ?>
-    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => $field)), $name); ?></th>
+    <?php
+      if ($options['hide_hidden_fields']) switch ($field):
+        case 'enumerator':
+        case 'buyer':
+        case 'entered_date':
+        case 'checked_date':
+        case 'loading_date':
+        case 'measured_by':
+        case 'entered_by':
+        case 'checked_by':
+        case 'signed_by':
+        case 'submitted_by':
+        case 'contract_number':
+        case 'reference_number':
+        case 'is_fda_approved':
+        case 'comment':
+        case 'action':
+          $hidden_column = TRUE; break;
+        default:
+          $hidden_column = FALSE; break;
+      endswitch;
+    ?>
+    <th class="<?php echo $hidden_column ? 'hide' : ''; ?>"> <?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => $field)), $name); ?></th>
     <?php endforeach; ?>
     <th class="links"></th>
   </tr>
@@ -146,7 +169,29 @@ $classes[] = 'data';
           continue 2;
       endswitch;
     ?>
-    <td class="<?php if ($errors[$field]) print 'error'; else if ($warnings[$field]) print 'warning'; ?>">
+   <?php
+      if ($options['hide_hidden_fields']) switch ($field):
+        case 'enumerator':
+        case 'buyer':
+        case 'entered_date':
+        case 'checked_date':
+        case 'loading_date':
+        case 'measured_by':
+        case 'entered_by':
+        case 'checked_by':
+        case 'signed_by':
+        case 'submitted_by':
+        case 'contract_number':
+        case 'reference_number':
+        case 'is_fda_approved':
+        case 'comment':
+        case 'action':
+          $hidden_column = TRUE; break;
+        default:
+          $hidden_column = FALSE; break;
+      endswitch;
+    ?>
+    <td class="<?php echo $hidden_column ? 'hide' : ''; ?> <?php if ($errors[$field]) print 'error'; else if ($warnings[$field]) print 'warning'; ?>">
       <?php
         switch ($field):
           case 'operator_id':
@@ -203,6 +248,7 @@ $classes[] = 'data';
     <?php endforeach; ?>
     <td class="links">
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
+      <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/hierarchy', 'Hierarchy', array('class' => 'link')); ?>
       <?php if ($options['links']): ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
       <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>

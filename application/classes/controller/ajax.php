@@ -232,7 +232,20 @@ class Controller_Ajax extends Controller {
     if ($operator_id) {
       $output = '<optgroup label=""><option value=""></option>';
 
-      if (!$numbers_only) {
+      if ($numbers_only) {
+        $sql = "SELECT distinct number
+                FROM documents
+                WHERE operator_id = $operator_id AND type = 'SPECS'
+                ORDER BY number";
+
+        if ($numbers = array_filter(DB::query(Database::SELECT, $sql)
+          ->execute()
+          ->as_array(NULL, 'number'))) {
+          $output .= '<optgroup label="Shipment Specification Number">';
+          foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'<option>';
+          $output .= '</optgroup>';
+        }
+      } else {
         $sql = "SELECT distinct barcode
                 FROM barcodes
                 JOIN specs_data ON specs_data.specs_barcode_id = barcodes.id
@@ -246,20 +259,6 @@ class Controller_Ajax extends Controller {
           foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'<option>';
           $output .= '</optgroup>';
         }
-      }
-
-      $sql = "SELECT distinct number
-              FROM specs
-              JOIN specs_data ON specs_data.specs_id = specs.id
-              WHERE specs_data.operator_id = $operator_id
-              ORDER BY number";
-
-      if ($numbers = array_filter(DB::query(Database::SELECT, $sql)
-        ->execute()
-        ->as_array(NULL, 'number'))) {
-        $output .= '<optgroup label="Shipment Specification Number">';
-        foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'<option>';
-        $output .= '</optgroup>';
       }
 
       $this->response->body($output);

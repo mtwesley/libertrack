@@ -253,7 +253,6 @@ class Controller_Analysis extends Controller {
         if ($status)      $data->and_where('status', 'IN', (array) $status);
 
         if (Valid::is_barcode($specs_info))   $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
-        else if (Valid::numeric($specs_info)) $data->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
 
         Session::instance()->set('pagination.data', array(
           'site_id'     => $site_id,
@@ -281,7 +280,6 @@ class Controller_Analysis extends Controller {
         if ($status)      $data->and_where('status', 'IN', (array) $status);
 
         if (Valid::is_barcode($specs_info))   $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
-        else if (Valid::numeric($specs_info)) $data->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
       }
 
       if ($data) {
@@ -335,6 +333,114 @@ class Controller_Analysis extends Controller {
     }
 
     if ($form) $content .= $form->render();
+    $content .= $table;
+    $content .= $pagination;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_data_hierarchy($form_type, $id) {
+    $item     = ORM::factory($form_type, $id);
+    $parents  = $item->parents();
+    $children = $item->children();
+    $siblings = $item->siblings();
+
+    $table = View::factory('data')
+      ->set('classes', array('has-pagination'))
+      ->set('form_type', $item::$type)
+      ->set('data', array($item))
+      ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
+      ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)
+      ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
+      ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+      ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+      ->render();
+
+    foreach (array_reverse($parents) as $parent) {
+      unset($info);
+      if ($parent::$type == 'SPECS') {
+        $info['specs'] = array(
+          'number'  => $parent->specs_number,
+          'barcode' => $parent->specs_barcode->barcode
+        );
+        if (Valid::numeric($specs_info)) $info['exp'] = array(
+          'number'  => $parent->exp_number,
+          'barcode' => $parent->exp_barcode->barcode
+        );
+      }
+
+    $table .= '<br/><strong>'.SGS::$form_type[$parent::$type].' Parent:</strong><br/>'.View::factory('data')
+        ->set('classes', array('has-pagination'))
+        ->set('form_type', $parent::$type)
+        ->set('data', array($parent))
+        ->set('operator', (isset($parent->operator) and $parent->operator->loaded()) ? $parent->operator : NULL)
+        ->set('site', (isset($parent->site) and $parent->site->loaded()) ? $parent->site : NULL)
+        ->set('block', (isset($parent->block) and $parent->block->loaded()) ? $parent->block : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('options', array('header' => FALSE))
+        ->render();
+    }
+
+    $_siblings = array();
+    foreach ($siblings as $sibling) $_siblings[$sibling::$type][] = $sibling;
+    foreach ($_siblings as $type => $_sibling) {
+      unset($info);
+      $sample = reset($_sibling);
+      if ($sibling::$type == 'SPECS') {
+        $info['specs'] = array(
+          'number'  => $sample->specs_number,
+          'barcode' => $sample->specs_barcode->barcode
+        );
+        if (Valid::numeric($specs_info)) $info['exp'] = array(
+          'number'  => $sample->exp_number,
+          'barcode' => $sample->exp_barcode->barcode
+        );
+      }
+
+      $table .= '<br/><strong>'.SGS::$form_type[$sample::$type].' Siblings:</strong><br/>'.View::factory('data')
+        ->set('classes', array('has-pagination'))
+        ->set('form_type', $sample::$type)
+        ->set('data', $_sibling)
+        ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
+        ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)
+        ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('options', array('header' => FALSE))
+        ->render();
+    }
+
+    $childrens = array();
+    foreach ($children as $child) $childrens[$child::$type][] = $child;
+    foreach ($childrens as $type => $childs) {
+      unset($info);
+      $sample = reset($childs);
+      if ($child::$type == 'SPECS') {
+        $info['specs'] = array(
+          'number'  => $sample->specs_number,
+          'barcode' => $sample->specs_barcode->barcode
+        );
+        if (Valid::numeric($specs_info)) $info['exp'] = array(
+          'number'  => $sample->exp_number,
+          'barcode' => $sample->exp_barcode->barcode
+        );
+      }
+
+      $table .= '<br/><strong>'.SGS::$form_type[$sample::$type].' Children:</strong><br/>'.View::factory('data')
+        ->set('classes', array('has-pagination'))
+        ->set('form_type', $sample::$type)
+        ->set('data', $childs)
+        ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
+        ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)
+        ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('options', array('header' => FALSE))
+        ->render();
+    }
+
     $content .= $table;
     $content .= $pagination;
 
@@ -508,7 +614,6 @@ class Controller_Analysis extends Controller {
       if ($block_id)    $records = $records->and_where('block_id', 'IN', (array) $block_id);
 
       if (Valid::is_barcode($specs_info))   $records = $records->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
-      else if (Valid::numeric($specs_info)) $records = $records->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
 
       if (!$has_specs_info and !$has_exp_info) {
         $records = $records->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
@@ -653,7 +758,6 @@ class Controller_Analysis extends Controller {
       if ($has_site_id and $has_block_id and $block_id) $_data = $_data->and_where('block_id', 'IN', (array) $block_id);
 
       if (Valid::is_barcode($specs_info))   $_data = $_data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
-      else if (Valid::numeric($specs_info)) $_data = $_data->and_where('specs_id', '=', SGS::lookup_specs($specs_info, TRUE));
 
       if (!$has_specs_info and !$has_exp_info)  $_data = $_data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
@@ -793,6 +897,7 @@ class Controller_Analysis extends Controller {
     if ($form_type) switch ($command) {
       case 'delete': return self::handle_data_delete($form_type, $id);
       case 'edit': return self::handle_data_edit($form_type, $id);
+      case 'hierarchy': return self::handle_data_hierarchy($form_type, $id);
       case 'list':
       default: return self::handle_data_list($form_type, $id);
     }

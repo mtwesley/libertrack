@@ -91,3 +91,13 @@ table.details-checks tr td.error-info {}
 table.data tr td.check-info {
   width: 130px;
 }
+
+table.data tr td.hide,
+table.data tr th.hide {
+  display: none;
+}
+
+table.data tr td.show,
+table.data tr th.show {
+  display: inherit;
+}

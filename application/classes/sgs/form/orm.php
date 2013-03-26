@@ -190,7 +190,7 @@ class SGS_Form_ORM extends ORM {
     foreach ($results as $result) {
       $_types   = $types;
       $_types[] = SGS::barcode_to_form_type($result['type']);
-      foreach ($_types as $_type) {
+      foreach (array_filter($_types) as $_type) {
         $parent = ORM::factory($_type)
           ->where('barcode_id', '=', $result['parent_id'])
           ->find();
@@ -224,7 +224,7 @@ class SGS_Form_ORM extends ORM {
     foreach ($results as $result) {
       $_types   = $types;
       $_types[] = SGS::barcode_to_form_type($result['type']);
-      foreach ($_types as $_type) {
+      foreach (array_filter($_types) as $_type) {
         $child = ORM::factory($_type)
           ->where('barcode_id', '=', $result['barcode_id'])
           ->find();
