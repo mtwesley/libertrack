@@ -107,7 +107,8 @@ Kohana::modules(array(
 	'phpexcel'     => MODPATH.'phpexcel',     // PHPExcel library
 	'dompdf'       => MODPATH.'dompdf',       // DOMPDF library
 	'tcpdf'        => MODPATH.'tcpdf',        // TCPDF library
-	'snappy'       => MODPATH.'snappy',       // Slibrary
+	'fpdf'         => MODPATH.'fpdf',         // FPDF library
+	'snappy'       => MODPATH.'snappy',       // PDF library
 	'image'        => MODPATH.'image',        // Image manipulation
 	// 'unittest'  => MODPATH.'unittest',     // Unit testing
 	'userguide'    => MODPATH.'userguide',    // User guide and API documentation
