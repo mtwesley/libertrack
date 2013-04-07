@@ -34,7 +34,6 @@ class Controller_Invoices extends Controller {
       ->execute()
       ->as_array('id', 'name');
 
-
     $form = Formo::form();
     if ($has_site_id) $form = $form
       ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'required' => TRUE))
@@ -59,8 +58,8 @@ class Controller_Invoices extends Controller {
       ->add('submit', 'submit', 'Generate');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      Session::instance()->delete('pagination.data');
-      $format   = $form->format->val();
+      Session::instance()->delete('pagination.invoice.data');
+      $format     = $form->format->val();
       if ($has_site_id) {
         $site_id  = $form->site_id->val();
         $from     = $form->from->val();
@@ -74,6 +73,7 @@ class Controller_Invoices extends Controller {
       $due      = $form->due->val();
 
       Session::instance()->set('pagination.invoice.data', array(
+        'format'      => $format,
         'operator_id' => $operator_id,
         'site_id'     => $site_id,
         'specs_info'  => $specs_info,
@@ -82,9 +82,22 @@ class Controller_Invoices extends Controller {
         'created'     => $created,
         'due'         => $due
       ));
+    }
+    else if ($settings = Session::instance()->get('pagination.invoice.data')) {
+      if ($has_site_id) {
+        $form->format->val($format = $settings['format']);
+        $form->site_id->val($site_id = $settings['site_id']);
+        $form->from->val($from = $settings['from']);
+        $form->to->val($to = $settings['to']);
+      } else if ($has_specs_info) {
+        $form->operator_id->val($operator_id = $settings['operator_id']);
+        $form->specs_info->val($specs_info = $settings['specs_info']);
+      }
+      $form->created->val($created = $settings['created']);
+      $form->due->val($due = $settings['due']);
+    }
 
-      $site = ORM::factory('site', $site_id);
-
+    if ($format) {
       switch ($invoice_type) {
         case 'ST':
           $form_type = 'LDF';
@@ -240,20 +253,9 @@ class Controller_Invoices extends Controller {
         }
       } else Notify::msg('No data found. Skipping invoice.', 'warning');
     }
-    else if ($settings = Session::instance()->get('pagination.invoice.data')) {
-      if ($has_site_id) {
-        $form->site_id->val($site_id = $settings['site_id']);
-        $form->from->val($from = $settings['from']);
-        $form->to->val($to = $settings['to']);
-      } else if ($has_specs_info) {
-        $form->operator_id->val($operator_id = $settings['operator_id']);
-        $form->specs_info->val($specs_info = $settings['specs_info']);
-      }
-      $form->created->val($from = $settings['created']);
-      $form->due->val($to = $settings['due']);
-    }
 
     if ($form) $content .= $form;
+
     $content .= $header;
     $content .= $summary;
     $content .= $table;
@@ -274,8 +276,8 @@ class Controller_Invoices extends Controller {
     $invoice->number = $invoice::create_invoice_number($invoice->type);
 
     switch ($invoice->type) {
-      case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, array_keys($invoice->get_data()));
-      case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice, array_keys($invoice->get_data()));
+      case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, $invoice->get_data()); break;
+      case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice, $invoice->get_data()); break;
     }
 
     if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
@@ -352,7 +354,7 @@ class Controller_Invoices extends Controller {
           ->offset($pagination->offset)
           ->limit($pagination->items_per_page);
         if ($sort = $this->request->query('sort')) $invoices->order_by($sort);
-        $invoices = $invoices->order_by('created_date', 'DESC')
+        $invoices = $invoices->order_by('number', 'DESC')
           ->find_all()
           ->as_array();
       }
@@ -546,7 +548,7 @@ class Controller_Invoices extends Controller {
 
       $max = $max ?: $summary_normal_page_max;
 
-      if ((!$first or $summary_count <= 2) and $last and $sign) {
+      if ((!$first or $summary_count <= 1) and $last and $sign) {
         $signature_remaining  = FALSE;
         $options['signature'] = TRUE;
       }
