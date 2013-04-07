@@ -29,6 +29,11 @@ class Controller_Import extends Controller {
         ->as_array();
     }
     else {
+      $operator_ids = DB::select('id', 'name')
+        ->from('operators')
+        ->order_by('name')
+        ->execute()
+        ->as_array('id', 'name');
 
       $site_ids = DB::select('id', 'name')
         ->from('sites')
@@ -38,6 +43,7 @@ class Controller_Import extends Controller {
 
       $form = Formo::form()
         ->add_group('operation_type', 'checkboxes', SGS::$form_type, NULL, array('label' => 'Type'))
+        ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'site_operatoropts')))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
         ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
         ->add('search', 'submit', 'Filter');
@@ -46,17 +52,20 @@ class Controller_Import extends Controller {
         Session::instance()->delete('pagination.file.list');
 
         $operation_type = $form->operation_type->val();
+        $operator_id    = $form->operator_id->val();
         $site_id        = $form->site_id->val();
         $block_id       = $form->block_id->val();
 
         $files = ORM::factory('file')->where('operation', '=', 'I');
 
         if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
+        if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)        $files->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)       $files->and_where('block_id', 'IN', (array) $block_id);
 
         Session::instance()->set('pagination.file.list', array(
           'form_type'   => $operation_type,
+          'operator_id' => $operator_id,
           'site_id'     => $site_id,
           'block_id'    => $block_id,
         ));
@@ -64,6 +73,7 @@ class Controller_Import extends Controller {
       else {
         if ($settings = Session::instance()->get('pagination.file.list')) {
           $form->operation_type->val($operation_type = $settings['form_type']);
+          $form->operator_id->val($operator_id = $settings['operator_id']);
           $form->site_id->val($site_id = $settings['site_id']);
           $form->block_id->val($block_id = $settings['block_id']);
         }
@@ -72,6 +82,7 @@ class Controller_Import extends Controller {
           ->where('operation', '=', 'I');
 
         if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
+        if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)        $files->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)       $files->and_where('block_id', 'IN', (array) $block_id);
       }
@@ -154,6 +165,15 @@ class Controller_Import extends Controller {
       $this->request->redirect('import/files');
     }
 
+    $table = View::factory('files')
+      ->set('mode', 'import')
+      ->set('files', array($file))
+      ->set('options', array(
+        'links' => FALSE
+      ))
+      ->render();
+
+    $content .= $table;
     if ($form) $content .= $form->render();
 
     $view = View::factory('main')->set('content', $content);
@@ -312,17 +332,22 @@ class Controller_Import extends Controller {
     }
 
     // pending
-    $pending = $file->csv
-      ->where('status', 'IN', array('P','R', 'U'))
-      ->find_all()
-      ->as_array();
+    $csv_ids = DB::select('csv.id')
+      ->from('files')
+      ->join('csv')
+      ->on('files.id', '=', 'csv.file_id')
+      ->where('files.id', '=', $file->id)
+      ->and_where('csv.status', 'IN', array('P', 'R', 'U'))
+      ->execute()
+      ->as_array(NULL, 'id');
 
     $accepted   = 0;
     $rejected   = 0;
     $duplicated = 0;
     $failure    = 0;
 
-    foreach ($pending as $csv) {
+    foreach ($csv_ids as $csv_id) {
+      $csv = ORM::factory('CSV', $csv_id);
       $csv->process();
       switch ($csv->status) {
         case 'A': $accepted++; break;
@@ -330,6 +355,7 @@ class Controller_Import extends Controller {
         case 'U': $duplicated++; break;
         default:  $failure++;
       }
+      unset($csv);
     }
 
     if ($accepted) Notify::msg($accepted.' records accepted as form data.', 'success', TRUE);
@@ -460,6 +486,18 @@ class Controller_Import extends Controller {
       $this->request->redirect('import/data');
     }
 
+    $table = View::factory('csvs')
+      ->set('mode', 'import')
+      ->set('csvs', array($csv))
+      ->set('fields', SGS_Form_ORM::get_fields($csv->form_type))
+      ->set('options', array(
+        'header'  => FALSE,
+        'links'   => FALSE,
+        'details' => FALSE
+      ))
+      ->render();
+
+    $content .= $table;
     $content .= $form->render();
 
     $view = View::factory('main')->set('content', $content);
@@ -681,6 +719,106 @@ class Controller_Import extends Controller {
   }
 
   public function action_index() {
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  public function action_search() {
+    if (!Request::$current->query()) Session::instance()->delete('pagination.csv.search');
+
+    $operator_ids = DB::select('id', 'name')
+      ->from('operators')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    $site_ids = DB::select('id', 'name')
+      ->from('sites')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    $form = Formo::form(array('attr' => array('class' => 'search')))
+      ->add('search', 'input', array('label' => 'Keywords', 'rules' => array(array('min_length', array(':value', 3)))))
+      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'site_operatoropts')))
+      ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
+      ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
+      ->add('submit', 'submit', 'Search')
+      ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Form', 'required' => TRUE))
+      ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'));
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      Session::instance()->delete('pagination.csv.search');
+
+      $search      = explode(' ', $form->search->val());
+      $form_type   = $form->form_type->val();
+      $operator_id = $form->operator_id->val();
+      $site_id     = $form->site_id->val();
+      $block_id    = $form->block_id->val();
+      $status      = $form->status->val();
+
+      Session::instance()->set('pagination.csv.search', array(
+        'search'      => $search,
+        'form_type'   => $form_type,
+        'operator_id' => $operator_id,
+        'site_id'     => $site_id,
+        'block_id'    => $block_id,
+        'status'      => $status,
+      ));
+    }
+    elseif ($settings = Session::instance()->get('pagination.csv.search')) {
+      $form->search->val($search = $settings['search']);
+      $form->form_type->val($form_type = $settings['form_type']);
+      $form->operator_id->val($operator_id = $settings['operator_id']);
+      $form->site_id->val($site_id = $settings['site_id']);
+      $form->block_id->val($block_id = $settings['block_id']);
+      $form->status->val($status = $settings['status']);
+    }
+
+    if ($search) {
+      $csvs = ORM::factory('csv')
+        ->where('operation', '=', 'I')
+        ->order_by('timestamp', 'DESC');
+
+      foreach ($search as $keyword) $csvs->and_where('values', 'LIKE', '%'.$keyword.'%');
+
+      if ($form_type)   $csvs->and_where('form_type', 'IN', (array) $form_type);
+      if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
+      if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
+      if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
+      if ($status)      $csvs->and_where('status', 'IN', (array) $status);
+
+      $clone = clone($csvs);
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 50,
+        'total_items' => $total_items = $clone->find_all()->count()));
+
+      $csvs = $csvs
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page)
+        ->find_all()
+        ->as_array();
+
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
+      else Notify::msg('No records found');
+
+      $table = View::factory('csvs')
+        ->set('classes', array('has-pagination'))
+        ->set('mode', 'import')
+        ->set('csvs', $csvs)
+        ->set('fields', SGS_Form_ORM::get_fields($form_type))
+        ->set('total_items', $total_items)
+        ->set('operator', $operator_id ? ORM::factory('operator', $operator_id) : NULL)
+        ->set('site', $site_id ? ORM::factory('site', $site_id) : NULL)
+        ->set('block', $block_id ? ORM::factory('block', $block_id) : NULL)
+        ->render();
+    }
+
+    if ($form) $content .= $form->render();
+    $content .= $table;
+    $content .= $pagination;
+
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
   }
