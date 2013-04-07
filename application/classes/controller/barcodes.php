@@ -47,6 +47,21 @@ class Controller_Barcodes extends Controller {
             Notify::msg('Sorry, print job failed to be saved. Please try again.', 'error');
           }
         }
+      } else {
+        $data = array();
+
+        foreach (array('SSF', 'TDF', 'LDF') as $key) {
+          $search = ORM::factory($key);
+          foreach (array_keys($search->labels()) as $field) if (strpos($field, 'barcode') !== FALSE) $search->or_where($field, '=', $barcode->id);
+          foreach ($search = $search->find_all() as $item) $data[$key][] = $item;
+        }
+
+        foreach ($data as $type => $items) $data_table .= View::factory('data')
+          ->set('classes', array('has-section'))
+          ->set('form_type', $type)
+          ->set('data', $items)
+          ->set('options', array('header' => FALSE))
+          ->render();
       }
     }
     else {
@@ -96,7 +111,7 @@ class Controller_Barcodes extends Controller {
       if ($barcodes) {
         $clone = clone($barcodes);
         $pagination = Pagination::factory(array(
-          'items_per_page' => 20,
+          'items_per_page' => 50,
           'total_items' => $clone->find_all()->count()));
 
         $barcodes = $barcodes
@@ -107,9 +122,9 @@ class Controller_Barcodes extends Controller {
           ->find_all()
           ->as_array();
 
-        if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' print job found');
-        elseif ($pagination->total_items) Notify::msg($pagination->total_items.' print jobs found');
-        else Notify::msg('No print jobs found');
+        if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' barcodes found');
+        elseif ($pagination->total_items) Notify::msg($pagination->total_items.' barcodes found');
+        else Notify::msg('No barcodes found');
       }
     }
 
@@ -119,6 +134,7 @@ class Controller_Barcodes extends Controller {
 
     if ($form) $content .= $form->render();
     $content .= $table;
+    $content .= $data_table;
     $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
@@ -156,23 +172,23 @@ class Controller_Barcodes extends Controller {
       if ($site_id)     $args['sites.id'] = $site_id;
       if ($operator_id) $args['operators.id'] = $operator_id;
 
-      if (!$suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'barcode', TRUE, 2, 0.3, 3, 20, 0)) Notify::msg('No results found.');
-      else if (count($suggestions) == 1) Notify::msg('1 result found.', 'success');
-      else Notify::msg(count($suggestions). ' results found.', 'success');
+      if ($suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', TRUE, 2, 0.3, 3, 25, 0)) {
+        Notify::msg(count($suggestions).' results found.', 'success');
 
-      $barcodes = array();
-      foreach ($suggestions as $suggestion) $barcodes[] = ORM::factory('barcode')
-        ->where('barcode', '=', $suggestion)
-        ->find_all()
-        ->as_array();
+        $barcodes = ORM::factory('barcode')
+          ->where('id', 'IN', (array) $suggestions)
+          ->find_all()
+          ->as_array();
+      } else Notify::msg('No results found.');
 
-      $barcodes = SGS::flattenify($barcodes);
       if ($barcodes) $table = View::factory('barcodes')
+        ->set('classes', array('has-pagination'))
         ->set('barcodes', $barcodes);
     }
 
     $content .= $form->render();
     $content .= $table;
+    $content .= $pagination;
 
     $view = View::factory('main')
       ->set('content', $content)

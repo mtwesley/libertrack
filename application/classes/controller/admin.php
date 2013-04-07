@@ -30,6 +30,8 @@ class Controller_Admin extends Controller {
         'label' => $id ? 'Update Operator' : 'Add a New Operator'
       ));
 
+    if ($id) $form->remove('tin');
+
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
         $operator->save();
@@ -88,6 +90,8 @@ class Controller_Admin extends Controller {
         'label' => $id ? 'Update Site' : 'Add a New Site'
       ));
 
+    if ($id) $add_form->remove('name');
+
     $operator_ids = DB::select('id', 'name')
       ->from('operators')
       ->order_by('name')
@@ -128,20 +132,20 @@ class Controller_Admin extends Controller {
     } else {
       $sites = ORM::factory('site');
       if ($operator_id) $sites = $sites->where('operator_id', '=', $operator_id);
+
+      $clone = clone($sites);
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 20,
+        'total_items' => $clone->find_all()->count()));
+
+      $sites = $sites
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $sites->order_by($sort);
+      $sites = $sites->order_by('name')
+        ->find_all()
+        ->as_array();
     }
-
-    $clone = clone($sites);
-    $pagination = Pagination::factory(array(
-      'items_per_page' => 20,
-      'total_items' => $clone->find_all()->count()));
-
-    $sites = $sites
-      ->offset($pagination->offset)
-      ->limit($pagination->items_per_page);
-    if ($sort = $this->request->query('sort')) $sites->order_by($sort);
-    $sites = $sites->order_by('name')
-      ->find_all()
-      ->as_array();
 
     $table .= View::factory('sites')
       ->set('classes', array('has-pagination'))
@@ -166,7 +170,6 @@ class Controller_Admin extends Controller {
     $id   = $this->request->param('id');
     $form = $this->request->post('form');
 
-
     $block = ORM::factory('block', $id);
     $add_form = Formo::form(array('attr' => array('style' => ($id or $form == 'add_form') ? '' : 'display: none;')))
       ->orm('load', $block, array('user_id', 'timestamp'), true)
@@ -175,6 +178,8 @@ class Controller_Admin extends Controller {
         'label' => $id ? 'Update Block' : 'Add a New Block'
       ))
       ->order(array('name' => 0));
+
+    if ($id) $add_form->remove('name');
 
     $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -216,21 +221,21 @@ class Controller_Admin extends Controller {
     } else {
       $blocks = ORM::factory('block');
       if ($site_id) $blocks = $blocks->where('site_id', '=', $site_id);
+
+      $clone = clone($blocks);
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 20,
+        'total_items' => $clone->find_all()->count()));
+
+      $blocks = $blocks
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $blocks->order_by($sort);
+      $blocks = $blocks->order_by('site_id')
+        ->order_by('name')
+        ->find_all()
+        ->as_array();
     }
-
-    $clone = clone($blocks);
-    $pagination = Pagination::factory(array(
-      'items_per_page' => 20,
-      'total_items' => $clone->find_all()->count()));
-
-    $blocks = $blocks
-      ->offset($pagination->offset)
-      ->limit($pagination->items_per_page);
-    if ($sort = $this->request->query('sort')) $blocks->order_by($sort);
-    $blocks = $blocks->order_by('site_id')
-      ->order_by('name')
-      ->find_all()
-      ->as_array();
 
     $table = View::factory('blocks')
       ->set('classes', array('has-pagination'))
@@ -258,6 +263,8 @@ class Controller_Admin extends Controller {
       ->add('save', 'submit', array(
         'label' => $id ? 'Update Species' : 'Add a New Species'
       ));
+
+    if ($id) $add_form->remove('code');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {

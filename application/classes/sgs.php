@@ -2,6 +2,9 @@
 
 class SGS {
 
+  const NEVERTHELESS   = 'tHe k1nG s8iD tHe7 p3oPlE w1lL hAv3 t#e v0iCe aNd We Of 2aMu$l ReFuZeD b^t To Ob3y A n@y oVeR uZ';
+  const NEVER_THE_LESS = 'the king said they people will have the voice and we of samuel refused but to obey a nay over us';
+
   const DATE_FORMAT = 'j M Y';
   const DATETIME_FORMAT = 'j M Y H:i';
   const PRETTY_DATE_FORMAT = 'F j, Y';
@@ -59,6 +62,7 @@ class SGS {
     'import'          => 'Data',
     'import/upload'   => 'Upload Documents',
     'import/files'    => 'File Management',
+    'import/search'   => 'Data Search',
     'import/data'     => 'Data Management',
 
     'import/data/ssf'   => 'Stock Survey Form',
@@ -548,6 +552,18 @@ class SGS {
       ->find_all();
   }
 
+  public static function lookup_document($type, $number, $returning_id = FALSE)
+  {
+    $id = DB::select('id')
+      ->from('documents')
+      ->where('type', '=', $type)
+      ->and_where('number', '=', (string) $number)
+      ->execute()
+      ->get('id');
+
+    return $returning_id ? $id : ORM::factory('specsdocument', $id);
+  }
+
   public static function lookup_specs($number, $returning_id = FALSE)
   {
     $id = DB::select('id')
@@ -556,10 +572,7 @@ class SGS {
       ->execute()
       ->get('id');
 
-    return $returning_id ? $id : ORM::factory('SPECS')
-      ->where('specs_id', '=', $id)
-      ->find_all()
-      ->as_array();
+    return $returning_id ? $id : ORM::factory('specsdocument', $id);
   }
 
   public static function lookup_exp($number, $returning_id = FALSE)
@@ -570,10 +583,7 @@ class SGS {
       ->execute()
       ->get('id');
 
-    return $returning_id ? $id : ORM::factory('EXP')
-      ->where('exp_id', '=', $id)
-      ->find_all()
-      ->as_array();
+    return $returning_id ? $id : ORM::factory('expdocument', $id);
   }
 
   public static function lookup_printjob($number, $returning_id = FALSE)
@@ -597,8 +607,6 @@ class SGS {
 
     return $returning_id ? $id : ORM::factory('species', $id);
   }
-
-
 
   public static function suggest($search, $table, $model, $match, $fields, $args, $query_args, $return, $match_exact, $min_length, $min_similarity, $max_distance, $limit, $offset)
   {
@@ -895,7 +903,8 @@ class SGS {
 
   public static function locationify($string, $slash = '/')
   {
-    return substr($string, strrpos($string, $slash)) ?: $string;
+    $pos = strrpos($string, $slash);
+    return substr($string, $pos ? $pos + 1 : 0) ?: $string;
   }
 
   public static function internationalify($string)
