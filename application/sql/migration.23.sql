@@ -133,7 +133,6 @@ alter table specs_data add column csv_id d_id unique;
 alter table specs_data add constraint specs_data_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade;
 
 
-
 -- fixes
 
 delete from csv where id = 88943 and form_data_id is null;
