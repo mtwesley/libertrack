@@ -12,7 +12,12 @@
     <td><?php echo $site->name; ?></td>
     <td><?php echo $site->operator->name; ?></td>
     <td class="links">
-      <?php echo HTML::anchor('admin/sites/'.$site->id.'/edit', 'Edit', array('class' => 'link')); ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php echo HTML::anchor('admin/sites/'.$site->id.'/edit', 'Edit', array('class' => 'link')); ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endforeach; ?>

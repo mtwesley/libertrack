@@ -16,7 +16,12 @@
     <td><?php echo $spcs->class; ?></td>
     <td><?php echo $spcs->fob_price; ?></td>
     <td class="links">
-      <?php echo HTML::anchor('admin/species/'.$spcs->id.'/edit', 'Edit', array('class' => 'link')); ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php echo HTML::anchor('admin/species/'.$spcs->id.'/edit', 'Edit', array('class' => 'link')); ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endforeach; ?>

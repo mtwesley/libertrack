@@ -1,4 +1,4 @@
-var editableOptions = {
+var csvEditableOptions = {
   cssclass: 'eip-form',
   event: 'dblclick',
   id: 'id',
@@ -6,6 +6,18 @@ var editableOptions = {
   placeholder: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
   callback: function(value, settings) {
     update_csv($(this).attr('id').match(/csv-(\d+)/)[1]);
+  }
+};
+
+var dataEditableOptions = {
+  cssclass: 'eip-form',
+  event: 'dblclick',
+  id: 'id',
+  name: 'data',
+  placeholder: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+  callback: function(value, settings) {
+    var match = $(this).attr('id').match(/(\w+)-(\d+)/);
+    update_data(match[1], match[2]);
   }
 };
 
@@ -22,9 +34,8 @@ var bPopupOptions = {
 }
 
 $(function() {
-
   $(".toggle-details").live('click', function() {
-    $(this).parent().parent("tr").next("tr.details").toggle();
+    $(this).parent().parent().parent().parent("tr").next("tr.details").toggle();
   });
 
   $(".details-tips-link").live('click', function() {
@@ -70,21 +81,46 @@ $(function() {
     });
   });
 
-  $("body.import .csv-process").live('click', function() {
-    $(this).parent("td").addClass("loading");
+  $(".csv-process").live('click', function() {
+    $(this).parent().parent().parent("td").addClass("loading");
     var csv_id = $(this).attr('id').match(/csv-(\d+)/)[1];
     $.post(
       '/ajax/process',
       {id: $(this).attr('id')},
       function() {
-        $(this).parent("td").removeClass("loading");
+        $(this).parent().parent().parent("td").removeClass("loading");
         update_csv(csv_id);
       }
     );
   });
 
+  $(".links-container").live('click', function() {
+    $(this).children(".links-links").show();
+  });
+
+  $(".links-links span").live('click', function() {
+    $(".links-links").hide();
+  });
+
+  $("body").click(function() {
+    $(".links-links").hide();
+  });
+
+  $(".data-check").live('click', function() {
+    $(this).parent().parent().parent("td").addClass("loading");
+    var match = $(this).attr('id').match(/(\w+)-(\d+)/);
+    $.post(
+      '/ajax/check',
+      {id: $(this).attr('id')},
+      function() {
+        $(this).parent().parent().parent("td").removeClass("loading");
+        update_data(match[1], match[2]);
+      }
+    );
+  });
+
   $(".toggle-download-form").live('click', function() {
-    $(this).parent().parent("tr").next("tr.download-form").toggle();
+    $(this).parent().parent().parent().parent("tr").next("tr.download-form").toggle();
   });
 
   $(".toggle-form").click(function() {
@@ -96,7 +132,9 @@ $(function() {
     $("input[name="+$(this).attr("class")+"]").val($(this).text());
   });
 
-  $("body.import .csv-eip").editable("/ajax/csv", editableOptions);
+  $(".csv-eip").editable("/ajax/csv", csvEditableOptions);
+
+  $(".data-eip").editable("/ajax/data", dataEditableOptions);
 
   $("#messages .message .close").click(function() {
     $(this).parent(".message").hide();
@@ -195,9 +233,35 @@ function update_csv(id, new_id) {
     function(data) {
       $("#csv-"+id+"-deleted").next("tr.details").remove();
       $("#csv-"+id+"-deleted").replaceWith(data);
-      $("#csv-"+new_id+" .csv-eip").editable("/ajax/csv", editableOptions);
+      $("#csv-"+new_id+" .csv-eip").editable("/ajax/csv", csvEditableOptions);
 //      $("#csv-"+new_id).next("tr.details").hide();
 //      $("#csv-"+new_id).next("tr.details").children("td").text("").addClass('loading');
+    },
+    "html"
+  );
+}
+
+function update_data(type, id, new_id) {
+  new_id = new_id || id;
+
+  $("#"+type+"-"+id).addClass('loading');
+//  $("#"+type+"-"+id).addClass('loading-small');
+  $("#"+type+"-"+id).attr("id", type+"-"+id+"-deleted");
+  $.post(
+    "/ajax/updatedata",
+    {
+      id: new_id,
+      type: type,
+      actions: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
+      details: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
+      header: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0
+    },
+    function(data) {
+      $("#"+type+"-"+id+"-deleted").next("tr.details").remove();
+      $("#"+type+"-"+id+"-deleted").replaceWith(data);
+      $("#"+type+"-"+new_id+" .data-eip").editable("/ajax/data", dataEditableOptions);
+//      $("#"+type+"-"+new_id).next("tr.details").hide();
+//      $("#"+type+"-"+new_id).next("tr.details").children("td").text("").addClass('loading');
     },
     "html"
   );

@@ -35,14 +35,19 @@
     <td><?php echo SGS::date($item->create_date); ?></td>
     <td><?php echo SGS::date($spec['timestamp']); ?></td>
     <td class="links">
-      <?php echo HTML::anchor('exporting/specs/'.$spec->id, 'View', array('class' => 'link')); ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php echo HTML::anchor('exporting/specs/'.$spec->id, 'View', array('class' => 'link')); ?>
 
-      <?php if (SGS::booleanify($spec['is_draft'])): ?>
-      <?php echo HTML::anchor('exporting/specs/'.$spec->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('exporting/specs/'.$spec->id.'/delete', 'Delete', array('class' => 'link')); ?>
-      <?php endif; ?>
+          <?php if (SGS::booleanify($spec['is_draft'])): ?>
+          <?php echo HTML::anchor('exporting/specs/'.$spec->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('exporting/specs/'.$spec->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
+          <?php endif; ?>
 
-      <?php echo HTML::anchor($file->path, 'Download', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($file->path, 'Download', array('class' => 'link')); ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endforeach; ?>

@@ -49,8 +49,13 @@
       <?php endif; ?>
     </td>
     <td class="links">
-      <?php echo HTML::anchor('users/'.$user->id.'/edit', 'Edit', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('users/'.$user->id.'/password', 'Change Password', array('class' => 'link')); ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php echo HTML::anchor('users/'.$user->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('users/'.$user->id.'/password', 'Change Password', array('class' => 'link')); ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endforeach; ?>

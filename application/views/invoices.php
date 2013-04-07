@@ -24,14 +24,19 @@
     <td><?php echo SGS::date($invoice->created_date); ?></td>
     <td><?php echo SGS::date($invoice->due_date); ?></td>
     <td class="links">
-      <?php echo HTML::anchor('invoices/'.$invoice->id, 'View', array('class' => 'link')); ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php echo HTML::anchor('invoices/'.$invoice->id, 'View', array('class' => 'link')); ?>
 
-        <?php if ($invoice->is_draft): ?>
-      <?php echo HTML::anchor('invoices/'.$invoice->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('invoices/'.$invoice->id.'/delete', 'Delete', array('class' => 'link')); ?>
-      <?php endif; ?>
+          <?php if ($invoice->is_draft): ?>
+          <?php echo HTML::anchor('invoices/'.$invoice->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('invoices/'.$invoice->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
+          <?php endif; ?>
 
-      <?php echo HTML::anchor($invoice->file->path, 'Download', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($invoice->file->path, 'Download', array('class' => 'link')); ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endforeach; ?>

@@ -33,6 +33,42 @@ class Controller_Ajax extends Controller {
     $this->response->body($value);
   }
 
+  public function action_data() {
+    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
+
+    $vars    = explode('-', $this->request->post('id'));
+    $model   = $vars[0];
+    $id      = $vars[1];
+    $key     = trim($vars[2]);
+    $value   = trim($this->request->post('data'));
+    $process = $this->request->post('process');
+
+    $data = ORM::factory($model, $id);
+    if (!$data->loaded()) return $this->response->status(403);
+
+    try {
+      switch ($key) {
+        case 'create_date':
+        case 'entered_date':
+        case 'checked_date':
+        case 'loading_date':
+          $data->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
+
+        default:
+          $data->$key = $value; break;
+      }
+      $data->status = 'P';
+      $data->save();
+      $data->run_checks();
+    } catch (Exception $e) {
+      return;
+    }
+
+    if ($process) $data->process();
+
+    $this->response->body($value);
+  }
+
   public function action_details() {
     if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
 
@@ -76,6 +112,31 @@ class Controller_Ajax extends Controller {
         'header'  => FALSE,
         'actions' => $actions ? TRUE : FALSE,
         'hide_header_info' => $header ? TRUE : FALSE
+      ))
+      ->render());
+  }
+
+  public function action_updatedata() {
+    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
+
+    $id        = $this->request->post('id');
+    $form_type = $this->request->post('type');
+    $actions   = $this->request->post('actions');
+    $details   = $this->request->post('details');
+    $header    = $this->request->post('header');
+
+    $data = ORM::factory($form_type, $id);
+
+    $this->response->body(View::factory('data')
+      ->set('classes', array('has-pagination'))
+      ->set('form_type', $form_type)
+      ->set('data', array($data))
+      ->set('options', array(
+        'table' => FALSE,
+        'header'  => FALSE,
+        'details' => $details ? TRUE : FALSE,
+        'actions' => $actions ? TRUE : FALSE,
+        'hide_header_info' => $header ? TRUE : FALSE,
       ))
       ->render());
   }
@@ -173,6 +234,20 @@ class Controller_Ajax extends Controller {
     $csv->process();
 
     $this->response->body($csv->status);
+  }
+
+  public function action_check() {
+    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
+
+    $vars  = explode('-', $this->request->post('id'));
+
+    $model = $vars[0];
+    $id    = $vars[1];
+
+    $data = ORM::factory($model, $id);
+    $data->run_checks();
+
+    $this->response->body($data->status);
   }
 
   public function action_resolve() {

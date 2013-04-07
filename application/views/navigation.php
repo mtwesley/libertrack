@@ -78,6 +78,7 @@ if (!$command && !is_numeric($id)) {
       <?php endif; ?>
     </li>
     <li class="<?php if ($secondary == 'files')  echo 'active'; ?>"><?php echo HTML::anchor('import/files', SGS::title('import/files')); ?></li>
+    <li class="<?php if ($secondary == 'search') echo 'active'; ?>"><?php echo HTML::anchor('import/search', SGS::title('import/search')); ?></li>
     <li class="<?php if ($secondary == 'data')   echo 'active'; ?>"><?php echo HTML::anchor('import/data', SGS::title('import/data')); ?>
       <?php if ($secondary == 'data'): ?>
       <ul class="nav commands">

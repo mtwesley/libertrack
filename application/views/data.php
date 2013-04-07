@@ -9,14 +9,18 @@ $options = (array) $options + array(
   'links'   => TRUE,
   'actions' => FALSE,
   'header'  => ($site or $operator or $specs_info or $exp_info) ? TRUE : FALSE,
-  'hide_hidden_fields' => TRUE
+) + array(
+  'hide_hidden_fields' => TRUE,
+  'hide_header_info'   => FALSE
 );
 
 $header_columns = 0;
 $additional_columns = 3;
 
 if ($options['actions']) $classes[] = 'has-actions';
+if ($options['details']) $classes[] = 'has-details';
 if ($options['header'])  $classes[] = 'has-header';
+
 
 $fields = ORM::factory($form_type)->labels();
 $classes[] = 'data';
@@ -116,7 +120,9 @@ $classes[] = 'data';
         case 'submitted_by':
         case 'contract_number':
         case 'reference_number':
+        case 'is_requested':
         case 'is_fda_approved':
+        case 'fda_remarks':
         case 'comment':
         case 'action':
           $hidden_column = TRUE; break;
@@ -131,7 +137,7 @@ $classes[] = 'data';
 <?php endif; // table ?>
   <?php foreach ($data as $record): ?>
   <?php if ($options['rows']): ?>
-  <tr class="<?php echo $record::$type.'-'.$record->id; ?> <?php echo SGS::odd_even($odd); ?>">
+  <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="<?php echo SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
     <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $record->id; ?>" /></td>
     <?php endif; ?>
@@ -183,7 +189,9 @@ $classes[] = 'data';
         case 'submitted_by':
         case 'contract_number':
         case 'reference_number':
+        case 'is_requested':
         case 'is_fda_approved':
+        case 'fda_remarks':
         case 'comment':
         case 'action':
           $hidden_column = TRUE; break;
@@ -192,7 +200,7 @@ $classes[] = 'data';
       endswitch;
     ?>
     <td class="<?php echo $hidden_column ? 'hide' : ''; ?> <?php if ($errors[$field]) print 'error'; else if ($warnings[$field]) print 'warning'; ?>">
-      <?php
+      <div id="<?php echo implode('-', array($record::$type, $record->id, $field)); ?>" class="<?php if (!(strpos($field, '_id'))): ?>data-eip eip<?php endif; ?>"><?php
         switch ($field):
           case 'operator_id':
             if ($record->operator) echo $record->operator->name; break;
@@ -243,19 +251,25 @@ $classes[] = 'data';
           default:
             echo $record->$field; break;
         endswitch;
-      ?>
+      ?></div>
     </td>
     <?php endforeach; ?>
     <td class="links">
-      <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/hierarchy', 'Hierarchy', array('class' => 'link')); ?>
-      <?php if ($options['links']): ?>
-      <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
-      <?php endif; // links ?>
-      <?php if ($options['details']): ?>
-      <span class="link toggle-details">Details</span>
-      <?php endif; // details-links ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php if ($options['links']): ?>
+          <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Check</span>
+          <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/hierarchy', 'Hierarchy', array('class' => 'link')); ?>
+          <?php endif; // links ?>
+          <?php if ($options['details']): ?>
+          <span class="link toggle-details">Details</span>
+          <?php endif; // details-links ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endif; // rows ?>

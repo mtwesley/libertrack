@@ -20,8 +20,13 @@
     <td><?php echo $barcode->is_locked ? 'YES' : 'NO'; ?></td>
     <td><?php echo SGS::$coc_status[$barcode->get_coc_activity() ?: 'P']; ?></td>
     <td class="links">
-      <?php echo HTML::anchor('barcodes/'.$barcode->id, 'View', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('barcodes/'.$barcode->id.'/edit', 'Edit', array('class' => 'link')); ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php echo HTML::anchor('barcodes/'.$barcode->id, 'View', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('barcodes/'.$barcode->id.'/edit', 'Edit', array('class' => 'link')); ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endforeach; ?>

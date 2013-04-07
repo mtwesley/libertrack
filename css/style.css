@@ -387,6 +387,12 @@
   margin-bottom: 2px;
 }
 
+#content table.has-section {
+  width:  95%;
+  margin: 10px auto;
+  border: 1px solid #d9c7ad;
+}
+
 #content table.has-actions {
   margin-top: 0;
 }
@@ -446,9 +452,13 @@
 
 #content table.data td.links {
   text-align: right;
+  position: relative;
 }
 
-#content table.data th {}
+#content table.data th {
+  padding-bottom: 3px;
+  vertical-align: bottom;
+}
 
 #content table.data td {
   border-top: 1px dotted #e6dfd4;
@@ -502,11 +512,33 @@
   white-space: normal;
 }
 
+#content table.data th.links,
+#content table.data td.links {
+  width: 25px;
+}
+
+#content table.data .links-container {
+  position: relative;
+}
+
+#content table.data .links-links {
+  display: none;
+  position: absolute;
+  right: 0;
+  z-index: 25;
+}
+
+#content table.data .links-links .link {
+  border-bottom: 1px dotted #564832;
+}
+
 #content table.data a.link,
 #content table.data span.link,
 .action-bar span.link {
-  padding: 2px 4px;
-  display: inline-block;
+  maring-bottom: 2px;
+  padding: 3px 4px 2px 8px;
+  display: block;
+  clear: left;
   color: #eee8df;
   font-size: 10px;
   font-weight: bold;
@@ -519,6 +551,14 @@
 #content table.data span.link:hover,
 .action-bar span.link:hover  {
   background-color: #564832;
+}
+
+#content table.data a.link-title,
+#content table.data span.link-title {
+  padding: 2px 4px;
+  font-weight: bold;
+  display: inline-block;
+  position: inherit;
 }
 
 #content table.data a.download-link {

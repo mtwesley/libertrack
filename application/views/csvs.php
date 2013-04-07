@@ -11,6 +11,9 @@ $options = (array) $options + array(
   'actions' => FALSE,
   'resolve' => FALSE,
   'header'  => $site or $operator ? TRUE : FALSE,
+) + array(
+  'hide_hidden_fields' => TRUE,
+  'hide_header_info'   => FALSE
 );
 
 $header_columns = 0;
@@ -66,11 +69,41 @@ if ($options['header'])  $classes[] = 'has-header';
         case 'site_id':
         case 'block_name':
         case 'block_id':
+        case 'specs_barcode':
+        case 'specs_barcode_id';
+        case 'specs_id':
+        case 'specs_number':
+        case 'exp_barcode':
+        case 'exp_barcode_id':
+        case 'exp_id':
+        case 'exp_number':
           $header_columns++;
           continue 2;
       endswitch;
     ?>
-    <th><?php echo $name; ?></th>
+    <?php
+      if ($options['hide_hidden_fields']) switch ($field):
+        case 'enumerator':
+        case 'buyer':
+        case 'entered_date':
+        case 'checked_date':
+        case 'loading_date':
+        case 'measured_by':
+        case 'entered_by':
+        case 'checked_by':
+        case 'signed_by':
+        case 'submitted_by':
+        case 'contract_number':
+        case 'reference_number':
+        case 'is_fda_approved':
+        case 'comment':
+        case 'action':
+          $hidden_column = TRUE; break;
+        default:
+          $hidden_column = FALSE; break;
+      endswitch;
+    ?>
+    <th class="<?php echo $hidden_column ? 'hide' : ''; ?>"><?php echo $name; ?></th>
     <?php endforeach; ?>
     <th class="links"></th>
   </tr>
@@ -103,34 +136,67 @@ if ($options['header'])  $classes[] = 'has-header';
         case 'site_id':
         case 'block_name':
         case 'block_id':
+        case 'specs_barcode':
+        case 'specs_barcode_id';
+        case 'specs_id':
+        case 'specs_number':
+        case 'exp_barcode':
+        case 'exp_barcode_id':
+        case 'exp_id':
+        case 'exp_number':
           continue 2;
       endswitch;
     ?>
-    <td class="<?php if ($errors[$field]): ?>error<?php endif; ?>">
-      <div class="<?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"
-           id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>"><?php echo trim($csv->values[$field]); ?></div>
+   <?php
+      if ($options['hide_hidden_fields']) switch ($field):
+        case 'enumerator':
+        case 'buyer':
+        case 'entered_date':
+        case 'checked_date':
+        case 'loading_date':
+        case 'measured_by':
+        case 'entered_by':
+        case 'checked_by':
+        case 'signed_by':
+        case 'submitted_by':
+        case 'contract_number':
+        case 'reference_number':
+        case 'is_fda_approved':
+        case 'comment':
+        case 'action':
+          $hidden_column = TRUE; break;
+        default:
+          $hidden_column = FALSE; break;
+      endswitch;
+    ?>
+    <td  class="<?php echo $hidden_column ? 'hide' : ''; ?> <?php if ($errors[$field]): ?>error<?php endif; ?>">
+      <div id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>" class="<?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"><?php echo trim($csv->values[$field]); ?></div>
     </td>
     <?php endforeach; ?>
     <td class="links">
-      <?php if ($options['links']): ?>
-      <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php if ($options['links']): ?>
+          <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
 
-      <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
-      <?php echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
-      <?php endif; ?>
+          <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
+          <?php echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php endif; ?>
 
-      <?php if ($mode == 'import') echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php if ($mode == 'import') echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
 
-      <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>
-      <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span>
-      <!-- <?php echo HTML::anchor('import/data/'.$csv->id.'/process', 'Process', array('class' => 'link')); ?> -->
-      <?php endif; ?>
+          <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>
+          <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span>
+          <?php endif; ?>
 
-      <?php if ($options['details'] and $errors = $csv->get_errors()): ?>
-      <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
-      <?php endif; ?>
+          <?php if ($options['details'] and $errors = $csv->get_errors()): ?>
+          <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
+          <?php endif; ?>
 
-      <?php endif; ?>
+          <?php endif; ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endif; // rows ?>

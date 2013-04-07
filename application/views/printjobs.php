@@ -12,10 +12,15 @@
     <td><?php echo $printjob->site->name; ?></td>
     <td><?php echo $printjob->site->operator->name; ?></td>
     <td class="links">
-      <?php echo HTML::anchor('barcodes/'.$printjob->id, 'View', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('barcodes/'.$printjob->id.'/edit', 'Edit', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('barcodes/'.$printjob->id.'/list', 'List Barcodes', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('barcodes/'.$printjob->id.'/download', 'Download', array('class' => 'link')); ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php echo HTML::anchor('printjobs/'.$printjob->id, 'View', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('printjobs/'.$printjob->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('printjobs/'.$printjob->id.'/download', 'Download', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('printjobs/'.$printjob->id.'/barcodes', 'Barcodes', array('class' => 'link')); ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endforeach; ?>

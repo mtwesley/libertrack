@@ -18,7 +18,12 @@
     <td><?php echo $operator->email; ?></td>
     <td><?php echo $operator->phone; ?></td>
     <td class="links">
-      <?php echo HTML::anchor('admin/operators/'.$operator->id.'/edit', 'Edit', array('class' => 'link')); ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php echo HTML::anchor('admin/operators/'.$operator->id.'/edit', 'Edit', array('class' => 'link')); ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php endforeach; ?>

@@ -1,4 +1,10 @@
 <?php
+
+$options = (array) $options + array(
+  'table'   => TRUE,
+  'links'   => TRUE,
+);
+
 $classes[] = 'data';
 ?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
@@ -13,7 +19,7 @@ $classes[] = 'data';
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'block_id')), 'Block'); ?></th>
 
     <?php if ($mode == 'import'): ?>
-    <th>Statistics</th>
+    <th colspan="4">Statistics</th>
     <?php endif; ?>
 
     <th class="links"></th>
@@ -59,21 +65,27 @@ $classes[] = 'data';
       $_rp = $_total ? floor($_r * 100 / $_total) : 0;
       $_up = $_total ? floor($_u * 100 / $_total) : 0;
     ?>
-    <td>
-      <span class="pending"><?php echo $_p; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=P', 'Pending'); ?> (<?php echo $_pp; ?>%)</span> |
-      <span class="accepted"><?php echo $_a; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=A', 'Accepted'); ?> (<?php echo $_ap; ?>%)</span> |
-      <span class="rejected"><?php echo $_r; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=R', 'Rejected'); ?> (<?php echo $_rp; ?>%)</span> |
-      <span class="duplicated"><?php echo $_u; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=U', 'Duplicated'); ?> (<?php echo $_up; ?>%)</span>
-    </td>
+    <td><span class="pending"><?php echo $_p; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=P', 'Pending'); ?> (<?php echo $_pp; ?>%)</span></td>
+    <td><span class="accepted"><?php echo $_a; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=A', 'Accepted'); ?> (<?php echo $_ap; ?>%)</span></td>
+    <td><span class="rejected"><?php echo $_r; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=R', 'Rejected'); ?> (<?php echo $_rp; ?>%)</span></td>
+    <td><span class="duplicated"><?php echo $_u; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=U', 'Duplicated'); ?> (<?php echo $_up; ?>%)</span></td>
     <?php endif; ?>
 
     <td class="links">
-      <?php if ($mode == 'import'): ?>
-      <?php if (in_array($file->operation, array('I','E'))) echo HTML::anchor(strtolower(SGS::value($file->operation, 'operation', 'U')).'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('import/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
-      <?php echo HTML::anchor('import/files/'.$file->id.'/delete', 'Delete', array('class' => 'link')); ?>
-      <span class="link toggle-download-form">Download</span>
-      <?php endif; ?>
+      <div class="links-container">
+        <span class="link link-title">+</span>
+        <div class="links-links">
+          <?php if ($mode == 'import'): ?>
+          <?php if ($options['links']): ?>
+          <?php echo HTML::anchor('import/files/'.$file->id, 'View', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('import/files/'.$file->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('import/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
+          <?php if (in_array($file->operation, array('I','E'))) echo HTML::anchor(strtolower(SGS::value($file->operation, 'operation', 'U')).'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
+          <span class="link toggle-download-form">Download</span>
+          <?php endif; ?>
+          <?php endif; ?>
+        </div>
+      </div>
     </td>
   </tr>
   <?php if ($mode == 'import'): ?>

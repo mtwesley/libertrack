@@ -17,18 +17,21 @@ class Controller_Analysis extends Controller {
     Session::instance()->write();
   }
 
-  private function download_checks_report($form_type, $records, $info = array()) {
-    if (!$records) {
+  private function download_checks_report($form_type, $record_ids, $info = array()) {
+    if (!$record_ids) {
       Notify::msg('No data found. Unable to generate document.', 'warning');
       return FALSE;
     }
 
-    $passed_records = array();
-    $failed_records = array();
+    $passed_records    = array();
+    $failed_records    = array();
+    $unchecked_records = array();
 
-    foreach ($records as $record) {
+    foreach ($record_ids as $record_id) {
+      $record = ORM::factory($form_type, $record_id);
       if ($record->status == 'A') $passed_records[] = $record;
-      else $failed_records[] = $record;
+      else if ($record->status == 'R') $failed_records[] = $record;
+      else $unchecked_records[] = $record;
     }
 
     extract($info);
@@ -61,12 +64,7 @@ class Controller_Analysis extends Controller {
       $set = array_slice($passed_records, $cntr, $max);
       $html .= View::factory('documents/checks')
         ->set('form_type', $form_type)
-        ->set('report', $report)
         ->set('checks', $checks)
-        ->set('operator', $operator)
-        ->set('site', $site)
-        ->set('specs_info', $specs_info)
-        ->set('block', $block)
         ->set('data', $set)
         ->set('options', array(
           'info'     => FALSE,
@@ -87,18 +85,34 @@ class Controller_Analysis extends Controller {
       $set = array_slice($failed_records, $cntr, $max);
       $html .= View::factory('documents/checks')
         ->set('form_type', $form_type)
-        ->set('report', $report)
         ->set('checks', $checks)
-        ->set('operator', $operator)
-        ->set('site', $site)
-        ->set('specs_info', $specs_info)
-        ->set('block', $block)
         ->set('data', $set)
         ->set('options', array(
           'info'     => FALSE,
           'details'  => TRUE,
           'styles'   => FALSE,
           'subtitle' => 'Records Where Any Check Failed'
+        ))
+        ->set('cntr', $cntr)
+        ->render();
+
+      $cntr += $max;
+    }
+
+    // unchecked
+    $cntr  = 0;
+    while ($cntr < count($unchecked_records)) {
+      $max = $page_max;
+      $set = array_slice($unchecked_records, $cntr, $max);
+      $html .= View::factory('documents/checks')
+        ->set('form_type', $form_type)
+        ->set('checks', $checks)
+        ->set('data', $set)
+        ->set('options', array(
+          'info'     => FALSE,
+          'details'  => TRUE,
+          'styles'   => FALSE,
+          'subtitle' => 'Records Not Yet Checked'
         ))
         ->set('cntr', $cntr)
         ->render();
@@ -210,8 +224,9 @@ class Controller_Analysis extends Controller {
       Session::instance()->delete('pagination.data');
       $item = ORM::factory($form_type, $id);
 
+      if (isset($item->operator)) $operator = $item->operator;
       if (isset($item->site)) $site = $item->site;
-      else if (isset($item->operator)) $operator = $item->operator;
+      if (isset($item->block)) $block = $item->block;
 
       $data = array($item);
     }
@@ -232,9 +247,13 @@ class Controller_Analysis extends Controller {
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts')) : array()));
       if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
       if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
-      $form = $form
-        ->add_group('status', 'checkboxes', SGS::$data_status, NULL, array('label' => 'Status'))
-        ->add('search', 'submit', 'Filter');
+
+      if (!$has_specs_info and !$has_exp_info) {
+        $form->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')));
+        $form->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
+      }
+      $form->add_group('status', 'checkboxes', SGS::$data_status, NULL, array('label' => 'Status'));
+      $form->add('search', 'submit', 'Filter');
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.data');
@@ -254,12 +273,19 @@ class Controller_Analysis extends Controller {
 
         if (Valid::is_barcode($specs_info))   $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
 
+        if (!$has_specs_info and !$has_exp_info) {
+          $from = $form->from->val();
+          $to   = $form->to->val();
+        }
+
         Session::instance()->set('pagination.data', array(
           'site_id'     => $site_id,
           'operator_id' => $operator_id,
           'block_id'    => $block_id,
           'specs_info'  => $specs_info,
           'status'      => $status,
+          'from'        => $from,
+          'to'          => $to
         ));
       }
       else {
@@ -268,6 +294,11 @@ class Controller_Analysis extends Controller {
           else $form->operator_id->val($operator_id = $settings['operator_id']);
           if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
           if ($has_specs_info) $form->specs_info->val($specs_info = $settings['specs_info']);
+
+          if (!$has_specs_info and !$has_exp_info) {
+            $form->from->val($from = $settings['from']);
+            $form->to->val($to = $settings['to']);
+          }
 
           $form->status->val($block_id = $settings['block_id']);
         }
@@ -279,7 +310,8 @@ class Controller_Analysis extends Controller {
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
         if ($status)      $data->and_where('status', 'IN', (array) $status);
 
-        if (Valid::is_barcode($specs_info))   $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+        if (Valid::is_barcode($specs_info)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+        if (!$has_specs_info and !$has_exp_info) $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
       }
 
       if ($data) {
@@ -347,7 +379,6 @@ class Controller_Analysis extends Controller {
     $siblings = $item->siblings();
 
     $table = View::factory('data')
-      ->set('classes', array('has-pagination'))
       ->set('form_type', $item::$type)
       ->set('data', array($item))
       ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
@@ -370,8 +401,8 @@ class Controller_Analysis extends Controller {
         );
       }
 
-    $table .= '<br/><strong>'.SGS::$form_type[$parent::$type].' Parent:</strong><br/>'.View::factory('data')
-        ->set('classes', array('has-pagination'))
+      $table .= View::factory('data')
+        ->set('classes', array('has-section'))
         ->set('form_type', $parent::$type)
         ->set('data', array($parent))
         ->set('operator', (isset($parent->operator) and $parent->operator->loaded()) ? $parent->operator : NULL)
@@ -384,7 +415,7 @@ class Controller_Analysis extends Controller {
     }
 
     $_siblings = array();
-    if ($siblings) foreach ($siblings as $sibling) if (($sibling->barcode_id != $item->barcode_id) and ($sibling::$type != $item::$type)) $_siblings[$sibling::$type][] = $sibling;
+    if ($siblings) foreach ($siblings as $sibling) $_siblings[$sibling::$type][] = $sibling;
     foreach ($_siblings as $type => $_sibling) {
       unset($info);
       $sample = reset($_sibling);
@@ -399,8 +430,8 @@ class Controller_Analysis extends Controller {
         );
       }
 
-      $table .= '<br/><strong>'.SGS::$form_type[$sample::$type].' Siblings:</strong><br/>'.View::factory('data')
-        ->set('classes', array('has-pagination'))
+      $table .= View::factory('data')
+        ->set('classes', array('has-section'))
         ->set('form_type', $sample::$type)
         ->set('data', $_sibling)
         ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
@@ -428,8 +459,8 @@ class Controller_Analysis extends Controller {
         );
       }
 
-      $table .= '<br/><strong>'.SGS::$form_type[$sample::$type].' Children:</strong><br/>'.View::factory('data')
-        ->set('classes', array('has-pagination'))
+      $table .= View::factory('data')
+        ->set('classes', array('has-section'))
         ->set('form_type', $sample::$type)
         ->set('data', $childs)
         ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
@@ -442,7 +473,6 @@ class Controller_Analysis extends Controller {
     }
 
     $content .= $table;
-    $content .= $pagination;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -498,6 +528,22 @@ class Controller_Analysis extends Controller {
     $this->response->body($view);
   }
 
+  private function handle_data_check($form_type, $id) {
+    $item  = ORM::factory($form_type, $id);
+
+    $item->status = 'P';
+    $item->run_checks();
+
+    switch ($item->status) {
+      case 'A': Notify::msg('Form data passed checks and queries.', 'success', TRUE); break;
+      case 'R': Notify::msg('Form data failed checks and queries.', 'error', TRUE); break;
+      case 'P': Notify::msg('Form data unchecked.', 'error', TRUE); break;
+      default:  Notify::msg('Form data cound not be accessed.', 'error', TRUE);
+    }
+
+    $this->request->redirect('analysis/review/'.strtolower($form_type).'/'.$id);
+  }
+
   private function handle_data_delete($form_type, $id) {
     $item  = ORM::factory($form_type, $id);
 
@@ -531,6 +577,18 @@ class Controller_Analysis extends Controller {
       $this->request->redirect('analysis/review/'.strtolower($form_type));
     }
 
+    $table = View::factory('data')
+      ->set('classes', array('has-pagination'))
+      ->set('form_type', $form_type)
+      ->set('data', array($item))
+      ->set('options', array(
+        'header'  => FALSE,
+        'links'   => FALSE,
+        'details' => FALSE
+      ))
+      ->render();
+
+    $content .= $table;
     $content .= $form->render();
 
     $view = View::factory('main')->set('content', $content);
@@ -572,10 +630,17 @@ class Controller_Analysis extends Controller {
     }
 
     $form = $form
+      ->add_group('limit', 'select', array(
+        100   => '100 records',
+        500   => '500 records',
+        1000  => '1000 records',
+        2000  => '2000 records',
+        5000  => '5000 records',
+        10000 => '10000 records'), NULL, array('label' => 'Limit'))
       ->add_group('status', 'checkboxes', SGS::$data_status, array('P', 'R'), array('label' => 'Status'))
-      ->add_group('display', 'checkboxes', SGS::$data_status, array('P', 'A', 'R'), array('label' => 'Display'))
+//      ->add_group('display', 'checkboxes', SGS::$data_status, array('P', 'A', 'R'), array('label' => 'Display'))
       ->add_group('checks', 'checkboxes', $check_options, array_diff(array_keys($check_options), array('consistency', 'reliability')), array('label' => 'Check'))
-      ->add('submit', 'submit', 'Run')
+      ->add('submit', 'submit', 'Check')
       ->add('download', 'submit', 'Download');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -594,35 +659,32 @@ class Controller_Analysis extends Controller {
       }
 
       $status  = $form->status->val();
-      $display = $form->display->val();
+//      $display = $form->display->val();
       $checks  = $form->checks->val();
-
-      if ($download) {
-        $checks  = array_diff(array_keys($check_options), array('consistency', 'reliability'));
-        $status  = array('P', 'A', 'R');
-        $display = array('P', 'A', 'R');
-      }
+      $limit   = $form->limit->val();
 
       $rejected  = 0;
       $accepted  = 0;
       $unchecked = 0;
       $failure   = 0;
 
-      $records = ORM::factory($form_type);
-      if ($operator_id) $records = $records->where('operator_id', 'IN', (array) $operator_id);
-      if ($site_id)     $records = $records->where('site_id', 'IN', (array) $site_id);
-      if ($block_id)    $records = $records->and_where('block_id', 'IN', (array) $block_id);
+      $model = ORM::factory($form_type);
+      $record_ids = DB::select('id')->from($model->table_name());
 
-      if (Valid::is_barcode($specs_info))   $records = $records->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+      if ($operator_id) $record_ids->where('operator_id', 'IN', (array) $operator_id);
+      if ($site_id)     $record_ids->where('site_id', 'IN', (array) $site_id);
+      if ($block_id)    $record_ids->where('block_id', 'IN', (array) $block_id);
+      if ($status)      $record_ids->where('status', 'IN', (array) $status);
 
-      if (!$has_specs_info and !$has_exp_info) {
-        $records = $records->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
-      }
+      if (Valid::is_barcode($specs_info)) $record_ids->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+      if (!$has_specs_info and !$has_exp_info) $record_ids->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
-      $records = $records
-        ->and_where('status', 'IN', (array) $display)
-        ->find_all()
-        ->as_array('id');
+      if ($limit) $record_ids->limit($limit);
+      if ($download) $download_record_ids = clone($record_ids);
+
+      $record_ids = $record_ids
+        ->execute()
+        ->as_array(NULL, 'id');
 
       $data = array(
         'checks' => array(),
@@ -637,43 +699,40 @@ class Controller_Analysis extends Controller {
 
       $unable = 0;
       set_time_limit(0);
-      foreach ($records as $record) {
+      foreach ($record_ids as $record_id) {
+        $record = ORM::factory($form_type, $record_id);
+
         $errors   = array();
         $warnings = array();
 
-        $total_checked = FALSE;
-        if (in_array($record->status, (array) $status)) {
-          $total_checked = TRUE;
-          try {
-            list($raw['errors'], $raw['warnings']) = $record->run_checks();
-            foreach ($raw['errors'] as $re) $errors += array_keys($re);
-            foreach ($raw['warnings'] as $rw) $warnings += array_keys($rw);
-          } catch (ORM_Validation_Exception $e) {
-            foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
-          } catch (Exception $e) {
-            $unable++;
-          }
+        try {
+          if ($download) $raw = array('errors' => $record->get_errors(TRUE), 'warnings' => $record->get_warnings(TRUE));
+          else list($raw['errors'], $raw['warnings']) = $record->run_checks();
+          foreach ($raw['errors'] as $re) $errors += array_keys($re);
+          foreach ($raw['warnings'] as $rw) $warnings += array_keys($rw);
+        } catch (ORM_Validation_Exception $e) {
+          foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
+        } catch (Exception $e) {
+          $unable++;
         }
 
-        if ($total_checked) {
-          $total_warned = FALSE;
-          foreach ($record::$checks as $type => $info) {
-            if (!in_array($type, $checks)) continue;
-            foreach ($info['checks'] as $check => $array) {
-              $check_warned = FALSE;
-              if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['traceability']['checks']), $errors)) continue;
-              $data['checks'][$type][$check]['checked']++;
-              if (in_array($check, $errors)) $data['checks'][$type][$check]['failed']++;
-              else {
-                if (in_array($check, $warnings)) {
-                  if (!$check_warned) {
-                    $data['checks'][$type][$check]['warned']++;
-                    $check_warned = TRUE;
-                  }
-                  if (!$toal_warned) $total_warned = TRUE;
+        $total_warned = FALSE;
+        foreach ($record::$checks as $type => $info) {
+          if (!in_array($type, $checks)) continue;
+          foreach ($info['checks'] as $check => $array) {
+            $check_warned = FALSE;
+            if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['traceability']['checks']), $errors)) continue;
+            $data['checks'][$type][$check]['checked']++;
+            if (in_array($check, $errors)) $data['checks'][$type][$check]['failed']++;
+            else {
+              if (in_array($check, $warnings)) {
+                if (!$check_warned) {
+                  $data['checks'][$type][$check]['warned']++;
+                  $check_warned = TRUE;
                 }
-                $data['checks'][$type][$check]['passed']++;
+                if (!$total_warned) $total_warned = TRUE;
               }
+              $data['checks'][$type][$check]['passed']++;
             }
           }
 
@@ -706,6 +765,42 @@ class Controller_Analysis extends Controller {
         } catch (Exception $e) {
           $failure++;
         }
+
+        unset($record);
+      }
+
+      if ($download) {
+        $download_record_ids = $download_record_ids
+          ->join('barcodes')
+          ->on('barcodes.id', '=', 'barcode_id')
+          ->order_by('barcode')
+          ->find_all()
+          ->as_array();
+
+        unset($info);
+        if ($specs_info) {
+          $sample = ORM::factory($form_type, reset($record_ids));
+          $info['specs'] = array(
+            'number'  => $sample->specs_number,
+            'barcode' => $sample->specs_barcode->barcode
+          );
+          if (Valid::numeric($specs_info)) $info['exp'] = array(
+            'number'  => $sample->exp_number,
+            'barcode' => $sample->exp_barcode->barcode
+          );
+        }
+
+        self::download_checks_report($form_type, $record_ids, array(
+          'specs_info' => $info ? array_filter((array) $info['specs']) : NULL,
+          'exp_info'   => $info ? array_filter((array) $info['exp']) : NULL,
+          'operator'   => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
+          'site'       => $site_id ? ORM::factory('site', $site_id) : NULL,
+          'block'      => $block_id ? ORM::factory('block', $block_id) : NULL,
+          'from'       => $from,
+          'to'         => $to,
+          'checks'     => $_checks,
+          'report'     => $data,
+        ));
       }
 
       if ($unable)    Notify::msg('Sorry, unable to run checks and queries on '.$unable.' records. Please try again.', 'error', TRUE);
@@ -720,12 +815,14 @@ class Controller_Analysis extends Controller {
         'block_id'    => $block_id,
         'specs_info'  => $specs_info,
         'status'      => $status,
-        'display'     => $display,
+//        'display'     => $display,
         'checks'      => $checks,
+        'limit'       => $limit,
         'form_type'   => $form_type,
         'from'        => $from,
         'to'          => $to,
         'data'        => $data,
+        'record_ids'  => $record_ids
       ));
     }
     else if ($settings = Session::instance()->get('pagination.checks')) {
@@ -735,7 +832,7 @@ class Controller_Analysis extends Controller {
       if ($has_specs_info) $form->specs_info->val($specs_info = $settings['specs_info']);
 
       $form->status->val($status = $settings['status']);
-      $form->display->val($display = $settings['display']);
+//      $form->display->val($display = $settings['display']);
       $form->checks->val($checks = $settings['checks']);
 
       if (!$has_specs_info and !$has_exp_info) {
@@ -743,133 +840,101 @@ class Controller_Analysis extends Controller {
         $form->to->val($to = $settings['to']);
       }
 
-      $data = $settings['data'];
+      $form->limit->val($limit = $settings['limit']);
+
+      $data        = $settings['data'];
+      $record_ids  = $settings['record_ids'];
     }
 
     if ($data) {
-      $model  = ORM::factory($form_type);
+      $model = ORM::factory($form_type);
       foreach ($model::$checks as $type => $info) {
         if (in_array($type, $checks)) $_checks[$type] = $info;
       }
 
-      $_data = ORM::factory($form_type);
-      if ($has_site_id and $site_id) $_data = $_data->where('site_id', 'IN', (array) $site_id);
-      else if ($operator_id) $_data = $_data->where('operator_id', 'IN', (array) $operator_id);
-      if ($has_site_id and $has_block_id and $block_id) $_data = $_data->and_where('block_id', 'IN', (array) $block_id);
+      $records = ORM::factory($form_type);
 
-      if (Valid::is_barcode($specs_info))   $_data = $_data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+      if ($record_ids) $records->where('id', 'IN', $record_ids);
+      if ($status) $records->where('status', 'IN', (array) $status);
 
-      if (!$has_specs_info and !$has_exp_info)  $_data = $_data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
+      if ($has_site_id and $site_id) $records = $records->where('site_id', 'IN', (array) $site_id);
+      else if ($operator_id) $records = $records->where('operator_id', 'IN', (array) $operator_id);
+      if ($has_site_id and $has_block_id and $block_id) $records = $records->where('block_id', 'IN', (array) $block_id);
 
-      $_data = $_data->and_where('status', 'IN', (array) $display);
+      if (Valid::is_barcode($specs_info))   $records = $records->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+      if (!$has_specs_info and !$has_exp_info) $records = $records->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
-      if ($download) {
-        $_data = $_data
-          ->join('barcodes')
-          ->on('barcodes.id', '=', 'barcode_id')
-          ->order_by('barcode')
-          ->find_all()
-          ->as_array();
+      $clone = clone($records);
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 50,
+        'total_items' => $clone->find_all()->count()));
 
-        unset($info);
-        if ($specs_info) {
-          $sample = reset($_data);
-          $info['specs'] = array(
-            'number'  => $sample->specs_number,
-            'barcode' => $sample->specs_barcode->barcode
-          );
-          if (Valid::numeric($specs_info)) $info['exp'] = array(
-            'number'  => $sample->exp_number,
-            'barcode' => $sample->exp_barcode->barcode
-          );
-        }
+      $records = $records
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $records->order_by($sort);
+      $records = $records->order_by('status')
+        ->find_all()
+        ->as_array();
 
-        self::download_checks_report($form_type, $_data, array(
-          'specs_info' => $info ? array_filter((array) $info['specs']) : NULL,
-          'exp_info'   => $info ? array_filter((array) $info['exp']) : NULL,
-          'operator'   => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
-          'site'       => $site_id ? ORM::factory('site', $site_id) : NULL,
-          'block'      => $block_id ? ORM::factory('block', $block_id) : NULL,
-          'from'       => $from,
-          'to'         => $to,
-          'checks'     => $_checks,
-          'report'     => $data
-        ));
+      unset($info);
+      if ($specs_info) {
+        $sample = reset($records);
+        $info['specs'] = array(
+          'number'  => $sample->specs_number,
+          'barcode' => $sample->specs_barcode->barcode
+        );
+        if (Valid::numeric($specs_info)) $info['exp'] = array(
+          'number'  => $sample->exp_number,
+          'barcode' => $sample->exp_barcode->barcode
+        );
       }
-      else {
-        $clone = clone($_data);
-        $pagination = Pagination::factory(array(
-          'items_per_page' => 50,
-          'total_items' => $clone->find_all()->count()));
 
-        $_data = $_data
-          ->offset($pagination->offset)
-          ->limit($pagination->items_per_page);
-        if ($sort = $this->request->query('sort')) $_data->order_by($sort);
-        $_data = $_data->order_by('status')
-          ->find_all()
-          ->as_array();
+      $operator = ORM::factory('operator', $operator_id ?: NULL);
+      $site     = ORM::factory('site', $site_id ?: NULL);
+      $block    = ORM::factory('block', $block_id ?: NULL);
 
-        unset($info);
-        if ($specs_info) {
-          $sample = reset($_data);
-          $info['specs'] = array(
-            'number'  => $sample->specs_number,
-            'barcode' => $sample->specs_barcode->barcode
-          );
-          if (Valid::numeric($specs_info)) $info['exp'] = array(
-            'number'  => $sample->exp_number,
-            'barcode' => $sample->exp_barcode->barcode
-          );
-        }
+      $header = View::factory('data')
+        ->set('form_type', $form_type)
+        ->set('data', $records)
+        ->set('operator', $operator->loaded() ? $operator : NULL)
+        ->set('site', $site->loaded() ? $site : NULL)
+        ->set('block', $block->loaded() ? $block : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('options', array(
+          'table'   => FALSE,
+          'rows'    => FALSE,
+          'actions' => FALSE,
+          'header'  => TRUE,
+          'details' => FALSE,
+          'links'   => FALSE
+        ))
+        ->render();
 
-        $operator = ORM::factory('operator', $operator_id ?: NULL);
-        $site     = ORM::factory('site', $site_id ?: NULL);
-        $block    = ORM::factory('block', $block_id ?: NULL);
+      $report = View::factory('report')
+        ->set('from', $from)
+        ->set('to', $to)
+        ->set('form_type', $form_type)
+        ->set('report', $data)
+        ->set('checks', $_checks)
+        ->render();
 
-        $header = View::factory('data')
-          ->set('form_type', $form_type)
-          ->set('data', $_data)
-          ->set('operator', $operator->loaded() ? $operator : NULL)
-          ->set('site', $site->loaded() ? $site : NULL)
-          ->set('block', $block->loaded() ? $block : NULL)
-          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-          ->set('options', array(
-            'table'   => FALSE,
-            'rows'    => FALSE,
-            'actions' => FALSE,
-            'header'  => TRUE,
-            'details' => FALSE,
-            'links'   => FALSE
-          ))
-          ->render();
-
-        $report = View::factory('report')
-          ->set('from', $from)
-          ->set('to', $to)
-          ->set('form_type', $form_type)
-          ->set('report', $data)
-          ->set('checks', $_checks)
-          ->render();
-
-        $table = View::factory('data')
-          ->set('classes', array('has-pagination'))
-          ->set('form_type', $form_type)
-          ->set('data', $_data)
-          ->set('operator', $operator->loaded() ? $operator : NULL)
-          ->set('site', $site->loaded() ? $site : NULL)
-          ->set('block', $block->loaded() ? $block : NULL)
-          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-          ->set('options', array(
-            'hide_header_info' => TRUE,
-            'header'  => FALSE,
-            'details' => TRUE,
-            'links'   => FALSE,
-          ))
-          ->render();
-      }
+      $table = View::factory('data')
+        ->set('classes', array('has-pagination'))
+        ->set('form_type', $form_type)
+        ->set('data', $records)
+        ->set('operator', $operator->loaded() ? $operator : NULL)
+        ->set('site', $site->loaded() ? $site : NULL)
+        ->set('block', $block->loaded() ? $block : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('options', array(
+          'hide_header_info' => TRUE,
+          'header'  => FALSE,
+          'details' => TRUE,
+        ))
+        ->render();
     }
 
     if ($form)   $content .= $form;
@@ -897,6 +962,7 @@ class Controller_Analysis extends Controller {
     if ($form_type) switch ($command) {
       case 'delete': return self::handle_data_delete($form_type, $id);
       case 'edit': return self::handle_data_edit($form_type, $id);
+      case 'check': return self::handle_data_check($form_type, $id);
       case 'hierarchy': return self::handle_data_hierarchy($form_type, $id);
       case 'list':
       default: return self::handle_data_list($form_type, $id);

@@ -270,12 +270,22 @@ $options = (array) $options + array(
         <td><?php echo SGS::date($invoice->due_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
+        <?php if ($invoice->from_date): ?>
         <td class="label from">Logs Declared From:</td>
         <td><?php if ($invoice->from_date) echo SGS::date($invoice->from_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <?php else: ?>
+        <td></td>
+        <td></td>
+        <?php endif; ?>
       </tr>
       <tr>
-        <td class="label to">To:</td>
+        <?php if ($invoice->to_date): ?>
+        <td class="label to"><?php if (!$invoice->from_date) echo 'Logs Declared '; ?>To:</td>
         <td><?php if ($invoice->to_date) echo SGS::date($invoice->to_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <?php else: ?>
+        <td></td>
+        <td></td>
+        <?php endif; ?>
       </tr>
       <tr>
         <td class="label label-left">Telephone:</td>
