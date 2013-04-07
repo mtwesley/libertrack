@@ -81,11 +81,11 @@ create domain d_oid as oid;
 
 create domain d_invoice_type as character varying(3) check (value ~ E'(ST|EXF)');
 
-create domain d_specs_number as character(6) check (value ~ E'[0-9]{6}');
-
-create domain d_exp_number as character(6) check (value ~ E'[0-9]{6,10}');
-
 create domain d_invoice_number as numeric(6) check ((value > 100000) and (value < 200000));
+
+create domain d_document_type as character varying(5) check (value ~ E'(SPECS|EXP)');
+
+create domain d_document_number as numeric(6) check (value > 0);
 
 
 -- tables
@@ -209,7 +209,7 @@ create table blocks (
 
 create table files (
   id bigserial not null,
-  name d_text_short not null,
+  name d_text_long not null,
   path d_text_long unique,
   type d_file_type not null,
   size d_int not null,
@@ -290,6 +290,17 @@ create table barcode_coc_activity (
   constraint barcode_coc_activity_unique unique(barcode_id,status)
 );
 
+create table qrcodes (
+  id bigserial not null,
+  qrcode d_qrcode unique not null,
+  type d_qrcode_type default 'P' not null,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint qrcodes_pkey primary key (id),
+  constraint qrcodes_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+);
+
 create table invoices (
   id bigserial not null,
   type d_invoice_type not null,
@@ -312,13 +323,14 @@ create table invoices (
   constraint invoices_number_unique unique(type,number),
 
   constraint invoices_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
+  constraint invoices_check check (not(operator_id is null) and (site_id is null))
 );
 
 create table invoice_data (
   id bigserial not null,
   form_type d_form_type not null,
   form_data_id d_id not null,
-  invoice_id d_id,
+  invoice_id d_id not null,
 
   -- constraint invoice_data_pkey primary key (id),
   constraint invoice_data_invoice_id foreign key (invoice_id) references invoices (id) on update cascade on delete cascade,
@@ -326,62 +338,86 @@ create table invoice_data (
   constraint invoice_data_unique unique(form_type,form_data_id,invoice_id)
 );
 
-create table specs (
+create table documents (
   id bigserial not null,
-  number d_specs_number,
+  type d_document_type not null,
+  operator_id d_id,
+  site_id d_id,
+  qrcode_id d_id not null,
+  number d_document_number,
   is_draft d_bool default true not null,
+  values d_text_long,
   file_id d_id unique not null,
-  operator_id d_id not null,
-  specs_barcode_id d_id,
-  exp_barcode_id d_id,
-  exp_id d_id,
-  contract_number d_text_short,
-  loading_date d_date,
-  buyer d_text_short,
-  submitted_by d_text_short,
-  volume d_volume not null,
-  origin d_text_short,
-  destination d_text_short,
-  create_date d_date not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint specs_pkey primary key (id),
+  constraint documents_pkey primary key (id),
 
-  constraint specs_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
+  constraint documents_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null))),
+  constraint documents_check check (not(operator_id is null) and (site_id is null) and (qrcode_id is null))
 );
 
-create table exp (
+create table documents_data (
   id bigserial not null,
-  number d_exp_number,
-  is_draft d_bool default true not null,
-  file_id d_id unique not null,
+  form_type d_form_type not null,
+  form_data_id d_id not null,
+  document_id d_id not null,
 
-origin d_text_short,
-destination d_text_short,
-eta_date d_date,
-vessel d_text_short,
+  -- constraint document_data_pkey primary key (id),
+  constraint document_data_document_id foreign key (document_id) references documents (id) on update cascade on delete cascade,
 
-product_type d_text_short,
-producet_description d_text_short,
-
-volume d_volume not null,
-
-buyer_name d_text_short,
-buyer_contact d_text_short,
-
-buyer_address d_text_medium,
-buyer_email d_text_short,
-buyer_phone d_text_short,
-
-
-  user_id d_id default 1 not null,
-  timestamp d_timestamp default current_timestamp not null,
-
-  constraint exp_pkey primary key (id),
-
-  constraint exp_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
+  constraint document_data_unique unique(form_type,form_data_id,document_id)
 );
+
+-- create table specs (
+--   id bigserial not null,
+--   number d_specs_number,
+--   is_draft d_bool default true not null,
+--   file_id d_id unique not null,
+--   operator_id d_id not null,
+--   specs_barcode_id d_id,
+--   exp_barcode_id d_id,
+--   exp_id d_id,
+--   contract_number d_text_short,
+--   loading_date d_date,
+--   buyer d_text_short,
+--   submitted_by d_text_short,
+--   volume d_volume not null,
+--   origin d_text_short,
+--   destination d_text_short,
+--   create_date d_date not null,
+--   user_id d_id default 1 not null,
+--   timestamp d_timestamp default current_timestamp not null,
+--
+--   constraint specs_pkey primary key (id),
+--
+--   constraint specs_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
+-- );
+
+-- create table exp (
+--   id bigserial not null,
+--   number d_exp_number,
+--   is_draft d_bool default true not null,
+--   file_id d_id unique not null,
+--   origin d_text_short,
+--   destination d_text_short,
+--   eta_date d_date,
+--   vessel d_text_short,
+--   product_type d_text_short,
+--   producet_description d_text_short,
+--   volume d_volume not null,
+--   buyer_name d_text_short,
+--   buyer_contact d_text_short,
+--   buyer_address d_text_medium,
+--   buyer_email d_text_short,
+--   buyer_phone d_text_short,
+--   user_id d_id default 1 not null,
+--   timestamp d_timestamp default current_timestamp not null,
+--
+--   constraint exp_pkey primary key (id),
+--
+--   constraint exp_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
+-- );
 
 create table csv (
   id bigserial not null,
@@ -434,6 +470,13 @@ create table csv_duplicates (
   constraint csv_duplicates_exist check (csv_id is not null or duplicate_csv_id is not null),
 
   constraint csv_duplicates_check check (!((csv_id is not null and duplicate_csv_id is not null) and (csv_id > duplicate_csv_id)))
+);
+
+create table data (
+  id bigserial not null,
+  csv_id d_id not null,
+  form_type d_form_type not null,
+  form_data_id d_id not null,
 );
 
 create table ssf_data (
@@ -602,8 +645,6 @@ create table specs_data (
   operator_id d_id not null,
   specs_barcode_id d_id,
   exp_barcode_id d_id,
-  specs_id d_id,
-  exp_id d_id,
   contract_number d_text_short,
   barcode_id d_id unique not null,
   species_id d_id not null,
@@ -695,8 +736,8 @@ create table settings (
 
 create sequence s_invoices_st_number minvalue 100100;
 create sequence s_invoices_exf_number minvalue 100100;
-create sequence s_specs_number minvalue 1;
-create sequence s_epr_number minvalue 1;
+create sequence s_documents_specs_number minvalue 1;
+create sequence s_documents_epr_number minvalue 1;
 
 
 -- indexes
@@ -717,6 +758,9 @@ create index barcodes_printjob_id on barcodes (id,printjob_id);
 create index barcodes_parent_id on barcodes (id,parent_id);
 create index barcodes_type on barcodes (id,type);
 create index barcodes_is_locked on barcodes (id,is_locked);
+
+create index qrcodes_type on qrcodes (id,type);
+create index qrcodes_qrcode_type on qrcodes (id,qrcode,type);
 
 create unique index barcodes_unique on barcodes (barcode) where type not in ('F','L','P');
 
@@ -915,6 +959,32 @@ end
 $$ language 'plpgsql';
 
 
+create function lookup_invoice_id(x_type character varying(5), x_number numeric(6))
+  returns d_id as
+$$
+  declare x_id d_id;
+begin
+
+  select id from invoices where type = x_type and number = x_number limit 1 into x_id;
+  return x_id;
+
+end
+$$ language 'plpgsql';
+
+
+create function lookup_document_id(x_type character varying(5), x_number numeric(6))
+  returns d_id as
+$$
+  declare x_id d_id;
+begin
+
+  select id from documents where type = x_type and number = x_number limit 1 into x_id;
+  return x_id;
+
+end
+$$ language 'plpgsql';
+
+
 create function sites_parse_type()
   returns trigger as
 $$
@@ -936,7 +1006,7 @@ $$
 begin
   if (tg_op = 'INSERT') then
     perform rebuild_barcode_hops(new.id);
-  elseif (tg_op = 'UPDATE') and (old.parent_id <> new.parent_id) then
+  elseif (tg_op = 'UPDATE') then
     delete from barcode_hops_cached where barcode_id = old.id;
     perform rebuild_barcode_hops(new.id);
   elseif (tg_op = 'DELETE') then
@@ -962,7 +1032,7 @@ begin
     end loop;
   else
     delete from barcode_hops_cached where barcode_id = x_barcode_id;
-    select parent_id from barcodes where id = x_barcode_id into x_id;
+    select parent_id from barcodes where id = x_barcode_id and parent_id is not null into x_id;
 
     x_hops = 1;
     while x_id is not null loop
