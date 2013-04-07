@@ -30,7 +30,7 @@ class Controller_PrintJobs extends Controller {
       $printjob = ORM::factory('printjob', $id);
       $printjobs = array($printjob);
 
-      if ($command == 'list') {
+      if ($command == 'barcodes') {
         $pagination = Pagination::factory(array(
           'items_per_page' => 50,
           'total_items' => $printjob->barcodes->find_all()->count()));
