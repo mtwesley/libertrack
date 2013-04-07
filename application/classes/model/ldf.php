@@ -42,8 +42,8 @@ class Model_LDF extends SGS_Form_ORM {
       if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('L', 'P')) and $barcode->loaded()) $this->barcode = $barcode;
       else {
         $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        $barcode->parent_id = NULL;
         $barcode->type = 'L';
-        unset($barcode->printjob);
         $barcode->save();
         $this->barcode = $barcode;
       }
@@ -53,6 +53,7 @@ class Model_LDF extends SGS_Form_ORM {
       if ($parent_barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P')) and $parent_barcode->loaded()) $this->barcode = $parent_barcode;
       else {
         $parent_barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        $parent_barcode->parent_id = NULL;
         $parent_barcode->type = 'F';
         $parent_barcode->save();
         $this->parent_barcode = $parent_barcode;
@@ -65,7 +66,7 @@ class Model_LDF extends SGS_Form_ORM {
   public static $type = 'LDF';
 
   public static $fields = array(
-    'create_date'      => 'Date Registered',
+    'create_date'      => 'Date',
     'operator_tin'     => 'Operator TIN',
     'site_name'        => 'Site Name',
     'measured_by'      => 'Log Measurer',
@@ -475,20 +476,14 @@ class Model_LDF extends SGS_Form_ORM {
     }
 
     // traceability
-    // $parent = $this->parent();
-
-    $ldf_parent = ORM::factory('LDF')->where('barcode_id', '=', $this->parent_barcode->id)->where('id', '!=', $this->id)->find();
-    $tdf_parent = ORM::factory('TDF')->where('barcode_id', '=', $this->parent_barcode->id)->find();
-
-    if ($ldf_parent->loaded()) $parent = $ldf_parent;
-    else if ($tdf_parent->loaded()) $parent = $tdf_parent;
+    $parent = $this->parent();
 
     if ($parent and $parent->loaded()) {
-      if ($parent->status != 'U') $parent->run_checks();
+      if ($parent->status == 'P') $parent->run_checks();
       if ($parent->status != 'A') $errors['parent_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
       else $successes['parent_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
 
-      if (!(ord($this->species->class) >= ord($parent->species->class))) $errors['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $parent->species->class);
+      if (!(ord($this->species->class) <= ord($parent->species->class))) $errors['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $parent->species->class);
       else if (!($this->species->code == $parent->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);
 
       if (!($this->operator_id == $parent->operator_id)) $warnings['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $parent->operator->tin);
@@ -500,13 +495,7 @@ class Model_LDF extends SGS_Form_ORM {
         'volume'   => 0
       );
 
-      // $siblngs = $this->siblings();
-
-      $siblngs = ORM::factory('LDF')
-        ->where('parent_barcode_id', '=', $parent->barcode->id)
-        ->find_all()
-        ->as_array();
-
+      $siblngs = $this->siblings();
       if ($siblngs) {
         foreach ($siblngs as $child) {
           $siblings['length']   += $child->length;
@@ -546,8 +535,9 @@ class Model_LDF extends SGS_Form_ORM {
     }
 
     // all tolerance checks fail if any traceability checks fail
-    if (array_intersect(SGS::flattenify($errors), array_keys(self::$checks['traceability']['checks']))) {
-      foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['parent_barcode_id'][$check] = array();
+    foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
+      foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['parent_barcode_id'][$check] = array('value' => 'Found', 'comparison' => 'Not Found');
+      break;
     }
 
     // tolerance successes checks

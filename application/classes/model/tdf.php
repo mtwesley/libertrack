@@ -50,6 +50,7 @@ class Model_TDF extends SGS_Form_ORM {
       if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P')) and $barcode->loaded()) $this->barcode = $barcode;
       else {
         $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        $barcode->parent_id = NULL;
         $barcode->type = 'F';
         $barcode->save();
         $this->barcode = $barcode;
@@ -62,7 +63,7 @@ class Model_TDF extends SGS_Form_ORM {
   public static $type = 'TDF';
 
   public static $fields = array(
-    'create_date'    => 'Date Registered',
+    'create_date'    => 'Date',
     'operator_tin'   => 'Operator TIN',
     'site_name'      => 'Site Name',
     'block_name'     => 'Block Name',
@@ -536,17 +537,13 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     // traceability
-    // $parent = $this->parent('SSF');
-
-    $parent = ORM::factory('SSF')
-      ->where('barcode_id', '=', $this->tree_barcode->id)
-      ->find();
+    $parent = $this->parent('SSF');
 
     if ($parent and $parent->loaded()) {
       // if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
       // else $successes['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
 
-      if (!(ord($this->species->class) >= ord($parent->species->class))) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $parent->species->class);
+      if (!(ord($this->species->class) <= ord($parent->species->class))) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $parent->species->class);
       else if (!($this->species->code == $parent->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);
 
       if (!($this->operator_id == $parent->operator_id)) $warnings['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $parent->operator->tin);
@@ -576,8 +573,9 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     // all tolerance checks fail if any traceability checks fail
-    if (array_intersect(SGS::flattenify($errors), array_keys(self::$checks['traceability']['checks']))) {
-      foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['tree_barcode_id'][$check] = array();
+    foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
+      foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['tree_barcode_id'][$check] = array('value' => 'Found', 'comparison' => 'Not Found');
+      break;
     }
 
     // tolerance successes checks

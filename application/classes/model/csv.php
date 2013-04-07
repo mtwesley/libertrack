@@ -74,6 +74,7 @@ class Model_CSV extends ORM {
     $this->unset_duplicates();
 
     $model = ORM::factory($this->form_type, $this->form_data_id);
+    if (!$model->loaded()) $model = ORM::factory($this->form_type);
     $model->parse_data($this->values);
 
     $validation = new Validation($this->values);

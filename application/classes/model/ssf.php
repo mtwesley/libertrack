@@ -25,7 +25,7 @@ class Model_SSF extends SGS_Form_ORM {
   public static $type = 'SSF';
 
   public static $fields = array(
-    'create_date'     => 'Date Surveyed',
+    'create_date'     => 'Date',
     'operator_tin'    => 'Operator TIN',
     'site_name'       => 'Site Name',
     'block_name'      => 'Block Name',
