@@ -87,37 +87,6 @@ end
 $$ language 'plpgsql';
 
 
-create or replace function rebuild_barcode_hops(x_barcode_id d_id)
-  returns void as
-$$
-  declare x_id d_id;
-  declare x_hops d_positive_int;
-begin
-  if (x_barcode_id is null) then
-    truncate barcode_hops_cached;
-
-    for x_id in select id from barcodes where parent_id is not null loop
-      perform rebuild_barcode_hops(x_id);
-    end loop;
-  else
-    delete from barcode_hops_cached where barcode_id = x_barcode_id;
-    select parent_id from barcodes where id = x_barcode_id and parent_id is not null into x_id;
-
-    x_hops = 1;
-    while x_id is not null loop
-      insert into barcode_hops_cached(barcode_id,parent_id,hops)
-      values(x_barcode_id,x_id,x_hops);
-      x_hops = x_hops + 1;
-      select parent_id from barcodes where id = x_id into x_id;
-    end loop;
-
-    for x_id in select id from barcodes where parent_id = x_barcode_id loop
-      perform rebuild_barcode_hops(x_id);
-    end loop;
-  end if;
-end
-$$ language 'plpgsql';
-
 create domain d_md5 as character(32);
 create domain d_sha as character(64);
 
@@ -128,3 +97,4 @@ alter table specs_data drop column exp_id;
 -- alter table specs_data drop column specs_id;
 
 insert into roles (name, description) values ('exports', 'Export Management');
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('exports'));

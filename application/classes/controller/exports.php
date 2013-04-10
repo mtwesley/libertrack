@@ -382,7 +382,6 @@ class Controller_Exports extends Controller {
     if (!Request::$current->query()) Session::instance()->delete('pagination.exports.documents.list');
     if ($id) {
       Session::instance()->delete('pagination.exports.documents.list');
-      Session::instance()->delete('pagination.exports.summary.list');
 
       $document  = ORM::factory('document', $id);
       $documents = array($document);
@@ -418,11 +417,26 @@ class Controller_Exports extends Controller {
           ->find_all()
           ->as_array();
 
+        unset($info);
+        if ($form_type == 'SPECS') {
+          $sample = reset($summary_data);
+          $info['specs'] = array(
+            'number'  => $sample->specs_number,
+            'barcode' => $sample->specs_barcode->barcode
+          );
+          if (Valid::numeric($specs_number)) $info['exp'] = array(
+            'number'  => $sample->exp_number,
+            'barcode' => $sample->exp_barcode->barcode
+          );
+        }
+
         $summary_header = View::factory('data')
           ->set('form_type', $form_type)
           ->set('data', $summary_data)
           ->set('operator', $document->operator->loaded() ? $document->operator : NULL)
           ->set('site', $document->site->loaded() ? $document->site : NULL)
+          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
           ->set('options', array(
             'table'   => FALSE,
             'rows'    => FALSE,
@@ -439,15 +453,19 @@ class Controller_Exports extends Controller {
           ->set('data', $summary_data)
           ->set('operator', $operator_id ? $operator : NULL)
           ->set('site', $document->site->loaded() ? $document->site : NULL)
+          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
           ->set('options', array(
             'links'  => FALSE,
             'header' => FALSE,
             'hide_header_info' => TRUE
           ))
           ->render();
-      }
+      } else $this->request->redirect('export/documents');
     }
     else {
+      $documents = ORM::factory('document');
+
       $operator_ids = DB::select('id', 'name')
         ->from('operators')
         ->order_by('name')
@@ -474,16 +492,12 @@ class Controller_Exports extends Controller {
           'specs_barcode' => $specs_barcode,
           'exp_barcode'   => $exp_barcode
         ));
-
-        $documents = ORM::factory('document');
       }
       else if ($settings = Session::instance()->get('pagination.exports.documents.list')) {
         $form->type->val($type = $settings['type']);
         $form->operator_id->val($operator_id = $settings['operator_id']);
         $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
         $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
-
-        $documents = ORM::factory('document');
 
         if ($type)    $documents->and_where('type', 'IN', (array) $type);
         if ($site_id) $documents->and_where('site_id', 'IN', (array) $site_id);
@@ -507,6 +521,7 @@ class Controller_Exports extends Controller {
 
     if ($documents) {
       $table = View::factory('documents')
+        ->set('mode', 'exports')
         ->set('classes', array('has-pagination'))
         ->set('documents', $documents)
         ->render();
@@ -516,6 +531,7 @@ class Controller_Exports extends Controller {
     else Notify::msg('No documents found');
 
     if ($form) $content .= $form->render();
+
     $content .= $summary_header;
     $content .= $table;
     $content .= $pagination;

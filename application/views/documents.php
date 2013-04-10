@@ -1,4 +1,7 @@
-<?php $classes[] = 'data'; ?>
+<?php
+$mode ? $mode = $mode.'/' : '';
+$classes[] = 'data';
+?>
 <table class="<?php echo SGS::render_classes($classes); ?>">
   <tr class="head">
     <th class="type"></th>
@@ -21,11 +24,11 @@
       <div class="links-container">
         <span class="link link-title">+</span>
         <div class="links-links">
-          <?php echo HTML::anchor('documents/'.$document->id, 'View', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($mode.'documents/'.$document->id, 'View', array('class' => 'link')); ?>
 
           <?php if ($document->is_draft): ?>
-          <?php echo HTML::anchor('documents/'.$document->id.'/delete', 'Delete', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('documents/'.$document->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($mode.'documents/'.$document->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($mode.'documents/'.$document->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
           <?php endif; ?>
 
           <?php echo HTML::anchor($document->file->path, 'Download', array('class' => 'link')); ?>
