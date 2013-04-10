@@ -71,11 +71,9 @@ if ($options['header'])  $classes[] = 'has-header';
         case 'block_id':
         case 'specs_barcode':
         case 'specs_barcode_id';
-        case 'specs_id':
         case 'specs_number':
         case 'exp_barcode':
         case 'exp_barcode_id':
-        case 'exp_id':
         case 'exp_number':
           $header_columns++;
           continue 2;
@@ -138,11 +136,9 @@ if ($options['header'])  $classes[] = 'has-header';
         case 'block_id':
         case 'specs_barcode':
         case 'specs_barcode_id';
-        case 'specs_id':
         case 'specs_number':
         case 'exp_barcode':
         case 'exp_barcode_id':
-        case 'exp_id':
         case 'exp_number':
           continue 2;
       endswitch;
@@ -179,6 +175,7 @@ if ($options['header'])  $classes[] = 'has-header';
         <div class="links-links">
           <?php if ($options['links']): ?>
           <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
+          <?php if ($csv->form_data_id) echo HTML::anchor('analysis/review/'.strtolower($csv->form_type).'/'.$csv->form_data_id, 'View '.$csv->form_type, array('class' => 'link')); ?>
 
           <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
           <?php echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>

@@ -14,7 +14,7 @@
     <td><?php echo $operator->tin; ?></td>
     <td><?php echo $operator->name; ?></td>
     <td><?php echo $operator->contact; ?></td>
-    <td><?php echo $operator->address; ?></td>
+    <td><?php echo nl2br($operator->address); ?></td>
     <td><?php echo $operator->email; ?></td>
     <td><?php echo $operator->phone; ?></td>
     <td class="links">

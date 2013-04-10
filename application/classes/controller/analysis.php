@@ -36,7 +36,7 @@ class Controller_Analysis extends Controller {
 
     extract($info);
 
-    $html .= View::factory('documents/checks')
+    $html .= View::factory('reports/checks')
       ->set('form_type', $form_type)
       ->set('report', $report)
       ->set('checks', $checks)
@@ -62,7 +62,7 @@ class Controller_Analysis extends Controller {
     while ($cntr < count($passed_records)) {
       $max = $page_max;
       $set = array_slice($passed_records, $cntr, $max);
-      $html .= View::factory('documents/checks')
+      $html .= View::factory('reports/checks')
         ->set('form_type', $form_type)
         ->set('checks', $checks)
         ->set('data', $set)
@@ -83,7 +83,7 @@ class Controller_Analysis extends Controller {
     while ($cntr < count($failed_records)) {
       $max = $page_max;
       $set = array_slice($failed_records, $cntr, $max);
-      $html .= View::factory('documents/checks')
+      $html .= View::factory('reports/checks')
         ->set('form_type', $form_type)
         ->set('checks', $checks)
         ->set('data', $set)
@@ -104,7 +104,7 @@ class Controller_Analysis extends Controller {
     while ($cntr < count($unchecked_records)) {
       $max = $page_max;
       $set = array_slice($unchecked_records, $cntr, $max);
-      $html .= View::factory('documents/checks')
+      $html .= View::factory('reports/checks')
         ->set('form_type', $form_type)
         ->set('checks', $checks)
         ->set('data', $set)
@@ -174,7 +174,7 @@ class Controller_Analysis extends Controller {
         'lowquality' => TRUE,
         'orientation' => 'Landscape',
         'disable-smart-shrinking' => TRUE,
-        'footer-html' => View::factory('documents/checks')
+        'footer-html' => View::factory('reports/checks')
           ->set('options', array(
             'header' => FALSE,
             'footer' => TRUE,
@@ -217,8 +217,8 @@ class Controller_Analysis extends Controller {
 
     $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
-    $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
-    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_specs_info = (bool) (in_array($form_type, array('SPECS', 'EPR')));
+    $has_exp_info   = (bool) (in_array($form_type, array('SPECS', 'EPR')));
 
     if ($id) {
       Session::instance()->delete('pagination.data');
@@ -244,9 +244,10 @@ class Controller_Analysis extends Controller {
 
       $form = Formo::form();
       if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
-      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts')) : array()));
+      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts exp_operatoropts')) : array()));
       if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
-      if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+      if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+      if ($has_exp_info) $form = $form->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')));
 
       if (!$has_specs_info and !$has_exp_info) {
         $form->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')));
@@ -260,7 +261,8 @@ class Controller_Analysis extends Controller {
         if ($has_site_id) $site_id  = $form->site_id->val();
         else $operator_id = $form->operator_id->val();
         if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
-        if ($has_specs_info) $specs_info = $form->specs_info->val();
+        if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
+        if ($has_exp_info) $exp_barcode = $form->exp_barcode->val();
 
         $status = $form->status->val();
 
@@ -271,7 +273,8 @@ class Controller_Analysis extends Controller {
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
         if ($status)      $data->and_where('status', 'IN', (array) $status);
 
-        if (Valid::is_barcode($specs_info))   $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+        if (Valid::is_barcode($specs_barcode)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
+        if (Valid::is_barcode($exp_barcode))   $data->and_where('exp_barcode_id', '=', SGS::lookup_barcode($exp_barcode, NULL, TRUE));
 
         if (!$has_specs_info and !$has_exp_info) {
           $from = $form->from->val();
@@ -279,13 +282,14 @@ class Controller_Analysis extends Controller {
         }
 
         Session::instance()->set('pagination.data', array(
-          'site_id'     => $site_id,
-          'operator_id' => $operator_id,
-          'block_id'    => $block_id,
-          'specs_info'  => $specs_info,
-          'status'      => $status,
-          'from'        => $from,
-          'to'          => $to
+          'site_id'       => $site_id,
+          'operator_id'   => $operator_id,
+          'block_id'      => $block_id,
+          'specs_barcode' => $specs_barcode,
+          'exp_barcode'   => $exp_barcode,
+          'status'        => $status,
+          'from'          => $from,
+          'to'            => $to
         ));
       }
       else {
@@ -293,7 +297,8 @@ class Controller_Analysis extends Controller {
           if ($has_site_id) $form->site_id->val($site_id = $settings['site_id']);
           else $form->operator_id->val($operator_id = $settings['operator_id']);
           if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
-          if ($has_specs_info) $form->specs_info->val($specs_info = $settings['specs_info']);
+          if ($has_specs_info) $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
+          if ($has_exp_info) $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
 
           if (!$has_specs_info and !$has_exp_info) {
             $form->from->val($from = $settings['from']);
@@ -310,7 +315,8 @@ class Controller_Analysis extends Controller {
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
         if ($status)      $data->and_where('status', 'IN', (array) $status);
 
-        if (Valid::is_barcode($specs_info)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+        if (Valid::is_barcode($specs_barcode)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
+        if (Valid::is_barcode($exp_barcode)) $data->and_where('exp_barcode_id', '=', SGS::lookup_barcode($exp_barcode, NULL, TRUE));
         if (!$has_specs_info and !$has_exp_info) $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
       }
 
@@ -410,7 +416,7 @@ class Controller_Analysis extends Controller {
         ->set('block', (isset($parent->block) and $parent->block->loaded()) ? $parent->block : NULL)
         ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-        ->set('options', array('header' => FALSE))
+        ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
         ->render();
     }
 
@@ -439,7 +445,7 @@ class Controller_Analysis extends Controller {
         ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
         ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-        ->set('options', array('header' => FALSE))
+        ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
         ->render();
     }
 
@@ -468,7 +474,7 @@ class Controller_Analysis extends Controller {
         ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
         ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-        ->set('options', array('header' => FALSE))
+        ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
         ->render();
     }
 
@@ -972,42 +978,262 @@ class Controller_Analysis extends Controller {
     $this->response->body($view);
   }
 
-  public function action_tolerances() {
-    if (!Auth::instance()->logged_in('tolerances')) {
-      Notify::msg('Access denied. You must have '.SGS::$roles['tolerances'].' privileges.', 'locked', TRUE);
-      $this->request->redirect('analysis');
-    }
-
-    if ($values = $this->request->post()) {
-      foreach ($values as $key => $value) {
-        list($form_type, $check, $type) = explode('-', $key);
-        try {
-          DB::update('tolerances')
-            ->set(array($type => (float) $value))
-            ->where('form_type', '=', $form_type)
-            ->and_where('check', '=', $check)
-            ->execute();
-        } catch (Database_Exception $e) {
-          Notify::msg('Sorry, tolerance failed to be saved due to input. Please try again.', 'error');
-        } catch (Exception $e) {
-          Notify::msg('Sorry, tolerance failed to be updated. Please try again.', 'error');
-        }
-      }
-
-      Notify::msg($success.'Tolerances updated.', 'success');
-    }
-
-    $content .= View::factory('tolerances');
-
-    $view = View::factory('main')->set('content', $content);
-    $this->response->body($view);
-  }
-
   public function action_checks() {
     $form_type = strtoupper($this->request->param('id'));
     $id        = $this->request->param('command');
 
     if ($form_type) return self::handle_checks($form_type);
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  public function action_download() {
+    $form_type = strtoupper($this->request->param('id'));
+
+    switch ($form_type) {
+      case 'SSF':
+      case 'TDF':
+      case 'LDF':
+      case 'SPECS':
+      case 'EPR':
+        break;
+
+      default:
+        $view = View::factory('main')->set('content', $content);
+        $this->response->body($view);
+        return;
+    }
+
+    set_time_limit(0);
+
+    $model = ORM::factory($form_type);
+
+    $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
+    $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
+    $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
+    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
+
+    if ($has_site_id) $site_ids = DB::select('id', 'name')
+      ->from('sites')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+    else $operator_ids = DB::select('id', 'name')
+      ->from('operators')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    if ($has_site_id and $has_block_id) $block_ids = DB::select('id', 'name')
+      ->from('blocks')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    $form = Formo::form();
+    if ($has_site_id) $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
+    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts')) : array()));
+    if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
+    if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+
+    if (!$has_specs_info and !$has_exp_info) {
+      $form = $form
+        ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
+    }
+
+    $form = $form
+      ->add_group('status', 'checkboxes', SGS::$data_status, array('A'), array('label' => 'Status'))
+      ->add('type', 'radios', 'xls', array(
+        'options' => array(
+          'xls' => SGS::$file_type['xls'],
+          'csv' => SGS::$file_type['csv']
+        ),
+        'label'    => 'Format',
+        'required' => TRUE
+      ))
+      ->add('download', 'submit', array('label' => 'Download'));
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      if ($has_site_id) $site_id = $form->site_id->val();
+      else $operator_id = $form->operator_id->val();
+      if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
+      if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
+
+      if (!$has_specs_info and !$has_exp_info) {
+        $from = $form->from->val();
+        $to   = $form->to->val();
+      }
+
+      $status = $form->status->val();
+      $type   = $form->type->val();
+
+      $data_ids = DB::select('id')->from($model->table_name());
+
+      if ($has_site_id) $data_ids->where('site_id', 'IN', (array) $site_id);
+      else $data_ids->where('operator_id', 'IN', (array) $operator_id);
+      if ($has_site_id and $has_block_id) $data_ids->where('block_id', 'IN', (array) $block_id);
+
+      if ($has_specs_info) $data_ids->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
+      else $data_ids->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
+
+      $data_ids = $data_ids
+        ->and_where('status', 'IN', (array) $status)
+        ->execute()
+        ->as_array(NULL, 'id');
+
+      if ($data_ids) switch ($type) {
+        case 'csv':
+          $excel = new PHPExcel();
+          $excel->setActiveSheetIndex(0);
+          $writer = new PHPExcel_Writer_CSV($excel);
+          $headers = TRUE;
+          $mime_type = 'text/csv';
+          break;
+        case 'xls':
+          $filename = APPPATH.'/templates/'.$form_type.'.xls';
+          try {
+            $reader = new PHPExcel_Reader_Excel5;
+            if (!$reader->canRead($filename)) $reader = PHPExcel_IOFactory::createReaderForFile($filename);
+            $excel = $reader->load($filename);
+          } catch (Exception $e) {
+            Notify::msg('Unable to load Excel document template. Please try again.', 'error', TRUE);
+          }
+          $excel->setActiveSheetIndex(0);
+          $writer = new PHPExcel_Writer_Excel5($excel);
+          $mime_type = 'application/vnd.ms-excel';
+          $headers = FALSE;
+          break;
+      }
+
+      if ($excel) {
+        // data
+        $create_date = 0;
+        $row = $model::PARSE_START;
+        foreach ($data_ids as $data_id) {
+          $item = ORM::factory($form_type, $data_id);
+          $item->export_data($excel, $row);
+          if (strtotime($item->create_date) > strtotime($create_date)) $create_date = $item->create_date;
+          $row++;
+          unset($item);
+        }
+
+        // headers
+        $item->export_headers($excel, array(
+          'create_date' => $create_date = $create_date ?: SGS::date('now', SGS::PGSQL_DATE_FORMAT)
+        ), $headers);
+
+        // temporary file
+        $tempname = tempnam(sys_get_temp_dir(), strtolower($form_type).'_').'.'.$type;
+        $writer->save($tempname);
+
+        // info
+        if ($operator_id) $operator = ORM::factory('operator', $operator_id);
+        if ($site_id) {
+          $site = ORM::factory ('site', $site_id);
+          if (!$operator) $operator = $site->operator;
+        }
+        if ($block_id) $block = ORM::factory('block', $block_id);
+
+        // properties
+        try {
+          $ext = $type;
+          switch ($form_type) {
+            case 'SSF':
+              $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'export',
+                $site->name,
+                $form_type,
+                $block->name
+              ));
+              if (!($operator->name and $site->name and $block->name)) {
+                Notify::msg('Sorry, cannot identify required properties to create a file.', 'error', TRUE);
+                throw new Exception();
+              }
+              $newname = SGS::wordify($site->name.'_SSF_'.$block->name).'.'.$ext;
+              break;
+
+            case 'TDF':
+              $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'export',
+                $site->name,
+                $form_type,
+                $block->name
+              ));
+              if (!($operator->name and $site->name and $block->name)) {
+                Notify::msg('Sorry, cannot identify required properties to create a file.', 'error', TRUE);
+                throw new Exception();
+              }
+              $newname = SGS::wordify($site->name.'_TDF_'.$block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+              break;
+
+            case 'LDF':
+              $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'export',
+                $site->name,
+                $form_type
+              ));
+              if (!($operator->name and $site->name)) {
+                Notify::msg('Sorry, cannot identify required properties to create a file.', 'error', TRUE);
+                throw new Exception();
+              }
+              $newname = SGS::wordify($site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+              break;
+
+            case 'SPECS':
+              $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'export',
+                'specs',
+                $operator->tin
+              ));
+              if (!($operator->name)) {
+                Notify::msg('Sorry, cannot identify required properties to create a file.', 'error', TRUE);
+                throw new Exception();
+              }
+              $newname = SGS::wordify('SPECS_'.$operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+              break;
+          }
+
+          $version = 0;
+          $testname = $newname;
+          while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+            $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+          }
+
+          if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+            Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error', TRUE); break;
+          }
+          else if (!(rename($tempname, DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname) and chmod(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname, 0777))) {
+            Notify::msg('Sorry, cannot create document. Check file operation capabilities with the site administrator and try again.', 'error', TRUE); break;
+          }
+
+          $file = ORM::factory('file');
+          $file->name = $testname;
+          $file->type = $mime_type;
+          $file->size = filesize(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname);
+          $file->operation      = 'E';
+          $file->operation_type = $form_type;
+          $file->content_md5    = md5_file(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname);
+          $file->path           = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+
+          if ($operator) $file->operator = $operator;
+          if ($site)     $file->site     = $site;
+          if ($block)    $file->block    = $block;
+
+          $file->save();
+          Notify::msg($file->name.' successfully created.', 'success', TRUE);
+        } catch (ORM_Validation_Exception $e) {
+          foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
+        } catch (Exception $e) {
+          Notify::msg('Sorry, unable to save uploaded file.', 'error', TRUE);
+        }
+
+        $this->response->send_file(preg_replace('/\/$/', '', DOCROOT).$file->path, $file->name, array('mime_type' => $mime_type));
+      }
+    }
+
+    $content .= $form->render();
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

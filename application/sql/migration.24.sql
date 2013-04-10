@@ -17,7 +17,7 @@ create table qrcodes (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint qrcodes_pkey primary key (id),
-  constraint qrcodes_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint qrcodes_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create index qrcodes_type on qrcodes (id,type);
@@ -28,7 +28,7 @@ create table documents (
   type d_document_type not null,
   operator_id d_id,
   site_id d_id,
-  qrcode_id d_id not null,
+  qrcode_id d_id,
   number d_document_number,
   is_draft d_bool default true not null,
   values d_text_long,
@@ -39,10 +39,10 @@ create table documents (
   constraint documents_pkey primary key (id),
 
   constraint documents_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null))),
-  constraint documents_check check (not(operator_id is null) and (site_id is null) and (qrcode_id is null))
+  constraint documents_check check (not((operator_id is null) and (site_id is null)))
 );
 
-create table documents_data (
+create table document_data (
   id bigserial not null,
   form_type d_form_type not null,
   form_data_id d_id not null,
@@ -54,7 +54,7 @@ create table documents_data (
   constraint document_data_unique unique(form_type,form_data_id,document_id)
 );
 
-alter table invoices add constraint invoices_check check (not(operator_id is null) and (site_id is null));
+alter table invoices add constraint invoices_check check (not((operator_id is null) and (site_id is null)));
 alter table invoices add column values d_text_long;
 alter table invoices alter column invoice_id set not null;
 
@@ -118,3 +118,13 @@ begin
 end
 $$ language 'plpgsql';
 
+create domain d_md5 as character(32);
+create domain d_sha as character(64);
+
+create domain d_qrcode as character(64);
+create domain d_qrcode_type as character(1) check (value ~ E'^[P]$');
+
+alter table specs_data drop column exp_id;
+-- alter table specs_data drop column specs_id;
+
+insert into roles (name, description) values ('exports', 'Export Management');

@@ -1,0 +1,633 @@
+<?php
+
+class Controller_Exports extends Controller {
+
+  public function before() {
+    parent::before();
+
+    if (!Auth::instance()->logged_in()) {
+      Notify::msg('Please login.', NULL, TRUE);
+      $this->request->redirect('login?destination='.$this->request->uri());
+    }
+    elseif (!Auth::instance()->logged_in('exports')) {
+      Notify::msg('Access denied. You must have '.SGS::$roles['exports'].' privileges.', 'locked', TRUE);
+      $this->request->redirect();
+    }
+
+    Session::instance()->write();
+  }
+
+  private function generate_specs_preview($data_ids) {
+    $sample = ORM::factory('SPECS', reset($data_ids));
+    $total  = DB::select(array(DB::expr('sum(volume)'), 'sum'))
+      ->from('specs_data')
+      ->where('id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('sum');
+
+    $info = array(
+      'specs_barcode' => $sample->specs_barcode->barcode,
+      'exp_barcode'   => $sample->exp_barcode->barcode,
+      'operator_tin'  => $sample->operator->tin,
+      'operator_name' => $sample->operator->name,
+      'origin'        => $sample->origin,
+      'destination'   => $sample->destination,
+      'loading_date'  => $sample->loading_date,
+      'buyer'         => $sample->buyer,
+      'submitted_by'  => $sample->submitted_by,
+      'create_date'   => $sample->create_date,
+    );
+
+    return View::factory('documents/specs_summary')
+      ->set('info', $info)
+      ->set('total', $total)
+      ->render();
+  }
+
+  private function generate_specs_document($document, $data_ids) {
+    if (!($data_ids ?: $document->get_data())) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
+    $item = ORM::factory('SPECS', reset($data_ids));
+
+    $page_count = 0;
+    $page_max   = 28;
+
+    $total = DB::select(array(DB::expr('sum(volume)'), 'sum'))
+      ->from('specs_data')
+      ->where('id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('sum');
+
+    $cntr   = 0;
+    $styles = TRUE;
+    while ($cntr < count($data_ids)) {
+      $max = $page_max;
+      $set = ORM::factory('SPECS')
+        ->where('id', 'IN', (array) array_slice($data_ids, $cntr, $max));
+      $html .= View::factory('documents/specs')
+        ->set('data', $set)
+        ->set('options', array(
+          'info'    => TRUE,
+          'details' => TRUE,
+          'styles'  => $styles ? TRUE : FALSE,
+          'total'   => count($data_ids) > ($cntr + $max) ? FALSE : TRUE
+        ))
+        ->set('info', array(
+          'is_draft'      => $is_draft,
+          'specs_barcode' => $item->specs_barcode->barcode,
+          'specs_number'  => $specs_number,
+          'exp_barcode'   => $item->exp_barcode->barcode,
+          'exp_number'    => $item->exp_number,
+          'operator_tin'  => $item->operator->tin,
+          'operator_name' => $item->operator->name,
+          'origin'        => $item->origin,
+          'destination'   => $item->destination,
+          'loading_date'  => $item->loading_date,
+          'buyer'         => $item->buyer,
+          'submitted_by'  => $item->submitted_by,
+          'create_date'   => $item->create_date,
+        ))
+        ->set('cntr', $cntr)
+        ->set('total', $total)
+        ->render();
+
+      $cntr += $max;
+      $styles = FALSE;
+    }
+
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array(
+      'specs',
+    ));
+
+    if ($is_draft) $newname = 'SPECS_DRAFT_'.SGS::date('now', 'Y_m_d').'.'.$ext;
+    else $newname = 'SPECS_'.$specs_number.'.'.$ext;
+
+    $version = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 22,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('documents/specs')
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->set('page', $page)
+          ->set('page_count', $page_count)
+          ->render()
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate document. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
+
+    try {
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'A';
+      $file->operation_type = 'SPECS';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+      $file->save();
+      return $file->id;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }
+  }
+
+  private function handle_document_create($document_type) {
+    if (!Request::$current->query()) Session::instance()->delete('pagination.exports.document.data');
+
+    $operator_ids = DB::select('id', 'name')
+      ->from('operators')
+      ->order_by('name')
+      ->execute()
+      ->as_array('id', 'name');
+
+    $form = Formo::form()
+      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts exp_operatoropts')));
+
+    if ($document_type == 'SPECS') $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+    if ($document_type == 'EXP') {
+      $form->add_group('exp_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts')));
+      // add additional fields for export permit
+    }
+
+    $form->add('created', 'input', SGS::date('now', SGS::US_DATE_FORMAT), array('label' => 'Date Created', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'created-dpicker')));
+    $form->add('format', 'radios', 'preview', array(
+        'options' => array(
+          'preview' => 'Preview',
+          'draft'   => 'Draft Copy',
+          'final'   => 'Final Copy'),
+        'label' => '&nbsp;',
+        'required' => TRUE,
+        ))
+      ->add('submit', 'submit', 'Generate');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      Session::instance()->delete('pagination.exports.document.data');
+      $format      = $form->format->val();
+      $created     = $form->created->val();
+      $operator_id = $form->operator_id->val();
+
+      switch ($document_type) {
+        case 'SPECS':
+          $specs_barcode = $form->specs_barcode->val();
+          break;
+
+        case 'EXP':
+          $exp_barcode = $form->exp_barcode->val();
+          break;
+      }
+
+      Session::instance()->set('pagination.exports.document.data', array(
+        'operator_id'   => $operator_id,
+        'specs_barcode' => $specs_barcode,
+        'exp_barcode'   => $exp_barcode,
+        'format'        => $format,
+        'created'       => $created
+      ));
+    }
+    else if ($settings = Session::instance()->get('pagination.exports.document.data')) {
+      $form->operator_id->val($operator_id = $settings['operator_id']);
+      switch ($document_type) {
+        case 'SPECS':
+          $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
+          break;
+
+        case 'EXP':
+          $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
+          break;
+      }
+
+      $form->format->val($format = $settings['format']);
+      $form->created->val($created = $settings['created']);
+    }
+
+    if ($format) {
+      switch ($document_type) {
+        case 'SPECS':
+          $form_type = 'SPECS';
+          $ids = DB::select('specs_data.id')
+            ->from('specs_data')
+            ->join('document_data', 'LEFT OUTER')
+            ->on('specs_data.id', '=', 'document_data.form_data_id')
+            ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+            ->where('specs_data.operator_id', '=', $operator_id)
+            ->and_where('document_data.form_data_id', '=', NULL)
+            ->where('specs_data.status', '=', 'A')
+            ->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
+            ->join('barcodes')
+            ->on('specs_data.barcode_id', '=', 'barcodes.id')
+            ->order_by('barcode')
+            ->execute()
+            ->as_array(NULL, 'id');
+          break;
+
+        case 'EXP':
+          // add $form_type = 'EPR' when export permit requests can be made
+          // add way of gathering $ids
+          break;
+      }
+
+      if ($form_type and $ids) {
+        $operator = ORM::factory('operator', $operator_id);
+
+        switch ($format) {
+          case 'preview':
+            $data = ORM::factory($form_type)
+              ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
+              ->join('barcodes')
+              ->on('barcode_id', '=', 'barcodes.id')
+              ->order_by('barcode', 'ASC');
+
+            $clone = clone($data);
+            $pagination = Pagination::factory(array(
+              'items_per_page' => 50,
+              'total_items' => $clone->find_all()->count()));
+
+            $data = $data
+              ->offset($pagination->offset)
+              ->limit($pagination->items_per_page)
+              ->find_all()
+              ->as_array();
+
+            if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
+            elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
+            else Notify::msg('No records found');
+
+            $func = strtolower('generate_'.$document_type.'_preview');
+            $summary = self::$func((array) $ids);
+
+            unset($info);
+            if ($specs_barcode) {
+              $sample = reset($data);
+              $info['specs'] = array(
+                'number'  => $sample->specs_number,
+                'barcode' => $sample->specs_barcode->barcode
+              );
+              if (Valid::numeric($specs_barcode)) $info['exp'] = array(
+                'number'  => $sample->exp_number,
+                'barcode' => $sample->exp_barcode->barcode
+              );
+            }
+
+            $header = View::factory('data')
+              ->set('form_type', $form_type)
+              ->set('data', $data)
+              ->set('operator', $operator_id ? $operator : NULL)
+              ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+              ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+              ->set('options', array(
+                'table'   => FALSE,
+                'rows'    => FALSE,
+                'actions' => FALSE,
+                'header'  => TRUE,
+                'details' => FALSE,
+                'links'   => FALSE
+              ))
+              ->render();
+
+            $table = View::factory('data')
+              ->set('classes', array('has-pagination'))
+              ->set('form_type', $form_type)
+              ->set('data', $data)
+              ->set('operator', $operator_id ? $operator : NULL)
+              ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+              ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+              ->set('options', array(
+                'links'  => FALSE,
+                'header' => FALSE,
+                'hide_header_info' => TRUE
+              ))
+              ->render();
+            break;
+
+          case 'draft':
+            $is_draft = TRUE;
+
+          case 'final':
+            set_time_limit(1800);
+            $document = ORM::factory('document');
+
+            if ($operator->loaded()) $document->operator = $operator;
+
+            $document->type = $document_type;
+            $document->is_draft = $is_draft ? TRUE : FALSE;
+            $document->number = $is_draft ? NULL : $document::create_document_number($document_type);
+            $document->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
+
+            $func = strtolower('generate_'.$document_type.'_document');
+            $document->file_id = self::$func($document, $ids);
+
+            if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);
+            else Notify::msg('Sorry, document file failed to be generated. Please try again.', 'error');
+
+            try {
+              $document->save();
+              foreach ($ids as $id) $document->set_data($form_type, $id);
+
+              Notify::msg(($document->is_draft ? 'Draft document' : 'Document') . ' created.', 'success', TRUE);
+              $this->request->redirect('exports/documents/'.$document->id);
+            } catch (Exception $e) {
+              Notify::msg('Sorry, unable to create document. Please try again.', 'error');
+            }
+            break;
+
+        }
+      } else Notify::msg('No data found. Skipping document.', 'warning');
+    }
+
+    if ($form) $content .= $form;
+
+    $content .= $header;
+    $content .= $summary;
+    $content .= $table;
+    $content .= $pagination;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_document_list($id = NULL) {
+    if (!Request::$current->query()) Session::instance()->delete('pagination.exports.documents.list');
+    if ($id) {
+      Session::instance()->delete('pagination.exports.documents.list');
+      Session::instance()->delete('pagination.exports.summary.list');
+
+      $document  = ORM::factory('document', $id);
+      $documents = array($document);
+
+      if ($document->loaded()) {
+        $ids  = $document->get_data();
+        $func = strtolower('generate_'.$document->type.'_preview');
+        $summary = self::$func((array) $ids);
+
+        switch ($document->type) {
+          case 'SPECS': $form_type = 'SPECS'; break;
+          case 'EXP': break;
+        }
+
+        $summary_data = ORM::factory($form_type)
+          ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
+          ->join('barcodes')
+          ->on('barcode_id', '=', 'barcodes.id')
+          ->order_by('barcode', 'ASC');
+
+        $summary_clone = clone($summary_data);
+        $summary_pagination = Pagination::factory(array(
+          'current_page' => array(
+            'source' => 'query_string',
+            'key' => 'summary_page',
+          ),
+          'items_per_page' => 50,
+          'total_items' => $summary_clone->find_all()->count()));
+
+        $summary_data = $summary_data
+          ->offset($summary_pagination->offset)
+          ->limit($summary_pagination->items_per_page)
+          ->find_all()
+          ->as_array();
+
+        $summary_header = View::factory('data')
+          ->set('form_type', $form_type)
+          ->set('data', $summary_data)
+          ->set('operator', $document->operator->loaded() ? $document->operator : NULL)
+          ->set('site', $document->site->loaded() ? $document->site : NULL)
+          ->set('options', array(
+            'table'   => FALSE,
+            'rows'    => FALSE,
+            'actions' => FALSE,
+            'header'  => TRUE,
+            'details' => FALSE,
+            'links'   => FALSE
+          ))
+          ->render();
+
+        $summary_table = View::factory('data')
+          ->set('classes', array('has-pagination'))
+          ->set('form_type', $form_type)
+          ->set('data', $summary_data)
+          ->set('operator', $operator_id ? $operator : NULL)
+          ->set('site', $document->site->loaded() ? $document->site : NULL)
+          ->set('options', array(
+            'links'  => FALSE,
+            'header' => FALSE,
+            'hide_header_info' => TRUE
+          ))
+          ->render();
+      }
+    }
+    else {
+      $operator_ids = DB::select('id', 'name')
+        ->from('operators')
+        ->order_by('name')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $form = Formo::form()
+        ->add_group('type', 'checkboxes', array('SPECS' => SGS::$document_type['SPECS'], 'EXP' => SGS::$document_type['EXP']), NULL, array('label' => 'Type', 'attr' => array('SPECS' => 'specs_operatoropts exp_operatoropts')))
+        ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts exp_operatoropts')))
+        ->add_group('specs_barcode', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')))
+        ->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')))
+        ->add('submit', 'submit', 'Filter');
+
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+        Session::instance()->delete('pagination.exports.documents.list');
+        $type          = $form->type->val();
+        $operator_id   = $form->operator_id->val();
+        $specs_barcode = $form->specs_barcode->val();
+        $exp_barcode   = $form->exp_barcode->val();
+
+        Session::instance()->set('pagination.exports.documents.list', array(
+          'type'          => $type,
+          'operator_id'   => $operator_id,
+          'specs_barcode' => $specs_barcode,
+          'exp_barcode'   => $exp_barcode
+        ));
+
+        $documents = ORM::factory('document');
+      }
+      else if ($settings = Session::instance()->get('pagination.exports.documents.list')) {
+        $form->type->val($type = $settings['type']);
+        $form->operator_id->val($operator_id = $settings['operator_id']);
+        $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
+        $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
+
+        $documents = ORM::factory('document');
+
+        if ($type)    $documents->and_where('type', 'IN', (array) $type);
+        if ($site_id) $documents->and_where('site_id', 'IN', (array) $site_id);
+      }
+
+      if ($documents) {
+        $clone = clone($documents);
+        $pagination = Pagination::factory(array(
+          'items_per_page' => 20,
+          'total_items' => $clone->find_all()->count()));
+
+        $documents = $documents
+          ->offset($pagination->offset)
+          ->limit($pagination->items_per_page);
+        if ($sort = $this->request->query('sort')) $documents->order_by($sort);
+        $documents = $documents->order_by('number', 'DESC')
+          ->find_all()
+          ->as_array();
+      }
+    }
+
+    if ($documents) {
+      $table = View::factory('documents')
+        ->set('classes', array('has-pagination'))
+        ->set('documents', $documents)
+        ->render();
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' document found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' documents found');
+    }
+    else Notify::msg('No documents found');
+
+    if ($form) $content .= $form->render();
+    $content .= $summary_header;
+    $content .= $table;
+    $content .= $pagination;
+    $content .= $summary;
+    $content .= $summary_table;
+    $content .= $summary_pagination;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_create() {
+    $id      = $this->request->param('id');
+    $command = $this->request->param('command');
+
+    switch ($command) {
+      case 'specs': return self::handle_document_create('SPECS');
+      case 'exp': return self::handle_document_create('EXP');
+    }
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_document_finalize($id) {
+    $document = ORM::factory('document', $id);
+    if (!($document->loaded() and $document->is_draft)) {
+      Notify::msg('Document already finalized.', 'warning', TRUE);
+      $this->request->redirect('exports/documents/'.$id);
+    }
+
+    $document->is_draft = FALSE;
+    $document->number = $document::create_document_number($document->type);
+
+    switch ($document->type) {
+      case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data());
+      case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data());
+    }
+
+    if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);
+    else Notify::msg('Sorry, document file failed to be generated. Please try again.', 'error', TRUE);
+
+    try {
+      $document->save();
+
+      Notify::msg('Document finalized.', 'success', TRUE);
+      $this->request->redirect('exports/documents/'.$document->id);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to create document. Please try again.', 'error');
+      $this->request->redirect('exports/documents/'.$document->id);
+    }
+  }
+
+  private function handle_document_delete($id) {
+    $document = ORM::factory('document', $id);
+
+    if (!$document->loaded()) {
+      Notify::msg('No document found.', 'warning', TRUE);
+      $this->request->redirect('exports/documents');
+    }
+
+    if (!$document->is_draft) {
+      Notify::msg('Sorry, cannot delete final documents.', 'warning', TRUE);
+      $this->request->redirect('exports/documents/'.$document->id);
+    }
+
+    $form = Formo::form()
+      ->add('confirm', 'text', 'Are you sure you want to delete this draft document?')
+      ->add('delete', 'submit', 'Delete');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      try {
+        $document->delete();
+        if ($document->loaded()) throw new Exception();
+        Notify::msg('Draft document successfully deleted.', 'success', TRUE);
+      } catch (Exception $e) {
+        Notify::msg('Draft document failed to be deleted.', 'error', TRUE);
+      }
+
+      $this->request->redirect('exports/documents');
+    }
+
+    $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  public function action_index() {
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  public function action_documents() {
+    $id      = $this->request->param('id');
+    $command = $this->request->param('command');
+
+    if (!is_numeric($id)) {
+      $command = $id;
+      $id      = NULL;
+    }
+
+    switch ($command) {
+      case 'create': return self::handle_create();
+      case 'finalize': return self::handle_document_finalize($id);
+      case 'delete': return self::handle_document_delete($id);
+      case 'list':
+      default: return self::handle_document_list($id);
+    }
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+}

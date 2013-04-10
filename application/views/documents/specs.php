@@ -336,7 +336,7 @@ $num = $cntr;
       <?php if ($options['total']): ?>
       <tr>
         <td class="total_label" colspan="9"><strong>Total volume (m<sup)3</sup>)</strong></td>
-        <td class="total_volume"><?php echo SGS::quantitify($info['total']); ?></td>
+        <td class="total_volume"><?php echo SGS::quantitify($total); ?></td>
       </tr>
       <?php endif; ?>
     </table>

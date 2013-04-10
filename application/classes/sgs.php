@@ -4,9 +4,10 @@ class SGS {
 
   const NEVERTHELESS   = 'tHe k1nG s8iD tHe7 p3oPlE w1lL hAv3 t#e v0iCe aNd We Of 2aMu$l ReFuZeD b^t To Ob3y A n@y oVeR uZ';
   const NEVER_THE_LESS = 'the king said they people will have the voice and we of samuel refused but to obey a nay over us';
+  const NEVER_THELESS  = 'the k1nG said tHe7 people w1lL have t#e voice aNd we Of samuel ReFuZeD but To obey A nay oVeR us';
 
   const DATE_FORMAT = 'j M Y';
-  const DATETIME_FORMAT = 'j M Y H:i';
+  const DATETIME_FORMAT = 'j M Y g:i A';
   const PRETTY_DATE_FORMAT = 'F j, Y';
 
   const PGSQL_DATE_FORMAT = 'Y-m-d';
@@ -60,32 +61,33 @@ class SGS {
     'documents'       => 'Documents',
 
     'import'          => 'Data',
-    'import/upload'   => 'Upload Documents',
-    'import/files'    => 'File Management',
-    'import/search'   => 'Data Search',
-    'import/data'     => 'Data Management',
+    'import/upload'   => 'Upload Files',
+    'import/files'    => 'Manage Files',
+    'import/search'   => 'Search Data',
+    'import/data'     => 'Manage Data',
 
     'import/data/ssf'   => 'Stock Survey Form',
     'import/data/tdf'   => 'Tree Data Form',
     'import/data/ldf'   => 'Log Data Form',
     'import/data/specs' => 'Shipment Specification Form',
 
-    'export'          => 'Data',
-    'export/download' => 'Download Documents',
+//    'export'          => 'Data',
+//    'export/download' => 'Download Documents',
 //    'export/files'    => 'File Management',
 //    'export/data'     => 'Data Management',
 
-    'export/download/ssf'   => 'Stock Survey Form',
-    'export/download/tdf'   => 'Tree Data Form',
-    'export/download/ldf'   => 'Log Data Form',
-    'export/download/specs' => 'Shipment Specification Form',
+//    'export/download/ssf'   => 'Stock Survey Form',
+//    'export/download/tdf'   => 'Tree Data Form',
+//    'export/download/ldf'   => 'Log Data Form',
+//    'export/download/specs' => 'Shipment Specification Form',
 
-    'admin'           => 'Configuration',
-//    'admin/files'     => 'File Management',
-    'admin/operators' => 'Operator Registration',
-    'admin/sites'     => 'Site Registration',
-    'admin/blocks'    => 'Block Registration',
-    'admin/species'   => 'Species Configuration',
+    'admin'            => 'Configuration',
+//    'admin/files'      => 'File Management',
+    'admin/operators'  => 'Operator Registration',
+    'admin/sites'      => 'Site Registration',
+    'admin/blocks'     => 'Block Registration',
+    'admin/species'    => 'Species Configuration',
+    'admin/tolerances' => 'Accuracy and Tolerance Configuration',
 
     'barcodes'          => 'Barcodes',
     'barcodes/query'    => 'Query Barcodes',
@@ -99,17 +101,24 @@ class SGS {
     'users/list'      => 'Manage Users',
 
     'analysis'              => 'Analysis',
+
     'analysis/review'       => 'Review Data',
     'analysis/review/ssf'   => 'Stock Survey',
     'analysis/review/tdf'   => 'Tree Data',
     'analysis/review/ldf'   => 'Log Data',
     'analysis/review/specs' => 'Shipment Specification',
-    'analysis/checks'       => 'Checks and Queries',
+
+    'analysis/checks'       => 'Run Checks and Queries',
     'analysis/checks/ssf'   => 'Stock Survey',
     'analysis/checks/tdf'   => 'Tree Data',
     'analysis/checks/ldf'   => 'Log Data',
     'analysis/checks/specs' => 'Shipment Specification',
-    'analysis/tolerances'   => 'Manage Accuracy and Tolerance',
+
+    'analysis/download'       => 'Download Data',
+    'analysis/download/ssf'   => 'Stock Survey',
+    'analysis/download/tdf'   => 'Tree Data',
+    'analysis/download/ldf'   => 'Log Data',
+    'analysis/download/specs' => 'Shipment Specification',
 
     'invoices'            => 'Invoicing',
     'invoices/list'       => 'List Invoices',
@@ -117,9 +126,12 @@ class SGS {
     'invoices/create/st'  => 'Stumpage Invoice',
     'invoices/create/exf' => 'Export Fee Invoice',
 
-    'exporting'              => 'Exporting',
-    'exporting/specs'        => 'List Final Shipment Specifications',
-    'exporting/specs/create' => 'Create Final Shipment Specification',
+    'exports'                  => 'Exporting',
+    'exports/documents'        => 'List Documents',
+    'exports/documents/create' => 'Create Documents',
+
+    'exports/documents/create/specs' => 'Shipment Specification',
+    'exports/documents/create/exp'   => 'Export Permit',
 
     'reports'         => 'Reports',
     'reports/ssf'     => 'Stock Survey Reports',
@@ -262,6 +274,7 @@ class SGS {
     'users'      => 'User Management',
     'barcodes'   => 'Barcode Management',
     'invoices'   => 'Invoice Management',
+    'exports'    => 'Export Management',
     'tolerances' => 'Accuracy and Tolerance Management',
   );
 
@@ -337,6 +350,11 @@ class SGS {
   public static $invoice_type = array(
     'ST'  => 'Stumpage Invoice',
     'EXF' => 'Export Fee Invoice'
+  );
+
+  public static $document_type = array(
+    'SPECS' => 'Shipment Specification',
+    'EXP'   => 'Export Permit'
   );
 
   public static $error_type = array(

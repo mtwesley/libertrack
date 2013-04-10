@@ -25,13 +25,13 @@
   <tr class="<?php print SGS::odd_even($odd); ?>">
     <td class="type"><span class="data-type">SPECS</span></td>
     <td class="image"><?php echo HTML::image('images/layout.png'); ?></td>
-    <td><?php echo $spec['number'] ? 'SPECS '.$spec['number'] : 'DRAFT'; ?></td>
+    <td><?php echo $spec['number'] ? 'SPEC '.$spec['number'] : 'DRAFT'; ?></td>
     <td><?php echo $item->specs_barcode->barcode; ?></td>
     <td><?php echo $item->exp_number; ?></td>
     <td><?php echo $item->exp_barcode->barcode; ?></td>
     <td><?php echo $item->operator->name; ?></td>
-    <td><?php echo $item->origin; ?></td>
-    <td><?php echo $item->destination; ?></td>
+    <td><?php echo SGS::locationify($item->origin); ?></td>
+    <td><?php echo SGS::locationify($item->destination); ?></td>
     <td><?php echo SGS::date($item->create_date); ?></td>
     <td><?php echo SGS::date($spec['timestamp']); ?></td>
     <td class="links">

@@ -35,7 +35,8 @@ class ORM extends Kohana_ORM {
 
 	public function save(Validation $validation = NULL)
 	{
-    if ($this->_changed and in_array('user_id', array_keys((array) $this->_object))) $this->user = Auth::instance()->get_user();
+    if ($this->_changed and isset($this->user)) $this->user = Auth::instance()->get_user();
+    if (isset($this->timestamp)) $this->timestamp = SGS::date('now', SGS::PGSQL_DATETIME_FORMAT);
 		return parent::save();
 	}
 

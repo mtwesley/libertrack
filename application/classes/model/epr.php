@@ -1,10 +1,10 @@
 <?php
 
-class Model_SPECS extends SGS_Form_ORM {
+class Model_EPR extends SGS_Form_ORM {
 
   const PARSE_START = 12;
 
-  protected $_table_name = 'specs_data';
+  protected $_table_name = 'epr_data';
 
   protected $_belongs_to = array(
     'csv'      => array(),

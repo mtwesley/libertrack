@@ -183,6 +183,24 @@ $(function() {
     }
   );
 
+  $("select.exp_operatoropts").change(function() {
+    $("select.expopts").load(
+      '/ajax/expopts',
+      {
+        operator_id: $(this).val(),
+        numbers_only: $(this).hasClass('numbers-only') ? 1 : 0
+      }
+    );
+  });
+
+  $("select.expopts").load(
+    '/ajax/expopts',
+    {
+      operator_id: $("select.exp_operatoropts").val(),
+      numbers_only: $("select.exp_operatoropts").hasClass('numbers-only') ? 1 : 0
+    }
+  );
+
   $("select.site_operatoropts").change(function() {
     $("select.siteopts").load(
       '/ajax/siteopts',

@@ -38,7 +38,7 @@ class Session_Database extends Kohana_Session_Database {
     $user_id    = ($user = Auth::instance()->get_user()) ? $user->id : NULL;
     $ip_address = Request::$client_ip;
     $user_agent = Request::$user_agent;
-    $timestamp  = SGS::date($this->_data['last_active'], SGS::PGSQL_DATETIME_FORMAT);
+    $timestamp  = SGS::date('now', SGS::PGSQL_DATETIME_FORMAT);
 
 		if ($this->_update_id === NULL)
 		{

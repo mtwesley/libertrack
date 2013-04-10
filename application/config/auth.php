@@ -8,9 +8,6 @@ return array(
 	'session_type' => 'database',
 	'session_key'  => 'auth_user',
 
-	// Username/password combinations for the Auth File driver
-	'users' => array(
-		'admin' => md5('123456'),
-	),
-
+	// username/password combinations for the auth file driver
+	'users'        => array('admin' => md5('123456')),
 );

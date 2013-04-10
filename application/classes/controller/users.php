@@ -24,6 +24,7 @@ class Controller_Users extends Controller {
     $command = $this->request->param('command');
 
     $user = ORM::factory('user', $id);
+    if ($id) $users = array($user);
 
     if ($command == 'password') {
       $form = Formo::form()
@@ -113,7 +114,7 @@ class Controller_Users extends Controller {
       }
     }
 
-    if ($id === null) {
+    if ($id === NULL) {
       $pagination = Pagination::factory(array(
         'items_per_page' => 20,
         'total_items' => $user->find_all()->count()));
@@ -124,15 +125,15 @@ class Controller_Users extends Controller {
         ->limit($pagination->items_per_page)
         ->find_all()
         ->as_array();
-
-      $table .= View::factory('users')
-        ->set('classes', array('has-pagination'))
-        ->set('users', $users);
-
-      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' user found');
-      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' users found');
-      else Notify::msg('No users found');
     }
+
+    $table .= View::factory('users')
+      ->set('classes', array('has-pagination'))
+      ->set('users', $users);
+
+    if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' user found');
+    elseif ($pagination->total_items) Notify::msg($pagination->total_items.' users found');
+    else Notify::msg('No users found');
 
     $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;

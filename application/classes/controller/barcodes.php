@@ -50,18 +50,24 @@ class Controller_Barcodes extends Controller {
       } else {
         $data = array();
 
-        foreach (array('SSF', 'TDF', 'LDF') as $key) {
+        foreach (array('SSF', 'TDF', 'LDF', 'SPECS') as $key) {
           $search = ORM::factory($key);
-          foreach (array_keys($search->labels()) as $field) if (strpos($field, 'barcode') !== FALSE) $search->or_where($field, '=', $barcode->id);
+          foreach (array_keys($search->table_columns()) as $field) if (strpos($field, 'barcode') !== FALSE) $search->or_where($field, '=', $barcode->id);
           foreach ($search = $search->find_all() as $item) $data[$key][] = $item;
         }
 
-        foreach ($data as $type => $items) $data_table .= View::factory('data')
-          ->set('classes', array('has-section'))
-          ->set('form_type', $type)
-          ->set('data', $items)
-          ->set('options', array('header' => FALSE))
-          ->render();
+        foreach ($data as $type => $items) switch ($type) {
+          case 'SSF':
+          case 'TDF':
+          case 'LDF':
+          case 'SPECS':
+            $data_table .= View::factory('data')
+              ->set('classes', array('has-section'))
+              ->set('form_type', $type)
+              ->set('data', $items)
+              ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
+              ->render();
+        }
       }
     }
     else {
@@ -75,11 +81,13 @@ class Controller_Barcodes extends Controller {
 
       $form = Formo::form()
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
+        ->add_group('type', 'checkboxes', SGS::$barcode_type, NULL, array('label' => 'Type'))
         ->add('search', 'submit', 'Filter');
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.barcode.list');
         $site_id = $form->site_id->val();
+        $type    = $form->type->val();
 
         $barcodes = ORM::factory('barcode');
         if ($site_id) {
@@ -88,15 +96,18 @@ class Controller_Barcodes extends Controller {
             ->on('printjob_id', '=', 'printjobs.id')
             ->and_where('printjobs.site_id', 'IN', (array) $site_id);
         }
+        if ($type) $barcodes->where('type', 'IN', (array) $type);
 
         Session::instance()->set('pagination.barcode.list', array(
           'site_id' => $site_id,
+          'type'    => $type
         ));
 
       }
       else {
         if ($settings = Session::instance()->get('pagination.barcode.list')) {
           $form->site_id->val($site_id = $settings['site_id']);
+          $form->type->val($type = $settings['type']);
         }
 
         $barcodes = ORM::factory('barcode');
@@ -106,6 +117,7 @@ class Controller_Barcodes extends Controller {
             ->on('printjob_id', '=', 'printjobs.id')
             ->and_where('printjobs.site_id', 'IN', (array) $site_id);
         }
+        if ($type) $barcodes->where('type', 'IN', (array) $type);
       }
 
       if ($barcodes) {

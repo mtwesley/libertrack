@@ -96,11 +96,9 @@ $classes[] = 'data';
         case 'block_id':
         case 'specs_barcode':
         case 'specs_barcode_id';
-        case 'specs_id':
         case 'specs_number':
         case 'exp_barcode':
         case 'exp_barcode_id':
-        case 'exp_id':
         case 'exp_number':
           $header_columns++;
           continue 2;
@@ -166,11 +164,9 @@ $classes[] = 'data';
         case 'block_id':
         case 'specs_barcode':
         case 'specs_barcode_id';
-        case 'specs_id':
         case 'specs_number':
         case 'exp_barcode':
         case 'exp_barcode_id':
-        case 'exp_id':
         case 'exp_number':
           continue 2;
       endswitch;
@@ -214,12 +210,6 @@ $classes[] = 'data';
           case 'species_id':
             if ($record->species) echo $record->species->code; break;
 
-          case 'specs_id':
-            echo $record->specs_number; break;
-
-          case 'exp_id':
-            echo $record->exp_number; break;
-
           case 'barcode_id':
           case 'tree_barcode_id':
           case 'stump_barcode_id':
@@ -247,6 +237,10 @@ $classes[] = 'data';
 
           case 'volume':
             echo SGS::quantitify($record->$field); break;
+
+          case 'origin':
+          case 'destination':
+            echo SGS::locationify($record->$field); break;
 
           default:
             echo $record->$field; break;

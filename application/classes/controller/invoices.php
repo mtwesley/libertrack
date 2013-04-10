@@ -42,7 +42,7 @@ class Controller_Invoices extends Controller {
     else if ($has_specs_info) {
       $form = $form
         ->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts numbers-only')) : array()))
-        ->add_group('specs_info', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+        ->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
     }
     $form = $form
       ->add('created', 'input', SGS::date('now', SGS::US_DATE_FORMAT), array('label' => 'Date Created', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'created-dpicker')))
@@ -66,21 +66,21 @@ class Controller_Invoices extends Controller {
         $to       = $form->to->val();
       }
       if ($has_specs_info) {
-        $operator_id = $form->operator_id->val();
-        $specs_info  = $form->specs_info->val();
+        $operator_id  = $form->operator_id->val();
+        $specs_number = $form->specs_number->val();
       }
       $created  = $form->created->val();
       $due      = $form->due->val();
 
       Session::instance()->set('pagination.invoice.data', array(
-        'format'      => $format,
-        'operator_id' => $operator_id,
-        'site_id'     => $site_id,
-        'specs_info'  => $specs_info,
-        'from'        => $from,
-        'to'          => $to,
-        'created'     => $created,
-        'due'         => $due
+        'format'       => $format,
+        'operator_id'  => $operator_id,
+        'site_id'      => $site_id,
+        'specs_number' => $specs_number,
+        'from'         => $from,
+        'to'           => $to,
+        'created'      => $created,
+        'due'          => $due
       ));
     }
     else if ($settings = Session::instance()->get('pagination.invoice.data')) {
@@ -91,7 +91,7 @@ class Controller_Invoices extends Controller {
         $form->to->val($to = $settings['to']);
       } else if ($has_specs_info) {
         $form->operator_id->val($operator_id = $settings['operator_id']);
-        $form->specs_info->val($specs_info = $settings['specs_info']);
+        $form->specs_number->val($specs_number = $settings['specs_number']);
       }
       $form->created->val($created = $settings['created']);
       $form->due->val($due = $settings['due']);
@@ -127,7 +127,10 @@ class Controller_Invoices extends Controller {
             ->join('invoice_data', 'LEFT OUTER')
             ->on('specs_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
-            ->where('specs_data.specs_id', '=', SGS::lookup_specs($specs_info, TRUE))
+            ->join('document_data')
+            ->on('specs_data.id', '=', 'document_data.form_data_id')
+            ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+            ->where('document_data.document_id', '=', SGS::lookup_document('SPECS', $specs_number, TRUE))
             ->and_where('invoice_data.form_data_id', '=', NULL)
             ->execute()
             ->as_array(NULL, 'id');
@@ -135,20 +138,16 @@ class Controller_Invoices extends Controller {
       }
 
       if ($form_type and $ids) {
-        $model = ORM::factory($form_type);
-        $sql   = "SELECT form_data_id
-                  FROM invoice_data
-                  JOIN invoices ON invoice_data.invoice_id = invoices.id
-                  WHERE form_type = '$form_type' AND type = '$invoice_type'";
-
         $site     = ORM::factory('site', $site_id);
         $operator = ORM::factory('operator', $operator_id ?: $site->operator->id);
 
         switch ($format) {
           case 'preview':
-            $data = $model
-              ->where('id', 'IN', (array) $ids)
-              ->order_by('create_date', 'ASC');
+            $data = ORM::factory($form_type)
+              ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
+              ->join('barcodes')
+              ->on('barcode_id', '=', 'barcodes.id')
+              ->order_by('barcode', 'ASC');
 
             $clone = clone($data);
             $pagination = Pagination::factory(array(
@@ -169,13 +168,13 @@ class Controller_Invoices extends Controller {
             $summary = self::$func((array) $ids);
 
             unset($info);
-            if ($specs_info) {
+            if ($specs_number) {
               $sample = reset($data);
               $info['specs'] = array(
                 'number'  => $sample->specs_number,
                 'barcode' => $sample->specs_barcode->barcode
               );
-              if (Valid::numeric($specs_info)) $info['exp'] = array(
+              if (Valid::numeric($specs_number)) $info['exp'] = array(
                 'number'  => $sample->exp_number,
                 'barcode' => $sample->exp_barcode->barcode
               );
@@ -301,7 +300,7 @@ class Controller_Invoices extends Controller {
       Session::instance()->delete('pagination.invoice.list');
 
       $invoices = array(ORM::factory('invoice', $id));
-      if (!$invoices) $this->request->redirect ('invoices');
+      if (!$invoices) $this->request->redirect('invoices');
     }
     else {
 

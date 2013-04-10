@@ -317,7 +317,7 @@ class Controller_Ajax extends Controller {
           ->execute()
           ->as_array(NULL, 'number'))) {
           $output .= '<optgroup label="Shipment Specification Number">';
-          foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'<option>';
+          foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'</option>';
           $output .= '</optgroup>';
         }
       } else {
@@ -331,7 +331,49 @@ class Controller_Ajax extends Controller {
           ->execute()
           ->as_array(NULL, 'barcode'))) {
           $output .= '<optgroup label="Shipment Specification Barcode">';
-          foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'<option>';
+          foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'</option>';
+          $output .= '</optgroup>';
+        }
+      }
+
+      $this->response->body($output);
+    }
+  }
+
+  public function action_expopts() {
+    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+
+    $operator_id  = $this->request->post('operator_id');
+    $numbers_only = $this->request->post('numbers_only');
+
+    if ($operator_id) {
+      $output = '<optgroup label=""><option value=""></option>';
+
+      if ($numbers_only) {
+        $sql = "SELECT distinct number
+                FROM documents
+                WHERE operator_id = $operator_id AND type = 'EXP'
+                ORDER BY number";
+
+        if ($numbers = array_filter(DB::query(Database::SELECT, $sql)
+          ->execute()
+          ->as_array(NULL, 'number'))) {
+          $output .= '<optgroup label="Export Permit Number">';
+          foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'</option>';
+          $output .= '</optgroup>';
+        }
+      } else {
+        $sql = "SELECT distinct barcode
+                FROM barcodes
+                JOIN specs_data ON specs_data.exp_barcode_id = barcodes.id
+                WHERE specs_data.operator_id = $operator_id
+                ORDER BY barcode";
+
+        if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
+          ->execute()
+          ->as_array(NULL, 'barcode'))) {
+          $output .= '<optgroup label="Export Permit Barcode">';
+          foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'</option>';
           $output .= '</optgroup>';
         }
       }

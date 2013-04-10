@@ -8,7 +8,7 @@
     <th>Total Logins</th>
     <th>Currently Logged In</th>
     <th>Last Activity</th>
-    <th>Privileges</th>
+    <!-- <th>Privileges</th> -->
     <th class="links"></th>
   </tr>
   <?php foreach ($users as $user): ?>
@@ -39,6 +39,7 @@
     <td><?php echo $total_logins; ?></td>
     <td><?php echo $currently_logged_in; ?></td>
     <td><?php echo $last_activity; ?></td>
+    <!--
     <td class="wrap-normal">
       <?php if ($roles = $user->roles->find_all()->as_array(NULL, 'description')): ?>
       <ul class="roles">
@@ -48,6 +49,7 @@
       </ul>
       <?php endif; ?>
     </td>
+    -->
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>

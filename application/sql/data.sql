@@ -8,6 +8,7 @@ insert into roles (name, description) values ('admin', 'Site and Operator Config
 insert into roles (name, description) values ('users', 'User Management');
 insert into roles (name, description) values ('barcodes', 'Barcode Management');
 insert into roles (name, description) values ('invoices', 'Invoice Management');
+insert into roles (name, description) values ('exports', 'Export Management');
 insert into roles (name, description) values ('tolerances', 'Accuracy and Tolerance Management');
 
 -- users
@@ -24,6 +25,7 @@ insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup
 insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('admin'));
 insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('users'));
 insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('barcodes'));
+insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('exports'));
 insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('invoices'));
 insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('tolerances'));
 

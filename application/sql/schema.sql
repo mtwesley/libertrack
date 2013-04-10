@@ -19,6 +19,10 @@ create domain d_money as numeric(16,2);
 
 create domain d_date as date;
 
+create domain d_md5 as character(32);
+
+create domain d_sha as character(64);
+
 create domain d_timestamp as timestamp without time zone;
 
 create domain d_measurement_int as int check (value >= 0);
@@ -60,6 +64,10 @@ create domain d_grade as character varying(3) check (value ~ E'^(LM|A|AB|B|BC|C|
 create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHE]$');
+
+create domain d_qrcode as character(64);
+
+create domain d_qrcode_type as character(1) check (value ~ E'^[P]$');
 
 create domain d_error_type as character(1) check (value ~ E'^[EWS]$');
 
@@ -323,7 +331,7 @@ create table invoices (
   constraint invoices_number_unique unique(type,number),
 
   constraint invoices_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
-  constraint invoices_check check (not(operator_id is null) and (site_id is null))
+  constraint invoices_check check (not((operator_id is null) and (site_id is null)))
 );
 
 create table invoice_data (
@@ -343,10 +351,11 @@ create table documents (
   type d_document_type not null,
   operator_id d_id,
   site_id d_id,
-  qrcode_id d_id not null,
+  qrcode_id d_id,
   number d_document_number,
   is_draft d_bool default true not null,
   values d_text_long,
+  created_date d_date not null,
   file_id d_id unique not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -354,10 +363,10 @@ create table documents (
   constraint documents_pkey primary key (id),
 
   constraint documents_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null))),
-  constraint documents_check check (not(operator_id is null) and (site_id is null) and (qrcode_id is null))
+  constraint documents_check check (not((operator_id is null) and (site_id is null)))
 );
 
-create table documents_data (
+create table document_data (
   id bigserial not null,
   form_type d_form_type not null,
   form_data_id d_id not null,
