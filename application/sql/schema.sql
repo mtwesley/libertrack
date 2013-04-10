@@ -378,56 +378,6 @@ create table document_data (
   constraint document_data_unique unique(form_type,form_data_id,document_id)
 );
 
--- create table specs (
---   id bigserial not null,
---   number d_specs_number,
---   is_draft d_bool default true not null,
---   file_id d_id unique not null,
---   operator_id d_id not null,
---   specs_barcode_id d_id,
---   exp_barcode_id d_id,
---   exp_id d_id,
---   contract_number d_text_short,
---   loading_date d_date,
---   buyer d_text_short,
---   submitted_by d_text_short,
---   volume d_volume not null,
---   origin d_text_short,
---   destination d_text_short,
---   create_date d_date not null,
---   user_id d_id default 1 not null,
---   timestamp d_timestamp default current_timestamp not null,
---
---   constraint specs_pkey primary key (id),
---
---   constraint specs_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
--- );
-
--- create table exp (
---   id bigserial not null,
---   number d_exp_number,
---   is_draft d_bool default true not null,
---   file_id d_id unique not null,
---   origin d_text_short,
---   destination d_text_short,
---   eta_date d_date,
---   vessel d_text_short,
---   product_type d_text_short,
---   producet_description d_text_short,
---   volume d_volume not null,
---   buyer_name d_text_short,
---   buyer_contact d_text_short,
---   buyer_address d_text_medium,
---   buyer_email d_text_short,
---   buyer_phone d_text_short,
---   user_id d_id default 1 not null,
---   timestamp d_timestamp default current_timestamp not null,
---
---   constraint exp_pkey primary key (id),
---
---   constraint exp_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
--- );
-
 create table csv (
   id bigserial not null,
   file_id d_id not null,

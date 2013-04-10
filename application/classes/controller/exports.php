@@ -66,7 +66,11 @@ class Controller_Exports extends Controller {
     while ($cntr < count($data_ids)) {
       $max = $page_max;
       $set = ORM::factory('SPECS')
-        ->where('id', 'IN', (array) array_slice($data_ids, $cntr, $max));
+        ->where('specs.id', 'IN', (array) array_slice($data_ids, $cntr, $max))
+        ->join('barcodes')
+        ->on('barcode_id', '=', 'barcodes.id')
+        ->find_all()
+        ->as_array();
       $html .= View::factory('documents/specs')
         ->set('data', $set)
         ->set('options', array(
@@ -78,7 +82,7 @@ class Controller_Exports extends Controller {
         ->set('info', array(
           'is_draft'      => $is_draft,
           'specs_barcode' => $item->specs_barcode->barcode,
-          'specs_number'  => $specs_number,
+          'specs_number'  => $document->number,
           'exp_barcode'   => $item->exp_barcode->barcode,
           'exp_number'    => $item->exp_number,
           'operator_tin'  => $item->operator->tin,
@@ -567,8 +571,8 @@ class Controller_Exports extends Controller {
     $document->number = $document::create_document_number($document->type);
 
     switch ($document->type) {
-      case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data());
-      case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data());
+      case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
+      case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
     }
 
     if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);

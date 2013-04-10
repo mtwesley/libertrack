@@ -54,7 +54,8 @@ class Model_SPECS extends SGS_Form_ORM {
           ->get('id'));
 
       case 'specs_number':
-        if ($specs = $this->specs->loaded()) return $specs->number ? 'SPEC '.$specs->number : 'DRAFT';
+        $specs = $this->specs;
+        if ($specs->loaded()) return $specs->number ? 'SPEC '.$specs->number : 'DRAFT';
         break;
 
       case 'exp':
@@ -70,7 +71,8 @@ class Model_SPECS extends SGS_Form_ORM {
           ->get('id'));
 
       case 'exp_number':
-        if ($exp = $this->exp->loaded()) return $exp->number ? 'EP '.$exp->number : 'DRAFT';
+        $exp = $this->exp;
+        if ($exp->loaded()) return $exp->number ? 'EP '.$exp->number : 'DRAFT';
         break;
 
       default:

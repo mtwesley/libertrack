@@ -1,8 +1,14 @@
 
 -- documents
 
-alter sequence s_specs_number minvalue rename to s_documents_specs_number minvalue;
-alter sequence s_epr_number minvalue rename to s_documents_epr_number minvalue;
+alter sequence s_specs_number rename to s_documents_specs_number;
+alter sequence s_epr_number rename to s_documents_epr_number;
+
+create domain d_md5 as character(32);
+create domain d_sha as character(64);
+
+create domain d_qrcode as character(64);
+create domain d_qrcode_type as character(1) check (value ~ E'^[P]$');
 
 create domain d_document_type as character varying(5) check (value ~ E'(SPECS|EXP)');
 create domain d_document_number as numeric(6) check (value > 0);
@@ -86,12 +92,6 @@ begin
 end
 $$ language 'plpgsql';
 
-
-create domain d_md5 as character(32);
-create domain d_sha as character(64);
-
-create domain d_qrcode as character(64);
-create domain d_qrcode_type as character(1) check (value ~ E'^[P]$');
 
 alter table specs_data drop column exp_id;
 -- alter table specs_data drop column specs_id;

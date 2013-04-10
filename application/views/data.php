@@ -21,7 +21,6 @@ if ($options['actions']) $classes[] = 'has-actions';
 if ($options['details']) $classes[] = 'has-details';
 if ($options['header'])  $classes[] = 'has-header';
 
-
 $fields = ORM::factory($form_type)->labels();
 $classes[] = 'data';
 ?>

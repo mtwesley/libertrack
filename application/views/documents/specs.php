@@ -259,7 +259,7 @@ $num = $cntr;
         <td class="label">SPEC Barcode:</td>
         <td><?php echo $info['specs_barcode']; ?></td>
         <td class="label">SPEC Number:</td>
-        <td><?php echo 'SPECS '.$info['specs_number']; ?></td>
+        <td><?php echo $info['specs_number'] ? 'SPECS '.$info['specs_number'] : 'DRAFT'; ?></td>
       </tr>
       <tr>
         <td class="label">EP Barcode:</td>

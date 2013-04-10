@@ -15,7 +15,12 @@ $classes[] = 'data';
   <?php foreach ($documents as $document): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
     <td class="type"><span class="data-type"><?php echo $document->type; ?></span></td>
-    <td class="image"><?php echo HTML::image('images/page.png'); ?></td>
+    <td class="image"><?php
+      switch ($document->type) {
+        case 'SPECS': echo HTML::image('images/page_green.png'); break;
+        case 'EXP': echo HTML::image('images/page.png'); break;
+      }
+    ?></td>
     <td><?php echo $document->is_draft ? 'DRAFT' : $document->type.' '.$document->number; ?></td>
     <td><?php echo $document->operator->name; ?></td>
     <td><?php echo $document->site->name; ?></td>

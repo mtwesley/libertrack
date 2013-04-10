@@ -60,6 +60,9 @@ class Model_Document extends ORM {
 
   public function __get($column) {
     switch ($column) {
+      case 'number':
+        return str_pad(parent::__get($column), 6, '0', STR_PAD_LEFT);
+
       case 'values':
         $value = parent::__get($column);
         return is_string($value) ? unserialize($value) : $value;

@@ -346,7 +346,7 @@ class Controller_Analysis extends Controller {
       if (!$operator) $operator = ORM::factory('operator', (int) $operator_id);
 
       unset($info);
-      if ($specs_info) {
+      if ($form_type == 'SPECS') {
         $sample = reset($data);
         $info['specs'] = array(
           'number'  => $sample->specs_number,
