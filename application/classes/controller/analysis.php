@@ -675,7 +675,7 @@ class Controller_Analysis extends Controller {
       $failure   = 0;
 
       $model = ORM::factory($form_type);
-      $record_ids = DB::select('id')->from($model->table_name());
+      $record_ids = DB::select($model->table_name().'.id')->from($model->table_name());
 
       if ($operator_id) $record_ids->where('operator_id', 'IN', (array) $operator_id);
       if ($site_id)     $record_ids->where('site_id', 'IN', (array) $site_id);
@@ -781,12 +781,11 @@ class Controller_Analysis extends Controller {
           ->on('barcodes.id', '=', 'barcode_id')
           ->order_by('barcode')
           ->execute()
-          ->find_all()
           ->as_array();
 
         unset($info);
         if ($specs_info) {
-          $sample = ORM::factory($form_type, reset($record_ids));
+          $sample = ORM::factory($form_type, reset($download_record_ids));
           $info['specs'] = array(
             'number'  => $sample->specs_number,
             'barcode' => $sample->specs_barcode->barcode
@@ -797,7 +796,9 @@ class Controller_Analysis extends Controller {
           );
         }
 
-        self::download_checks_report($form_type, $record_ids, array(
+        foreach ($model::$checks as $type => $info) if (in_array($type, $checks)) $_checks[$type] = $info;
+
+        self::download_checks_report($form_type, $download_record_ids, array(
           'specs_info' => $info ? array_filter((array) $info['specs']) : NULL,
           'exp_info'   => $info ? array_filter((array) $info['exp']) : NULL,
           'operator'   => $operator_id ? ORM::factory('operator', $operator_id) : NULL,

@@ -289,13 +289,19 @@ $num = $cntr;
         <td class="blank">Overall Shipment Description</td>
       </tr>
       <tr>
-        <td>
+        <td colspan="2">
           <div class="strong">Type</div>
           <?php echo $document->values['product_type']; ?>
         </td>
+      </tr>
+      <tr>
         <td>
-          <div class="strong">Name</div>
-          <?php echo $document->operator->name; ?>
+          <div class="strong">Description</div>
+          <?php echo $document->values['product_description']; ?>
+        </td>
+        <td>
+          <div class="strong">Quantity</div>
+          <?php echo $quantity; ?>
         </td>
       </tr>
       <tr>

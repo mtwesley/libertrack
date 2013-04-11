@@ -188,7 +188,7 @@ class Controller_Exports extends Controller {
         $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_specsinputs')));
         $form->add('origin', 'input', NULL, array('label' => 'Origin', 'attr' => array('class' => 'origininput')));
         $form->add('destination', 'input', NULL, array('label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
-        $form->add('product_type', 'input', NULL, array('label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
+        $form->add('product_type', 'input', 'Logs', array('label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
         $form->add('product_description', 'input', NULL, array('label' => 'Product Description', 'attr' => array('class' => 'product_descriptioninput')));
         $form->add('eta_date', 'input', NULL, array('label' => 'ETA', 'attr' => array('class' => 'dpicker eta_dateinput')));
         $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'attr' => array('class' => 'dpicker inspection_dateinput')));

@@ -575,7 +575,7 @@ class Model_TDF extends SGS_Form_ORM {
 
     // all tolerance checks fail if any traceability checks fail
     foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
-      foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['tree_barcode_id'][$check] = array('value' => 'Found', 'comparison' => 'Not Found');
+      foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['tree_barcode_id'][$check] = array();
       break;
     }
 
