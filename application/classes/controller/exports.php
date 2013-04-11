@@ -206,8 +206,8 @@ class Controller_Exports extends Controller {
         $form->add('destination', 'input', NULL, array('label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
         $form->add('buyer_name', 'input', NULL, array('label' => 'Buyer', 'attr' => array('class' => 'buyer_nameinput')));
         $form->add('loading_date', 'input', NULL, array('label' => 'Expected Loading Date', 'attr' => array('class' => 'dpicker loading_dateinput')));
-        $form->add('contract_number_name', 'input', NULL, array('label' => 'Contract Number', 'attr' => array('class' => 'contract_number_nameinput')));
-        $form->add('submitted_by_name', 'input', NULL, array('label' => 'Submitted By', 'attr' => array('class' => 'submitted_by_nameinput')));
+        $form->add('contract_number', 'input', NULL, array('label' => 'Contract Number', 'attr' => array('class' => 'contract_numberinput')));
+        $form->add('submitted_by', 'input', NULL, array('label' => 'Submitted By', 'attr' => array('class' => 'submitted_byinput')));
         break;
     }
 
@@ -249,6 +249,14 @@ class Controller_Exports extends Controller {
 
         case 'SPECS':
           $exp_number = $form->exp_number->val();
+          $values = array(
+            'origin' => $form->origin->val(),
+            'destination' => $form->destination->val(),
+            'buyer_name' => $form->buyer_name->val(),
+            'loading_date' => $form->loading_date->val(),
+            'contract_number' => $form->contract_number->val(),
+            'submitted_by' => $form->submitted_by->val(),
+          );
           break;
       }
 
@@ -282,6 +290,12 @@ class Controller_Exports extends Controller {
 
         case 'SPECS':
           $form->exp_number->val($exp_number = $settings['exp_number']);
+          $form->origin->val($values['origin'] = $settings['values']['origin']);
+          $form->destination->val($values['destination'] = $settings['values']['destination']);
+          $form->buyer_name->val($values['buyer_name'] = $settings['values']['buyer_name']);
+          $form->loading_date->val($values['loading_date'] = $settings['values']['loading_date']);
+          $form->contract_number->val($values['contract_number'] = $settings['values']['contract_number']);
+          $form->submitted_by->val($values['submitted_by'] = $settings['values']['submitted_by']);
           break;
       }
 

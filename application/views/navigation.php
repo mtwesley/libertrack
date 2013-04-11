@@ -132,8 +132,8 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'documents' and ($command == 'create' or $id == 'create')) echo 'active'; ?>"><?php echo HTML::anchor('exports/documents/create', SGS::title('exports/documents/create')); ?>
       <?php if ($secondary == 'documents' and ($command == 'create' or $id == 'create')): ?>
       <ul class="nav commands">
-        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('exports/documents/create/specs', SGS::title('exports/documents/create/specs')); ?></li>
         <li class="<?php if ($command == 'exp')   echo 'active'; ?>"><?php echo HTML::anchor('exports/documents/create/exp', SGS::title('exports/documents/create/exp')); ?></li>
+        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('exports/documents/create/specs', SGS::title('exports/documents/create/specs')); ?></li>
       </ul>
       <?php endif; ?>
     </li>

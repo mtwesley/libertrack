@@ -111,16 +111,16 @@ $$
 begin
   select is_locked from barcodes where id = old.barcode_id into x_is_locked;
 
-  if x_is_locked = true then
-    if (tg_op = 'UPDATE') and (old.status = 'A') then
-      return null;
-    else
-      return new;
-    end if;
+  if (tg_op = 'UPDATE') and (x_is_locked = true) and (old.status = 'A') then
+    return null;
+  else
+    return new;
+  end if;
 
-    if (tg_op = 'DELETE')
-      return null;
-    end if;
+  if (tg_op = 'DELETE') and (x_is_locked = true) then
+    return null;
+  else
+    return old;
   end if;
 
 end
@@ -128,37 +128,37 @@ $$ language 'plpgsql';
 
 drop trigger t_check_barcode_locks on ssf_data;
 create trigger t_check_barcode_locks
-  before update and delete on ssf_data
+  before update or delete on ssf_data
   for each row
   execute procedure check_barcode_locks();
 
 drop trigger t_check_barcode_locks on tdf_data;
 create trigger t_check_barcode_locks
-  before update and delete on tdf_data
+  before update or delete on tdf_data
   for each row
   execute procedure check_barcode_locks();
 
 drop trigger t_check_barcode_locks on ldf_data;
 create trigger t_check_barcode_locks
-  before update and delete on ldf_data
+  before update or delete on ldf_data
   for each row
   execute procedure check_barcode_locks();
 
 drop trigger t_check_barcode_locks on mof_data;
 create trigger t_check_barcode_locks
-  before update and delete on mof_data
+  before update or delete on mof_data
   for each row
   execute procedure check_barcode_locks();
 
 drop trigger t_check_barcode_locks on mif_data;
 create trigger t_check_barcode_locks
-  before update and delete on mif_data
+  before update or delete on mif_data
   for each row
   execute procedure check_barcode_locks();
 
 drop trigger t_check_barcode_locks on specs_data;
 create trigger t_check_barcode_locks
-  before update and delete on specs_data
+  before update or delete on specs_data
   for each row
   execute procedure check_barcode_locks();
 
