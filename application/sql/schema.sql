@@ -966,7 +966,7 @@ begin
   if (tg_op = 'INSERT') then
     perform rebuild_barcode_hops(new.id);
   elseif (tg_op = 'UPDATE') then
-    delete from barcode_hops_cached where barcode_id = old.id;
+    delete from barcode_hops_cached where barcode_id = new.id;
     perform rebuild_barcode_hops(new.id);
   elseif (tg_op = 'DELETE') then
     delete from barcode_hops_cached where barcode_id = old.id;

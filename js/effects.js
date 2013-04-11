@@ -170,7 +170,8 @@ $(function() {
       '/ajax/specsopts',
       {
         operator_id: $(this).val(),
-        numbers_only: $(this).hasClass('numbers-only') ? 1 : 0
+        barcodes_only: $(this).hasClass('specs_barcode') ? 1 : 0,
+        numbers_only: $(this).hasClass('specs_number') ? 1 : 0
       }
     );
   });
@@ -188,7 +189,8 @@ $(function() {
       '/ajax/expopts',
       {
         operator_id: $(this).val(),
-        numbers_only: $(this).hasClass('numbers-only') ? 1 : 0
+        barcodes_only: $(this).hasClass('exp_barcode') ? 1 : 0,
+        numbers_only: $(this).hasClass('exp_number') ? 1 : 0
       }
     );
   });
@@ -218,6 +220,21 @@ $(function() {
       hide_all: $("select.site_operatoropts").hasClass('hide-all') ? 1 : 0
     }
   );
+
+  $("select.specs_specsinputs").change(function() {
+    $.post(
+      '/ajax/specsarray',
+      {
+        type: 'specs_barcode',
+        value: $(this).val()
+      },
+      function(data) {
+        var values = $.parseJSON(data);
+        for (var key in values) $('.'+key+'input').val(values[key]);
+      }
+    );
+  });
+
 
 
   $(".autocomplete-barcode-barcode").autocomplete({

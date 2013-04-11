@@ -42,6 +42,7 @@ class Model_LDF extends SGS_Form_ORM {
       if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('L', 'P')) and $barcode->loaded()) $this->barcode = $barcode;
       else {
         $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        $barcode->id = NULL;
         $barcode->parent_id = NULL;
         $barcode->type = 'L';
         $barcode->save();
@@ -53,6 +54,7 @@ class Model_LDF extends SGS_Form_ORM {
       if ($parent_barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P')) and $parent_barcode->loaded()) $this->barcode = $parent_barcode;
       else {
         $parent_barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        $parent_barcode->id = NULL;
         $parent_barcode->parent_id = NULL;
         $parent_barcode->type = 'F';
         $parent_barcode->save();

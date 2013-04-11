@@ -88,8 +88,8 @@ class Controller_Exports extends Controller {
           'specs_number'  => $document->number,
           'exp_barcode'   => $item->exp_barcode->barcode,
           'exp_number'    => $item->exp_number,
-          'operator_tin'  => $item->operator->tin,
-          'operator_name' => $item->operator->name,
+          'operator_tin'  => $document->operator->tin,
+          'operator_name' => $document->operator->name,
           'origin'        => $item->origin,
           'destination'   => $item->destination,
           'loading_date'  => $item->loading_date,
@@ -181,30 +181,33 @@ class Controller_Exports extends Controller {
       ->as_array('id', 'name');
 
     $form = Formo::form()
-      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts exp_operatoropts')));
+      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_number')));
 
     switch ($document_type) {
       case 'EXP':
-        $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_specsopts')));
+        $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_specsinputs')));
         $form->add('origin', 'input', NULL, array('label' => 'Origin', 'attr' => array('class' => 'origininput')));
         $form->add('destination', 'input', NULL, array('label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
         $form->add('product_type', 'input', NULL, array('label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
         $form->add('product_description', 'input', NULL, array('label' => 'Product Description', 'attr' => array('class' => 'product_descriptioninput')));
         $form->add('eta_date', 'input', NULL, array('label' => 'ETA', 'attr' => array('class' => 'dpicker eta_dateinput')));
         $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'attr' => array('class' => 'dpicker inspection_dateinput')));
+        $form->add('inspection_location', 'input', NULL, array('label' => 'Inspection Location', 'attr' => array('class' => 'dpicker inspection_locationinput')));
         $form->add('vessel', 'input', NULL, array('label' => 'Vessel', 'attr' => array('class' => 'vesselinput')));
-        $form->add('buyer_name', 'input', NULL, array('label' => 'Buyer', 'attr' => array('class' => 'buyer_nameinput')));
+        $form->add('buyer', 'input', NULL, array('label' => 'Buyer', 'attr' => array('class' => 'buyerinput')));
         $form->add('buyer_contact', 'input', NULL, array('label' => 'Buyer Contact', 'attr' => array('class' => 'buyer_contactinput')));
-        $form->add('buyer_address', 'input', NULL, array('label' => 'Buyer Address', 'attr' => array('class' => 'buyer_addressinput')));
+        $form->add('buyer_address', 'textarea', NULL, array('label' => 'Buyer Address', 'attr' => array('class' => 'buyer_addressinput')));
         $form->add('buyer_email', 'input', NULL, array('label' => 'Buyer Email', 'attr' => array('class' => 'buyer_emailinput')));
         $form->add('buyer_phone', 'input', NULL, array('label' => 'Buyer Phone', 'attr' => array('class' => 'buyer_phoneinput')));
+        $form->add('fob_price_notes', 'textarea', NULL, array('label' => 'FOB Price Verification'));
+        $form->add('notes', 'textarea', NULL, array('label' => 'Notes'));
         break;
 
       case 'SPECS':
-        $form->add_group('exp_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts exp_expopts')));
+        $form->add_group('exp_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts exp_specsinputs')));
         $form->add('origin', 'input', NULL, array('label' => 'Origin', 'attr' => array('class' => 'origininput')));
         $form->add('destination', 'input', NULL, array('label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
-        $form->add('buyer_name', 'input', NULL, array('label' => 'Buyer', 'attr' => array('class' => 'buyer_nameinput')));
+        $form->add('buyer', 'input', NULL, array('label' => 'Buyer', 'attr' => array('class' => 'buyerinput')));
         $form->add('loading_date', 'input', NULL, array('label' => 'Expected Loading Date', 'attr' => array('class' => 'dpicker loading_dateinput')));
         $form->add('contract_number', 'input', NULL, array('label' => 'Contract Number', 'attr' => array('class' => 'contract_numberinput')));
         $form->add('submitted_by', 'input', NULL, array('label' => 'Submitted By', 'attr' => array('class' => 'submitted_byinput')));
@@ -238,24 +241,27 @@ class Controller_Exports extends Controller {
             'product_description' => $form->product_description->val(),
             'eta_date'        => $form->eta_date->val(),
             'inspection_date' => $form->inspection_date->val(),
+            'inspection_location' => $form->inspection_location->val(),
             'vessel'          => $form->vessel->val(),
-            'buyer_name'      => $form->buyer_name->val(),
+            'buyer'           => $form->buyer->val(),
             'buyer_contact'   => $form->buyer_contact->val(),
             'buyer_address'   => $form->buyer_address->val(),
             'buyer_email'     => $form->buyer_email->val(),
             'buyer_phone'     => $form->buyer_phone->val(),
+            'notes'           => $form->notes->val(),
+            'fob_price_notes' => $form->fob_price_notes->val(),
           );
           break;
 
         case 'SPECS':
           $exp_number = $form->exp_number->val();
           $values = array(
-            'origin' => $form->origin->val(),
-            'destination' => $form->destination->val(),
-            'buyer_name' => $form->buyer_name->val(),
-            'loading_date' => $form->loading_date->val(),
+            'origin'          => $form->origin->val(),
+            'destination'     => $form->destination->val(),
+            'buyer'           => $form->buyer->val(),
+            'loading_date'    => $form->loading_date->val(),
             'contract_number' => $form->contract_number->val(),
-            'submitted_by' => $form->submitted_by->val(),
+            'submitted_by'    => $form->submitted_by->val(),
           );
           break;
       }
@@ -280,19 +286,22 @@ class Controller_Exports extends Controller {
           $form->product_description->val($values['product_description'] = $settings['values']['product_description']);
           $form->eta_date->val($values['eta_date'] = $settings['values']['eta_date']);
           $form->inspection_date->val($values['inspection_date'] = $settings['values']['inspection_date']);
+          $form->inspection_location->val($values['inspection_location'] = $settings['values']['inspection_location']);
           $form->vessel->val($values['vessel'] = $settings['values']['vessel']);
-          $form->buyer_name->val($values['buyer_name'] = $settings['values']['buyer_name']);
+          $form->buyer->val($values['buyer'] = $settings['values']['buyer']);
           $form->buyer_contact->val($values['buyer_contact'] = $settings['values']['buyer_contact']);
           $form->buyer_address->val($values['buyer_address'] = $settings['values']['buyer_address']);
           $form->buyer_email->val($values['buyer_email'] = $settings['values']['buyer_email']);
           $form->buyer_phone->val($values['buyer_phone'] = $settings['values']['buyer_phone']);
+          $form->notes->val($values['notes'] = $settings['values']['notes']);
+          $form->fob_price_notes->val($values['fob_price_notes'] = $settings['values']['fob_price_notes']);
           break;
 
         case 'SPECS':
           $form->exp_number->val($exp_number = $settings['exp_number']);
           $form->origin->val($values['origin'] = $settings['values']['origin']);
           $form->destination->val($values['destination'] = $settings['values']['destination']);
-          $form->buyer_name->val($values['buyer_name'] = $settings['values']['buyer_name']);
+          $form->buyer->val($values['buyer'] = $settings['values']['buyer']);
           $form->loading_date->val($values['loading_date'] = $settings['values']['loading_date']);
           $form->contract_number->val($values['contract_number'] = $settings['values']['contract_number']);
           $form->submitted_by->val($values['submitted_by'] = $settings['values']['submitted_by']);
@@ -423,9 +432,10 @@ class Controller_Exports extends Controller {
 
             if ($operator->loaded()) $document->operator = $operator;
 
-            $document->type = $document_type;
+            $document->type     = $document_type;
             $document->is_draft = $is_draft ? TRUE : FALSE;
-            $document->number = $is_draft ? NULL : $document::create_document_number($document_type);
+            $document->number   = $is_draft ? NULL : $document::create_document_number($document_type);
+            $document->values   = (array) $values;
             $document->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
 
             $func = strtolower('generate_'.$document_type.'_document');
@@ -555,8 +565,8 @@ class Controller_Exports extends Controller {
         ->as_array('id', 'name');
 
       $form = Formo::form()
-        ->add_group('type', 'checkboxes', array('SPECS' => SGS::$document_type['SPECS'], 'EXP' => SGS::$document_type['EXP']), NULL, array('label' => 'Type', 'attr' => array('SPECS' => 'specs_operatoropts exp_operatoropts')))
-        ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts exp_operatoropts')))
+        ->add_group('type', 'checkboxes', array('SPECS' => SGS::$document_type['SPECS'], 'EXP' => SGS::$document_type['EXP']), NULL, array('label' => 'Type'))
+        ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')))
         ->add_group('specs_barcode', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')))
         ->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')))
         ->add('submit', 'submit', 'Filter');

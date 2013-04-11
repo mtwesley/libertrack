@@ -92,7 +92,7 @@ $options = (array) $options + array(
   .invoice-summary-table tr.head td,
   .invoice-details-table tr.head td {
     padding: 6px 5px;
-    background-color: #bfbfbf;
+    background-color: #cfcfcf;
     font-weight: bold;
   }
 
@@ -148,7 +148,7 @@ $options = (array) $options + array(
   }
 
   .invoice-details-table tr.even {
-    background-color: #f2f2f2;
+    background-color: #fafafa;
   }
 
   .invoice-signature-table tr td {

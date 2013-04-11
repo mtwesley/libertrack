@@ -245,7 +245,12 @@ class Controller_Ajax extends Controller {
     $id    = $vars[1];
 
     $data = ORM::factory($model, $id);
-    $data->run_checks();
+
+    try {
+      $data->run_checks();
+    } catch (Exception $e) {
+      return;
+    }
 
     $this->response->body($data->status);
   }
@@ -260,7 +265,11 @@ class Controller_Ajax extends Controller {
     $new_id = $vars[3];
 
     $csv = ORM::factory('CSV', $id);
-    $csv->resolve($new_id);
+    try {
+      $csv->resolve($new_id);
+    } catch (Exception $e) {
+      return;
+    }
   }
 
   public function action_siteopts() {
@@ -298,16 +307,66 @@ class Controller_Ajax extends Controller {
     $this->response->body($output);
   }
 
+  public function action_specsarray() {
+    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+
+    $type  = $this->request->post('type');
+    $value = $this->request->post('value');
+
+    if (!$type or !$value) return;
+
+    $query = DB::select('origin', 'destination', 'submitted_by', 'buyer', 'loading_date')->from('specs_data');
+
+    switch ($type) {
+      case 'specs_barcode':
+        $query->where('specs_barcode_id', '=', SGS::lookup_barcode($value));
+        break;
+
+      case 'specs_number':
+        $query->join('document_data')
+          ->on('specs_data.id', '=', 'document_data.form_data_id')
+          ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+          ->join('documents')
+          ->on('document_data.document_id', '=', 'documents.id')
+          ->where('documents.id', '=', SGS::lookup_document('SPECS', $value));
+        break;
+
+      case 'exp_barcode':
+        $query->where('specs_barcode_id', '=', SGS::lookup_barcode($value));
+        break;
+
+      case 'exp_number':
+        $query->join('document_data')
+          ->on('specs_data.id', '=', 'document_data.form_data_id')
+          ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+          ->join('documents')
+          ->on('document_data.document_id', '=', 'documents.id')
+          ->where('documents.id', '=', SGS::lookup_document('EXP', $value));
+        break;
+    }
+
+    $specs = array_filter(reset($query
+      ->limit(1)
+      ->execute()
+      ->as_array()));
+
+    if ($specs['origin']) $specs['origin'] = SGS::locationify($specs['origin']);
+    if ($specs['destination']) $specs['destination'] = SGS::locationify($specs['destination']);
+
+    print json_encode($specs);
+  }
+
   public function action_specsopts() {
     if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
 
-    $operator_id  = $this->request->post('operator_id');
-    $numbers_only = $this->request->post('numbers_only');
+    $operator_id   = $this->request->post('operator_id');
+    $barcodes_only = $this->request->post('barcodes_only');
+    $numbers_only  = $this->request->post('numbers_only');
 
     if ($operator_id) {
       $output = '<optgroup label=""><option value=""></option>';
 
-      if ($numbers_only) {
+      if (!$barcodes_only) {
         $sql = "SELECT distinct number
                 FROM documents
                 WHERE operator_id = $operator_id AND type = 'SPECS'
@@ -320,7 +379,9 @@ class Controller_Ajax extends Controller {
           foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'</option>';
           $output .= '</optgroup>';
         }
-      } else {
+      }
+
+      if (!$numbers_only) {
         $sql = "SELECT distinct barcode
                 FROM barcodes
                 JOIN specs_data ON specs_data.specs_barcode_id = barcodes.id
@@ -343,13 +404,14 @@ class Controller_Ajax extends Controller {
   public function action_expopts() {
     if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
 
-    $operator_id  = $this->request->post('operator_id');
-    $numbers_only = $this->request->post('numbers_only');
+    $operator_id   = $this->request->post('operator_id');
+    $barcodes_only = $this->request->post('barcodes_only');
+    $numbers_only  = $this->request->post('numbers_only');
 
     if ($operator_id) {
       $output = '<optgroup label=""><option value=""></option>';
 
-      if ($numbers_only) {
+      if (!$barcodes_only) {
         $sql = "SELECT distinct number
                 FROM documents
                 WHERE operator_id = $operator_id AND type = 'EXP'
@@ -362,7 +424,9 @@ class Controller_Ajax extends Controller {
           foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'</option>';
           $output .= '</optgroup>';
         }
-      } else {
+      }
+
+      if (!$numbers_only) {
         $sql = "SELECT distinct barcode
                 FROM barcodes
                 JOIN specs_data ON specs_data.exp_barcode_id = barcodes.id
@@ -385,10 +449,7 @@ class Controller_Ajax extends Controller {
   public function action_autocompletebarcode() {
     $term = trim($this->request->post('term') ?: $this->request->query('term'));
 
-    print json_encode(
-      array_filter(
-        array_values(SGS::suggest_barcode(strtoupper($term), array(), 'barcode', FALSE, 2, 0, 6, 5, 0))
-    ));
+    print json_encode(array_filter(array_unique(array_values(SGS::suggest_barcode(strtoupper($term), array(), 'barcode', FALSE, 2, 0, 6, 5, 0)))));
   }
 
 }

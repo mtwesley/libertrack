@@ -41,11 +41,6 @@ class Model_Document extends ORM {
     switch ($column) {
       case 'values':
         if (is_array($value)) {
-          // set properties
-          $this->operator_id = $this->operator_id ?: ($operator_id = SGS::lookup_operator($value['operator_tin'], TRUE)) ? $operator_id : NULL;
-          $this->site_id     = $this->site_id     ?: ($site_id     = SGS::lookup_site($value['site_name'], TRUE)) ? $site_id : NULL;
-          $this->barcode_id  = $this->barcode_id  ?: ($barcode_id  = SGS::lookup_barcode($value['barcode'], NULL, TRUE)) ? $site_id : NULL;
-
           // prepare for db
           $_value = $value;
           sort($_value);

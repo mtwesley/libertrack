@@ -92,7 +92,7 @@ $num = $cntr;
   .specs-summary-table tr.head td,
   .specs-details-table tr.head td {
     padding: 6px 5px;
-    background-color: #bfbfbf;
+    background-color: #cfcfcf;
     font-weight: bold;
   }
 
@@ -169,7 +169,7 @@ $num = $cntr;
   }
 
   .specs-details-table tr.even {
-    background-color: #f2f2f2;
+    background-color: #fafafa;
   }
 
   .specs-signature-table tr td {
@@ -199,7 +199,7 @@ $num = $cntr;
 
   .specs-info-table tr td.label {
     font-weight: bold;
-    background-color: #bfbfbf;
+    background-color: #cfcfcf;
     width: 26%;
     white-space: nowrap;
   }

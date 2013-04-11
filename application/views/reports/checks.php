@@ -102,7 +102,7 @@ $num = $cntr;
   .checks-summary-table tr.head td,
   .checks-details-table tr.head td {
     padding: 6px 5px;
-    background-color: #bfbfbf;
+    background-color: #cfcfcf;
     font-weight: bold;
   }
 
@@ -230,7 +230,7 @@ $num = $cntr;
   }
 
   .checks-details-table tr.even {
-    background-color: #f2f2f2;
+    background-color: #fafafa;
   }
 
   .checks-signature-table tr td {

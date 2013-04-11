@@ -38,7 +38,7 @@ class Model_TDF extends SGS_Form_ORM {
         return SGS::floatify(($this->bottom_min + $this->bottom_max) / 2);
 
       case 'volume':
-        return SGS::quantify(pi() * (((($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4) / 2) / 100) * $this->length);
+        return SGS::quantitify(pi() * (((($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4) / 2) / 100) * $this->length);
 
       default:
         return parent::__get($column);
@@ -50,6 +50,7 @@ class Model_TDF extends SGS_Form_ORM {
       if ($barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P')) and $barcode->loaded()) $this->barcode = $barcode;
       else {
         $barcode = ORM::factory('barcode')->values($this->barcode->as_array());
+        $barcode->id = NULL;
         $barcode->parent_id = NULL;
         $barcode->type = 'F';
         $barcode->save();
