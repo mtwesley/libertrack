@@ -2,7 +2,7 @@
 -- documents
 
 alter sequence s_specs_number rename to s_documents_specs_number;
-alter sequence s_epr_number rename to s_documents_epr_number;
+alter sequence s_epr_number rename to s_documents_exp_number;
 
 create domain d_md5 as character(32);
 create domain d_sha as character(64);
@@ -62,7 +62,7 @@ create table document_data (
 
 alter table invoices add constraint invoices_check check (not((operator_id is null) and (site_id is null)));
 alter table invoices add column values d_text_long;
-alter table invoices alter column invoice_id set not null;
+alter table invoice_data alter column invoice_id set not null;
 
 
 -- functions
@@ -98,3 +98,67 @@ alter table specs_data drop column exp_id;
 
 insert into roles (name, description) values ('exports', 'Export Management');
 insert into roles_users (user_id, role_id) values (lookup_user_id('sgs'), lookup_role_id('exports'));
+
+
+-- more
+
+alter sequence s_documents_epr_number rename to s_documents_exp_number;
+
+create or replace function check_barcode_locks()
+  returns trigger as
+$$
+  declare x_is_locked d_bool;
+begin
+  select is_locked from barcodes where id = old.barcode_id into x_is_locked;
+
+  if x_is_locked = true then
+    if (tg_op = 'UPDATE') and (old.status = 'A') then
+      return null;
+    else
+      return new;
+    end if;
+
+    if (tg_op = 'DELETE')
+      return null;
+    end if;
+  end if;
+
+end
+$$ language 'plpgsql';
+
+drop trigger t_check_barcode_locks on ssf_data;
+create trigger t_check_barcode_locks
+  before update and delete on ssf_data
+  for each row
+  execute procedure check_barcode_locks();
+
+drop trigger t_check_barcode_locks on tdf_data;
+create trigger t_check_barcode_locks
+  before update and delete on tdf_data
+  for each row
+  execute procedure check_barcode_locks();
+
+drop trigger t_check_barcode_locks on ldf_data;
+create trigger t_check_barcode_locks
+  before update and delete on ldf_data
+  for each row
+  execute procedure check_barcode_locks();
+
+drop trigger t_check_barcode_locks on mof_data;
+create trigger t_check_barcode_locks
+  before update and delete on mof_data
+  for each row
+  execute procedure check_barcode_locks();
+
+drop trigger t_check_barcode_locks on mif_data;
+create trigger t_check_barcode_locks
+  before update and delete on mif_data
+  for each row
+  execute procedure check_barcode_locks();
+
+drop trigger t_check_barcode_locks on specs_data;
+create trigger t_check_barcode_locks
+  before update and delete on specs_data
+  for each row
+  execute procedure check_barcode_locks();
+

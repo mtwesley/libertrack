@@ -696,7 +696,7 @@ create table settings (
 create sequence s_invoices_st_number minvalue 100100;
 create sequence s_invoices_exf_number minvalue 100100;
 create sequence s_documents_specs_number minvalue 1;
-create sequence s_documents_epr_number minvalue 1;
+create sequence s_documents_exp_number minvalue 1;
 
 
 -- indexes
@@ -1017,15 +1017,15 @@ begin
   select is_locked from barcodes where id = old.barcode_id into x_is_locked;
 
   if x_is_locked = true then
-    -- raise exception 'Sorry, cannot delete data due to barcode locks.';
-    return null;
+    if (tg_op = 'UPDATE') and (old.status = 'A') then
+      return null;
+    else
+      return new;
+    end if;
 
-  elseif (tg_op = 'UPDATE') then
-    return new;
-
-  elseif (tg_op = 'DELETE') then
-    return old;
-
+    if (tg_op = 'DELETE')
+      return null;
+    end if;
   end if;
 
 end
