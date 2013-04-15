@@ -274,11 +274,15 @@ $options = (array) $options + array(
   }
 
   .verification {
-    height: 70px;
+    height: 60px;
   }
 
   .qr_image {
     float: right;
+  }
+
+  .qr_image img {
+    height: 75px;
   }
 
 </style>
@@ -302,7 +306,7 @@ $options = (array) $options + array(
     <table class="exp-info-table">
       <tr class="info-bar">
         <td style="border-right: none !important;"><span class="label">EP Number:</span> <?php echo $document->number ? 'EP ' . $document->number : 'DRAFT'; ?></td>
-        <td style="border-left: none !important;"><span class="label">Date of Issue:</span> <?php echo strtoupper(SGS::date($document->created_date, 'F/j/Y')); ?></td>
+        <td style="border-left: none !important;"><span class="label">Date of Issue:</span> <?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
       </tr>
       <tr>
         <td colspan="2" class="blank stronger">Exporter</td>
@@ -349,7 +353,7 @@ $options = (array) $options + array(
         </td>
         <td>
           <div class="strong">ETA</div>
-          <?php echo strtoupper(SGS::date($document->values['eta_date'], 'F/j/Y')); ?>
+          <?php echo SGS::date($document->values['eta_date'], SGS::US_DATE_FORMAT); ?>
         </td>
       </tr>
       <tr>
@@ -413,7 +417,7 @@ $options = (array) $options + array(
               <td><div class="strong">Location</div></td>
             </tr>
             <tr>
-              <td><?php echo strtoupper(SGS::date($document->values['inspection_date'], 'F/j/Y')); ?></td>
+              <td><?php echo SGS::date($document->values['inspection_date'], SGS::US_DATE_FORMAT); ?></td>
               <td><?php echo $document->values['inspection_location']; ?></td>
             </tr>
           </table>
