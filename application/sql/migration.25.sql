@@ -352,6 +352,7 @@ create or replace function invoices_update_data()
 $$
 begin
   update invoice_data set form_data_id = form_data_id where invoice_id = new.id;
+  return null;
 end
 $$ language 'plpgsql';
 
@@ -380,7 +381,7 @@ begin
     when 'MIF'   then select barcode_id,user_id from mif_data where id = x_form_data_id into x_data;
     when 'MOF'   then select barcode_id,user_id from mof_data where id = x_form_data_id into x_data;
     when 'SPECS' then select barcode_id,user_id from specs_data where id = x_form_data_id into x_data;
-    else return null;
+    else null;
   end case;
 
   if (tg_op = 'DELETE') then
@@ -395,6 +396,7 @@ begin
       case x_invoice.type
         when 'ST'  then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'T','invoice_data');
         when 'EXF' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'X','invoice_data');
+        else null;
       end case;
     end if;
   end if;
@@ -409,6 +411,7 @@ create or replace function documents_update_data()
 $$
 begin
   update document_data set form_data_id = form_data_id where document_id = new.id;
+  return null;
 end
 $$ language 'plpgsql';
 
@@ -436,7 +439,7 @@ begin
     when 'MIF'   then select barcode_id,user_id from mif_data where id = x_form_data_id into x_data;
     when 'MOF'   then select barcode_id,user_id from mof_data where id = x_form_data_id into x_data;
     when 'SPECS' then select barcode_id,user_id from specs_data where id = x_form_data_id into x_data;
-    else return null;
+    else null;
   end case;
 
   if (tg_op = 'DELETE') then
@@ -450,6 +453,7 @@ begin
     if (x_document.is_draft = false) then
       case x_document.type
         when 'EXP' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'E','document_data');
+        else null;
       end case;
     end if;
   end if;

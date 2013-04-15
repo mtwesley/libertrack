@@ -33,7 +33,7 @@ or use a built-in AVERY name
 
 
     $view = View::factory('main');
-    $this->response->body($view);
+    die(QRcode::png("HELLO WORLD"));
   }
 
   public function action_login() {

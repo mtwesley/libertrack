@@ -281,6 +281,10 @@ $options = (array) $options + array(
     height: 70px;
   }
 
+  .qr_image {
+    float: right;
+  }
+
 </style>
 <?php endif; ?>
 
@@ -302,7 +306,7 @@ $options = (array) $options + array(
     <table class="exp-info-table">
       <tr class="info-bar">
         <td style="border-right: none !important;"><span class="label">EP Number:</span> <?php echo $document->number ? 'EP ' . $document->number : 'DRAFT'; ?></td>
-        <td style="border-left: none !important;"><span class="label">Date of Issue:</span> <?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
+        <td style="border-left: none !important;"><span class="label">Date of Issue:</span> <?php echo strtoupper(SGS::date($document->created_date, 'F/j/Y')); ?></td>
       </tr>
       <tr>
         <td colspan="2" class="blank stronger">Exporter</td>
@@ -349,7 +353,7 @@ $options = (array) $options + array(
         </td>
         <td>
           <div class="strong">ETA</div>
-          <?php echo $document->values['eta_date']; ?>
+          <?php echo strtoupper(SGS::date($document->values['eta_date'], 'F/j/Y')); ?>
         </td>
       </tr>
       <tr>
@@ -413,7 +417,7 @@ $options = (array) $options + array(
               <td><div class="strong">Location</div></td>
             </tr>
             <tr>
-              <td><?php echo SGS::date($document->values['inspection_date'], SGS::US_DATE_FORMAT); ?></td>
+              <td><?php echo strtoupper(SGS::date($document->values['inspection_date'], 'F/j/Y')); ?></td>
               <td><?php echo $document->values['inspection_location']; ?></td>
             </tr>
           </table>
@@ -435,12 +439,11 @@ $options = (array) $options + array(
         <td colspan="2" class="blank stronger">For Administration Use Only</td>
       </tr>
       <tr class="verification">
-        <td>
+        <td colspan="2">
+          <div class="qr_image"><img src="<?php echo $qr_image; ?>" /></div>
           <div class="strong">Notes</div>
           <?php echo $document->values['notes']; ?>
-        </td>
-        <td>
-          <div class="strong">Document Label</div>
+          <div class="clear clearfix"></div>
         </td>
       </tr>
     </table>

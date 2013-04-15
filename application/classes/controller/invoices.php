@@ -299,7 +299,7 @@ class Controller_Invoices extends Controller {
       Notify::msg('Invoice finalized.', 'success', TRUE);
       $this->request->redirect('invoices/'.$invoice->id);
     } catch (Exception $e) {
-      Notify::msg('Sorry, unable to create invoice. Please try again.', 'error');
+      Notify::msg('Sorry, unable to create invoice. Please try again.', 'error', TRUE);
       $this->request->redirect('invoices/'.$invoice->id);
     }
 

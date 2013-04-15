@@ -59,11 +59,54 @@ class Controller_Exports extends Controller {
       ->execute()
       ->get('sum');
 
+    $qr_array = array(
+      'EP NUMBER'        => $document->number,
+      'EXPORTER'         => $document->operator->name,
+//      'EXPORTER ADDRESS' => str_replace("\n", ' ', $document->operator->address),
+      'ORIGIN'           => $document->values['origin'],
+      'DESTINATION'      => $document->values['destination'],
+      'PRODUCT TYPE'     => $document->values['product_type'],
+      'PRODUCT DESCRIPTION' => $document->values['product_description'],
+//      'ETA'              => SGS::date($document->values['eta_date']),
+//      'INSPECTION DATE'  => SGS::date($document->values['inspection_date']),
+//      'INSPECTION LOCATION' => $document->values['inspection_location'],
+      'VESSEL'           => $document->values['vessel'],
+      'BUYER'            => $document->values['buyer'],
+//      'BUYER ADDRESS'    => str_replace("\n", ' ', $document->values['buyer_address']),
+      'QUANTITY'         => SGS::quantitify($total_quantity).'m3',
+      'FOB'              => '$'.SGS::amountify($total_fob),
+    );
+
+
+    $hash   = md5($document->values['specs_barcode']);
+    $secret = strtoupper(implode(':',str_split($hash, 8)));
+
+    $disclaimer = "FOR VALIDATION, PLEASE CONTACT SGS-LIBERFOR:
+PHONE: +231886410110
+EMAIL: MYERS.TUWEH@SGS.COM
+
+VALIDATION: $secret";
+
+    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\n";
+    $qr_text .= $disclaimer;
+
+    $newdir = implode(DIRECTORY_SEPARATOR, array('qr'));
+    $newname = 'QR_'.$hash;
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+    QRcode::png($qr_text, $fullname, QR_ECLEVEL_L, 1, 1);
+
     $html .= View::factory('documents/exp')
       ->set('options', array(
         'info'    => TRUE,
         'styles'  => TRUE,
       ))
+      ->set('qr_image', $fullname)
       ->set('document', $document)
       ->set('total_quantity', $total_quantity)
       ->set('total_fob', $total_fob)
@@ -779,7 +822,7 @@ class Controller_Exports extends Controller {
       Notify::msg('Document finalized.', 'success', TRUE);
       $this->request->redirect('exports/documents/'.$document->id);
     } catch (Exception $e) {
-      Notify::msg('Sorry, unable to create document. Please try again.', 'error');
+      Notify::msg('Sorry, unable to create document. Please try again.', 'error', TRUE);
       $this->request->redirect('exports/documents/'.$document->id);
     }
   }
