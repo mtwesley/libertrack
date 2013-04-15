@@ -16,6 +16,10 @@ class Model_Document extends ORM {
       ->get('number');
   }
 
+  public function get_hash() {
+    
+  }
+
   public function get_data($args = array()) {
     $query = DB::select('form_data_id')
       ->from('document_data')

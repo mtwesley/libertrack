@@ -23,7 +23,8 @@ class Model_TDF extends SGS_Form_ORM {
   );
 
   protected $_ignored_columns = array(
-    'diameter'
+    'diameter',
+    'bottom_diameter'
   );
 
   protected function _initialize()
@@ -34,8 +35,11 @@ class Model_TDF extends SGS_Form_ORM {
 
   public function __get($column) {
     switch ($column) {
-      case 'diameter':
+      case 'bottom_diameter':
         return SGS::floatify(($this->bottom_min + $this->bottom_max) / 2);
+
+      case 'diameter':
+        return SGS::floatify(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
       case 'volume':
         return SGS::quantitify(pi() * (((($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4) / 2) / 100) * $this->length);
@@ -85,7 +89,6 @@ class Model_TDF extends SGS_Form_ORM {
     'action'         => 'Action',
     'comment'        => 'Comment',
   );
-
 
   public static $checks = array(
     'consistency' => array(
@@ -557,13 +560,13 @@ class Model_TDF extends SGS_Form_ORM {
       if (!Valid::is_accurate($this->length, $parent->height, SGS::tolerance('TDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
       else if (!Valid::is_accurate($this->length, $parent->height, SGS::accuracy('TDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
 
-      if (!Valid::is_accurate($this->diameter, $parent->diameter, SGS::tolerance('TDF', 'is_matching_diameter'))) {
-        $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
-        $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
+      if (!Valid::is_accurate($this->bottom_diameter, $parent->diameter, SGS::tolerance('TDF', 'is_matching_diameter'))) {
+        $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->bottom_diameter, 'comparison' => $parent->diameter);
+        $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->bottom_diameter, 'comparison' => $parent->diameter);
       }
-      else if (!Valid::is_accurate($this->diameter, $parent->diameter, SGS::accuracy('TDF', 'is_matching_diameter'))) {
-        $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
-        $warnings['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $parent->diameter);
+      else if (!Valid::is_accurate($this->bottom_diameter, $parent->diameter, SGS::accuracy('TDF', 'is_matching_diameter'))) {
+        $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->bottom_diameter, 'comparison' => $parent->diameter);
+        $warnings['bottom_max']['is_matching_diameter'] = array('value' => $this->bottom_diameter, 'comparison' => $parent->diameter);
       }
 
       $successes['tree_barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Found');

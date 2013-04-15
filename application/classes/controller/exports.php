@@ -429,7 +429,7 @@ class Controller_Exports extends Controller {
             ->and_where_close()
             ->and_where_open()
               ->where('documents.type', '<>', 'EXP')
-              ->or_where('documents.type', '=', NULL)
+              ->or_where('documents.id', '=', NULL)
             ->and_where_close()
             ->order_by('barcode')
             ->execute()
