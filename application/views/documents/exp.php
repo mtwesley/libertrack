@@ -76,10 +76,6 @@ $options = (array) $options + array(
     padding: 20px 25px;
   }
 
-  .exp-page-break {
-    page-break-before: always;
-  }
-
   .exp-header {}
 
   .exp-header,

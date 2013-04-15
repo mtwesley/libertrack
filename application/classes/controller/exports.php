@@ -99,12 +99,13 @@ VALIDATION: $secret";
     }
 
     $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
-    QRcode::png($qr_text, $fullname, QR_ECLEVEL_L, 1, 1);
+    QRcode::png($qr_text, $fullname, QR_ECLEVEL_L, 2, 1);
 
     $html .= View::factory('documents/exp')
       ->set('options', array(
         'info'    => TRUE,
         'styles'  => TRUE,
+        'break'   => FALSE
       ))
       ->set('qr_image', $fullname)
       ->set('document', $document)
