@@ -407,7 +407,7 @@ class Controller_Analysis extends Controller {
     foreach ($_siblings as $type => $_sibling) {
       $table .= View::factory('data')
         ->set('classes', array('has-section'))
-        ->set('form_type', $sample::$type)
+        ->set('form_type', $type)
         ->set('data', $_sibling)
         ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
         ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)
@@ -421,7 +421,7 @@ class Controller_Analysis extends Controller {
     foreach ($childrens as $type => $childs) {
       $table .= View::factory('data')
         ->set('classes', array('has-section'))
-        ->set('form_type', $sample::$type)
+        ->set('form_type', $type)
         ->set('data', $childs)
         ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
         ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)

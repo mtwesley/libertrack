@@ -118,7 +118,7 @@ class Controller_Invoices extends Controller {
             ->and_where('parent_barcodes.type', '=', 'F')
             ->and_where('barcode_hops_cached.hops', '=', '1')
             ->and_where_open()
-              ->where('invoices.type', '<>', 'EXF')
+              ->where('invoices.type', '<>', 'ST')
               ->or_where('invoices.type', '=', 'NULL')
             ->and_where_close()
             ->execute()
