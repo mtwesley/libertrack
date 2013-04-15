@@ -391,14 +391,6 @@ class Controller_Analysis extends Controller {
       ->render();
 
     if ($parents) foreach (array_reverse($parents) as $parent) {
-      unset($info);
-      if ($parent::$type == 'SPECS') {
-        $info['specs'] = array(
-          'number'  => $parent->specs_number,
-          'barcode' => $parent->specs_barcode->barcode
-        );
-      }
-
       $table .= View::factory('data')
         ->set('classes', array('has-section'))
         ->set('form_type', $parent::$type)
@@ -406,8 +398,6 @@ class Controller_Analysis extends Controller {
         ->set('operator', (isset($parent->operator) and $parent->operator->loaded()) ? $parent->operator : NULL)
         ->set('site', (isset($parent->site) and $parent->site->loaded()) ? $parent->site : NULL)
         ->set('block', (isset($parent->block) and $parent->block->loaded()) ? $parent->block : NULL)
-        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
         ->render();
     }
@@ -415,15 +405,6 @@ class Controller_Analysis extends Controller {
     $_siblings = array();
     if ($siblings) foreach ($siblings as $sibling) $_siblings[$sibling::$type][] = $sibling;
     foreach ($_siblings as $type => $_sibling) {
-      unset($info);
-      $sample = reset($_sibling);
-      if ($sibling::$type == 'SPECS') {
-        $info['specs'] = array(
-          'number'  => $sample->specs_number,
-          'barcode' => $sample->specs_barcode->barcode
-        );
-      }
-
       $table .= View::factory('data')
         ->set('classes', array('has-section'))
         ->set('form_type', $sample::$type)
@@ -431,8 +412,6 @@ class Controller_Analysis extends Controller {
         ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
         ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)
         ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
-        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
         ->render();
     }
@@ -440,15 +419,6 @@ class Controller_Analysis extends Controller {
     $childrens = array();
     if ($children) foreach ($children as $child) $childrens[$child::$type][] = $child;
     foreach ($childrens as $type => $childs) {
-      unset($info);
-      $sample = reset($childs);
-      if ($child::$type == 'SPECS') {
-        $info['specs'] = array(
-          'number'  => $sample->specs_number,
-          'barcode' => $sample->specs_barcode->barcode
-        );
-      }
-
       $table .= View::factory('data')
         ->set('classes', array('has-section'))
         ->set('form_type', $sample::$type)
@@ -456,8 +426,6 @@ class Controller_Analysis extends Controller {
         ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
         ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)
         ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
-        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
         ->render();
     }

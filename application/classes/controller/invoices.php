@@ -119,7 +119,7 @@ class Controller_Invoices extends Controller {
             ->and_where('barcode_hops_cached.hops', '=', '1')
             ->and_where_open()
               ->where('invoices.type', '<>', 'EXF')
-              ->or_where('invoice.type', '=', 'NULL')
+              ->or_where('invoices.type', '=', 'NULL')
             ->and_where_close()
             ->execute()
             ->as_array(NULL, 'id');
@@ -141,7 +141,7 @@ class Controller_Invoices extends Controller {
             ->and_where('invoice_data.form_data_id', '=', NULL)
             ->and_where_open()
               ->where('invoices.type', '<>', 'EXF')
-              ->or_where('invoice.type', '=', 'NULL')
+              ->or_where('invoices.type', '=', 'NULL')
             ->and_where_close()
             ->execute()
             ->as_array(NULL, 'id');

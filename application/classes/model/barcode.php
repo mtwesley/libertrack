@@ -11,6 +11,10 @@ class Model_Barcode extends ORM {
     'user' => array()
   );
 
+  protected $_ignored_columns = array(
+    'is_locked'
+  );
+
   protected $_has_many = array(
     'children' => array(
       'model' => 'barcode',
@@ -45,7 +49,12 @@ class Model_Barcode extends ORM {
   public function __get($column) {
     switch ($column) {
       case 'is_locked':
-        return parent::__get($column) == 't' ? TRUE : FALSE;
+        return DB::select('id')
+          ->from('barcode_locks')
+          ->where('barcode_id', '=', $this->id)
+          ->limit(1)
+          ->execute()
+          ->get('id') ? TRUE : FALSE;
 
       default:
         return parent::__get($column);

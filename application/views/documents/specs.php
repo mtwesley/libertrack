@@ -212,8 +212,8 @@ $num = $cntr;
   .specs-titles {}
 
   .specs-title {
-    margin: 0 0 5px;
-    font-size: 22px;
+    margin: 2px 0 5px;
+    font-size: 20px;
     text-align: center;
   }
 

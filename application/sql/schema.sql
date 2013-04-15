@@ -1243,6 +1243,15 @@ end
 $$ language 'plpgsql';
 
 
+create function invoices_update_data()
+  returns trigger as
+$$
+begin
+  update invoice_data set form_data_id = form_data_id where invoice_id = new.id;
+end
+$$ language 'plpgsql';
+
+
 create function invoice_data_update_barcodes()
   returns trigger as
 $$
@@ -1273,7 +1282,9 @@ begin
   if (tg_op = 'DELETE') then
     delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'INV' and lock_id = old.invoice_id;
   else
-    insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'INV',new.invoice_id,x_data.user_id);
+    if (tg_op = 'INSERT') then
+      insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'INV',new.invoice_id,x_data.user_id);
+    end if;
 
     select type,number,is_draft from invoices where id = new.invoice_id into x_invoice;
     if (x_invoice.is_draft = false) then
@@ -1285,6 +1296,15 @@ begin
   end if;
 
   return null;
+end
+$$ language 'plpgsql';
+
+
+create function documents_update_data()
+  returns trigger as
+$$
+begin
+  update document_data set form_data_id = form_data_id where document_id = new.id;
 end
 $$ language 'plpgsql';
 
@@ -1318,7 +1338,9 @@ begin
   if (tg_op = 'DELETE') then
     delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'DOC' and lock_id = old.document_id;
   else
-    insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'DOC',new.document_id,x_data.user_id);
+    if (tg_op = 'INSERT') then
+      insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'DOC',new.document_id,x_data.user_id);
+    end if;
 
     select type,number,is_draft from documents where id = new.document_id into x_document;
     if (x_document.is_draft = false) then
@@ -1443,6 +1465,16 @@ create trigger t_barcode_locks_update_locks
   after insert or update or delete on barcode_locks
   for each row
   execute procedure barcode_locks_update_locks();
+
+create trigger t_invoices_update_data
+  after update on invoices
+  for each row
+  execute procedure invoices_update_data();
+
+create trigger t_documents_update_data
+  after update on documents
+  for each row
+  execute procedure documents_update_data();
 
 -- create trigger t_csv_integrity
 --   before update on csv

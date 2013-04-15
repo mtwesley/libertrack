@@ -345,3 +345,127 @@ alter table specs_data drop constraint specs_data_barcode_id_key;
 alter table specs_data add constraint specs_data_unique_barcode unique(barcode_id,specs_barcode_id);
 
 
+-- more fixes
+
+create or replace function invoices_update_data()
+  returns trigger as
+$$
+begin
+  update invoice_data set form_data_id = form_data_id where invoice_id = new.id;
+end
+$$ language 'plpgsql';
+
+
+create or replace function invoice_data_update_barcodes()
+  returns trigger as
+$$
+  declare x_data record;
+  declare x_invoice record;
+  declare x_form_type d_form_type;
+  declare x_form_data_id d_id;
+begin
+
+  if (tg_op = 'DELETE') then
+    select old.form_type into x_form_type;
+    select old.form_data_id into x_form_data_id;
+  else
+    select new.form_type into x_form_type;
+    select new.form_data_id into x_form_data_id;
+  end if;
+
+  case x_form_type
+    when 'SSF'   then select barcode_id,user_id from ssf_data where id = x_form_data_id into x_data;
+    when 'TDF'   then select barcode_id,user_id from tdf_data where id = x_form_data_id into x_data;
+    when 'LDF'   then select barcode_id,user_id from ldf_data where id = x_form_data_id into x_data;
+    when 'MIF'   then select barcode_id,user_id from mif_data where id = x_form_data_id into x_data;
+    when 'MOF'   then select barcode_id,user_id from mof_data where id = x_form_data_id into x_data;
+    when 'SPECS' then select barcode_id,user_id from specs_data where id = x_form_data_id into x_data;
+    else return null;
+  end case;
+
+  if (tg_op = 'DELETE') then
+    delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'INV' and lock_id = old.invoice_id;
+  else
+    if (tg_op = 'INSERT') then
+      insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'INV',new.invoice_id,x_data.user_id);
+    end if;
+
+    select type,number,is_draft from invoices where id = new.invoice_id into x_invoice;
+    if (x_invoice.is_draft = false) then
+      case x_invoice.type
+        when 'ST'  then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'T','invoice_data');
+        when 'EXF' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'X','invoice_data');
+      end case;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create or replace function documents_update_data()
+  returns trigger as
+$$
+begin
+  update document_data set form_data_id = form_data_id where document_id = new.id;
+end
+$$ language 'plpgsql';
+
+
+create or replace function document_data_update_barcodes()
+  returns trigger as
+$$
+  declare x_data record;
+  declare x_document record;
+  declare x_form_type d_form_type;
+  declare x_form_data_id d_id;
+begin
+  if (tg_op = 'DELETE') then
+    select old.form_type into x_form_type;
+    select old.form_data_id into x_form_data_id;
+  else
+    select new.form_type into x_form_type;
+    select new.form_data_id into x_form_data_id;
+  end if;
+
+  case x_form_type
+    when 'SSF'   then select barcode_id,user_id from ssf_data where id = x_form_data_id into x_data;
+    when 'TDF'   then select barcode_id,user_id from tdf_data where id = x_form_data_id into x_data;
+    when 'LDF'   then select barcode_id,user_id from ldf_data where id = x_form_data_id into x_data;
+    when 'MIF'   then select barcode_id,user_id from mif_data where id = x_form_data_id into x_data;
+    when 'MOF'   then select barcode_id,user_id from mof_data where id = x_form_data_id into x_data;
+    when 'SPECS' then select barcode_id,user_id from specs_data where id = x_form_data_id into x_data;
+    else return null;
+  end case;
+
+  if (tg_op = 'DELETE') then
+    delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'DOC' and lock_id = old.document_id;
+  else
+    if (tg_op = 'INSERT') then
+      insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'DOC',new.document_id,x_data.user_id);
+    end if;
+
+    select type,number,is_draft from documents where id = new.document_id into x_document;
+    if (x_document.is_draft = false) then
+      case x_document.type
+        when 'EXP' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'E','document_data');
+      end case;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create trigger t_invoices_update_data
+  after update on invoices
+  for each row
+  execute procedure invoices_update_data();
+
+create trigger t_documents_update_data
+  after update on documents
+  for each row
+  execute procedure documents_update_data();
+
