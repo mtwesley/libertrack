@@ -13,7 +13,7 @@ class SGS {
   const PGSQL_DATE_FORMAT = 'Y-m-d';
   const PGSQL_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
-  const US_DATE_FORMAT = 'm/d/Y';
+  const US_DATE_FORMAT = 'n/j/Y';
 
   const PGSQL_TRUE  = 't';
   const PGSQL_FALSE = 'f';
@@ -579,29 +579,7 @@ class SGS {
       ->execute()
       ->get('id');
 
-    return $returning_id ? $id : ORM::factory('specsdocument', $id);
-  }
-
-  public static function lookup_specs($number, $returning_id = FALSE)
-  {
-    $id = DB::select('id')
-      ->from('specs')
-      ->where('number', '=', (string) $number)
-      ->execute()
-      ->get('id');
-
-    return $returning_id ? $id : ORM::factory('specsdocument', $id);
-  }
-
-  public static function lookup_exp($number, $returning_id = FALSE)
-  {
-    $id = DB::select('id')
-      ->from('exp')
-      ->where('number', '=', (string) $number)
-      ->execute()
-      ->get('id');
-
-    return $returning_id ? $id : ORM::factory('expdocument', $id);
+    return $returning_id ? $id : ORM::factory('document', $id);
   }
 
   public static function lookup_printjob($number, $returning_id = FALSE)
@@ -897,6 +875,11 @@ class SGS {
     $string = preg_replace('/[^0123456789ACEFHJKLMNPRYXW]/', '', $string);
     if (strlen($string) > 8) $string = substr($string, 0, 8).'-'.substr($string, 8);
     return $string;
+  }
+
+  public static function numberify($number)
+  {
+    return str_pad($number, 6, '0', STR_PAD_LEFT);
   }
 
   public static function implodify($array)

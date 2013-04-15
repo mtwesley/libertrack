@@ -111,11 +111,16 @@ class Controller_Invoices extends Controller {
             ->join('invoice_data', 'LEFT OUTER')
             ->on('ldf_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'LDF'"))
+            ->join('invoices', 'LEFT OUTER')
+            ->on('invoice_data.invoice_id', '=', 'invoices.id')
             ->where('ldf_data.site_id', '=', $site_id)
             ->and_where('ldf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
             ->and_where('parent_barcodes.type', '=', 'F')
             ->and_where('barcode_hops_cached.hops', '=', '1')
-            ->and_where('invoice_data.form_data_id', '=', NULL)
+            ->and_where_open()
+              ->where('invoices.type', '<>', 'EXF')
+              ->or_where('invoice.type', '=', 'NULL')
+            ->and_where_close()
             ->execute()
             ->as_array(NULL, 'id');
           break;
@@ -124,14 +129,20 @@ class Controller_Invoices extends Controller {
           $form_type = 'SPECS';
           $ids = DB::select('specs_data.id')
             ->from('specs_data')
-            ->join('invoice_data', 'LEFT OUTER')
-            ->on('specs_data.id', '=', 'invoice_data.form_data_id')
-            ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
             ->join('document_data')
             ->on('specs_data.id', '=', 'document_data.form_data_id')
             ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+            ->join('invoice_data', 'LEFT OUTER')
+            ->on('specs_data.id', '=', 'invoice_data.form_data_id')
+            ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
+            ->join('invoices', 'LEFT OUTER')
+            ->on('invoice_data.invoice_id', '=', 'invoices.id')
             ->where('document_data.document_id', '=', SGS::lookup_document('SPECS', $specs_number, TRUE))
             ->and_where('invoice_data.form_data_id', '=', NULL)
+            ->and_where_open()
+              ->where('invoices.type', '<>', 'EXF')
+              ->or_where('invoice.type', '=', 'NULL')
+            ->and_where_close()
             ->execute()
             ->as_array(NULL, 'id');
           break;
@@ -340,10 +351,6 @@ class Controller_Invoices extends Controller {
             'number'  => $sample->specs_number,
             'barcode' => $sample->specs_barcode->barcode
           );
-          if (Valid::numeric($specs_number)) $info['exp'] = array(
-            'number'  => $sample->exp_number,
-            'barcode' => $sample->exp_barcode->barcode
-          );
         }
 
         $summary_header = View::factory('data')
@@ -367,7 +374,7 @@ class Controller_Invoices extends Controller {
           ->set('classes', array('has-pagination'))
           ->set('form_type', $form_type)
           ->set('data', $summary_data)
-          ->set('operator', $operator_id ? $operator : NULL)
+          ->set('operator', $invoice->operator->loaded() ? $invoice->operator : NULL)
           ->set('site', $invoice->site->loaded() ? $invoice->site : NULL)
           ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
           ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)

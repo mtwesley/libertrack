@@ -236,6 +236,10 @@ $num = $cntr;
     border: 1px solid #000;
   }
 
+  sup {
+    font-size: 75%;
+  }
+
 </style>
 <?php endif; ?>
 
@@ -256,40 +260,34 @@ $num = $cntr;
   <div class="specs-info">
     <table class="specs-info-table">
       <tr>
-        <td class="label">SPEC Barcode:</td>
-        <td><?php echo $info['specs_barcode']; ?></td>
         <td class="label">SPEC Number:</td>
-        <td><?php echo $info['specs_number'] ? 'SPECS '.$info['specs_number'] : 'DRAFT'; ?></td>
-      </tr>
-      <tr>
-        <td class="label">EP Barcode:</td>
-        <td><?php echo $info['exp_barcode']; ?></td>
+        <td><?php echo $document->number ? 'SPEC '.$document->number : 'DRAFT'; ?></td>
         <td class="label">EP Number:</td>
-        <td><?php echo $info['exp_number']; ?></td>
+        <td><?php echo $exp->number ? 'EP '.$exp->number : 'DRAFT'; ?></td>
       </tr>
       <tr>
         <td class="label">Exporter TIN:</td>
-        <td><?php echo $info['operator_tin']; ?></td>
+        <td><?php echo $document->operator->tin; ?></td>
         <td class="label">Exporter Company Name:</td>
-        <td><?php echo $info['operator_name']; ?></td>
+        <td><?php echo $document->operator->name; ?></td>
       </tr>
       <tr>
         <td class="label">Port of Origin:</td>
-        <td><?php echo SGS::locationify($info['origin']); ?></td>
+        <td><?php echo SGS::locationify($document->values['origin']); ?></td>
         <td class="label">Expected Loading Date:</td>
-        <td><?php echo $info['loading_date']; ?></td>
+        <td><?php echo $document->values['loading_date']; ?></td>
       </tr>
       <tr>
         <td class="label">Port of Destination:</td>
-        <td><?php echo SGS::locationify($info['destination']); ?></td>
+        <td><?php echo SGS::locationify($document->values['destination']); ?></td>
         <td class="label">Buyer:</td>
-        <td><?php echo $info['buyer']; ?></td>
+        <td><?php echo $document->values['buyer']; ?></td>
       </tr>
       <tr>
         <td class="label">Submitted By:</td>
-        <td><?php echo $info['submitted_by']; ?></td>
+        <td><?php echo $document->values['submitted_by']; ?></td>
         <td class="label">Date:</td>
-        <td><?php echo SGS::date($info['create_date'], SGS::US_DATE_FORMAT); ?></td>
+        <td><?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
       </tr>
     </table>
   </div>
@@ -435,6 +433,6 @@ $num = $cntr;
   <?php endif; ?>
 </div>
 
-<?php if ($info['is_draft']): ?>
+<?php if ($document->is_draft): ?>
 <!-- <img class="floater" src="<?php // echo DOCROOT; ?>images/invoice/draft_copy.png" /> -->
 <?php endif; ?>

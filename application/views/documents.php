@@ -17,11 +17,11 @@ $classes[] = 'data';
     <td class="type"><span class="data-type"><?php echo $document->type; ?></span></td>
     <td class="image"><?php
       switch ($document->type) {
-        case 'SPECS': echo HTML::image('images/page_green.png'); break;
-        case 'EXP': echo HTML::image('images/page.png'); break;
+        case 'SPECS': $type = 'SPEC'; echo HTML::image('images/page_green.png'); break;
+        case 'EXP': $type = 'EP'; echo HTML::image('images/page.png'); break;
       }
     ?></td>
-    <td><?php echo $document->is_draft ? 'DRAFT' : $document->type.' '.$document->number; ?></td>
+    <td><?php echo $document->is_draft ? 'DRAFT' : $type.' '.$document->number; ?></td>
     <td><?php echo $document->operator->name; ?></td>
     <td><?php echo $document->site->name; ?></td>
     <td><?php echo SGS::date($document->created_date); ?></td>

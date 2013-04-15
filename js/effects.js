@@ -170,8 +170,8 @@ $(function() {
       '/ajax/specsopts',
       {
         operator_id: $(this).val(),
-        barcodes_only: $(this).hasClass('specs_barcode') ? 1 : 0,
-        numbers_only: $(this).hasClass('specs_number') ? 1 : 0
+        specs_number: $(this).hasClass('specs_number') ? 1 : 0,
+        specs_barcode: $(this).hasClass('specs_barcode') ? 1 : 0
       }
     );
   });
@@ -180,7 +180,8 @@ $(function() {
     '/ajax/specsopts',
     {
       operator_id: $("select.specs_operatoropts").val(),
-      numbers_only: $("select.specs_operatoropts").hasClass('numbers-only') ? 1 : 0
+      specs_number: $("select.specs_operatoropts").hasClass('specs_number') ? 1 : 0,
+      specs_barcode: $("select.specs_operatoropts").hasClass('specs_barcode') ? 1 : 0
     }
   );
 
@@ -189,8 +190,8 @@ $(function() {
       '/ajax/expopts',
       {
         operator_id: $(this).val(),
-        barcodes_only: $(this).hasClass('exp_barcode') ? 1 : 0,
-        numbers_only: $(this).hasClass('exp_number') ? 1 : 0
+        exp_number: $(this).hasClass('exp_number') ? 1 : 0,
+        exp_barcode: $(this).hasClass('exp_barcode') ? 1 : 0
       }
     );
   });
@@ -199,7 +200,8 @@ $(function() {
     '/ajax/expopts',
     {
       operator_id: $("select.exp_operatoropts").val(),
-      numbers_only: $("select.exp_operatoropts").hasClass('numbers-only') ? 1 : 0
+      exp_number: $("select.exp_operatoropts").hasClass('exp_number') ? 1 : 0,
+      exp_barcode: $("select.exp_operatoropts").hasClass('exp_barcode') ? 1 : 0
     }
   );
 
@@ -235,7 +237,19 @@ $(function() {
     );
   });
 
-
+  $("select.exp_specsinputs").change(function() {
+    $.post(
+      '/ajax/specsarray',
+      {
+        type: 'exp_number',
+        value: $(this).val()
+      },
+      function(data) {
+        var values = $.parseJSON(data);
+        for (var key in values) $('.'+key+'input').val(values[key]);
+      }
+    );
+  });
 
   $(".autocomplete-barcode-barcode").autocomplete({
     source: '/ajax/autocompletebarcode',

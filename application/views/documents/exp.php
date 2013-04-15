@@ -11,8 +11,6 @@ $options = (array) $options + array(
   'format'    => 'pdf'
 );
 
-$num = $cntr;
-
 ?>
 <?php if ($options['styles']): ?>
 <style type="text/css">
@@ -28,6 +26,19 @@ $num = $cntr;
 
   table {
     border-collapse: collapse;
+  }
+
+  table.blank {
+    width: 100% !important;
+  }
+
+  table.blank,
+  table.blank tr,
+  table.blank td,
+  table.blank th {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
   }
 
   img.floater {
@@ -51,6 +62,10 @@ $num = $cntr;
 
   .sgs-logo {
     text-align: left;
+  }
+
+  .sgs-logo img {
+    height: 35px;
   }
 
   .fda-logo img {
@@ -85,6 +100,7 @@ $num = $cntr;
   .exp-summary-table tr td,
   .exp-details-table tr td,
   .exp-info-table tr td {
+    width: 50%;
     padding: 2px 5px;
     border: 1px solid #000;
   }
@@ -194,7 +210,7 @@ $num = $cntr;
   .exp-info-table tr td {
     padding: 4px 5px;
     vertical-align: top;
-    width: 24%;
+    width: 50%;
   }
 
   .exp-info-table tr td.label {
@@ -213,8 +229,9 @@ $num = $cntr;
 
   .exp-title {
     margin: 0 0 5px;
-    font-size: 22px;
     text-align: center;
+    font-weight: bold;
+    font-size: 16px;
   }
 
   .exp-subtitle {
@@ -236,6 +253,34 @@ $num = $cntr;
     border: 1px solid #000;
   }
 
+  .strong {
+    margin-bottom: 3px;
+    font-weight: bold;
+  }
+
+  .stronger {
+    padding-top: 6px !important;
+    font-weight: bold;
+    font-size: 11px;
+  }
+
+  tr.info-bar,
+  tr.info-bar td {
+    background-color: #cfcfcf;
+  }
+
+  .label {
+    font-weight: bold;
+  }
+
+  sup {
+    font-size: 75%;
+  }
+
+  .verification {
+    height: 70px;
+  }
+
 </style>
 <?php endif; ?>
 
@@ -255,38 +300,60 @@ $num = $cntr;
   <?php if ($options['info']): ?>
   <div class="exp-info">
     <table class="exp-info-table">
-      <tr>
-        <td><span class="label">Permit Number:</span> <?php echo $document->number; ?></td>
-        <td><span class="label">Date of Issue:</span> <?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
+      <tr class="info-bar">
+        <td style="border-right: none !important;"><span class="label">EP Number:</span> <?php echo $document->number ? 'EP ' . $document->number : 'DRAFT'; ?></td>
+        <td style="border-left: none !important;"><span class="label">Date of Issue:</span> <?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
       </tr>
       <tr>
-        <td class="blank">Exporter</td>
-      </tr>
-      <tr>
-        <td>
-          <div class="strong">Name</div>
-          <?php echo $document->operator->name; ?>
-        </td>
-        <td>
-          <div class="strong">Name</div>
-          <?php echo $document->operator->name; ?>
-        </td>
-      </tr>
-      <tr>
-        <td class="blank">Exporter</td>
+        <td colspan="2" class="blank stronger">Exporter</td>
       </tr>
       <tr>
         <td>
-          <div class="strong">Name</div>
-          <?php echo $document->operator->name; ?>
+          <div class="strong">Name and Address</div>
+          <div><?php echo $document->operator->name; ?></div>
+          <?php if ($document->operator->address): ?>
+          <div><?php echo nl2br($document->operator->address); ?></div>
+          <?php endif; ?>
         </td>
         <td>
-          <div class="strong">Name</div>
-          <?php echo $document->operator->name; ?>
+          <div class="strong">Contact Details</div>
+          <div><em>TIN:</em> <?php echo $document->operator->tin; ?></div>
+          <?php if ($document->operator->contact): ?>
+          <div><?php echo '<em>Name:</em> '.$document->operator->contact; ?></div>
+          <?php endif; ?>
+          <?php if ($document->operator->phone): ?>
+          <div><?php echo '<em>Phone:</em> '.$document->operator->phone; ?></div>
+          <?php endif; ?>
+          <?php if ($document->operator->email): ?>
+          <div><?php echo '<em>E-mail:</em> '.$document->operator->email; ?></div>
+          <?php endif; ?>
         </td>
       </tr>
       <tr>
-        <td class="blank">Overall Shipment Description</td>
+        <td colspan="2" class="blank stronger">Shipping Reference</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="strong">Port of Loading</div>
+          <?php echo SGS::locationify($document->values['origin']); ?>
+        </td>
+        <td>
+          <div class="strong">Name of Vessel</div>
+          <?php echo $document->values['vessel']; ?>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div class="strong">Port of Destination</div>
+          <?php echo SGS::locationify($document->values['destination']); ?>
+        </td>
+        <td>
+          <div class="strong">ETA</div>
+          <?php echo $document->values['eta_date']; ?>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="blank stronger">Overall Shipment Description</td>
       </tr>
       <tr>
         <td colspan="2">
@@ -301,37 +368,43 @@ $num = $cntr;
         </td>
         <td>
           <div class="strong">Quantity</div>
-          <?php echo $quantity; ?>
+          <?php echo $total_quantity; ?> m<sup>3</sup>
         </td>
       </tr>
       <tr>
-        <td class="blank">Buyer</td>
+        <td colspan="2">
+          <div class="strong">Total FOB Value (USD)</div>
+          $<?php echo SGS::amountify($total_fob); ?>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="blank stronger">Buyer</td>
       </tr>
       <tr>
         <td>
-          <div class="strong">Name</div>
-          <?php echo $document->values['buyer']; ?>
+          <div class="strong">Name and Address</div>
+          <div><?php echo $document->values['buyer']; ?></div>
+          <?php if ($document->values['buyer_address']): ?>
+          <div><?php echo nl2br($document->values['buyer_address']); ?></div>
+          <?php endif; ?>
         </td>
         <td>
           <div class="strong">Contact Details</div>
           <?php if ($document->values['buyer_contact']): ?>
-          <div><?php echo $document->values['buyer_contact']; ?></div>
-          <?php endif; ?>
-          <?php if ($document->values['buyer_address']): ?>
-          <div><?php echo nl2br($document->values['buyer_address']); ?></div>
+          <div><?php echo '<em>Contact:</em> '.$document->values['buyer_contact']; ?></div>
           <?php endif; ?>
           <?php if ($document->values['buyer_phone']): ?>
-          <div><?php echo $document->values['buyer_phone']; ?></div>
+          <div><?php echo '<em>Phone:</em> '.$document->values['buyer_phone']; ?></div>
           <?php endif; ?>
           <?php if ($document->values['buyer_email']): ?>
-          <div><?php echo $document->values['buyer_email']; ?></div>
+          <div><?php echo '<em>E-mail:</em> '.$document->values['buyer_email']; ?></div>
           <?php endif; ?>
         </td>
       </tr>
       <tr>
-        <td class="blank">SGS Verification</td>
+        <td colspan="2" class="blank stronger">SGS Verification</td>
       </tr>
-      <tr>
+      <tr class="verification">
         <td>
           <div class="strong">Physical Inspection</div>
           <table class="blank">
@@ -349,7 +422,7 @@ $num = $cntr;
           <div class="strong">SGS Approval</div>
         </td>
       </tr>
-      <tr>
+      <tr class="verification">
         <td>
           <div class="strong">FOB Price Verification</div>
           <?php echo $document->values['fob_price_notes']; ?>
@@ -359,9 +432,9 @@ $num = $cntr;
         </td>
       </tr>
       <tr>
-        <td class="blank">For Administration Use Only</td>
+        <td colspan="2" class="blank stronger">For Administration Use Only</td>
       </tr>
-      <tr>
+      <tr class="verification">
         <td>
           <div class="strong">Notes</div>
           <?php echo $document->values['notes']; ?>
@@ -398,15 +471,15 @@ $num = $cntr;
     }
 
     img.liberfor-bw {
-      height: 20px;
+      height: 22px;
     }
 
     img.sgs-bw {
-      height: 20px;
+      height: 22px;
     }
 
     img.fda-bw {
-      height: 20px;
+      height: 22px;
     }
 
     .exp-footer {
@@ -451,14 +524,12 @@ $num = $cntr;
   <div class="exp-footer">
     <table class="exp-footer-table">
       <tr>
-        <td class="date"><?php echo SGS::date('now', SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td class="date"></td>
         <td class="info">
           <img class="liberfor-bw" src="<?php echo DOCROOT; ?>images/invoice/st_liberfor_bw.jpg" /> &nbsp; is operated by &nbsp; <img class="sgs-bw" src="<?php echo DOCROOT; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img class="fda-bw" src="<?php echo DOCROOT; ?>images/invoice/st_fda_small.jpg" /><br />
           LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
         </td>
         <td class="pageinfo">
-          <div class="ref"></div>
-          Page <span class="page"><?php echo $page; ?></span> of <span class="topage"><?php echo $page_count; ?></span>
         </td>
       </tr>
     </table>
@@ -466,6 +537,6 @@ $num = $cntr;
   <?php endif; ?>
 </div>
 
-<?php if ($info['is_draft']): ?>
+<?php if ($document->is_draft): ?>
 <!-- <img class="floater" src="<?php // echo DOCROOT; ?>images/invoice/draft_copy.png" /> -->
 <?php endif; ?>

@@ -56,8 +56,8 @@ class Model_Document extends ORM {
   public function __get($column) {
     switch ($column) {
       case 'number':
-        $number = parent::__get($column);
-        return $number ? str_pad(parent::__get($column), 6, '0', STR_PAD_LEFT) : NULL;
+        $value = parent::__get($column);
+        return $value ? SGS::numberify($value) : NULL;
 
       case 'values':
         $value = parent::__get($column);

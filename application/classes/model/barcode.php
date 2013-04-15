@@ -54,36 +54,35 @@ class Model_Barcode extends ORM {
 
   public function save(Validation $validation = NULL) {
     parent::create($validation);
-    $this->set_coc_activity('P');
   }
 
-  public function get_coc_activity($current = TRUE) {
-    $query = DB::select('status')
-      ->from('barcode_coc_activity')
+  public function get_activity($current = TRUE) {
+    $query = DB::select('activity')
+      ->from('barcode_activity')
       ->where('barcode_id', '=', $this->id)
       ->order_by('timestamp', 'DESC')
       ->execute();
 
-    return $current ? $query->get('status') : $query->as_array(NULL, 'status');
+    return $current ? $query->get('activity') : $query->as_array(NULL, 'activity');
   }
 
-  public function set_coc_activity($status, $trigger = NULL) {
+  public function set_activity($activity, $trigger = NULL) {
     if (!$trigger) {
       $caller  = array_shift(debug_backtrace());
       $trigger = $caller['function'];
     }
 
-    if (in_array($status, SGS::$coc_status))
-      DB::insert('barcode_coc_activity', array('barcode_id', 'status', 'user_id'))
-        ->values(array($this->id, $status, Auth::instance()->get_user()->id ?: 1,))
+    if (in_array($activity, SGS::$coc_status))
+      DB::insert('barcode_activity', array('barcode_id', 'activity', 'user_id'))
+        ->values(array($this->id, $activity, Auth::instance()->get_user()->id ?: 1,))
         ->execute();
   }
 
-  public function unset_coc_activity($status = array()) {
-    $query = DB::delete('barcode_coc_activity')
+  public function unset_activity($activity = array()) {
+    $query = DB::delete('barcode_activity')
       ->where('barcode_id', '=', $this->id);
 
-    if ($status) $query->where('status', 'IN', (array) $status);
+    if ($activity) $query->where('activity', 'IN', (array) $activity);
     $query->execute();
   }
 

@@ -41,7 +41,7 @@ create domain d_file_type as character varying(100);
 
 create domain d_operation as character(1) check (value ~ E'^[IEAU]$');
 
-create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR|CHECKS|EXP|PJ|INV|UNKWN)$');
+create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|EPR|CHECKS|EXP|PJ|INV|DOC|UNKWN)$');
 
 create domain d_species_code as character varying(5) check (value ~ E'^[A-Z]{3,5}$');
 
@@ -65,6 +65,10 @@ create domain d_barcode as character varying(13) check (value ~ E'^[0123456789AC
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHE]$');
 
+create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDESYALZ]$');
+
+create domain d_barcode_lock as character varying(6) check (value ~ E'(ADMIN|INV|DOC|BRCODE)');
+
 create domain d_qrcode as character(64);
 
 create domain d_qrcode_type as character(1) check (value ~ E'^[P]$');
@@ -78,8 +82,6 @@ create domain d_block_name as character varying(7) check (value ~ E'^[A-Z]{1,4}[
 create domain d_csv_status as character(1) check (value ~ E'^[PARDU]$');
 
 create domain d_data_status as character(1) check (value ~ E'^[PARD]$');
-
-create domain d_coc_status as character(1) check (value ~ E'^[PIHTXDESYALZ]$');
 
 create domain d_username as character varying(24) check (value ~ E'^[0-9A-Za-z_]{3,24}$');
 
@@ -284,18 +286,30 @@ create table barcode_hops_cached (
   constraint barcode_hops_cached_unique_parent unique(barcode_id,hops)
 );
 
-create table barcode_coc_activity (
+create table barcode_locks (
   id bigserial not null,
   barcode_id d_id not null,
-  status d_coc_status default 'P' not null,
-  trigger d_text_short default NULL,
+  lock d_barcode_lock not null,
+  lock_id d_id not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  -- constraint barcode_coc_activity_pkey primary key (id),
-  constraint barcode_coc_activity_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
+  -- constraint barcode_locks_pkey primary key (id),
+  constraint barcode_locks_barcode_id foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
 
-  constraint barcode_coc_activity_unique unique(barcode_id,status)
+  constraint barcode_locks_unique unique(barcode_id,lock,lock_id)
+);
+
+create table barcode_activity (
+  id bigserial not null,
+  barcode_id d_id not null,
+  activity d_barcode_activity default 'P' not null,
+  trigger d_text_short default 'system' not null,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  -- constraint barcode_activity_pkey primary key (id),
+  constraint barcode_activity_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
 );
 
 create table qrcodes (
@@ -605,7 +619,7 @@ create table specs_data (
   specs_barcode_id d_id,
   exp_barcode_id d_id,
   contract_number d_text_short,
-  barcode_id d_id unique not null,
+  barcode_id d_id not null,
   species_id d_id not null,
   loading_date d_date,
   buyer d_text_short,
@@ -636,7 +650,9 @@ create table specs_data (
   constraint specs_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
   constraint specs_data_specs_check check (specs_id is not null or specs_barcode_id is not null),
-  constraint specs_data_exp_check check (exp_id is not null or exp_barcode_id is not null)
+  constraint specs_data_exp_check check (exp_id is not null or exp_barcode_id is not null),
+
+  constraint specs_data_unique_barcode unique(barcode_id,specs_barcode_id)
 );
 
 create table errors (
@@ -725,10 +741,9 @@ create unique index barcodes_unique on barcodes (barcode) where type not in ('F'
 
 create index barcode_hops_cached_parent_id on barcode_hops_cached (barcode_id,parent_id);
 
-create index barcode_coc_activity_barcode_id_status on barcode_coc_activity (barcode_id,status);
-create index barcode_coc_activity_barcode_id_trigger on barcode_coc_activity (barcode_id,trigger);
-create index barcode_coc_activity_status_trigger on barcode_coc_activity (status,trigger);
-
+create index barcode_activity_barcode_id_status on barcode_activity (barcode_id,status);
+create index barcode_activity_barcode_id_trigger on barcode_activity (barcode_id,trigger);
+create index barcode_activity_status_trigger on barcode_activity (status,trigger);
 
 create index invoices_site_id on invoices (id,site_id);
 create index invoices_number on invoices (id,type,number);
@@ -1014,7 +1029,7 @@ create function check_barcode_locks()
 $$
   declare x_is_locked d_bool;
 begin
-  select is_locked from barcodes where id = old.barcode_id into x_is_locked;
+  select id::bool from barcode_locks where barcode_id = old.barcode_id limit 1 into x_is_locked;
 
   if (tg_op = 'UPDATE') and (x_is_locked = true) and (old.status = 'A') then
     return null;
@@ -1032,12 +1047,19 @@ end
 $$ language 'plpgsql';
 
 
-create function barcodes_locks()
+create function barcode_locks_update_locks()
   returns trigger as
 $$
+  declare x_id d_id;
 begin
-  if (new.is_locked = true) then
-    perform rebuild_barcode_locks(new.id, true);
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    delete from barcode_locks where lock = 'BRCODE' and lock_id = new.barcode_id;
+    for x_id in select barcode_id from barcode_hops_cached where parent_id = new.barcode_id loop
+      insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_id,'BRCODE',new.barcode_id,new.user_id);
+    end loop;
+
+  elseif (tg_op = 'DELETE') then
+    delete from barcode_locks where lock = 'BRCODE' and lock_id = old.barcode_id;
   end if;
 
   return null;
@@ -1045,22 +1067,23 @@ end
 $$ language 'plpgsql';
 
 
-create function rebuild_barcode_locks(x_barcode_id d_id, x_lock d_bool)
-  returns void as
+create function barcodes_update_barcodes()
+  returns trigger as
 $$
-  declare x_id d_id;
-  declare x_is_locked d_bool;
 begin
-  if (x_barcode_id is null) and (x_lock is null) then
-    for x_id in select id from barcodes loop
-      perform rebuild_barcode_locks(x_id, true);
-    end loop;
-
-  else
-    for x_id in select barcode_id from barcode_hops_cached where parent_id = x_barcode_id loop
-      update barcodes set is_locked = x_lock where id = x_id;
-    end loop;
+  if (tg_op = 'INSERT') then
+    insert into barcode_activity (barcode_id,activity,trigger) values (new.id,'P','barcodes');
   end if;
+
+  if (tg_op = 'UPDATE') then
+    if (old.type = 'P') and (new.type <> 'P') then
+      insert into barcode_activity (barcode_id,activity,trigger) values (new.id,'I','barcodes');
+    elseif (old.type <> 'P') and (new.type = 'P') then
+      insert into barcode_activity (barcode_id,activity,trigger) values (new.id,'P','barcodes');
+    end if;
+  end if;
+
+  return null;
 end
 $$ language 'plpgsql';
 
@@ -1160,6 +1183,15 @@ end
 $$ language 'plpgsql';
 
 
+create function mif_data_update_barcodes()
+  returns trigger as
+$$
+begin
+  return null;
+end
+$$ language 'plpgsql';
+
+
 create function mof_data_update_barcodes()
   returns trigger as
 $$
@@ -1194,6 +1226,7 @@ begin
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
     if new.barcode_id is not null then
       update barcodes set type = 'L' where barcodes.id = new.barcode_id;
+      insert into barcode_activity (barcode_id,activity,trigger) values (new.barcode_id,'D','specs_data');
     end if;
 
     if new.specs_barcode_id is not null then
@@ -1203,8 +1236,6 @@ begin
     if new.exp_barcode_id is not null then
       update barcodes set type = 'E' where barcodes.id = new.exp_barcode_id;
     end if;
-
-    update barcodes set is_locked = false where id = new.barcode_id;
   end if;
 
   return null;
@@ -1215,8 +1246,54 @@ $$ language 'plpgsql';
 create function invoice_data_update_barcodes()
   returns trigger as
 $$
-  declare x_barcode_id d_id;
-  declare x_record record;
+  declare x_data record;
+  declare x_invoice record;
+  declare x_form_type d_form_type;
+  declare x_form_data_id d_id;
+begin
+
+  if (tg_op = 'DELETE') then
+    select old.form_type into x_form_type;
+    select old.form_data_id into x_form_data_id;
+  else
+    select new.form_type into x_form_type;
+    select new.form_data_id into x_form_data_id;
+  end if;
+
+  case x_form_type
+    when 'SSF'   then select barcode_id,user_id from ssf_data where id = x_form_data_id into x_data;
+    when 'TDF'   then select barcode_id,user_id from tdf_data where id = x_form_data_id into x_data;
+    when 'LDF'   then select barcode_id,user_id from ldf_data where id = x_form_data_id into x_data;
+    when 'MIF'   then select barcode_id,user_id from mif_data where id = x_form_data_id into x_data;
+    when 'MOF'   then select barcode_id,user_id from mof_data where id = x_form_data_id into x_data;
+    when 'SPECS' then select barcode_id,user_id from specs_data where id = x_form_data_id into x_data;
+    else return null;
+  end case;
+
+  if (tg_op = 'DELETE') then
+    delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'INV' and lock_id = old.invoice_id;
+  else
+    insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'INV',new.invoice_id,x_data.user_id);
+
+    select type,number,is_draft from invoices where id = new.invoice_id into x_invoice;
+    if (x_invoice.is_draft = false) then
+      case x_invoice.type
+        when 'ST'  then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'T','invoice_data');
+        when 'EXF' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'X','invoice_data');
+      end case;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create function document_data_update_barcodes()
+  returns trigger as
+$$
+  declare x_data record;
+  declare x_document record;
   declare x_form_type d_form_type;
   declare x_form_data_id d_id;
 begin
@@ -1229,19 +1306,26 @@ begin
   end if;
 
   case x_form_type
-    when 'SSF'   then select barcode_id from ssf_data where id = x_form_data_id into x_barcode_id;
-    when 'TDF'   then select barcode_id from tdf_data where id = x_form_data_id into x_barcode_id;
-    when 'LDF'   then select barcode_id from ldf_data where id = x_form_data_id into x_barcode_id;
-    when 'MIF'   then select barcode_id from mif_data where id = x_form_data_id into x_barcode_id;
-    when 'MOF'   then select barcode_id from mof_data where id = x_form_data_id into x_barcode_id;
-    when 'SPECS' then select barcode_id from specs_data where id = x_form_data_id into x_barcode_id;
+    when 'SSF'   then select barcode_id,user_id from ssf_data where id = x_form_data_id into x_data;
+    when 'TDF'   then select barcode_id,user_id from tdf_data where id = x_form_data_id into x_data;
+    when 'LDF'   then select barcode_id,user_id from ldf_data where id = x_form_data_id into x_data;
+    when 'MIF'   then select barcode_id,user_id from mif_data where id = x_form_data_id into x_data;
+    when 'MOF'   then select barcode_id,user_id from mof_data where id = x_form_data_id into x_data;
+    when 'SPECS' then select barcode_id,user_id from specs_data where id = x_form_data_id into x_data;
     else return null;
   end case;
 
   if (tg_op = 'DELETE') then
-    update barcodes set is_locked = false where id = x_barcode_id;
+    delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'DOC' and lock_id = old.document_id;
   else
-    update barcodes set is_locked = true where id = x_barcode_id;
+    insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'DOC',new.document_id,x_data.user_id);
+
+    select type,number,is_draft from documents where id = new.document_id into x_document;
+    if (x_document.is_draft = false) then
+      case x_document.type
+        when 'EXP' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'E','document_data');
+      end case;
+    end if;
   end if;
 
   return null;
@@ -1275,6 +1359,11 @@ create trigger t_barcodes_hops
   for each row
   execute procedure barcodes_hops();
 
+create trigger t_barcodes_update_barcodes
+  after insert or update or delete on barcodes
+  for each row
+  execute procedure barcodes_update_barcodes();
+
 create trigger t_ssf_data_update_barcodes
   after insert or update or delete on ssf_data
   for each row
@@ -1289,6 +1378,11 @@ create trigger t_ldf_data_update_barcodes
   after insert or update or delete on ldf_data
   for each row
   execute procedure ldf_data_update_barcodes();
+
+create trigger t_mif_data_update_barcodes
+  after insert or update or delete on mif_data
+  for each row
+  execute procedure mif_data_update_barcodes();
 
 create trigger t_mof_data_update_barcodes
   after insert or update or delete on mof_data
@@ -1339,6 +1433,16 @@ create trigger t_invoice_data_update_barcodes
   after insert or update or delete on invoice_data
   for each row
   execute procedure invoice_data_update_barcodes();
+
+create trigger t_document_data_update_barcodes
+  after insert or update or delete on document_data
+  for each row
+  execute procedure document_data_update_barcodes();
+
+create trigger t_barcode_locks_update_locks
+  after insert or update or delete on barcode_locks
+  for each row
+  execute procedure barcode_locks_update_locks();
 
 -- create trigger t_csv_integrity
 --   before update on csv

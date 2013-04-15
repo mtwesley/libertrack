@@ -29,8 +29,18 @@ if ($options['header'])  $classes[] = 'has-header';
   <tr>
     <td class="label">Operator:</td>
     <td><?php if ($operator) echo $operator->name; ?></td>
-    <td class="label"><?php if ($site) echo 'Site:'; ?></td>
-    <td><?php if ($site) echo $site->name; ?></td>
+    <td class="label">
+      <?php
+        if ($site) echo 'Site:';
+        else if ($specs_info) echo 'Shipment Specification Barcode:';
+      ?>
+    </td>
+    <td>
+      <?php
+        if ($site) echo $site->name;
+        else if ($specs_info) echo $specs_info['barcode'];
+      ?>
+    </td>
   </tr>
   <tr>
     <td class="label">TIN:</td>

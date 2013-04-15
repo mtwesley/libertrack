@@ -17,7 +17,123 @@ class Controller_Exports extends Controller {
     Session::instance()->write();
   }
 
-  private function generate_specs_preview($data_ids) {
+  private function generate_exp_preview($document, $data_ids) {
+    $total_quantity = DB::select(array(DB::expr('sum(volume)'), 'sum'))
+      ->from('specs_data')
+      ->where('id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('sum');
+
+    $total_fob = DB::select(array(DB::expr('sum(volume * fob_price)'), 'sum'))
+      ->from('specs_data')
+      ->join('species')
+      ->on('specs_data.species_id', '=', 'species.id')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('sum');
+
+    return View::factory('documents/exp_summary')
+      ->set('document', $document)
+      ->set('total_quantity', $total_quantity)
+      ->set('total_fob', $total_fob)
+      ->render();
+  }
+
+  private function generate_exp_document($document, $data_ids) {
+    if (!($data_ids ?: $document->get_data())) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
+    $total_quantity = DB::select(array(DB::expr('sum(volume)'), 'sum'))
+      ->from('specs_data')
+      ->where('id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('sum');
+
+    $total_fob = DB::select(array(DB::expr('sum(volume * fob_price)'), 'sum'))
+      ->from('specs_data')
+      ->join('species')
+      ->on('specs_data.species_id', '=', 'species.id')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('sum');
+
+    $html .= View::factory('documents/exp')
+      ->set('options', array(
+        'info'    => TRUE,
+        'styles'  => TRUE,
+      ))
+      ->set('document', $document)
+      ->set('total_quantity', $total_quantity)
+      ->set('total_fob', $total_fob)
+      ->render();
+
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array(
+      'exp',
+    ));
+
+    if ($document->is_draft) $newname = 'EXP_DRAFT_'.SGS::date('now', 'Y_m_d').'.'.$ext;
+    else $newname = 'EXP_'.$document->number.'.'.$ext;
+
+    $version = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 22,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('documents/exp')
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->render()
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate document. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
+
+    try {
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'A';
+      $file->operation_type = 'DOC';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+      $file->save();
+      return $file->id;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }
+  }
+
+  private function generate_specs_preview($document, $data_ids) {
     $sample = ORM::factory('SPECS', reset($data_ids));
     $total  = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
@@ -25,21 +141,9 @@ class Controller_Exports extends Controller {
       ->execute()
       ->get('sum');
 
-    $info = array(
-      'specs_barcode' => $sample->specs_barcode->barcode,
-      'exp_barcode'   => $sample->exp_barcode->barcode,
-      'operator_tin'  => $sample->operator->tin,
-      'operator_name' => $sample->operator->name,
-      'origin'        => $sample->origin,
-      'destination'   => $sample->destination,
-      'loading_date'  => $sample->loading_date,
-      'buyer'         => $sample->buyer,
-      'submitted_by'  => $sample->submitted_by,
-      'create_date'   => $sample->create_date,
-    );
-
     return View::factory('documents/specs_summary')
-      ->set('info', $info)
+      ->set('document', $document)
+      ->set('exp', SGS::lookup_document('EXP', $document->values['exp_number']))
       ->set('total', $total)
       ->render();
   }
@@ -50,8 +154,7 @@ class Controller_Exports extends Controller {
       return FALSE;
     }
 
-    $item = ORM::factory('SPECS', reset($data_ids));
-
+    $exp = SGS::lookup_document('EXP', $document->values['exp_number']);
     $records = ORM::factory('SPECS')
       ->where('specs.id', 'IN', (array) $data_ids)
       ->join('barcodes')
@@ -60,8 +163,8 @@ class Controller_Exports extends Controller {
       ->find_all()
       ->as_array();
 
-    $page_count = 0;
-    $page_max   = 28;
+    $page_max      = 30;
+    $last_page_max = 29;
 
     $total = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
@@ -72,31 +175,20 @@ class Controller_Exports extends Controller {
     $cntr   = 0;
     $styles = TRUE;
     while ($cntr < count($data_ids)) {
-      $max = $page_max;
-      $set = array_slice($records, $cntr, $max);
+      $last = count($data_ids) > ($cntr + $max);
+      $max  = $last ? $last_page_max : $page_max;
+
+      $set  = array_slice($records, $cntr, $max);
       $html .= View::factory('documents/specs')
         ->set('data', $set)
         ->set('options', array(
           'info'    => TRUE,
           'details' => TRUE,
           'styles'  => $styles ? TRUE : FALSE,
-          'total'   => count($data_ids) > ($cntr + $max) ? FALSE : TRUE
+          'total'   => $last ? FALSE : TRUE
         ))
-        ->set('info', array(
-          'is_draft'      => $document->is_draft,
-          'specs_barcode' => $item->specs_barcode->barcode,
-          'specs_number'  => $document->number,
-          'exp_barcode'   => $item->exp_barcode->barcode,
-          'exp_number'    => $item->exp_number,
-          'operator_tin'  => $document->operator->tin,
-          'operator_name' => $document->operator->name,
-          'origin'        => $item->origin,
-          'destination'   => $item->destination,
-          'loading_date'  => $item->loading_date,
-          'buyer'         => $item->buyer,
-          'submitted_by'  => $item->submitted_by,
-          'create_date'   => $item->create_date,
-        ))
+        ->set('document', $document)
+        ->set('exp', $exp)
         ->set('cntr', $cntr)
         ->set('total', $total)
         ->render();
@@ -115,7 +207,7 @@ class Controller_Exports extends Controller {
     ));
 
     if ($document->is_draft) $newname = 'SPECS_DRAFT_'.SGS::date('now', 'Y_m_d').'.'.$ext;
-    else $newname = 'SPECS_'.$specs_number.'.'.$ext;
+    else $newname = 'SPECS_'.$document->number.'.'.$ext;
 
     $version = 0;
     $testname = $newname;
@@ -145,8 +237,6 @@ class Controller_Exports extends Controller {
             'header' => FALSE,
             'footer' => TRUE,
             'break'  => FALSE))
-          ->set('page', $page)
-          ->set('page_count', $page_count)
           ->render()
       ));
     } catch (Exception $e) {
@@ -160,7 +250,7 @@ class Controller_Exports extends Controller {
       $file->type = 'application/pdf';
       $file->size = filesize($fullname);
       $file->operation      = 'A';
-      $file->operation_type = 'SPECS';
+      $file->operation_type = 'DOC';
       $file->content_md5    = md5_file($fullname);
       $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
       $file->save();
@@ -186,31 +276,31 @@ class Controller_Exports extends Controller {
     switch ($document_type) {
       case 'EXP':
         $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_specsinputs')));
-        $form->add('origin', 'input', NULL, array('label' => 'Origin', 'attr' => array('class' => 'origininput')));
-        $form->add('destination', 'input', NULL, array('label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
-        $form->add('product_type', 'input', 'Logs', array('label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
-        $form->add('product_description', 'input', NULL, array('label' => 'Product Description', 'attr' => array('class' => 'product_descriptioninput')));
-        $form->add('eta_date', 'input', NULL, array('label' => 'ETA', 'attr' => array('class' => 'dpicker eta_dateinput')));
-        $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'attr' => array('class' => 'dpicker inspection_dateinput')));
-        $form->add('inspection_location', 'input', NULL, array('label' => 'Inspection Location', 'attr' => array('class' => 'dpicker inspection_locationinput')));
-        $form->add('vessel', 'input', NULL, array('label' => 'Vessel', 'attr' => array('class' => 'vesselinput')));
-        $form->add('buyer', 'input', NULL, array('label' => 'Buyer', 'attr' => array('class' => 'buyerinput')));
+        $form->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'attr' => array('class' => 'origininput')));
+        $form->add('destination', 'input', NULL, array('required' => TRUE, 'label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
+        $form->add('product_type', 'input', NULL, array('required' => TRUE, 'label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
+        $form->add('product_description', 'input', NULL, array('required' => TRUE, 'label' => 'Product Description', 'attr' => array('class' => 'product_descriptioninput')));
+        $form->add('eta_date', 'input', NULL, array('required' => TRUE, 'label' => 'ETA', 'attr' => array('class' => 'dpicker eta_dateinput', 'id' => 'eta-dpicker')));
+        $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')));
+        $form->add('inspection_location', 'input', NULL, array('label' => 'Inspection Location', 'attr' => array('class' => 'inspection_locationinput')));
+        $form->add('vessel', 'input', NULL, array('required' => TRUE, 'label' => 'Vessel', 'attr' => array('class' => 'vesselinput')));
+        $form->add('buyer', 'input', NULL, array('required' => TRUE, 'label' => 'Buyer', 'attr' => array('class' => 'buyerinput')));
         $form->add('buyer_contact', 'input', NULL, array('label' => 'Buyer Contact', 'attr' => array('class' => 'buyer_contactinput')));
-        $form->add('buyer_address', 'textarea', NULL, array('label' => 'Buyer Address', 'attr' => array('class' => 'buyer_addressinput')));
+        $form->add('buyer_address', 'textarea', NULL, array('required' => TRUE, 'label' => 'Buyer Address', 'attr' => array('class' => 'buyer_addressinput')));
         $form->add('buyer_email', 'input', NULL, array('label' => 'Buyer Email', 'attr' => array('class' => 'buyer_emailinput')));
         $form->add('buyer_phone', 'input', NULL, array('label' => 'Buyer Phone', 'attr' => array('class' => 'buyer_phoneinput')));
-        $form->add('fob_price_notes', 'textarea', NULL, array('label' => 'FOB Price Verification'));
+        $form->add('fob_price_notes', 'textarea', 'In line with international market prices for similar goods.', array('label' => 'FOB Price Verification'));
         $form->add('notes', 'textarea', NULL, array('label' => 'Notes'));
         break;
 
       case 'SPECS':
-        $form->add_group('exp_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts exp_specsinputs')));
-        $form->add('origin', 'input', NULL, array('label' => 'Origin', 'attr' => array('class' => 'origininput')));
-        $form->add('destination', 'input', NULL, array('label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
-        $form->add('buyer', 'input', NULL, array('label' => 'Buyer', 'attr' => array('class' => 'buyerinput')));
-        $form->add('loading_date', 'input', NULL, array('label' => 'Expected Loading Date', 'attr' => array('class' => 'dpicker loading_dateinput')));
+        $form->add_group('exp_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts exp_specsinputs exp_number')));
+        $form->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'attr' => array('class' => 'origininput')));
+        $form->add('destination', 'input', NULL, array('required' => TRUE, 'label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
+        $form->add('buyer', 'input', NULL, array('required' => TRUE, 'label' => 'Buyer', 'attr' => array('class' => 'buyerinput')));
+        $form->add('loading_date', 'input', NULL, array('required' => TRUE, 'label' => 'Expected Loading Date', 'attr' => array('class' => 'dpicker loading_date-dpicker loading_dateinput')));
         $form->add('contract_number', 'input', NULL, array('label' => 'Contract Number', 'attr' => array('class' => 'contract_numberinput')));
-        $form->add('submitted_by', 'input', NULL, array('label' => 'Submitted By', 'attr' => array('class' => 'submitted_byinput')));
+        $form->add('submitted_by', 'input', NULL, array('required' => TRUE, 'label' => 'Submitted By', 'attr' => array('class' => 'submitted_byinput')));
         break;
     }
 
@@ -235,6 +325,7 @@ class Controller_Exports extends Controller {
         case 'EXP':
           $specs_barcode = $form->specs_barcode->val();
           $values = array(
+            'specs_barcode'   => $specs_barcode,
             'origin'          => $form->origin->val(),
             'destination'     => $form->destination->val(),
             'product_type'    => $form->product_type->val(),
@@ -256,6 +347,7 @@ class Controller_Exports extends Controller {
         case 'SPECS':
           $exp_number = $form->exp_number->val();
           $values = array(
+            'exp_number'      => $form->exp_number->val(),
             'origin'          => $form->origin->val(),
             'destination'     => $form->destination->val(),
             'buyer'           => $form->buyer->val(),
@@ -316,17 +408,29 @@ class Controller_Exports extends Controller {
       switch ($document_type) {
         case 'EXP':
           $form_type = 'SPECS';
-          $ids = DB::select('specs_data.id')
+          $ids = DB::select('specs_data.id','barcodes.barcode')
+            ->distinct(TRUE)
             ->from('specs_data')
             ->join('document_data', 'LEFT OUTER')
             ->on('specs_data.id', '=', 'document_data.form_data_id')
             ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
-            ->where('specs_data.operator_id', '=', $operator_id)
-            ->and_where('document_data.form_data_id', '=', NULL)
-            ->where('specs_data.status', '=', 'A')
-            ->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
+            ->join('documents', 'LEFT OUTER')
+            ->on('document_data.document_id', '=', 'documents.id')
+            ->join('barcode_activity', 'LEFT OUTER')
+            ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
+            ->where('specs_data.operator_id', '=', $operator_id)
+            ->and_where('specs_data.status', '=', 'A')
+            ->and_where('specs_data.specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
+            ->and_where_open()
+              ->where('barcode_activity.activity', 'NOT IN', array('E'))
+              ->or_where('barcode_activity.activity', '=', NULL)
+            ->and_where_close()
+            ->and_where_open()
+              ->where('documents.type', '<>', 'EXP')
+              ->or_where('documents.type', '=', NULL)
+            ->and_where_close()
             ->order_by('barcode')
             ->execute()
             ->as_array(NULL, 'id');
@@ -335,18 +439,16 @@ class Controller_Exports extends Controller {
         case 'SPECS':
           $form_type = 'SPECS';
           $ids = DB::select('document_data.form_data_id')
-            ->from('document_data.document_data')
-            ->join(DB::expr('"document_data" AS "documented_data"'), 'LEFT OUTER')
-            ->on('document_data.form_data_id', '=', 'documented_data.form_data_id')
-            ->on('documented_data.form_type', '=', DB::expr("'SPECS'"))
+            ->from('document_data')
             ->join('specs_data')
             ->on('document_data.form_data_id', '=', 'specs_data.id')
+            ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
-            ->where('document_data.documents_id', '=', SGS::lookup_document('SPECS', $exp_number))
-            ->where('document_data.form_type', '=', 'SPECS')
-            ->where('documented_data.form_data_id', '=', NULL)
-            ->order_by('barcode');
+            ->where('document_data.document_id', '=', SGS::lookup_document('EXP', $exp_number))
+            ->order_by('barcode')
+            ->execute()
+            ->as_array(NULL, 'form_data_id');
           break;
       }
 
@@ -358,7 +460,7 @@ class Controller_Exports extends Controller {
             $data = ORM::factory($form_type)
               ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
               ->join('barcodes')
-              ->on('barcode_id', '=', 'barcodes.id')
+              ->on(strtolower($form_type).'.barcode_id', '=', 'barcodes.id')
               ->order_by('barcode', 'ASC');
 
             $clone = clone($data);
@@ -376,8 +478,14 @@ class Controller_Exports extends Controller {
             elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
             else Notify::msg('No records found');
 
+            $document = ORM::factory('document');
+            $document->operator = $operator;
+            $document->type     = $document_type;
+            $document->values   = (array) $values;
+            $document->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
+
             $func = strtolower('generate_'.$document_type.'_preview');
-            $summary = self::$func((array) $ids);
+            $summary = self::$func($document, (array) $ids);
 
             unset($info);
             if ($specs_barcode) {
@@ -385,10 +493,6 @@ class Controller_Exports extends Controller {
               $info['specs'] = array(
                 'number'  => $sample->specs_number,
                 'barcode' => $sample->specs_barcode->barcode
-              );
-              if (Valid::numeric($specs_barcode)) $info['exp'] = array(
-                'number'  => $sample->exp_number,
-                'barcode' => $sample->exp_barcode->barcode
               );
             }
 
@@ -429,9 +533,7 @@ class Controller_Exports extends Controller {
           case 'final':
             set_time_limit(1800);
             $document = ORM::factory('document');
-
-            if ($operator->loaded()) $document->operator = $operator;
-
+            $document->operator = $operator;
             $document->type     = $document_type;
             $document->is_draft = $is_draft ? TRUE : FALSE;
             $document->number   = $is_draft ? NULL : $document::create_document_number($document_type);
@@ -481,7 +583,7 @@ class Controller_Exports extends Controller {
       if ($document->loaded()) {
         $ids  = $document->get_data();
         $func = strtolower('generate_'.$document->type.'_preview');
-        $summary = self::$func((array) $ids);
+        $summary = self::$func($document, (array) $ids);
 
         switch ($document->type) {
           case 'EXP': $form_type = 'SPECS'; break;
@@ -516,10 +618,6 @@ class Controller_Exports extends Controller {
             'number'  => $sample->specs_number,
             'barcode' => $sample->specs_barcode->barcode
           );
-          if (Valid::numeric($specs_number)) $info['exp'] = array(
-            'number'  => $sample->exp_number,
-            'barcode' => $sample->exp_barcode->barcode
-          );
         }
 
         $summary_header = View::factory('data')
@@ -543,7 +641,7 @@ class Controller_Exports extends Controller {
           ->set('classes', array('has-pagination'))
           ->set('form_type', $form_type)
           ->set('data', $summary_data)
-          ->set('operator', $operator_id ? $operator : NULL)
+          ->set('operator', $document->operator->loaded() ? $document->operator : NULL)
           ->set('site', $document->site->loaded() ? $document->site : NULL)
           ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
           ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
@@ -553,7 +651,7 @@ class Controller_Exports extends Controller {
             'hide_header_info' => TRUE
           ))
           ->render();
-      } else $this->request->redirect('export/documents');
+      } else $this->request->redirect('exports/documents');
     }
     else {
       $documents = ORM::factory('document');
@@ -584,6 +682,12 @@ class Controller_Exports extends Controller {
           'specs_barcode' => $specs_barcode,
           'exp_barcode'   => $exp_barcode
         ));
+
+        if ($type)        $documents->and_where('type', 'IN', (array) $type);
+        if ($operator_id) $documents->and_where('operator_id', 'IN', (array) $operator_id);
+
+        if (Valid::is_barcode($specs_barcode)) $documents->and_where('values', 'LIKE', '%"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"%');
+        if (Valid::numeric($exp_number)) $documents->and_where('values', 'LIKE', '%"exp_number";s:'.strlen($exp_number).':"'.$exp_number.'"%');
       }
       else if ($settings = Session::instance()->get('pagination.exports.documents.list')) {
         $form->type->val($type = $settings['type']);
@@ -593,6 +697,9 @@ class Controller_Exports extends Controller {
 
         if ($type)    $documents->and_where('type', 'IN', (array) $type);
         if ($site_id) $documents->and_where('site_id', 'IN', (array) $site_id);
+
+        if (Valid::is_barcode($specs_barcode)) $documents->and_where('values', 'LIKE', '%"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"%');
+        if (Valid::numeric($exp_number)) $documents->and_where('values', 'LIKE', '%"exp_number";s:'.strlen($exp_number).':"'.$exp_number.'"%');
       }
 
       if ($documents) {

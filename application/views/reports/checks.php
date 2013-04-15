@@ -327,26 +327,12 @@ $num = $cntr;
             else if ($specs_info) echo $specs_info['barcode'];
           ?>
         </td>
-        <td class="label"><?php if ($exp_info) echo 'Export Permit Barcode:'; ?></td>
-        <td><?php if ($exp_info) echo $exp_info['barcode']; ?></td>
       </tr>
       <tr>
         <td class="label">TIN:</td>
         <td><?php if ($operator) echo $operator->tin; ?></td>
-        <td class="label">
-          <?php
-            if ($block) echo 'Block:';
-            else if ($specs_info) echo 'Shipment Specification Number:';
-          ?>
-        </td>
-        <td>
-          <?php
-            if ($block) echo $block->name;
-            else if ($specs_info) echo $specs_info['number'];
-          ?>
-        </td>
-        <td class="label"><?php if ($exp_info) echo 'Export Permit Number:'; ?></td>
-        <td><?php if ($exp_info) echo $exp_info['number']; ?></td>
+        <td class="label"><?php if ($block) echo 'Block:'; ?></td>
+        <td><?php if ($block) echo $block->name; ?></td>
       </tr>
     </table>
   </div>
@@ -538,15 +524,15 @@ $num = $cntr;
     }
 
     img.liberfor-bw {
-      height: 20px;
+      height: 22px;
     }
 
     img.sgs-bw {
-      height: 20px;
+      height: 22px;
     }
 
     img.fda-bw {
-      height: 20px;
+      height: 22px;
     }
 
     .checks-footer {

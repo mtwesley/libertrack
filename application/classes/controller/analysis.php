@@ -352,10 +352,6 @@ class Controller_Analysis extends Controller {
           'number'  => $sample->specs_number,
           'barcode' => $sample->specs_barcode->barcode
         );
-        if (Valid::numeric($specs_info)) $info['exp'] = array(
-          'number'  => $sample->exp_number,
-          'barcode' => $sample->exp_barcode->barcode
-        );
       }
 
       $table = View::factory('data')
@@ -401,10 +397,6 @@ class Controller_Analysis extends Controller {
           'number'  => $parent->specs_number,
           'barcode' => $parent->specs_barcode->barcode
         );
-        if (Valid::numeric($specs_info)) $info['exp'] = array(
-          'number'  => $parent->exp_number,
-          'barcode' => $parent->exp_barcode->barcode
-        );
       }
 
       $table .= View::factory('data')
@@ -430,10 +422,6 @@ class Controller_Analysis extends Controller {
           'number'  => $sample->specs_number,
           'barcode' => $sample->specs_barcode->barcode
         );
-        if (Valid::numeric($specs_info)) $info['exp'] = array(
-          'number'  => $sample->exp_number,
-          'barcode' => $sample->exp_barcode->barcode
-        );
       }
 
       $table .= View::factory('data')
@@ -458,10 +446,6 @@ class Controller_Analysis extends Controller {
         $info['specs'] = array(
           'number'  => $sample->specs_number,
           'barcode' => $sample->specs_barcode->barcode
-        );
-        if (Valid::numeric($specs_info)) $info['exp'] = array(
-          'number'  => $sample->exp_number,
-          'barcode' => $sample->exp_barcode->barcode
         );
       }
 
@@ -509,10 +493,6 @@ class Controller_Analysis extends Controller {
       $info['specs'] = array(
         'number'  => $item->specs_number,
         'barcode' => $item->specs_barcode->barcode
-      );
-      $info['exp'] = array(
-        'number'  => $item->exp_number,
-        'barcode' => $item->exp_barcode->barcode
       );
     }
 
@@ -627,7 +607,7 @@ class Controller_Analysis extends Controller {
     if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('required' => TRUE, 'label' => 'Site', 'attr' => array('class' => 'siteopts')));
     else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('required' => TRUE, 'label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode')) : array()));
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
-    if ($has_specs_info) $form = $form->add_group('specs_info', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+    if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
 
     if (!$has_specs_info and !$has_exp_info) {
       $form = $form
@@ -657,7 +637,7 @@ class Controller_Analysis extends Controller {
       if ($has_site_id) $site_id = $form->site_id->val();
       else $operator_id = $form->operator_id->val();
       if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
-      if ($has_specs_info) $specs_info = $form->specs_info->val();
+      if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
 
       if (!$has_specs_info and !$has_exp_info) {
         $from = $form->from->val();
@@ -682,7 +662,7 @@ class Controller_Analysis extends Controller {
       if ($block_id)    $record_ids->where('block_id', 'IN', (array) $block_id);
       if ($status)      $record_ids->where('status', 'IN', (array) $status);
 
-      if (Valid::is_barcode($specs_info)) $record_ids->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+      if (Valid::is_barcode($specs_barcode)) $record_ids->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
       if (!$has_specs_info and !$has_exp_info) $record_ids->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       if ($limit) $record_ids->limit($limit);
@@ -784,30 +764,26 @@ class Controller_Analysis extends Controller {
           ->as_array();
 
         unset($info);
-        if ($specs_info) {
+        if ($specs_barcode) {
           $sample = ORM::factory($form_type, reset($download_record_ids));
           $info['specs'] = array(
             'number'  => $sample->specs_number,
             'barcode' => $sample->specs_barcode->barcode
-          );
-          if (Valid::numeric($specs_info)) $info['exp'] = array(
-            'number'  => $sample->exp_number,
-            'barcode' => $sample->exp_barcode->barcode
           );
         }
 
         foreach ($model::$checks as $type => $info) if (in_array($type, $checks)) $_checks[$type] = $info;
 
         self::download_checks_report($form_type, $download_record_ids, array(
-          'specs_info' => $info ? array_filter((array) $info['specs']) : NULL,
-          'exp_info'   => $info ? array_filter((array) $info['exp']) : NULL,
-          'operator'   => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
-          'site'       => $site_id ? ORM::factory('site', $site_id) : NULL,
-          'block'      => $block_id ? ORM::factory('block', $block_id) : NULL,
-          'from'       => $from,
-          'to'         => $to,
-          'checks'     => $_checks,
-          'report'     => $data,
+          'specs_barcode' => $info ? array_filter((array) $info['specs']) : NULL,
+          'exp_info'      => $info ? array_filter((array) $info['exp']) : NULL,
+          'operator'      => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
+          'site'          => $site_id ? ORM::factory('site', $site_id) : NULL,
+          'block'         => $block_id ? ORM::factory('block', $block_id) : NULL,
+          'from'          => $from,
+          'to'            => $to,
+          'checks'        => $_checks,
+          'report'        => $data,
         ));
       }
 
@@ -818,26 +794,26 @@ class Controller_Analysis extends Controller {
       if ($failure)   Notify::msg($failure.' records could not be accessed.', 'error', TRUE);
 
       Session::instance()->set('pagination.checks', array(
-        'operator_id' => $operator_id,
-        'site_id'     => $site_id,
-        'block_id'    => $block_id,
-        'specs_info'  => $specs_info,
-        'status'      => $status,
-//        'display'     => $display,
-        'checks'      => $checks,
-        'limit'       => $limit,
-        'form_type'   => $form_type,
-        'from'        => $from,
-        'to'          => $to,
-        'data'        => $data,
-        'record_ids'  => $record_ids
+        'operator_id'   => $operator_id,
+        'site_id'       => $site_id,
+        'block_id'      => $block_id,
+        'specs_barcode' => $specs_barcode,
+        'status'        => $status,
+//        'display'       => $display,
+        'checks'        => $checks,
+        'limit'         => $limit,
+        'form_type'     => $form_type,
+        'from'          => $from,
+        'to'            => $to,
+        'data'          => $data,
+        'record_ids'    => $record_ids
       ));
     }
     else if ($settings = Session::instance()->get('pagination.checks')) {
       if ($has_site_id)  $form->site_id->val($site_id = $settings['site_id']);
       else $form->operator_id->val($operator_id = $settings['operator_id']);
       if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
-      if ($has_specs_info) $form->specs_info->val($specs_info = $settings['specs_info']);
+      if ($has_specs_info) $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
 
       $form->status->val($status = $settings['status']);
 //      $form->display->val($display = $settings['display']);
@@ -869,7 +845,7 @@ class Controller_Analysis extends Controller {
       else if ($operator_id) $records = $records->where('operator_id', 'IN', (array) $operator_id);
       if ($has_site_id and $has_block_id and $block_id) $records = $records->where('block_id', 'IN', (array) $block_id);
 
-      if (Valid::is_barcode($specs_info))   $records = $records->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_info, NULL, TRUE));
+      if (Valid::is_barcode($specs_barcode))   $records = $records->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
       if (!$has_specs_info and !$has_exp_info) $records = $records->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       $clone = clone($records);
@@ -886,15 +862,11 @@ class Controller_Analysis extends Controller {
         ->as_array();
 
       unset($info);
-      if ($specs_info) {
+      if ($specs_barcode) {
         $sample = reset($records);
         $info['specs'] = array(
           'number'  => $sample->specs_number,
           'barcode' => $sample->specs_barcode->barcode
-        );
-        if (Valid::numeric($specs_info)) $info['exp'] = array(
-          'number'  => $sample->exp_number,
-          'barcode' => $sample->exp_barcode->barcode
         );
       }
 
@@ -908,7 +880,7 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('specs_barcode', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array(
           'table'   => FALSE,
@@ -935,7 +907,7 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('specs_barcode', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array(
           'hide_header_info' => TRUE,

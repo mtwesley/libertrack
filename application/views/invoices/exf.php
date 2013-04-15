@@ -240,6 +240,10 @@ $options = (array) $options + array(
     clear: both;
   }
 
+  sup {
+    font-size: 75%;
+  }
+
 </style>
 <?php endif; ?>
 
@@ -508,15 +512,15 @@ $options = (array) $options + array(
     }
 
     img.liberfor-bw {
-      height: 20px;
+      height: 22px;
     }
 
     img.sgs-bw {
-      height: 20px;
+      height: 22px;
     }
 
     img.fda-bw {
-      height: 20px;
+      height: 22px;
     }
 
     .invoice-footer {
