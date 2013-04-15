@@ -592,15 +592,12 @@ class Controller_Analysis extends Controller {
         5000  => '5000 records',
         10000 => '10000 records'), NULL, array('label' => 'Limit'))
       ->add_group('status', 'checkboxes', SGS::$data_status, array('P', 'R'), array('label' => 'Status'))
-//      ->add_group('display', 'checkboxes', SGS::$data_status, array('P', 'A', 'R'), array('label' => 'Display'))
       ->add_group('checks', 'checkboxes', $check_options, array_diff(array_keys($check_options), array('consistency', 'reliability')), array('label' => 'Check'))
-      ->add('submit', 'submit', 'Check')
-      ->add('download', 'submit', 'Download');
+      ->add_group('format', 'radios', array('R' => 'Run Checks', 'D' => 'Download Report', 'RD' => 'Run Checks and Download Report'), 'R', array('label' => 'Action'))
+      ->add('submit', 'submit', 'Go');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       Session::instance()->delete('pagination.checks');
-
-      $download = isset($_POST['download']);
 
       if ($has_site_id) $site_id = $form->site_id->val();
       else $operator_id = $form->operator_id->val();
@@ -613,9 +610,12 @@ class Controller_Analysis extends Controller {
       }
 
       $status  = $form->status->val();
-//      $display = $form->display->val();
       $checks  = $form->checks->val();
       $limit   = $form->limit->val();
+      $format  = $form->format->val();
+
+      $run      = strpos($format, 'R') !== FALSE;
+      $download = strpos($format, 'D') !== FALSE;
 
       $rejected  = 0;
       $accepted  = 0;
@@ -660,8 +660,8 @@ class Controller_Analysis extends Controller {
         $warnings = array();
 
         try {
-          if ($download) $raw = array('errors' => $record->get_errors(TRUE), 'warnings' => $record->get_warnings(TRUE));
-          else list($raw['errors'], $raw['warnings']) = $record->run_checks();
+          if ($run) list($raw['errors'], $raw['warnings']) = $record->run_checks();
+          else $raw = array('errors' => $record->get_errors(TRUE), 'warnings' => $record->get_warnings(TRUE));
           foreach ($raw['errors'] as $re) $errors += array_keys($re);
           foreach ($raw['warnings'] as $rw) $warnings += array_keys($rw);
         } catch (ORM_Validation_Exception $e) {
@@ -767,7 +767,7 @@ class Controller_Analysis extends Controller {
         'block_id'      => $block_id,
         'specs_barcode' => $specs_barcode,
         'status'        => $status,
-//        'display'       => $display,
+        'format'        => $format,
         'checks'        => $checks,
         'limit'         => $limit,
         'form_type'     => $form_type,
@@ -784,7 +784,7 @@ class Controller_Analysis extends Controller {
       if ($has_specs_info) $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
 
       $form->status->val($status = $settings['status']);
-//      $form->display->val($display = $settings['display']);
+      $form->format->val($format = $settings['format']);
       $form->checks->val($checks = $settings['checks']);
 
       if (!$has_specs_info and !$has_exp_info) {
