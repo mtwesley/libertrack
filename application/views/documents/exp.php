@@ -53,10 +53,18 @@ $options = (array) $options + array(
   }
 
   .liberfor-logo {
-    text-align: right;
+    text-align: left;
   }
 
   .liberfor-logo img {
+    height: 32px;
+  }
+
+  .fda-logo {
+    text-align: right;
+  }
+
+  .fda-logo img {
     height: 32px;
   }
 
@@ -66,10 +74,6 @@ $options = (array) $options + array(
 
   .sgs-logo img {
     height: 35px;
-  }
-
-  .fda-logo img {
-    height: 32px;
   }
 
   .exp {
@@ -295,11 +299,11 @@ $options = (array) $options + array(
   <div class="exp-header">
     <table class="exp-header-table">
       <tr>
-        <td class="sgs-logo"><img src="<?php echo DOCROOT; ?>images/invoice/sgs_logo.jpg" /></td>
         <td class="liberfor-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_liberfor.jpg" /></td>
+        <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="exp-title">Wood Products Export Permit</div>
+    <div class="exp-title">Export Shipment Specification - Logs</div>
   </div>
   <?php endif; ?>
 
