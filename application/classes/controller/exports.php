@@ -835,14 +835,14 @@ VALIDATION: $secret";
       Session::instance()->delete('pagination.exports.documents.list');
 
       $reference  = $form->reference->val();
-      $validation = $form->validation->val();
+      $validation = strtolower($form->validation->val());
 
       $parts  = explode(' ', $reference);
       $type   = $parts[0];
       $number = $parts[1];
 
       if (!in_array($length = strlen($validation), array(16, 17, 64))) break;
-      if (!in_array($type, SGS::$document_type)) break;
+      if (!in_array($type, array('EP', 'SPEC'))) break;
       if (strlen($number) != 6) break;
 
       $query = DB::select('documents.id')
