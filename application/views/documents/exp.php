@@ -230,8 +230,7 @@ $options = (array) $options + array(
   .exp-title {
     margin: 0 0 5px;
     text-align: center;
-    font-weight: bold;
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .exp-subtitle {
@@ -303,7 +302,7 @@ $options = (array) $options + array(
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="exp-title">Export Shipment Specification - Logs</div>
+    <div class="exp-title">Wood Products Export Permit</div>
   </div>
   <?php endif; ?>
 
