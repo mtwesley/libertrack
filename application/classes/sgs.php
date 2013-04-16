@@ -889,17 +889,17 @@ class SGS {
 
   public static function floatify($float, $precision = 0)
   {
-    return number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
+    return (string) number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
   }
 
   public static function quantitify($quantity, $precision = 3)
   {
-    return number_format(floor($quantity * pow(10, $precision)) / pow(10, $precision), $precision);
+    return (string) number_format(floor($quantity * pow(10, $precision)) / pow(10, $precision), $precision);
   }
 
   public static function amountify($amount, $precision = 2)
   {
-    return number_format(floor($amount * pow(10, $precision)) / pow(10, $precision), $precision);
+    return (string) number_format(floor($amount * pow(10, $precision)) / pow(10, $precision), $precision);
   }
 
   public static function locationify($string, $slash = '/')

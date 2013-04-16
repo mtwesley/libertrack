@@ -125,7 +125,7 @@ $classes[] = 'data';
     </td>
     <td>
       <div class="strong">Quantity</div>
-      <?php echo $total_quantity; ?> m<sup>3</sup>
+      <?php echo SGS::quantitify($total_quantity); ?> m<sup>3</sup>
     </td>
   </tr>
   <tr>
