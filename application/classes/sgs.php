@@ -126,9 +126,10 @@ class SGS {
     'invoices/create/st'  => 'Stumpage Invoice',
     'invoices/create/exf' => 'Export Fee Invoice',
 
-    'exports'                  => 'Exporting',
-    'exports/documents'        => 'List Documents',
-    'exports/documents/create' => 'Create Documents',
+    'exports'                    => 'Exporting',
+    'exports/documents'          => 'List Documents',
+    'exports/documents/validate' => 'Validate Documents',
+    'exports/documents/create'   => 'Create Documents',
 
     'exports/documents/create/specs' => 'Shipment Specification',
     'exports/documents/create/exp'   => 'Export Permit',

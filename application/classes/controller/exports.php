@@ -824,6 +824,145 @@ VALIDATION: $secret";
     $this->response->body($view);
   }
 
+  private function handle_document_validate() {
+    if (!Request::$current->query()) Session::instance()->delete('pagination.exports.documents.list');
+    $form = Formo::form()
+      ->add('reference', 'input', NULL, array('label' => 'Reference Number', 'required' => TRUE))
+      ->add('validation', 'input', NULL, array('label' => 'Validation Code', 'required' => TRUE))
+      ->add('submit', 'submit', 'Validate');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) { do {
+      Session::instance()->delete('pagination.exports.documents.list');
+
+      $reference  = $form->reference->val();
+      $validation = $form->validation->val();
+
+      $parts  = explode(' ', $reference);
+      $type   = $parts[0];
+      $number = $parts[1];
+
+      if (!in_array($length = strlen($validation), array(16, 17, 64))) break;
+      if (!in_array($type, SGS::$document_type)) break;
+      if (strlen($number) != 6) break;
+
+      $query = DB::select('documents.id')
+        ->from('documents')
+        ->join('qrcodes')
+        ->on('documents.qrcode_id', '=', 'qrcodes.id');
+      switch ($length) {
+        case 16: $query->where('qrcode', 'LIKE', '%'.$validation.'%'); break;
+        case 17: $query->where(DB::expr('position(\''.substr($validation, 1).'\' in qrcode)'), '=', substr($validation, 1, 1)); break;
+        case 64: $query->where('qrcode', '=', $validation); break;
+        default: break 2;
+      }
+
+      $id = $query
+        ->where('number', '=', (int) $number)
+        ->execute()
+        ->get('id');
+
+      $document  = ORM::factory('document', $id);
+      $documents = array($document);
+
+      if ($document->loaded()) {
+        $valid = TRUE;
+
+        $data_ids = $document->get_data();
+        $func     = strtolower('generate_'.$document->type.'_preview');
+        $summary  = self::$func($document, (array) $data_ids);
+
+        switch ($document->type) {
+          case 'EXP': $form_type = 'SPECS'; break;
+          case 'SPECS': $form_type = 'SPECS'; break;
+        }
+
+        $summary_data = ORM::factory($form_type)
+          ->where(strtolower($form_type).'.id', 'IN', (array) $data_ids)
+          ->join('barcodes')
+          ->on('barcode_id', '=', 'barcodes.id')
+          ->order_by('barcode', 'ASC');
+
+        $summary_clone = clone($summary_data);
+        $summary_pagination = Pagination::factory(array(
+          'current_page' => array(
+            'source' => 'query_string',
+            'key' => 'summary_page',
+          ),
+          'items_per_page' => 50,
+          'total_items' => $summary_clone->find_all()->count()));
+
+        $summary_data = $summary_data
+          ->offset($summary_pagination->offset)
+          ->limit($summary_pagination->items_per_page)
+          ->find_all()
+          ->as_array();
+
+        unset($info);
+        if ($form_type == 'SPECS') {
+          $sample = reset($summary_data);
+          $info['specs'] = array(
+            'number'  => $sample->specs_number,
+            'barcode' => $sample->specs_barcode->barcode
+          );
+        }
+
+        $summary_header = View::factory('data')
+          ->set('form_type', $form_type)
+          ->set('data', $summary_data)
+          ->set('operator', $document->operator->loaded() ? $document->operator : NULL)
+          ->set('site', $document->site->loaded() ? $document->site : NULL)
+          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+          ->set('options', array(
+            'table'   => FALSE,
+            'rows'    => FALSE,
+            'actions' => FALSE,
+            'header'  => TRUE,
+            'details' => FALSE,
+            'links'   => FALSE
+          ))
+          ->render();
+
+        $summary_table = View::factory('data')
+          ->set('classes', array('has-pagination'))
+          ->set('form_type', $form_type)
+          ->set('data', $summary_data)
+          ->set('operator', $document->operator->loaded() ? $document->operator : NULL)
+          ->set('site', $document->site->loaded() ? $document->site : NULL)
+          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+          ->set('options', array(
+            'links'  => FALSE,
+            'header' => FALSE,
+            'hide_header_info' => TRUE
+          ))
+          ->render();
+      } else break; } while (false);
+
+      if ($valid) Notify::msg('Valid match found.', 'success');
+      else Notify::msg('Invalid match. Not found.', 'error');
+
+    }
+
+    if ($documents) $table = View::factory('documents')
+      ->set('mode', 'exports')
+      ->set('classes', array('has-pagination'))
+      ->set('documents', $documents)
+      ->render();
+
+    if ($form) $content .= $form->render();
+
+    $content .= $summary_header;
+    $content .= $table;
+    $content .= $pagination;
+    $content .= $summary;
+    $content .= $summary_table;
+    $content .= $summary_pagination;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
   private function handle_create() {
     $id      = $this->request->param('id');
     $command = $this->request->param('command');
@@ -917,6 +1056,7 @@ VALIDATION: $secret";
 
     switch ($command) {
       case 'create': return self::handle_create();
+      case 'validate': return self::handle_document_validate();
       case 'finalize': return self::handle_document_finalize($id);
       case 'delete': return self::handle_document_delete($id);
       case 'list':

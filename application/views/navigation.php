@@ -137,6 +137,7 @@ if (!$command && !is_numeric($id)) {
       </ul>
       <?php endif; ?>
     </li>
+    <li class="<?php if ($secondary == 'documents' and $command == 'validate') echo 'active'; ?>"><?php echo HTML::anchor('exports/documents/validate', SGS::title('exports/documents/validate')); ?></li>
 
     <?php elseif ($primary == 'barcodes' or $primary == 'printjobs'): ?>
     <li class="<?php if ($primary == 'barcodes' and $secondary == 'list')      echo 'active'; ?>"><?php echo HTML::anchor('barcodes/list', SGS::title('barcodes/list')); ?></li>
