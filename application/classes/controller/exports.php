@@ -861,11 +861,10 @@ VALIDATION: $secret";
         ->execute()
         ->get('id');
 
-      $document  = ORM::factory('document', $id);
-      $documents = array($document);
-
+      $document = ORM::factory('document', $id);
       if ($document->loaded()) {
-        $valid = TRUE;
+        $documents = array($document);
+        $valid     = TRUE;
 
         $data_ids = $document->get_data();
         $func     = strtolower('generate_'.$document->type.'_preview');

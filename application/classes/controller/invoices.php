@@ -103,6 +103,8 @@ class Controller_Invoices extends Controller {
           $form_type = 'LDF';
           $ids = DB::select('ldf_data.id')
             ->from('ldf_data')
+            ->join('barcodes')
+            ->on('ldf_data.barcode_id', '=', 'barcodes.id')
             ->join(DB::expr('"barcodes" as "parent_barcodes"'))
             ->on('ldf_data.parent_barcode_id', '=', 'parent_barcodes.id')
             ->join('barcode_hops_cached')
@@ -121,6 +123,7 @@ class Controller_Invoices extends Controller {
               ->where('invoices.type', '<>', 'ST')
               ->or_where('invoices.id', '=', NULL)
             ->and_where_close()
+            ->order_by('barcode')
             ->execute()
             ->as_array(NULL, 'id');
           break;
@@ -128,17 +131,26 @@ class Controller_Invoices extends Controller {
         case 'EXF':
           $form_type = 'SPECS';
           $ids = DB::select('specs_data.id')
+            ->distinct(TRUE)
             ->from('specs_data')
             ->join('document_data')
             ->on('specs_data.id', '=', 'document_data.form_data_id')
             ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+            ->join('barcodes')
+            ->on('specs_data.barcode_id', '=', 'barcodes.id')
             ->join('invoice_data', 'LEFT OUTER')
             ->on('specs_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
             ->join('invoices', 'LEFT OUTER')
             ->on('invoice_data.invoice_id', '=', 'invoices.id')
+            ->join('barcode_activity', 'LEFT OUTER')
+            ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
             ->where('document_data.document_id', '=', SGS::lookup_document('SPECS', $specs_number, TRUE))
             ->and_where('invoice_data.form_data_id', '=', NULL)
+            ->and_where_open()
+              ->where('barcode_activity.activity', 'NOT IN', array('S'))
+              ->or_where('barcode_activity.activity', '=', NULL)
+            ->and_where_close()
             ->and_where_open()
               ->where('invoices.type', '<>', 'EXF')
               ->or_where('invoices.id', '=', NULL)
