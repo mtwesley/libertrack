@@ -284,7 +284,7 @@ $options = (array) $options + array(
   }
 
   .qr_image img {
-    height: 80px;
+    height: 75px;
   }
 
 </style>

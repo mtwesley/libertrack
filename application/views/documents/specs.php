@@ -246,7 +246,7 @@ $num = $cntr;
   }
 
   .qr_image img {
-    height: 60px;
+    height: 75px;
   }
 
 
@@ -276,15 +276,9 @@ $num = $cntr;
         <td><?php echo $exp->number ? 'EP '.$exp->number : 'DRAFT'; ?></td>
       </tr>
       <tr>
-        <td class="label">Submitted By:</td>
-        <td><?php echo $document->values['submitted_by']; ?></td>
-        <td class="label">Date:</td>
-        <td><?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
-      </tr>
-      <tr>
         <td class="label">Exporter Name:</td>
         <td colspan="2"><?php echo $document->operator->name; ?></td>
-        <td class="qr-image" rowspan="6">
+        <td class="qr_image" rowspan="4">
           <img src="<?php echo $qr_image; ?>" />
         </td>
       </tr>
@@ -297,16 +291,20 @@ $num = $cntr;
         <td colspan="2"><?php echo $document->values['buyer']; ?></td>
       </tr>
       <tr>
-        <td class="label">Port of Origin:</td>
-        <td colspan="2"><?php echo SGS::locationify($document->values['origin']); ?></td>
-      </tr>
-      <tr>
-        <td class="label">Port of Destination:</td>
-        <td colspan="2"><?php echo SGS::locationify($document->values['destination']); ?></td>
-      </tr>
-      <tr>
         <td class="label">Expected Loading Date:</td>
         <td colspan="2"><?php echo $document->values['loading_date']; ?></td>
+      </tr>
+      <tr>
+        <td class="label">Port of Origin:</td>
+        <td><?php echo SGS::locationify($document->values['origin']); ?></td>
+        <td class="label">Port of Destination:</td>
+        <td><?php echo SGS::locationify($document->values['destination']); ?></td>
+      </tr>
+      <tr>
+        <td class="label">Submitted By:</td>
+        <td><?php echo $document->values['submitted_by']; ?></td>
+        <td class="label">Date:</td>
+        <td><?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
       </tr>
     </table>
   </div>

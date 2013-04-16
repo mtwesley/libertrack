@@ -206,7 +206,7 @@ VALIDATION: $secret";
       ->find_all()
       ->as_array();
 
-    $page_max = 25;
+    $page_max = 28;
     $total = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
       ->where('id', 'IN', (array) $data_ids)
