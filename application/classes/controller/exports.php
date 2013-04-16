@@ -60,28 +60,23 @@ class Controller_Exports extends Controller {
       ->get('sum');
 
     $qr_array = array(
-      'EP NUMBER'        => $document->number,
-      'EXPORTER'         => $document->operator->name,
-//      'EXPORTER ADDRESS' => str_replace("\n", ' ', $document->operator->address),
-      'ORIGIN'           => $document->values['origin'],
-      'DESTINATION'      => $document->values['destination'],
-      'PRODUCT TYPE'     => $document->values['product_type'],
+      'EP NUMBER'           => $document->number,
+      'EXPORTER'            => $document->operator->name,
+      'ORIGIN'              => $document->values['origin'],
+      'DESTINATION'         => $document->values['destination'],
+      'PRODUCT TYPE'        => $document->values['product_type'],
       'PRODUCT DESCRIPTION' => $document->values['product_description'],
-//      'ETA'              => SGS::date($document->values['eta_date']),
-//      'INSPECTION DATE'  => SGS::date($document->values['inspection_date']),
-//      'INSPECTION LOCATION' => $document->values['inspection_location'],
-      'VESSEL'           => $document->values['vessel'],
-      'BUYER'            => $document->values['buyer'],
-//      'BUYER ADDRESS'    => str_replace("\n", ' ', $document->values['buyer_address']),
-      'QUANTITY'         => SGS::quantitify($total_quantity).'m3',
-      'FOB'              => '$'.SGS::amountify($total_fob),
+      'VESSEL'              => $document->values['vessel'],
+      'BUYER'               => $document->values['buyer'],
+      'QUANTITY'            => SGS::quantitify($total_quantity).'m3',
+      'FOB'                 => '$'.SGS::amountify($total_fob),
     );
 
+    $hash   = $document->get_hash();
+    $secret = strtoupper(substr($hash, mt_rand(0, strlen($hash) - 16), 16));
 
-    $hash   = md5($document->values['specs_barcode']);
-    $secret = strtoupper(implode(':',str_split($hash, 8)));
-
-    $disclaimer = "FOR VALIDATION, PLEASE CONTACT SGS-LIBERFOR:
+    $disclaimer = "
+FOR VALIDATION, PLEASE CONTACT SGS-LIBERFOR:
 PHONE: +231886410110
 EMAIL: MYERS.TUWEH@SGS.COM
 
@@ -90,16 +85,23 @@ VALIDATION: $secret";
     foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\n";
     $qr_text .= $disclaimer;
 
-    $newdir = implode(DIRECTORY_SEPARATOR, array('qr'));
-    $newname = 'QR_'.$hash;
-
-    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
-      Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error');
-      return FALSE;
+    $tempname = tempnam(sys_get_temp_dir(), 'qr_').'.png';
+    try {
+      QRcode::png($qr_text, $tempname, QR_ECLEVEL_L, 2, 1);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate validation image. Please try again.', 'error');
     }
 
-    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
-    QRcode::png($qr_text, $fullname, QR_ECLEVEL_L, 2, 1);
+    if ($document->is_draft === FALSE) try {
+      $qr = ORM::factory('qrcode');
+      $qr->qrcode = $hash;
+      $qr->save();
+      $document->qrcode = $qr;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to create validation code. Please try again.', 'error');
+    }
 
     $html .= View::factory('documents/exp')
       ->set('options', array(
@@ -107,7 +109,7 @@ VALIDATION: $secret";
         'styles'  => TRUE,
         'break'   => FALSE
       ))
-      ->set('qr_image', $fullname)
+      ->set('qr_image', $tempname)
       ->set('document', $document)
       ->set('total_quantity', $total_quantity)
       ->set('total_fob', $total_fob)
@@ -118,9 +120,7 @@ VALIDATION: $secret";
 
     // save file
     $ext = 'pdf';
-    $newdir = implode(DIRECTORY_SEPARATOR, array(
-      'exp',
-    ));
+    $newdir = implode(DIRECTORY_SEPARATOR, array('exp'));
 
     if ($document->is_draft) $newname = 'EXP_DRAFT_'.SGS::date('now', 'Y_m_d').'.'.$ext;
     else $newname = 'EXP_'.$document->number.'.'.$ext;
@@ -178,7 +178,6 @@ VALIDATION: $secret";
   }
 
   private function generate_specs_preview($document, $data_ids) {
-    $sample = ORM::factory('SPECS', reset($data_ids));
     $total  = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
       ->where('id', 'IN', (array) $data_ids)
@@ -207,20 +206,58 @@ VALIDATION: $secret";
       ->find_all()
       ->as_array();
 
-    $page_max      = 30;
-    $last_page_max = 29;
-
+    $page_max = 25;
     $total = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
       ->where('id', 'IN', (array) $data_ids)
       ->execute()
       ->get('sum');
 
+    $qr_array = array(
+      'SPEC NUMBER' => $document->number,
+      'EP NUMBER'   => $exp->number,
+      'EXPORTER'    => $document->operator->name,
+      'ORIGIN'      => $document->values['origin'],
+      'DESTINATION' => $document->values['destination'],
+      'QUANTITY'    => SGS::quantitify($total).'m3',
+    );
+
+    $hash   = $document->get_hash();
+    $secret = strtoupper(substr($hash, mt_rand(0, strlen($hash) - 16), 16));
+
+    $disclaimer = "
+FOR VALIDATION, PLEASE CONTACT SGS-LIBERFOR:
+PHONE: +231886410110
+EMAIL: MYERS.TUWEH@SGS.COM
+
+VALIDATION: $secret";
+
+    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\n";
+    $qr_text .= $disclaimer;
+
+    $tempname = tempnam(sys_get_temp_dir(), 'qr_').'.png';
+    try {
+      QRcode::png($qr_text, $tempname, QR_ECLEVEL_L, 2, 1);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate validation image. Please try again.', 'error');
+    }
+
+    if ($document->is_draft === FALSE) try {
+      $qr = ORM::factory('qrcode');
+      $qr->qrcode = $hash;
+      $qr->save();
+      $document->qrcode = $qr;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to create validation code. Please try again.', 'error');
+    }
+
     $cntr   = 0;
     $styles = TRUE;
     while ($cntr < count($data_ids)) {
       $last = count($data_ids) > ($cntr + $max);
-      $max  = $last ? $last_page_max : $page_max;
+      $max  = $page_max;
 
       $set  = array_slice($records, $cntr, $max);
       $html .= View::factory('documents/specs')
@@ -231,6 +268,7 @@ VALIDATION: $secret";
           'styles'  => $styles ? TRUE : FALSE,
           'total'   => $last ? FALSE : TRUE
         ))
+        ->set('qr_image', $tempname)
         ->set('document', $document)
         ->set('exp', $exp)
         ->set('cntr', $cntr)

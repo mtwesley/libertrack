@@ -240,6 +240,16 @@ $num = $cntr;
     font-size: 75%;
   }
 
+  .qr_image {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .qr_image img {
+    height: 60px;
+  }
+
+
 </style>
 <?php endif; ?>
 
@@ -266,28 +276,37 @@ $num = $cntr;
         <td><?php echo $exp->number ? 'EP '.$exp->number : 'DRAFT'; ?></td>
       </tr>
       <tr>
-        <td class="label">Exporter TIN:</td>
-        <td><?php echo $document->operator->tin; ?></td>
-        <td class="label">Exporter Company Name:</td>
-        <td><?php echo $document->operator->name; ?></td>
-      </tr>
-      <tr>
-        <td class="label">Port of Origin:</td>
-        <td><?php echo SGS::locationify($document->values['origin']); ?></td>
-        <td class="label">Expected Loading Date:</td>
-        <td><?php echo $document->values['loading_date']; ?></td>
-      </tr>
-      <tr>
-        <td class="label">Port of Destination:</td>
-        <td><?php echo SGS::locationify($document->values['destination']); ?></td>
-        <td class="label">Buyer:</td>
-        <td><?php echo $document->values['buyer']; ?></td>
-      </tr>
-      <tr>
         <td class="label">Submitted By:</td>
         <td><?php echo $document->values['submitted_by']; ?></td>
         <td class="label">Date:</td>
         <td><?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
+      </tr>
+      <tr>
+        <td class="label">Exporter Name:</td>
+        <td colspan="2"><?php echo $document->operator->name; ?></td>
+        <td class="qr-image" rowspan="6">
+          <img src="<?php echo $qr_image; ?>" />
+        </td>
+      </tr>
+      <tr>
+        <td class="label">Exporter TIN:</td>
+        <td colspan="2"><?php echo $document->operator->tin; ?></td>
+      </tr>
+      <tr>
+        <td class="label">Buyer:</td>
+        <td colspan="2"><?php echo $document->values['buyer']; ?></td>
+      </tr>
+      <tr>
+        <td class="label">Port of Origin:</td>
+        <td colspan="2"><?php echo SGS::locationify($document->values['origin']); ?></td>
+      </tr>
+      <tr>
+        <td class="label">Port of Destination:</td>
+        <td colspan="2"><?php echo SGS::locationify($document->values['destination']); ?></td>
+      </tr>
+      <tr>
+        <td class="label">Expected Loading Date:</td>
+        <td colspan="2"><?php echo $document->values['loading_date']; ?></td>
       </tr>
     </table>
   </div>

@@ -5,7 +5,7 @@ class Model_Document extends ORM {
   protected $_belongs_to = array(
     'operator' => array(),
     'site'     => array(),
-    'barcode'  => array(),
+    'qrcode'   => array(),
     'file'     => array(),
     'user'     => array()
   );
@@ -17,7 +17,11 @@ class Model_Document extends ORM {
   }
 
   public function get_hash() {
-    
+    $values = $this->values;
+    sort($values);
+    ksort($values);
+
+    return hash_hmac('sha256', $document->id.':'.$document->number.':'.serialize($values), SGS::NEVER_THE_LESS);
   }
 
   public function get_data($args = array()) {

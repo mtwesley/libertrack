@@ -61,10 +61,6 @@ class Model_Barcode extends ORM {
     }
   }
 
-  public function save(Validation $validation = NULL) {
-    parent::create($validation);
-  }
-
   public function get_activity($current = TRUE) {
     $query = DB::select('activity')
       ->from('barcode_activity')

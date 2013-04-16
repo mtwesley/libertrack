@@ -262,6 +262,8 @@ $options = (array) $options + array(
 
   tr.info-bar,
   tr.info-bar td {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
     background-color: #cfcfcf;
   }
 
@@ -282,7 +284,7 @@ $options = (array) $options + array(
   }
 
   .qr_image img {
-    height: 75px;
+    height: 80px;
   }
 
 </style>

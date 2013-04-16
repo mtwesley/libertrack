@@ -842,6 +842,19 @@ end
 $$ language 'plpgsql';
 
 
+create function lookup_qrcode_id(x_hash character(64))
+  returns d_id as
+$$
+  declare x_id d_id;
+begin
+
+  select id from qrcodes where qrcode = x_qrcode limit 1 into x_id;
+  return x_id;
+
+end
+$$ language 'plpgsql';
+
+
 create function lookup_printjob_id(x_number int)
   returns d_id as
 $$

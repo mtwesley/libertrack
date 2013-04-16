@@ -387,6 +387,12 @@ class Controller_Invoices extends Controller {
       } else $this->request->redirect('invoices');
     }
     else {
+      $operator_ids = DB::select('id', 'name')
+        ->from('operators')
+        ->order_by('name')
+        ->execute()
+        ->as_array('id', 'name');
+
       $site_ids = DB::select('id', 'name')
         ->from('sites')
         ->order_by('name')
@@ -395,35 +401,41 @@ class Controller_Invoices extends Controller {
 
       $form = Formo::form()
         ->add_group('type', 'checkboxes', SGS::$invoice_type, NULL, array('label' => 'Type'))
-        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site'))
+        ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'site_operatoropts')))
+        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
         ->add('search', 'submit', 'Filter');
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.invoice.list');
 
-        $type    = $form->type->val();
-        $site_id = $form->site_id->val();
+        $type        = $form->type->val();
+        $operator_id = $form->operator_id->val();
+        $site_id     = $form->site_id->val();
 
         $invoices = ORM::factory('invoice');
 
-        if ($type)    $invoices->and_where('type', 'IN', (array) $type);
-        if ($site_id) $invoices->and_where('site_id', 'IN', (array) $site_id);
+        if ($type)        $invoices->and_where('type', 'IN', (array) $type);
+        if ($operator_id) $invoices->and_where('operator_id', 'IN', (array) $operator_id);
+        if ($site_id)     $invoices->and_where('site_id', 'IN', (array) $site_id);
 
         Session::instance()->set('pagination.invoice.list', array(
-          'type'    => $type,
-          'site_id' => $site_id,
+          'type'        => $type,
+          'operator_id' => $operator_id,
+          'site_id'     => $site_id,
         ));
       }
       else {
         if ($settings = Session::instance()->get('pagination.invoice.list')) {
           $form->type->val($type = $settings['type']);
+          $form->operator_id->val($operator_id = $settings['operator_id']);
           $form->site_id->val($site_id = $settings['site_id']);
         }
 
         $invoices = ORM::factory('invoice');
 
-        if ($type)    $invoices->and_where('type', 'IN', (array) $type);
-        if ($site_id) $invoices->and_where('site_id', 'IN', (array) $site_id);
+        if ($type)        $invoices->and_where('type', 'IN', (array) $type);
+        if ($operator_id) $invoices->and_where('operator_id', 'IN', (array) $operator_id);
+        if ($site_id)     $invoices->and_where('site_id', 'IN', (array) $site_id);
       }
 
       if ($invoices) {
