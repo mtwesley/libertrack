@@ -593,26 +593,25 @@ class Model_SPECS extends SGS_Form_ORM {
         $warnings['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
       }
       $successes['barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Found');
-
-      // payment
-      $ldf_parent = $ldf->parent();
-      if ($ldf_parent and $ldf_parent->loaded()) {
-        if ($ldf_parent::$type == 'F') {
-          if ($ldf->is_invoiced('ST')) $successes['barcode_id']['is_invoiced_st'] = array('value' => 'Invoiced', 'comparison' => 'N/A');
-          else $errors['barcode_id']['is_invoiced_st'] = array('value' => 'Not Invoiced', 'comparison' => 'N/A');
-        }
-        else $successes['barcode_id']['is_invoiced_st'] = array('value' => 'N/A', 'comparison' => 'N/A');
-      } else $errors['barcode_id']['is_invoiced_st'] = array('value' => 'Not Found', 'comparison' => 'N/A');
     }
     else {
       $errors['barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Not Found');
       $errors['barcode_id']['is_valid_parent'] = array('value' => 'Found', 'comparison' => 'Not Found');
     }
 
+    // payment
+    $ldf_parent = $ldf->parent();
+    if ($ldf_parent and $ldf_parent->loaded()) {
+      if ($ldf_parent::$type == 'TDF') {
+        if ($ldf->is_invoiced('ST')) $successes['barcode_id']['is_invoiced_st'] = array('value' => 'Invoiced', 'comparison' => 'N/A');
+        else $errors['barcode_id']['is_invoiced_st'] = array('value' => 'Not Invoiced', 'comparison' => 'N/A');
+      }
+      else $successes['barcode_id']['is_invoiced_st'] = array('value' => 'N/A', 'comparison' => 'N/A');
+    } else $errors['barcode_id']['is_invoiced_st'] = array('value' => 'Not Found', 'comparison' => 'N/A');
+
     // all tolerance checks fail if any traceability checks fail
     foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
       foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['barcode_id'][$check] = array();
-      foreach (self::$checks['payment']['checks'] as $check => $array) $errors['barcode_id'][$check] = array();
       break;
     }
 
