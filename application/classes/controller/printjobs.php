@@ -426,7 +426,7 @@ class Controller_PrintJobs extends Controller {
       }
     }
 
-    $pdf->Output('PRINTJOB_LABELS_'.$printjob->number.'.pdf', 'D');
+    die($pdf->Output('PRINTJOB_LABELS_'.$printjob->number.'.pdf', 'D'));
   }
 
 }
