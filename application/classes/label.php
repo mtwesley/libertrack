@@ -183,13 +183,15 @@ class Label extends FPDF {
       $this->AddPage();
     }
 
-    $_PosX = $this->_Margin_Left+($this->_COUNTX*($this->_Width+$this->_X_Space));
-    $_PosY = $this->_Margin_Top+($this->_COUNTY*($this->_Height+$this->_Y_Space));
-    $this->SetXY($_PosX+0.5, $_PosY+7);
-    $this->Image($file, $this->GetX()+6, NULL, 50, 12, $type);
-    $this->Image(DOCROOT.'images/barcode_footer.png', $this->GetX()+3.5, $this->GetY()+2.5, 56, NULL, 'PNG');
-    $this->SetXY($this->GetX()-1, $this->GetY()+0.5);
-    $this->MultiCell($this->_Width, $this->_Line_Height, $text, 0, 'C');
+    if ($text) {
+      $_PosX = $this->_Margin_Left+($this->_COUNTX*($this->_Width+$this->_X_Space));
+      $_PosY = $this->_Margin_Top+($this->_COUNTY*($this->_Height+$this->_Y_Space));
+      $this->SetXY($_PosX+0.5, $_PosY+7);
+      $this->Image($file, $this->GetX()+6, NULL, 50, 12, $type);
+      $this->Image(DOCROOT.'images/barcode_footer.png', $this->GetX()+3.5, $this->GetY()+2.5, 56, NULL, 'PNG');
+      $this->SetXY($this->GetX()-1, $this->GetY()+0.5);
+      $this->MultiCell($this->_Width, $this->_Line_Height, $text, 0, 'C');
+    }
     $this->_COUNTX++;
 
     if ($this->_COUNTX == $this->_X_Number) {
