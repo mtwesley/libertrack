@@ -95,7 +95,7 @@ class SGS {
 
     'printjobs/list'     => 'List Print Jobs',
     'printjobs/upload'   => 'Upload Print Jobs',
-    'printjobs/download' => 'Download Print Jobs',
+    'printjobs/download' => 'Download Print Job Masterlist',
 
     'users'           => 'Users',
     'users/list'      => 'Manage Users',

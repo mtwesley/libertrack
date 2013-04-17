@@ -566,6 +566,7 @@ class Model_SPECS extends SGS_Form_ORM {
       ->find();
 
     if ($ldf and $ldf->loaded()) {
+      if ($ldf->status == 'P') $ldf->run_checks();
       if ($ldf->status != 'A') $errors['barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$ldf->status]);
       else $successes['barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$ldf->status]);
 

@@ -544,8 +544,9 @@ class Model_TDF extends SGS_Form_ORM {
     $parent = $this->parent('SSF');
 
     if ($parent and $parent->loaded()) {
-      // if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
-      // else $successes['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
+       if ($parent->status == 'P') $parent->run_checks();
+       if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
+       else $successes['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
 
       if (!(ord($this->species->class) <= ord($parent->species->class))) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $parent->species->class);
       else if (!($this->species->code == $parent->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);
