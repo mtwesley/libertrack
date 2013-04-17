@@ -104,6 +104,7 @@ Kohana::modules(array(
 	'database'     => MODPATH.'database',     // Database access
 	'postgresql'   => MODPATH.'postgresql',   // PostgreSQL database access
 	'orm'          => MODPATH.'orm',          // Object relationship mapping
+	'phpbarcode'   => MODPATH.'phpbarcode',   // PHP Barcode generation
 	'phpqrcode'    => MODPATH.'phpqrcode',    // PHP QR Code generation
 	'phpexcel'     => MODPATH.'phpexcel',     // PHPExcel library
 	'dompdf'       => MODPATH.'dompdf',       // DOMPDF library

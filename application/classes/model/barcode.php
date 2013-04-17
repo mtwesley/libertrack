@@ -91,4 +91,8 @@ class Model_Barcode extends ORM {
     $query->execute();
   }
 
+  public function image($filename = FALSE) {
+    return Barcode::png($this->barcode, $filename);
+  }
+
 }

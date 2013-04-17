@@ -66,9 +66,8 @@ class Controller_PrintJobs extends Controller {
           }
         }
       }
-      elseif ($command == 'download') {
-        return $this->action_download($id);
-      }
+      elseif ($command == 'download') $this->action_download($id);
+      elseif ($command == 'labels') return $this->action_labels($id);
     }
     else {
       if (!Request::$current->query()) Session::instance()->delete('pagination.printjob.list');
@@ -403,6 +402,31 @@ class Controller_PrintJobs extends Controller {
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
 
+  }
+
+  public function action_labels($id) {
+    $barcodes = array();
+    $printjob = ORM::factory('printjob', $id);
+
+    if ($printjob->loaded()) $barcodes = DB::select('barcode')
+      ->distinct(TRUE)
+      ->from('barcodes')
+      ->where('printjob_id', '=', (array) $id)
+      ->execute()
+      ->as_array(NULL, 'barcode');
+
+    $pdf = new Label('L7159');
+    $pdf->Open();
+
+    foreach($barcodes as $barcode) {
+      $tempname = tempnam(sys_get_temp_dir(), 'br_');
+      Barcode::png($barcode, $tempname);
+      for ($i = 0; $i < 6; $i++) {
+        $pdf->Add_Barcode_Label($barcode, $tempname, 'PNG');
+      }
+    }
+
+    $pdf->Output('PRINTJOB_LABELS_'.$printjob->number.'.pdf', 'D');
   }
 
 }

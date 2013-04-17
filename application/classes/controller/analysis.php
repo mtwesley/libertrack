@@ -689,30 +689,28 @@ class Controller_Analysis extends Controller {
               $data['checks'][$type][$check]['passed']++;
             }
           }
-
-          switch ($record->status) {
-            case 'A':
-              $accepted++;
-              $data['total']['checked']++;
-              $data['total']['passed']++;
-              break;
-
-            case 'R':
-              $rejected++;
-              $data['total']['checked']++;
-              $data['total']['failed']++;
-              break;
-
-            default:
-              $unchecked++;
-              $data['total']['unchecked']++;
-              break;
-          }
-
           if ($total_warned) $data['total']['warned']++;
         }
 
         $data['total']['records']++;
+        switch ($record->status) {
+          case 'A':
+            $accepted++;
+            $data['total']['checked']++;
+            $data['total']['passed']++;
+            break;
+
+          case 'R':
+            $rejected++;
+            $data['total']['checked']++;
+            $data['total']['failed']++;
+            break;
+
+          default:
+            $unchecked++;
+            $data['total']['unchecked']++;
+            break;
+        }
 
         try {
           $record->save();

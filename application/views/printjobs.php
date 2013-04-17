@@ -19,6 +19,7 @@
           <?php echo HTML::anchor('printjobs/'.$printjob->id.'/edit', 'Edit', array('class' => 'link')); ?>
           <?php echo HTML::anchor('printjobs/'.$printjob->id.'/download', 'Download', array('class' => 'link')); ?>
           <?php echo HTML::anchor('printjobs/'.$printjob->id.'/barcodes', 'Barcodes', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('printjobs/'.$printjob->id.'/labels', 'Labels', array('class' => 'link')); ?>
         </div>
       </div>
     </td>

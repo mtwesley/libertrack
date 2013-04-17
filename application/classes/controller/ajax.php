@@ -33,6 +33,35 @@ class Controller_Ajax extends Controller {
     $this->response->body($value);
   }
 
+  public function action_labels() {
+    if (!Auth::instance()->logged_in('barcodes')) return $this->response->status(401);
+
+    $id = $this->request->post('id');
+
+    $barcodes = array();
+    $printjob = ORM::factory('printjob', $id);
+
+    if ($printjob->loaded()) $barcodes = DB::select('barcode')
+      ->distinct(TRUE)
+      ->from('barcodes')
+      ->where('printjob_id', '=', (array) $id)
+      ->execute()
+      ->as_array(NULL, 'barcode');
+
+    $pdf = new Label('L7159');
+    $pdf->Open();
+
+    foreach($barcodes as $barcode) {
+      $tempname = tempnam(sys_get_temp_dir(), 'br_');
+      Barcode::png($barcode, $tempname);
+      for ($i = 0; $i < 6; $i++) {
+        $pdf->Add_Barcode_Label($barcode, $tempname, 'PNG');
+      }
+    }
+
+    $pdf->Output('PRINTJOB_LABELS_'.$printjob->number.'.pdf', 'D');
+  }
+
   public function action_data() {
     if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
 

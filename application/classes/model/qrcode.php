@@ -12,8 +12,8 @@ class Model_QRCode extends ORM {
     );
   }
 
-  public function image($filename = FALSE, $size = 2, $margin = 2) {
-    return QRCode::png($this->qrcode, $filename, QR_ECLEVEL_H, $size, $margin);
+  public function image($filename = FALSE) {
+    return QRCode::png($this->qrcode, $filename, QR_ECLEVEL_H, 2, 1);
   }
 
 }
