@@ -123,7 +123,7 @@ class Controller_Invoices extends Controller {
               ->where('invoices.type', '<>', 'ST')
               ->or_where('invoices.id', '=', NULL)
             ->and_where_close()
-            ->order_by('barcode')
+            ->order_by('barcodes.barcode')
             ->execute()
             ->as_array(NULL, 'id');
           break;
@@ -155,6 +155,7 @@ class Controller_Invoices extends Controller {
               ->where('invoices.type', '<>', 'EXF')
               ->or_where('invoices.id', '=', NULL)
             ->and_where_close()
+            ->order_by('barcodes.barcode')
             ->execute()
             ->as_array(NULL, 'id');
           break;
