@@ -316,38 +316,55 @@ class Controller_Ajax extends Controller {
 
     if (!$type or !$value) return;
 
-    $query = DB::select()->from('specs_data');
+    $query = DB::select()
+      ->from('specs_data')
+      ->join('document_data', 'LEFT OUTER')
+      ->on('specs_data.id', '=', 'document_data.form_data_id')
+      ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+      ->join('documents', 'LEFT OUTER')
+      ->on('document_data.document_id', '=', 'documents.id')
+      ->join('barcode_activity', 'LEFT OUTER')
+      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
+      ->where('specs_data.status', '=', 'A')
+      ->and_where_open()
+        ->where('barcode_activity.activity', 'NOT IN', array('E'))
+        ->or_where('barcode_activity.activity', '=', NULL)
+      ->and_where_close()
+      ->and_where_open()
+        ->where('documents.type', '<>', 'EXP')
+        ->or_where('documents.id', '=', NULL)
+      ->and_where_close();
 
     switch ($type) {
       case 'specs_barcode':
-        $query->where('specs_barcode_id', '=', SGS::lookup_barcode($value));
+        $query = $query->where('specs_barcode_id', '=', SGS::lookup_barcode($value, NULL, TRUE));
         break;
 
       case 'specs_number':
-        $query->join('document_data')
+        $query = $query->join('document_data')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
           ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
           ->join('documents')
           ->on('document_data.document_id', '=', 'documents.id')
-          ->where('documents.id', '=', SGS::lookup_document('SPECS', $value));
+          ->where('documents.id', '=', SGS::lookup_document('SPECS', $value, TRUE));
         break;
 
       case 'exp_barcode':
-        $query->where('specs_barcode_id', '=', SGS::lookup_barcode($value));
+        $query = $query->where('specs_barcode_id', '=', SGS::lookup_barcode($value, NULL, TRUE));
         break;
 
       case 'exp_number':
-        $query->join('document_data')
+        $query = $query->join('document_data')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
           ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
           ->join('documents')
           ->on('document_data.document_id', '=', 'documents.id')
-          ->where('documents.id', '=', SGS::lookup_document('EXP', $value));
+          ->where('documents.id', '=', SGS::lookup_document('EXP', $value, TRUE));
         break;
     }
 
     $clone = clone($query);
-    $specs = array_filter(reset($query
+    $specs = reset(array_filter($query
       ->select('origin', 'destination', 'submitted_by', 'buyer', 'loading_date')
       ->limit(1)
       ->execute()
