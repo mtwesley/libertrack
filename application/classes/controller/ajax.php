@@ -371,11 +371,17 @@ class Controller_Ajax extends Controller {
       ->as_array()));
 
     if ($specs) {
-      foreach ($clone
+      $ids = (array) $clone
         ->distinct(TRUE)
-        ->select('species.code',array('sum("volume")', 'volume'))
+        ->select('specs_data.id')
+        ->execute()
+        ->as_array(NULL, 'id');
+
+      foreach (DB::select('species.code', array('sum("volume")', 'volume'))
+        ->from('specs_data')
         ->join('species')
         ->on('specs_data.species_id', '=', 'species.id')
+        ->where('specs_data.id', 'IN', (array) $ids)
         ->group_by('species.code')
         ->execute()
         ->as_array('code', 'volume') as $code => $volume) $prod_desc[] = $code.': '.SGS::quantitify($volume).'m3';
