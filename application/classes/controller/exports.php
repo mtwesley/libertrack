@@ -62,12 +62,10 @@ class Controller_Exports extends Controller {
     $qr_array = array(
       'EP NUMBER'           => $document->number,
       'EXPORTER'            => $document->operator->name,
+      'BUYER'               => $document->values['buyer'],
       'ORIGIN'              => $document->values['origin'],
       'DESTINATION'         => $document->values['destination'],
-      'PRODUCT TYPE'        => $document->values['product_type'],
-      'PRODUCT DESCRIPTION' => $document->values['product_description'],
       'VESSEL'              => $document->values['vessel'],
-      'BUYER'               => $document->values['buyer'],
       'QUANTITY'            => SGS::quantitify($total_quantity).'m3',
       'FOB'                 => '$'.SGS::amountify($total_fob),
     );
@@ -361,7 +359,7 @@ VALIDATION: $secret";
         $form->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'attr' => array('class' => 'origininput')));
         $form->add('destination', 'input', NULL, array('required' => TRUE, 'label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
         $form->add('product_type', 'input', NULL, array('required' => TRUE, 'label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
-        $form->add('product_description', 'input', NULL, array('required' => TRUE, 'label' => 'Product Description', 'attr' => array('class' => 'product_descriptioninput')));
+        $form->add('product_description', 'textarea', NULL, array('required' => TRUE, 'label' => 'Product Description', 'attr' => array('class' => 'product_descriptioninput')));
         $form->add('eta_date', 'input', NULL, array('required' => TRUE, 'label' => 'ETA', 'attr' => array('class' => 'dpicker eta_dateinput', 'id' => 'eta-dpicker')));
         $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')));
         $form->add('inspection_location', 'input', NULL, array('label' => 'Inspection Location', 'attr' => array('class' => 'inspection_locationinput')));
@@ -503,7 +501,7 @@ VALIDATION: $secret";
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
             ->where('specs_data.operator_id', '=', $operator_id)
-            ->and_where('specs_data.status', '=', 'A')
+//            ->and_where('specs_data.status', '=', 'A')
             ->and_where('specs_data.specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
             ->and_where_open()
               ->where('barcode_activity.activity', 'NOT IN', array('E'))

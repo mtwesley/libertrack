@@ -100,9 +100,10 @@ $options = (array) $options + array(
   .exp-summary-table tr td,
   .exp-details-table tr td,
   .exp-info-table tr td {
-    width: 50%;
+    width: 25%;
     padding: 2px 5px;
     border: 1px solid #000;
+    white-space: normal !important;
   }
 
   .exp-summary-table tr.head td,
@@ -210,7 +211,7 @@ $options = (array) $options + array(
   .exp-info-table tr td {
     padding: 4px 5px;
     vertical-align: top;
-    width: 50%;
+    width: 25%;
   }
 
   .exp-info-table tr td.label {
@@ -228,7 +229,7 @@ $options = (array) $options + array(
   .exp-titles {}
 
   .exp-title {
-    margin: 0 0 5px;
+    margin: 2px 0 5px;
     text-align: center;
     font-size: 18px;
   }
@@ -265,9 +266,14 @@ $options = (array) $options + array(
 
   tr.info-bar,
   tr.info-bar td {
-    padding-top: 4px !important;
-    padding-bottom: 4px !important;
-    background-color: #cfcfcf;
+    padding-top: 8px !important;
+    padding-bottom: 7px !important;
+    vertical-align: middle;
+  }
+
+  tr.info-bar td.qr_image {
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
   }
 
   .label {
@@ -283,7 +289,7 @@ $options = (array) $options + array(
   }
 
   .qr_image {
-    float: right;
+    text-align: center;
   }
 
   .qr_image img {
@@ -310,21 +316,32 @@ $options = (array) $options + array(
   <div class="exp-info">
     <table class="exp-info-table">
       <tr class="info-bar">
-        <td style="border-right: none !important;"><span class="label">EP Number:</span> <?php echo $document->number ? 'EP ' . $document->number : 'DRAFT'; ?></td>
-        <td style="border-left: none !important;"><span class="label">Date of Issue:</span> <?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
+        <td class="label">EP Number:</td>
+        <td colspan="2"><?php echo $document->number ? 'EP ' . $document->number : 'DRAFT'; ?></td>
+        <td class="qr_image" rowspan="3">
+          <div class="qr_image"><img src="<?php echo $qr_image; ?>" /></div>
+        </td>
+      </tr>
+      <tr class="info-bar">
+        <td class="label">SPECS Barcode:</td>
+        <td colspan="2"><?php echo $document->values['specs_barcode']; ?></td>
+      </tr>
+      <tr class="info-bar">
+        <td class="label">Date of Issue:</td>
+        <td colspan="2"><?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
       </tr>
       <tr>
-        <td colspan="2" class="blank stronger">Exporter</td>
+        <td colspan="4" class="blank stronger">Exporter</td>
       </tr>
       <tr>
-        <td>
+        <td colspan="2">
           <div class="strong">Name and Address</div>
           <div><?php echo $document->operator->name; ?></div>
           <?php if ($document->operator->address): ?>
           <div><?php echo nl2br($document->operator->address); ?></div>
           <?php endif; ?>
         </td>
-        <td>
+        <td colspan="2">
           <div class="strong">Contact Details</div>
           <div><em>TIN:</em> <?php echo $document->operator->tin; ?></div>
           <?php if ($document->operator->contact): ?>
@@ -339,7 +356,7 @@ $options = (array) $options + array(
         </td>
       </tr>
       <tr>
-        <td colspan="2" class="blank stronger">Shipping Reference</td>
+        <td colspan="4" class="blank stronger">Shipping Reference</td>
       </tr>
       <tr>
         <td>
@@ -347,14 +364,12 @@ $options = (array) $options + array(
           <?php echo SGS::locationify($document->values['origin']); ?>
         </td>
         <td>
-          <div class="strong">Name of Vessel</div>
-          <?php echo $document->values['vessel']; ?>
-        </td>
-      </tr>
-      <tr>
-        <td>
           <div class="strong">Port of Destination</div>
           <?php echo SGS::locationify($document->values['destination']); ?>
+        </td>
+        <td>
+          <div class="strong">Name of Vessel</div>
+          <?php echo $document->values['vessel']; ?>
         </td>
         <td>
           <div class="strong">ETA</div>
@@ -362,45 +377,43 @@ $options = (array) $options + array(
         </td>
       </tr>
       <tr>
-        <td colspan="2" class="blank stronger">Overall Shipment Description</td>
+        <td colspan="4" class="blank stronger">Overall Shipment Description</td>
       </tr>
       <tr>
         <td colspan="2">
           <div class="strong">Type</div>
           <?php echo $document->values['product_type']; ?>
         </td>
-      </tr>
-      <tr>
-        <td>
-          <div class="strong">Description</div>
-          <?php echo $document->values['product_description']; ?>
-        </td>
         <td>
           <div class="strong">Quantity</div>
           <?php echo SGS::quantitify($total_quantity); ?> m<sup>3</sup>
         </td>
-      </tr>
-      <tr>
-        <td colspan="2">
+        <td>
           <div class="strong">Total FOB Value (USD)</div>
           $<?php echo SGS::amountify($total_fob); ?>
         </td>
       </tr>
       <tr>
-        <td colspan="2" class="blank stronger">Buyer</td>
+        <td colspan="4">
+          <div class="strong">Description</div>
+          <?php echo preg_replace('/(\w+): (\d+\.\d+)m3/i', '<em>$1:</em> $2m<sup>3</sup>', $document->values['product_description']); ?>
+        </td>
       </tr>
       <tr>
-        <td>
+        <td colspan="4" class="blank stronger">Buyer</td>
+      </tr>
+      <tr>
+        <td colspan="2">
           <div class="strong">Name and Address</div>
           <div><?php echo $document->values['buyer']; ?></div>
           <?php if ($document->values['buyer_address']): ?>
           <div><?php echo nl2br($document->values['buyer_address']); ?></div>
           <?php endif; ?>
         </td>
-        <td>
+        <td colspan="2">
           <div class="strong">Contact Details</div>
           <?php if ($document->values['buyer_contact']): ?>
-          <div><?php echo '<em>Contact:</em> '.$document->values['buyer_contact']; ?></div>
+          <div><?php echo '<em>Name:</em> '.$document->values['buyer_contact']; ?></div>
           <?php endif; ?>
           <?php if ($document->values['buyer_phone']): ?>
           <div><?php echo '<em>Phone:</em> '.$document->values['buyer_phone']; ?></div>
@@ -414,7 +427,7 @@ $options = (array) $options + array(
         <td colspan="2" class="blank stronger">SGS Verification</td>
       </tr>
       <tr class="verification">
-        <td>
+        <td colspan="2">
           <div class="strong">Physical Inspection</div>
           <table class="blank">
             <tr>
@@ -427,16 +440,16 @@ $options = (array) $options + array(
             </tr>
           </table>
         </td>
-        <td>
+        <td colspan="2">
           <div class="strong">SGS Approval</div>
         </td>
       </tr>
       <tr class="verification">
-        <td>
+        <td colspan="2">
           <div class="strong">FOB Price Verification</div>
           <?php echo $document->values['fob_price_notes']; ?>
         </td>
-        <td>
+        <td colspan="2">
           <div class="strong">FDA Approval</div>
         </td>
       </tr>
@@ -444,11 +457,9 @@ $options = (array) $options + array(
         <td colspan="2" class="blank stronger">For Administration Use Only</td>
       </tr>
       <tr class="verification">
-        <td colspan="2">
-          <div class="qr_image"><img src="<?php echo $qr_image; ?>" /></div>
+        <td colspan="4">
           <div class="strong">Notes</div>
           <?php echo $document->values['notes']; ?>
-          <div class="clear clearfix"></div>
         </td>
       </tr>
     </table>

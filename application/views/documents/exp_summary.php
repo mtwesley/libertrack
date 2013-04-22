@@ -12,6 +12,7 @@ $classes[] = 'data';
   .document-exp-summary td {
     padding: 2px 10px !important;
     width: 50%;
+    white-space: normal !important;
   }
   .document-exp-summary td.label {
     width: 100px;
@@ -121,7 +122,7 @@ $classes[] = 'data';
   <tr>
     <td>
       <div class="strong">Description</div>
-      <?php echo $document->values['product_description']; ?>
+      <?php echo preg_replace('/(\w+): (\d+\.\d+)m3/i', '<em>$1:</em> $2m<sup>3</sup>', $document->values['product_description']); ?>
     </td>
     <td>
       <div class="strong">Quantity</div>
@@ -148,7 +149,7 @@ $classes[] = 'data';
     <td>
       <div class="strong">Buyer Contact Details</div>
       <?php if ($document->values['buyer_contact']): ?>
-      <div><?php echo '<em>Contact:</em> '.$document->values['buyer_contact']; ?></div>
+      <div><?php echo '<em>Name:</em> '.$document->values['buyer_contact']; ?></div>
       <?php endif; ?>
       <?php if ($document->values['buyer_phone']): ?>
       <div><?php echo '<em>Phone:</em> '.$document->values['buyer_phone']; ?></div>

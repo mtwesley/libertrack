@@ -96,6 +96,7 @@ class Controller_Ajax extends Controller {
     $actions = $this->request->post('actions');
     $details = $this->request->post('details');
     $header  = $this->request->post('header');
+    $hide_header_info = $this->request->post('hide_header_header');
 
     $csv   = ORM::factory('CSV', $id);
     $model = ORM::factory($csv->form_type, $csv->form_data_id);
@@ -103,7 +104,6 @@ class Controller_Ajax extends Controller {
     $fields = SGS_Form_ORM::get_fields($csv->form_type);
 
     $this->response->body(View::factory('csvs')
-      ->set('mode', 'import')
       ->set('csvs', array($csv))
       ->set('fields', $fields)
       ->set('options', array(
@@ -111,7 +111,7 @@ class Controller_Ajax extends Controller {
         'details' => $details ? TRUE: FALSE,
         'header'  => FALSE,
         'actions' => $actions ? TRUE : FALSE,
-        'hide_header_info' => $header ? TRUE : FALSE
+        'hide_header_info' => $header or $hide_header_info ? TRUE : FALSE,
       ))
       ->render());
   }
@@ -124,6 +124,7 @@ class Controller_Ajax extends Controller {
     $actions   = $this->request->post('actions');
     $details   = $this->request->post('details');
     $header    = $this->request->post('header');
+    $hide_header_info = $this->request->post('hide_header_header');
 
     $data = ORM::factory($form_type, $id);
 
@@ -136,7 +137,7 @@ class Controller_Ajax extends Controller {
         'header'  => FALSE,
         'details' => $details ? TRUE : FALSE,
         'actions' => $actions ? TRUE : FALSE,
-        'hide_header_info' => $header ? TRUE : FALSE,
+        'hide_header_info' => $header or $hide_header_info ? TRUE : FALSE,
       ))
       ->render());
   }
@@ -353,13 +354,15 @@ class Controller_Ajax extends Controller {
       ->as_array()));
 
     if ($specs) {
-      $specs['product_description'] = implode('/', $clone
+      foreach ($clone
         ->distinct(TRUE)
-        ->select('species.code')
+        ->select('species.code',array('sum("volume")', 'volume'))
         ->join('species')
         ->on('specs_data.species_id', '=', 'species.id')
+        ->group_by('species.code')
         ->execute()
-        ->as_array(NULL, 'code'));
+        ->as_array('code', 'volume') as $code => $volume) $prod_desc[] = $code.': '.SGS::quantitify($volume).'m3';
+      $specs['product_description'] = implode(', ', $prod_desc);
       $specs['product_type'] = 'Logs';
     }
 

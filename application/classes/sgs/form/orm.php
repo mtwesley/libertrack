@@ -164,9 +164,13 @@ class SGS_Form_ORM extends ORM {
       ->where('invoice_data.form_type', '=', static::$type)
       ->and_where('invoice_data.form_data_id', '=', $this->id);
     if ($type) $query->and_where('invoices.type', '=', $type);
-    return $query
+    if (!$invoice_id = $query
       ->execute()
-      ->as_array('id', NULL);
+      ->as_array('id', NULL)) {
+      $parent = $this->parent();
+      if ($parent and $parent->loaded()) $invoice_id = $parent->is_invoiced();
+    }
+    return $invoice_id;
   }
 
   public function parent($types = array()) {
