@@ -501,7 +501,7 @@ VALIDATION: $secret";
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
             ->where('specs_data.operator_id', '=', $operator_id)
-//            ->and_where('specs_data.status', '=', 'A')
+            ->and_where('specs_data.status', '=', 'A')
             ->and_where('specs_data.specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
             ->and_where_open()
               ->where('barcode_activity.activity', 'NOT IN', array('E'))
