@@ -42,7 +42,7 @@ class Controller_Import extends Controller {
         ->as_array('id', 'name');
 
       $form = Formo::form()
-        ->add_group('operation_type', 'checkboxes', SGS::$form_type, NULL, array('label' => 'Type'))
+        ->add_group('operation_type', 'checkboxes', SGS::$form_data_type, NULL, array('label' => 'Type'))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'site_operatoropts')))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
         ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
@@ -748,7 +748,7 @@ class Controller_Import extends Controller {
       ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
       ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
       ->add('submit', 'submit', 'Search')
-      ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Form', 'required' => TRUE))
+      ->add_group('form_type', 'select', SGS::$form_data_type, NULL, array('label' => 'Form', 'required' => TRUE))
       ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'));
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
