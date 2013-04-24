@@ -103,7 +103,9 @@ if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
         case 'submitted_by':
         case 'contract_number':
         case 'reference_number':
+        case 'is_requested':
         case 'is_fda_approved':
+        case 'fda_remarks':
         case 'comment':
         case 'action':
           $hidden_column = TRUE; break;
@@ -167,7 +169,9 @@ if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
         case 'submitted_by':
         case 'contract_number':
         case 'reference_number':
+        case 'is_requested':
         case 'is_fda_approved':
+        case 'fda_remarks':
         case 'comment':
         case 'action':
           $hidden_column = TRUE; break;

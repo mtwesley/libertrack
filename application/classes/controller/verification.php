@@ -236,7 +236,6 @@ class Controller_Verification extends Controller {
         ->set('operator', $file->operator)
         ->set('site', $file->site)
         ->set('block', $file->block->loaded() ? $file->block : NULL)
-        ->set('create_date', $create_date)
         ->set('total_items', $total_items)
         ->set('options', array('header' => TRUE))
         ->render();
@@ -294,12 +293,7 @@ class Controller_Verification extends Controller {
     if ($excel) {
       // data
       $create_date = 0;
-      switch ($file->operation_type) {
-        case 'SSF': $row = Model_SSF::PARSE_START; break;
-        case 'TDF': $row = Model_TDF::PARSE_START; break;
-        case 'LDF': $row = Model_LDF::PARSE_START; break;
-        case 'SPECS': $row = Model_SPECS::PARSE_START; break;
-      }
+      $row   = constant('Model_'.$file->operation_type.'::PARSE_START');
       $model = ORM::factory($file->operation_type);
 
       foreach ($csvs as $csv) {
@@ -506,10 +500,10 @@ class Controller_Verification extends Controller {
   private function handle_csv_list($form_type = NULL, $id = NULL) {
     if (!Request::$current->query()) Session::instance()->delete('pagination.csv');
 
-    $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
-    $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
-    $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
-    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_block_id   = (bool) (in_array($form_type, array('SSFV', 'TDFV')));
+    $has_site_id    = (bool) (in_array($form_type, array('SSFV', 'TDFV', 'LDFV')));
+    $has_specs_info = (bool) (in_array($form_type, array('SPECSV')));
+    $has_exp_info   = (bool) (in_array($form_type, array('SPECSV')));
 
     if ($id) {
       Session::instance()->delete('pagination.csv');
@@ -620,12 +614,7 @@ class Controller_Verification extends Controller {
           if ($excel) {
             // data
             $create_date = 0;
-            switch ($form_type) {
-              case 'SSF': $row = Model_SSF::PARSE_START; break;
-              case 'TDF': $row = Model_TDF::PARSE_START; break;
-              case 'LDF': $row = Model_LDF::PARSE_START; break;
-              case 'SPECS': $row = Model_SPECS::PARSE_START; break;
-            }
+            $row   = constant('Model_'.$form_type.'::PARSE_START');
             $model = ORM::factory($form_type);
 
             foreach ($csvs as $csv) {
@@ -643,10 +632,10 @@ class Controller_Verification extends Controller {
             $tempname = tempnam(sys_get_temp_dir(), strtolower($form_type).'_download_').'.'.$type;
 
             switch ($form_type) {
-              case 'SSF': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'SSF'.($block->name ? '_'.$block->name : '')).'.'.$ext; break;
-              case 'TDF': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'TDF_'.($block->name ? $block->name.'_' : '').SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
-              case 'LDF': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
-              case 'SPECS': $fullname = SGS::wordify(($operator->tin ? $operator->tin.'_' : '').'SPECS_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
+              case 'SSFV': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'SSFV_'.($block->name ? '_'.$block->name : '')).'.'.$ext; break;
+              case 'TDFV': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'TDFV_'.($block->name ? $block->name.'_' : '').SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
+              case 'LDFV': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'LDFV_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
+              case 'SPECSV': $fullname = SGS::wordify(($operator->tin ? $operator->tin.'_' : '').'SPECSV_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
             }
 
             $writer->save($tempname);
@@ -876,10 +865,10 @@ class Controller_Verification extends Controller {
             Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
           }
 
-          if     (strpos(strtoupper($excel[1][D]), 'STOCK SURVEY FORM') !== FALSE) $form_type = 'SSF';
-          elseif (strpos(strtoupper($excel[1][C]), 'TREE FELLING')      !== FALSE) $form_type = 'TDF';
-          elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA FORM')     !== FALSE) $form_type = 'LDF';
-          elseif (strpos(strtoupper($excel[1][A]), 'EXPORT SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECS';
+          if     (strpos(strtoupper($excel[1][D]), 'STOCK SURVEY VERIFICATION FORM') !== FALSE) $form_type = 'SSFV';
+          elseif (strpos(strtoupper($excel[1][C]), 'TREE DATA VERIFICATION')         !== FALSE) $form_type = 'TDFV';
+          elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA VERIFICATION FORM')     !== FALSE) $form_type = 'LDFV';
+          elseif (strpos(strtoupper($excel[1][A]), 'EXPORT SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECSV';
           else   Notify::msg('Sorry, the form type cannot be determined from the uploaded file. Please check the form title for errors and try again.', 'error', TRUE);
 
           if ($form_type) {
@@ -908,7 +897,7 @@ class Controller_Verification extends Controller {
 
               $tempname = $upload['tmp_name'];
               switch ($file->operation_type) {
-                case 'SSF':
+                case 'SSFV':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
                     'uploads',
                     $file->site->name,
@@ -927,10 +916,10 @@ class Controller_Verification extends Controller {
                     Notify::msg('Sorry, block site does not match site in properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = SGS::wordify($file->site->name.'_SSF_'.$file->block->name).'.'.$ext;
+                  $newname = SGS::wordify($file->site->name.'_SSFV_'.$file->block->name).'.'.$ext;
                   break;
 
-                case 'TDF':
+                case 'TDFV':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
                     'uploads',
                     $file->site->name,
@@ -949,10 +938,10 @@ class Controller_Verification extends Controller {
                     Notify::msg('Sorry, block site does not match site in properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = SGS::wordify($file->site->name.'_TDF_'.$file->block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  $newname = SGS::wordify($file->site->name.'_TDFV_'.$file->block->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
 
-                case 'LDF':
+                case 'LDFV':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
                     'uploads',
                     $file->site->name,
@@ -966,10 +955,10 @@ class Controller_Verification extends Controller {
                     Notify::msg('Sorry, site operator does not match operator in properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = SGS::wordify($file->site->name.'_LDF_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  $newname = SGS::wordify($file->site->name.'_LDFV_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
 
-                case 'SPECS':
+                case 'SPECSV':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
                     'specs',
                     $file->operator->tin
@@ -978,7 +967,7 @@ class Controller_Verification extends Controller {
                     Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
                     throw new Exception();
                   }
-                  $newname = SGS::wordify('SPECS_'.$file->operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  $newname = SGS::wordify('SPECSV_'.$file->operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
               }
 
@@ -1104,10 +1093,10 @@ class Controller_Verification extends Controller {
       case 'delete': return self::handle_csv_delete(NULL, $id);
       case 'process': return self::handle_csv_process(NULL, $id);
 
-      case 'ssf': return self::handle_csv_list('SSF');
-      case 'tdf': return self::handle_csv_list('TDF');
-      case 'ldf': return self::handle_csv_list('LDF');
-      case 'specs': return self::handle_csv_list('SPECS');
+      case 'ssfv': return self::handle_csv_list('SSFV');
+      case 'tdfv': return self::handle_csv_list('TDFV');
+      case 'ldfv': return self::handle_csv_list('LDFV');
+      case 'specsv': return self::handle_csv_list('SPECSV');
 
       default:
       case 'list': return self::handle_csv_list(NULL, $id);

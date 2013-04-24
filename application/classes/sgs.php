@@ -77,10 +77,10 @@ class SGS {
     'verification/search'   => 'Search Data',
     'verification/data'     => 'Manage Data',
 
-    'verification/data/ssf'   => 'Stock Survey Form',
-    'verification/data/tdf'   => 'Tree Data Form',
-    'verification/data/ldf'   => 'Log Data Form',
-    'verification/data/specs' => 'Shipment Specification Form',
+    'verification/data/ssfv'   => 'Stock Survey Verification Form',
+    'verification/data/tdfv'   => 'Tree Data Verification Form',
+    'verification/data/ldfv'   => 'Log Data Verification Form',
+    'verification/data/specsv' => 'Shipment Specification Verification Form',
 
     'admin'            => 'Configuration',
 //    'admin/files'      => 'File Management',

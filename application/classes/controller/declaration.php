@@ -236,7 +236,6 @@ class Controller_Declaration extends Controller {
         ->set('operator', $file->operator)
         ->set('site', $file->site)
         ->set('block', $file->block->loaded() ? $file->block : NULL)
-        ->set('create_date', $create_date)
         ->set('total_items', $total_items)
         ->set('options', array('header' => TRUE))
         ->render();
@@ -294,12 +293,7 @@ class Controller_Declaration extends Controller {
     if ($excel) {
       // data
       $create_date = 0;
-      switch ($file->operation_type) {
-        case 'SSF': $row = Model_SSF::PARSE_START; break;
-        case 'TDF': $row = Model_TDF::PARSE_START; break;
-        case 'LDF': $row = Model_LDF::PARSE_START; break;
-        case 'SPECS': $row = Model_SPECS::PARSE_START; break;
-      }
+      $row   = constant('Model_'.$file->operation_type.'::PARSE_START');
       $model = ORM::factory($file->operation_type);
 
       foreach ($csvs as $csv) {
@@ -620,12 +614,7 @@ class Controller_Declaration extends Controller {
           if ($excel) {
             // data
             $create_date = 0;
-            switch ($form_type) {
-              case 'SSF': $row = Model_SSF::PARSE_START; break;
-              case 'TDF': $row = Model_TDF::PARSE_START; break;
-              case 'LDF': $row = Model_LDF::PARSE_START; break;
-              case 'SPECS': $row = Model_SPECS::PARSE_START; break;
-            }
+            $row = constant('Model_'.$form_type.'::PARSE_START');
             $model = ORM::factory($form_type);
 
             foreach ($csvs as $csv) {

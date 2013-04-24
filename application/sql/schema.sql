@@ -433,7 +433,7 @@ create table csv (
   type d_csv_type not null,
   file_id d_id not null,
   operation d_operation not null,
-  form_type d_form_type not null,
+  form_type d_operation_type not null,
   form_data_id d_id,
   operator_id d_id,
   site_id d_id,

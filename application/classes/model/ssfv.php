@@ -1,10 +1,10 @@
 <?php
 
-class Model_SSF extends SGS_Form_ORM {
+class Model_SSFV extends SGS_Form_ORM {
 
   const PARSE_START = 13;
 
-  protected $_table_name = 'ssf_data';
+  protected $_table_name = 'ssf_verification';
 
   protected $_belongs_to = array(
     'csv'      => array(),
@@ -19,24 +19,31 @@ class Model_SSF extends SGS_Form_ORM {
   protected function _initialize()
   {
     parent::_initialize();
-    $this->_object_plural = 'ssf';
+    $this->_object_plural = 'ssfv';
   }
 
-  public static $type = 'SSF';
+  public static $type = 'SSFV';
 
   public static $fields = array(
     'create_date'     => 'Date',
     'operator_tin'    => 'Operator TIN',
     'site_name'       => 'Site Name',
     'block_name'      => 'Block Name',
-    'inspection_date' => 'Inspection Date',
-    'inspected_by'    => 'Inspector',
+    'enumerator'      => 'Enumerator',
+    'entered_date'    => 'Date Entered',
+    'entered_by'      => 'Entered By',
+    'checked_date'    => 'Date Checked',
+    'checked_by'      => 'Checked By',
     'barcode'         => 'Tree Barcode',
+    'tree_map_number' => 'Tree Map Number',
     'survey_line'     => 'Survey Line',
     'cell_number'     => 'Cell Number',
     'species_code'    => 'Species Code',
     'diameter'        => 'Diameter',
     'height'          => 'Height',
+    'is_requested'    => 'Is Requested',
+    'is_fda_approved' => 'Is FDA Approved',
+    'fda_remarks'     => 'FDA Remarks',
   );
 
   public static $checks = array(

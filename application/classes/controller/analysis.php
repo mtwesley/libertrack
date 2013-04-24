@@ -450,10 +450,19 @@ class Controller_Analysis extends Controller {
       try {
         $item->status = 'P';
         $item->save();
-        $item->reload();
+        $updated = TRUE;
         Notify::msg('Form data saved.', 'success', TRUE);
       } catch (Exception $e) {
         Notify::msg('Sorry, form data update failed. Please try again.', 'error');
+      }
+    }
+
+    if ($updated) {
+      $item->run_checks();
+      switch ($item->status) {
+        case 'A': Notify::msg('Updated record passed checks and queries.', 'success', TRUE); break;
+        case 'R': Notify::msg('Updated record failed checks and queries.', 'error', TRUE); break;
+        default:  Notify::msg('Updated could not be accessed.', 'error', TRUE);
       }
     }
 

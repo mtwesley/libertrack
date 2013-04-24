@@ -89,10 +89,10 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'data')   echo 'active'; ?>"><?php echo HTML::anchor('verification/data', SGS::title('verification/data')); ?>
       <?php if ($secondary == 'data'): ?>
       <ul class="nav commands">
-        <li class="<?php if ($command == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/ssf', SGS::title('verification/data/ssf')); ?></li>
-        <li class="<?php if ($command == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/tdf', SGS::title('verification/data/tdf')); ?></li>
-        <li class="<?php if ($command == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/ldf', SGS::title('verification/data/ldf')); ?></li>
-        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/specs', SGS::title('verification/data/specs')); ?></li>
+        <li class="<?php if ($command == 'ssfv') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/ssfv', SGS::title('verification/data/ssfv')); ?></li>
+        <li class="<?php if ($command == 'tdfv') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/tdfv', SGS::title('verification/data/tdfv')); ?></li>
+        <li class="<?php if ($command == 'ldfv') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/ldfv', SGS::title('verification/data/ldfv')); ?></li>
+        <li class="<?php if ($command == 'specsv') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/specsv', SGS::title('verification/data/specsv')); ?></li>
       </ul>
       <?php endif; ?>
     </li>

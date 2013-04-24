@@ -44,6 +44,8 @@ create domain d_form_verification_type as character varying(6) check (value ~ E'
 alter domain d_operation_type drop constraint d_operation_type_check;
 alter domain d_operation_type add check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV|CHECKS|EXP|INV|DOC|PJ|UNKWN)$');
 
+alter table csv alter column csv type d_operation_type;
+
 
 -- original volumes
 
