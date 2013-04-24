@@ -49,8 +49,8 @@ class Model_CSV extends ORM {
   public function __get($column) {
     switch ($column) {
       case 'data_type':
-        if (in_array($this->form_type, SGS::$form_data_type)) return 'declaration';
-        else if (in_array($this->form_type, SGS::$form_verification_type)) return 'verification';
+        if (in_array($this->form_type, array_keys(SGS::$form_data_type))) return 'declaration';
+        else if (in_array($this->form_type, array_keys(SGS::$form_verification_type))) return 'verification';
         else return NULL;
 
       case 'values':

@@ -24,7 +24,7 @@ class Controller_Declaration extends Controller {
 
       $files = ORM::factory('file')
         ->where('operation', '=', 'U')
-        ->and_where('operation_type', 'IN', SGS::$form_data_type)
+        ->and_where('operation_type', 'IN', array_keys(SGS::$form_data_type))
         ->and_where('id', '=', $id)
         ->find_all()
         ->as_array();
@@ -59,7 +59,7 @@ class Controller_Declaration extends Controller {
 
         $files = ORM::factory('file')
           ->where('operation', '=', 'I')
-          ->and_where('operation_type', 'IN', SGS::$form_data_type);
+          ->and_where('operation_type', 'IN', array_keys(SGS::$form_data_type));
 
         if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
         if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
@@ -82,7 +82,8 @@ class Controller_Declaration extends Controller {
         }
 
         $files = ORM::factory('file')
-          ->where('operation', '=', 'I');
+          ->where('operation', '=', 'U')
+          ->and_where('operation_type', 'IN', array_keys(SGS::$form_data_type));
 
         if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
         if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
@@ -515,7 +516,7 @@ class Controller_Declaration extends Controller {
 
       $csvs = ORM::factory('csv')
         ->where('operation', '=', 'U')
-        ->and_where('form_type', 'IN', SGS::$form_data_type)
+        ->and_where('form_type', 'IN', array_keys(SGS::$form_data_type))
         ->and_where('id', '=', $id)
         ->find_all()
         ->as_array();
@@ -562,7 +563,7 @@ class Controller_Declaration extends Controller {
 
       $csvs = ORM::factory('csv')
         ->where('operation', '=', 'U')
-        ->and_where('form_type', 'IN', SGS::$form_data_type)
+        ->and_where('form_type', 'IN', array_keys(SGS::$form_data_type))
         ->and_where('form_type', '=', $form_type)
         ->order_by('timestamp', 'DESC');
 
@@ -781,7 +782,7 @@ class Controller_Declaration extends Controller {
     if ($search) {
       $csvs = ORM::factory('csv')
         ->where('operation', '=', 'U')
-        ->and_where('form_type', 'IN', SGS::$form_data_type)
+        ->and_where('form_type', 'IN', array_keys(SGS::$form_data_type))
         ->order_by('timestamp', 'DESC');
 
       foreach ($search as $keyword) $csvs->and_where('values', 'LIKE', '%'.$keyword.'%');
