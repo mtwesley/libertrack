@@ -41,6 +41,9 @@ class Model_SPECS extends SGS_Form_ORM {
       case 'diameter':
         return (($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
+      case 'volume':
+        return SGS::volumify(($this->diameter / 100), $this->length);
+
       case 'specs':
       case 'specs_document':
         return ORM::factory('document', DB::select('documents.id')
@@ -77,6 +80,17 @@ class Model_SPECS extends SGS_Form_ORM {
 
       default:
         return parent::__get($column);
+    }
+  }
+
+  public function set($column, $value) {
+    switch ($column) {
+      case 'volume':
+        $this->original_volume = $value;
+        parent::set($column, $this->volume);
+
+      default:
+        parent::set($column, $value);
     }
   }
 
@@ -600,7 +614,7 @@ class Model_SPECS extends SGS_Form_ORM {
     }
 
     // payment
-    $ldf_parent = $ldf->parent();
+    $ldf_parent = $ldf->parent(array('LDF', 'TDF'));
     if ($ldf_parent and $ldf_parent->loaded()) {
       if ($ldf_parent::$type == 'TDF') {
         if ($ldf->is_invoiced('ST')) $successes['barcode_id']['is_invoiced_st'] = array('value' => 'Invoiced', 'comparison' => 'N/A');

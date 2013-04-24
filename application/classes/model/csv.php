@@ -12,6 +12,10 @@ class Model_CSV extends ORM {
     'user'     => array()
   );
 
+  protected $_ignored_columns = array(
+    'data_type',
+  );
+
   protected function _initialize() {
     parent::_initialize();
     $this->_object_plural = 'csv';
@@ -20,6 +24,7 @@ class Model_CSV extends ORM {
   public function set($column, $value) {
     switch ($column) {
       case 'values':
+      case 'original_values':
         if (is_array($value)) {
           // set properties
           $this->operator_id = ($operator_id = SGS::lookup_operator($value['operator_tin'], TRUE)) ? $operator_id : NULL;
@@ -43,6 +48,11 @@ class Model_CSV extends ORM {
 
   public function __get($column) {
     switch ($column) {
+      case 'data_type':
+        if (in_array($this->form_type, SGS::$form_data_type)) return 'declaration';
+        else if (in_array($this->form_type, SGS::$form_verification_type)) return 'verification';
+        else return NULL;
+
       case 'values':
       case 'original_values':
         $value = parent::__get($column);
@@ -83,7 +93,6 @@ class Model_CSV extends ORM {
     $validation->check();
     if (!$errors = $validation->errors()) {
       try {
-        $model->csv_id = $this->id;
         $model->save();
         if (!$model->loaded()) throw new Exception();
         $this->form_data_id = $model->id;

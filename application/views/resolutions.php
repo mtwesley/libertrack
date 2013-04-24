@@ -16,7 +16,7 @@
       <?php $col = 0; foreach ($duplicates as $duplicate): ?>
       <td class="details-resolution-select">
         <span id="csv-<?php echo $csv->id.'-duplicate-'.$duplicate->id.'-resolve'; ?>">Select</span>
-        <?php echo HTML::anchor('import/data/'.$duplicate->id.'/edit', 'Edit'); ?>
+        <?php echo HTML::anchor($csv->data_type.'/data/'.$duplicate->id.'/edit', 'Edit'); ?>
       </td>
       <?php $col++; ?>
       <?php endforeach; ?>

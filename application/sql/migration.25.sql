@@ -473,3 +473,87 @@ create trigger t_documents_update_data
   for each row
   execute procedure documents_update_data();
 
+
+-- locations
+
+alter table barcode_activity add constraint barcode_activity_user_id_fkey foreign key (user_id) references users (id) on update cascade;
+
+create domain d_location_type as character(1) check (value ~ E'^[P]$');
+
+create table locations (
+  id bigserial not null,
+  type d_location_type default 'P' not null,
+  name d_text_short unique not null,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint locations_pkey primary key (id),
+
+  constraint locations_user_id_fkey foreign key (user_id) references users (id) on update cascade
+);
+
+create table location_hops (
+  id bigserial not null,
+  location_id d_id not null,
+  parent_id d_id not null,
+  hops d_positive_int not null,
+
+  -- constraint location_hops_cached_pkey primary key (id),
+  constraint location_hops_location_id_fkey foreign key (location_id) references locations (id) on update cascade on delete cascade,
+  constraint location_hops_parent_id_fkey foreign key (location_id) references locations (id) on update cascade on delete cascade,
+
+  constraint location_hops_unique unique(location_id,parent_id),
+  constraint location_hops_unique_parent unique(location_id,hops)
+);
+
+create function locations_hops()
+  returns trigger as
+$$
+begin
+  if (tg_op = 'INSERT') then
+    perform rebuild_location_hops(new.id);
+  elseif (tg_op = 'UPDATE') then
+    delete from location_hops where location_id = new.id;
+    perform rebuild_location_hops(new.id);
+  elseif (tg_op = 'DELETE') then
+    delete from location_hops where location_id = old.id;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create function rebuild_location_hops(x_location_id d_id)
+  returns void as
+$$
+  declare x_id d_id;
+  declare x_hops d_positive_int;
+begin
+  if (x_location_id is null) then
+    truncate location_hops;
+
+    for x_id in select id from locations where parent_id is not null loop
+      perform rebuild_location_hops(x_id);
+    end loop;
+  else
+    delete from location_hops where location_id = x_location_id;
+    select parent_id from locations where id = x_location_id and parent_id is not null into x_id;
+
+    x_hops = 1;
+    while x_id is not null loop
+      insert into location_hops(location_id,parent_id,hops)
+      values(x_location_id,x_id,x_hops);
+      x_hops = x_hops + 1;
+      select parent_id from locations where id = x_id into x_id;
+    end loop;
+
+    for x_id in select id from locations where parent_id = x_location_id loop
+      perform rebuild_location_hops(x_id);
+    end loop;
+  end if;
+end
+$$ language 'plpgsql';
+
+
+-- remove csv id

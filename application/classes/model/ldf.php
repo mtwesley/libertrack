@@ -29,11 +29,25 @@ class Model_LDF extends SGS_Form_ORM {
 
   public function __get($column) {
     switch ($column) {
+      case 'volume':
+        return SGS::volumify(($this->diameter / 100), $this->length);
+
       case 'diameter':
         return SGS::floatify(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
       default:
         return parent::__get($column);
+    }
+  }
+
+  public function set($column, $value) {
+    switch ($column) {
+      case 'volume':
+        $this->original_volume = $value;
+        parent::set($column, $this->volume);
+
+      default:
+        parent::set($column, $value);
     }
   }
 
@@ -51,7 +65,7 @@ class Model_LDF extends SGS_Form_ORM {
     }
 
     if (($this->barcode->barcode == $this->parent_barcode->barcode) and ($this->parent_barcode->type == 'L')) {
-      if ($parent_barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P')) and $parent_barcode->loaded()) $this->barcode = $parent_barcode;
+      if ($parent_barcode = SGS::lookup_barcode($this->barcode->barcode, array('F', 'P')) and $parent_barcode->loaded()) $this->parent_barcode = $parent_barcode;
       else {
         $parent_barcode = ORM::factory('barcode')->values($this->barcode->as_array());
         $parent_barcode->id = NULL;
@@ -61,6 +75,8 @@ class Model_LDF extends SGS_Form_ORM {
         $this->parent_barcode = $parent_barcode;
       }
     }
+
+    if (($this->barcode->barcode != $this->parent_barcode->barcode) and ($this->parent_barcode->type == 'F') and ($parent_barcode = SGS::lookup_barcode($this->parent_barcode->barcode, 'L') and $parent_barcode->loaded())) $this->parent_barcode = $parent_barcode;
 
     parent::save($validation);
   }
@@ -478,7 +494,7 @@ class Model_LDF extends SGS_Form_ORM {
     }
 
     // traceability
-    $parent = $this->parent();
+    $parent = $this->parent(array('TDF','LDF'));
 
     if ($parent and $parent->loaded()) {
       if ($parent->status == 'P') $parent->run_checks();
@@ -497,7 +513,7 @@ class Model_LDF extends SGS_Form_ORM {
         'volume'   => 0
       );
 
-      $siblngs = $this->siblings();
+      $siblngs = $this->siblings('LDF');
       if ($siblngs) {
         foreach ($siblngs as $child) {
           $siblings['length']   += $child->length;
@@ -658,69 +674,5 @@ class Model_LDF extends SGS_Form_ORM {
 //      'timestamp'       => self::$fields['timestamp'],
     );
   }
-
-//  public function parents($max_hops = NULL, $type = NULL) {
-//    $query = DB::select('barcode_hops_cached.parent_id', 'type')
-//      ->from('barcode_hops_cached')
-//      ->join('barcodes')
-//      ->on('barcode_hops_cached.parent_id', '=', 'barcodes.id')
-//      ->where('barcode_hops_cached.barcode_id', '=', $this->barcode->id);
-//    if ($max_hops) $query->and_where('hops', '<=', $max_hops);
-//    $results = $query
-//      ->order_by('hops', 'ASC')
-//      ->execute()
-//      ->as_array();
-//
-//    foreach ($results as $result) {
-//      $form_type = SGS::barcode_to_form_type($result['type']);
-//      if (!$form_type or ($type and ($type != $form_type))) continue;
-//
-//      $parent = ORM::factory($form_type)
-//        ->where('barcode_id', '=', $result['parent_id'])
-//        ->find();
-//
-//      if ($parent->loaded() and $this->barcode->type == 'L' and $parent->barcode->type == 'F' and
-//          $parent_parent = $parent->parent() and $parent_parent->barcode->type == 'F')
-//        $parent = ORM::factory($type ?: 'LDF')
-//          ->where('barcode_id', '=', $result['parent_id'])
-//          ->find();
-//
-//      if ($parent->loaded()) $parents[] = $parent;
-//    }
-//
-//    return array_filter((array) $parents);
-//  }
-//
-//  public function childrens($max_hops = NULL, $types = array()) {
-//    $query = DB::select('barcode_hops_cached.barcode_id', 'type')
-//      ->from('barcode_hops_cached')
-//      ->join('barcodes')
-//      ->on('barcode_hops_cached.barcode_id', '=', 'barcodes.id')
-//      ->where('barcode_hops_cached.parent_id', '=', $this->barcode->id);
-//    if ($max_hops) $query->and_where('hops', '<=', $max_hops);
-//    $results = $query
-//      ->order_by('hops', 'ASC')
-//      ->execute()
-//      ->as_array();
-//
-//    foreach ($results as $result) {
-//      $_types   = $types;
-//      $_types[] = SGS::barcode_to_form_type($result['type']);
-//
-//      foreach ($_types as $_type) {
-//        $child = ORM::factory($_type)
-//          ->where('barcode_id', '=', $result['barcode_id'])
-//          ->find();
-//
-//        if ($child->loaded() and $this->barcode->type == 'F' and $child->barcode->type == 'F')
-//          $child = ORM::factory($types ?: 'LDF')
-//            ->where('barcode_id', '=', $result['barcode_id'])
-//            ->find();
-//      }
-//      if ($child->loaded()) $children[] = $child;
-//    }
-//
-//    return array_filter((array) $children);
-//  }
 
 }

@@ -19,7 +19,8 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($primary == 'index')     echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('index')); ?></li>
 
     <?php if (Auth::instance()->logged_in('data')): ?>
-    <li class="<?php if ($primary == 'import') echo 'active'; ?>"><?php echo HTML::anchor('import', SGS::title('import')); ?></li>
+    <li class="<?php if ($primary == 'declaration') echo 'active'; ?>"><?php echo HTML::anchor('declaration', SGS::title('declaration')); ?></li>
+    <li class="<?php if ($primary == 'verification') echo 'active'; ?>"><?php echo HTML::anchor('verification', SGS::title('verification')); ?></li>
     <!-- <li class="<?php if ($primary == 'documents') echo 'active'; ?>"><?php echo HTML::anchor('documents', SGS::title('documents')); ?></li> -->
     <?php endif; ?>
 
@@ -66,23 +67,35 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'species')    echo 'active'; ?>"><?php echo HTML::anchor('admin/species', SGS::title('admin/species')); ?></li>
     <li class="<?php if ($secondary == 'tolerances') echo 'active'; ?>"><?php echo HTML::anchor('admin/tolerances', SGS::title('admin/tolerances')); ?></li>
 
-    <?php elseif ($primary == 'import'): ?>
-    <li class="<?php if ($secondary == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('import/upload', SGS::title('import/upload')); ?></li>
-    <li class="<?php if ($secondary == 'files')  echo 'active'; ?>"><?php echo HTML::anchor('import/files', SGS::title('import/files')); ?></li>
-    <li class="<?php if ($secondary == 'data')   echo 'active'; ?>"><?php echo HTML::anchor('import/data', SGS::title('import/data')); ?>
+    <?php elseif ($primary == 'declaration'): ?>
+    <li class="<?php if ($secondary == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('declaration/upload', SGS::title('declaration/upload')); ?></li>
+    <li class="<?php if ($secondary == 'files')  echo 'active'; ?>"><?php echo HTML::anchor('declaration/files', SGS::title('declaration/files')); ?></li>
+    <li class="<?php if ($secondary == 'data')   echo 'active'; ?>"><?php echo HTML::anchor('declaration/data', SGS::title('declaration/data')); ?>
       <?php if ($secondary == 'data'): ?>
       <ul class="nav commands">
-        <li class="<?php if ($command == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('import/data/ssf', SGS::title('import/data/ssf')); ?></li>
-        <li class="<?php if ($command == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('import/data/tdf', SGS::title('import/data/tdf')); ?></li>
-        <li class="<?php if ($command == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('import/data/ldf', SGS::title('import/data/ldf')); ?></li>
-        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('import/data/specs', SGS::title('import/data/specs')); ?></li>
+        <li class="<?php if ($command == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('declaration/data/ssf', SGS::title('declaration/data/ssf')); ?></li>
+        <li class="<?php if ($command == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('declaration/data/tdf', SGS::title('declaration/data/tdf')); ?></li>
+        <li class="<?php if ($command == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('declaration/data/ldf', SGS::title('declaration/data/ldf')); ?></li>
+        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('declaration/data/specs', SGS::title('declaration/data/specs')); ?></li>
       </ul>
       <?php endif; ?>
     </li>
-    <li class="<?php if ($secondary == 'search') echo 'active'; ?>"><?php echo HTML::anchor('import/search', SGS::title('import/search')); ?></li>
+    <li class="<?php if ($secondary == 'search') echo 'active'; ?>"><?php echo HTML::anchor('declaration/search', SGS::title('declaration/search')); ?></li>
 
-    <!-- <li class="<?php if ($secondary == 'files') echo 'active'; ?>"><?php echo HTML::anchor('export/files', SGS::title('export/files')); ?></li> -->
-    <!-- <li class="<?php if ($secondary == 'data')  echo 'active'; ?>"><?php echo HTML::anchor('export/data', SGS::title('export/data')); ?></li> -->
+    <?php elseif ($primary == 'verification'): ?>
+    <li class="<?php if ($secondary == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('verification/upload', SGS::title('verification/upload')); ?></li>
+    <li class="<?php if ($secondary == 'files')  echo 'active'; ?>"><?php echo HTML::anchor('verification/files', SGS::title('verification/files')); ?></li>
+    <li class="<?php if ($secondary == 'data')   echo 'active'; ?>"><?php echo HTML::anchor('verification/data', SGS::title('verification/data')); ?>
+      <?php if ($secondary == 'data'): ?>
+      <ul class="nav commands">
+        <li class="<?php if ($command == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/ssf', SGS::title('verification/data/ssf')); ?></li>
+        <li class="<?php if ($command == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/tdf', SGS::title('verification/data/tdf')); ?></li>
+        <li class="<?php if ($command == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/ldf', SGS::title('verification/data/ldf')); ?></li>
+        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/specs', SGS::title('verification/data/specs')); ?></li>
+      </ul>
+      <?php endif; ?>
+    </li>
+    <li class="<?php if ($secondary == 'search') echo 'active'; ?>"><?php echo HTML::anchor('verification/search', SGS::title('verification/search')); ?></li>
 
     <?php elseif ($primary == 'analysis'): ?>
     <li class="<?php if ($secondary == 'review') echo 'active'; ?>"><?php echo HTML::anchor('analysis/review', SGS::title('analysis/review')); ?>

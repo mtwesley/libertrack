@@ -193,7 +193,7 @@ class Controller_Analysis extends Controller {
       $file->name = $newname;
       $file->type = 'application/pdf';
       $file->size = filesize($fullname);
-      $file->operation      = 'A';
+      $file->operation      = 'D';
       $file->operation_type = 'CHECKS';
       $file->content_md5    = md5_file($fullname);
       $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
@@ -217,8 +217,8 @@ class Controller_Analysis extends Controller {
 
     $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
-    $has_specs_info = (bool) (in_array($form_type, array('SPECS', 'EPR')));
-    $has_exp_info   = (bool) (in_array($form_type, array('SPECS', 'EPR')));
+    $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
+    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
 
     if ($id) {
       Session::instance()->delete('pagination.data');
@@ -388,6 +388,7 @@ class Controller_Analysis extends Controller {
       ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
       ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
       ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
       ->render();
 
     if ($parents) foreach (array_reverse($parents) as $parent) {
@@ -1082,7 +1083,7 @@ class Controller_Analysis extends Controller {
           switch ($form_type) {
             case 'SSF':
               $newdir = implode(DIRECTORY_SEPARATOR, array(
-                'export',
+                'downloads',
                 $site->name,
                 $form_type,
                 $block->name
@@ -1096,7 +1097,7 @@ class Controller_Analysis extends Controller {
 
             case 'TDF':
               $newdir = implode(DIRECTORY_SEPARATOR, array(
-                'export',
+                'downloads',
                 $site->name,
                 $form_type,
                 $block->name
@@ -1110,7 +1111,7 @@ class Controller_Analysis extends Controller {
 
             case 'LDF':
               $newdir = implode(DIRECTORY_SEPARATOR, array(
-                'export',
+                'downloads',
                 $site->name,
                 $form_type
               ));
@@ -1123,7 +1124,7 @@ class Controller_Analysis extends Controller {
 
             case 'SPECS':
               $newdir = implode(DIRECTORY_SEPARATOR, array(
-                'export',
+                'downloads',
                 'specs',
                 $operator->tin
               ));
@@ -1152,7 +1153,7 @@ class Controller_Analysis extends Controller {
           $file->name = $testname;
           $file->type = $mime_type;
           $file->size = filesize(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname);
-          $file->operation      = 'E';
+          $file->operation      = 'D';
           $file->operation_type = $form_type;
           $file->content_md5    = md5_file(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname);
           $file->path           = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;

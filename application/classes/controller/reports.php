@@ -25,7 +25,7 @@ class Controller_Reports extends Controller {
       ->as_array('id', 'name');
 
     $form = Formo::form()
-      ->add_group('form_type', 'select', SGS::$form_type, NULL, array('label' => 'Type', 'required' => TRUE))
+      ->add_group('form_type', 'select', SGS::$form_data_type, NULL, array('label' => 'Type', 'required' => TRUE))
       ->add_group('site_id', 'select', $site_ids, NULL, array(
         'label' => 'Site',
         'required' => TRUE

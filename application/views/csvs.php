@@ -11,7 +11,6 @@ $options = (array) $options + array(
   'actions' => FALSE,
   'resolve' => FALSE,
   'header'  => $site or $operator ? TRUE : FALSE,
-) + array(
   'hide_hidden_fields' => TRUE,
   'hide_header_info'   => FALSE
 );
@@ -22,6 +21,7 @@ $additional_columns = 3;
 if ($options['actions']) $classes[] = 'has-actions';
 if ($options['details']) $classes[] = 'has-details';
 if ($options['header'])  $classes[] = 'has-header';
+if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
 
 ?>
 <?php if ($options['header']): ?>
@@ -176,7 +176,7 @@ if ($options['header'])  $classes[] = 'has-header';
       endswitch;
     ?>
     <td  class="<?php echo $hidden_column ? 'hide' : ''; ?> <?php if ($errors[$field]): ?>error<?php endif; ?>">
-      <div id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>" class="<?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"><?php echo trim($csv->values[$field]); ?></div>
+      <div id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>" class="<?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"><?php echo trim($csv->values[$field]); ?></div>
     </td>
     <?php endforeach; ?>
     <td class="links">
@@ -184,16 +184,16 @@ if ($options['header'])  $classes[] = 'has-header';
         <span class="link link-title">+</span>
         <div class="links-links">
           <?php if ($options['links']): ?>
-          <?php echo HTML::anchor('import/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
           <?php if ($csv->form_data_id) echo HTML::anchor('analysis/review/'.strtolower($csv->form_type).'/'.$csv->form_data_id, 'View '.$csv->form_type, array('class' => 'link')); ?>
 
           <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
-          <?php echo HTML::anchor('import/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
           <?php endif; ?>
 
-          <?php if ($mode == 'import') echo HTML::anchor('import/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
 
-          <?php if ($mode == 'import' AND in_array($csv->status, array('P', 'R', 'U'))): ?>
+          <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
           <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span>
           <?php endif; ?>
 

@@ -302,7 +302,7 @@ $num = $cntr;
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="checks-title"><?php echo SGS::$form_type[$form_type]; ?> Check Report</div>
+    <div class="checks-title"><?php echo SGS::$form_data_type[$form_type]; ?> Check Report</div>
     <?php if ($options['subtitle']): ?>
     <div class="checks-subtitle"><?php echo $options['subtitle']; ?></div>
     <?php endif; ?>

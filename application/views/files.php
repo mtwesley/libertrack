@@ -17,11 +17,7 @@ $classes[] = 'data';
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'operator_id')), 'Operator'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'site_id')), 'Site'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'block_id')), 'Block'); ?></th>
-
-    <?php if ($mode == 'import'): ?>
     <th colspan="4">Statistics</th>
-    <?php endif; ?>
-
     <th class="links"></th>
   </tr>
   <?php foreach ($files as $file): ?>
@@ -50,13 +46,11 @@ $classes[] = 'data';
     <td><?php echo $file->operator->name; ?></td>
     <td><?php echo $file->site->name; ?></td>
     <td><?php echo $file->block->name; ?></td>
-
-    <?php if ($mode == 'import'): ?>
     <?php
-      $_p = (int) $file->csv->where('status', '=', 'P')->find_all()->count();
-      $_a = (int) $file->csv->where('status', '=', 'A')->find_all()->count();
-      $_r = (int) $file->csv->where('status', '=', 'R')->find_all()->count();
-      $_u = (int) $file->csv->where('status', '=', 'U')->find_all()->count();
+      $_p = (int) DB::select('count("id")')->from('csv')->where('file_id', '=', $file->id)->and_where('status', '=', 'P')->execute()->get('count');
+      $_a = (int) DB::select('count("id")')->from('csv')->where('file_id', '=', $file->id)->and_where('status', '=', 'A')->execute()->get('count');
+      $_r = (int) DB::select('count("id")')->from('csv')->where('file_id', '=', $file->id)->and_where('status', '=', 'R')->execute()->get('count');
+      $_u = (int) DB::select('count("id")')->from('csv')->where('file_id', '=', $file->id)->and_where('status', '=', 'U')->execute()->get('count');
 
       $_total = $_p + $_a + $_r + $_u;
 
@@ -65,34 +59,30 @@ $classes[] = 'data';
       $_rp = $_total ? floor($_r * 100 / $_total) : 0;
       $_up = $_total ? floor($_u * 100 / $_total) : 0;
     ?>
-    <td><span class="pending"><?php echo $_p; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=P', 'Pending'); ?> (<?php echo $_pp; ?>%)</span></td>
-    <td><span class="accepted"><?php echo $_a; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=A', 'Accepted'); ?> (<?php echo $_ap; ?>%)</span></td>
-    <td><span class="rejected"><?php echo $_r; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=R', 'Rejected'); ?> (<?php echo $_rp; ?>%)</span></td>
-    <td><span class="duplicated"><?php echo $_u; ?> <?php print HTML::anchor('import/files/'.$file->id.'/review?status=U', 'Duplicated'); ?> (<?php echo $_up; ?>%)</span></td>
-    <?php endif; ?>
-
+    <td><span class="pending"><?php echo $_p; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=P', 'Pending'); ?> (<?php echo $_pp; ?>%)</span></td>
+    <td><span class="accepted"><?php echo $_a; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=A', 'Accepted'); ?> (<?php echo $_ap; ?>%)</span></td>
+    <td><span class="rejected"><?php echo $_r; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=R', 'Rejected'); ?> (<?php echo $_rp; ?>%)</span></td>
+    <td><span class="duplicated"><?php echo $_u; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=U', 'Duplicated'); ?> (<?php echo $_up; ?>%)</span></td>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>
         <div class="links-links">
-          <?php if ($mode == 'import'): ?>
           <?php if ($options['links']): ?>
-          <?php echo HTML::anchor('import/files/'.$file->id, 'View', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('import/files/'.$file->id.'/delete', 'Delete', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('import/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
-          <?php if (in_array($file->operation, array('I','E'))) echo HTML::anchor(strtolower(SGS::value($file->operation, 'operation', 'U')).'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($file->data_type.'/files/'.$file->id, 'View', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($file->data_type.'/files/'.$file->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($file->data_type.'/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($file->data_type.'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
           <span class="link toggle-download-form">Download</span>
-          <?php endif; ?>
           <?php endif; ?>
         </div>
       </div>
     </td>
   </tr>
-  <?php if ($mode == 'import'): ?>
+  <?php if ($has_csv): ?>
   <tr class="form download-form <?php echo $odd ? 'odd' : 'even'; ?>">
-    <td colspan="<?php echo ($mode == 'import') ? 11 : 10; ?>">
+    <td colspan="11">
       <?php
-        echo Formo::form(array('attr' => array('action' => '/import/files/'.$file->id.'/download')))
+        echo Formo::form(array('attr' => array('action' => '/'.$file->data_type.'/files/'.$file->id.'/download')))
           ->add_group('status', 'checkboxes', SGS::$csv_status, array_keys(SGS::$csv_status), array(
             'label'    => 'Status',
             'required' => TRUE,

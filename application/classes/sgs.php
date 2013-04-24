@@ -60,26 +60,27 @@ class SGS {
 
     'documents'       => 'Documents',
 
-    'import'          => 'Data',
-    'import/upload'   => 'Upload Files',
-    'import/files'    => 'Manage Files',
-    'import/search'   => 'Search Data',
-    'import/data'     => 'Manage Data',
+    'declaration'          => 'Declaration',
+    'declaration/upload'   => 'Upload Files',
+    'declaration/files'    => 'Manage Files',
+    'declaration/search'   => 'Search Data',
+    'declaration/data'     => 'Manage Data',
 
-    'import/data/ssf'   => 'Stock Survey Form',
-    'import/data/tdf'   => 'Tree Data Form',
-    'import/data/ldf'   => 'Log Data Form',
-    'import/data/specs' => 'Shipment Specification Form',
+    'declaration/data/ssf'   => 'Stock Survey Form',
+    'declaration/data/tdf'   => 'Tree Data Form',
+    'declaration/data/ldf'   => 'Log Data Form',
+    'declaration/data/specs' => 'Shipment Specification Form',
 
-//    'export'          => 'Data',
-//    'export/download' => 'Download Documents',
-//    'export/files'    => 'File Management',
-//    'export/data'     => 'Data Management',
+    'verification'          => 'Verification',
+    'verification/upload'   => 'Upload Files',
+    'verification/files'    => 'Manage Files',
+    'verification/search'   => 'Search Data',
+    'verification/data'     => 'Manage Data',
 
-//    'export/download/ssf'   => 'Stock Survey Form',
-//    'export/download/tdf'   => 'Tree Data Form',
-//    'export/download/ldf'   => 'Log Data Form',
-//    'export/download/specs' => 'Shipment Specification Form',
+    'verification/data/ssf'   => 'Stock Survey Form',
+    'verification/data/tdf'   => 'Tree Data Form',
+    'verification/data/ldf'   => 'Log Data Form',
+    'verification/data/specs' => 'Shipment Specification Form',
 
     'admin'            => 'Configuration',
 //    'admin/files'      => 'File Management',
@@ -252,7 +253,7 @@ class SGS {
       'is_site_name'         => ':field must match the required site format (for example, "ABC123" or "ABC 123")',
       'is_operator_tin'      => ':field must match the required operator TIN format',
       'is_survey_line'       => ':field must be a number from 1 to 20',
-      'is_operation'         => ':field must be either (I)mport or (E)xport',
+      'is_operation'         => ':field must be either (U)pload or (D)ownload',
       'is_operation_type'    => ':field must be a type of form or print job (for example, "SSF")',
       'is_form_type'         => ':field must not be a type of form (for example, "SSF")',
       'is_grade'             => ':field must not be a grade (for example, "A", "B" or "C")',
@@ -288,19 +289,23 @@ class SGS {
   );
 
   public static $operation = array(
-    'I' => 'Import',
-    'E' => 'Export',
-    'A' => 'Administration',
-    'U' => 'Unknown'
+    'U' => 'Upload',
+    'E' => 'Download',
   );
 
   public static $operation_type = array(
     'SSF'    => 'Stock Survey',
+    'SSFV'   => 'Stock Survey Verification',
     'TDF'    => 'Tree Data',
+    'TDFV'   => 'Tree Data Verification',
     'LDF'    => 'Log Data',
+    'LDFV'   => 'Log Data Verification',
     'MIF'    => 'Mill Input',
+    'MIFV'   => 'Mill Input Verification',
     'MOF'    => 'Mill Output',
+    'MOFV'   => 'Mill Output Verification',
     'SPECS'  => 'Shipping Specification',
+    'SPECSV' => 'Shipping Specification Verification',
     'EXP'    => 'Export Permit',
     'CHECKS' => 'Checks and Queries Report',
     'INV'    => 'Invoice',
@@ -328,13 +333,22 @@ class SGS {
     'D'   => 'D'
   );
 
-  public static $form_type = array(
+  public static $form_data_type = array(
     'SSF'   => 'Stock Survey Form',
     'TDF'   => 'Tree Data Form',
     'LDF'   => 'Log Data Form',
     'MIF'   => 'Mill Input Form',
     'MOF'   => 'Mill Output Form',
     'SPECS' => 'Shipping Specification Form',
+  );
+
+  public static $form_verification_type = array(
+    'SSFV'   => 'Stock Survey Verification Form',
+    'TDFV'   => 'Tree Data Verification Form',
+    'LDFV'   => 'Log Data Verification Form',
+    'MIFV'   => 'Mill Input Verification Form',
+    'MOFV'   => 'Mill Output Verification Form',
+    'SPECSV' => 'Shipping Specification Verification Form',
   );
 
   public static $barcode_type = array(
@@ -832,7 +846,7 @@ class SGS {
 
   public static function errorify($string)
   {
-    $string = preg_replace('/('.preg_quote(strtolower(implode('|', array_keys(self::$form_type)))).'_data)/', 'form', $string);
+    $string = preg_replace('/('.preg_quote(strtolower(implode('|', array_keys(self::$form_data_type)))).'_data)/', 'form', $string);
     $string = str_replace('content_md5', 'file', $string);
     // $string = preg_replace('/\b(tin)\b/', 'TIN', $string);
     // $string = str_replace('_id', '', $string);
@@ -901,6 +915,11 @@ class SGS {
   public static function amountify($amount, $precision = 2)
   {
     return (string) number_format(floor($amount * pow(10, $precision)) / pow(10, $precision), $precision);
+  }
+
+  public static function volumify($diameter, $height)
+  {
+    return self::quantitify(pi() * pow(($diameter / 2), 2) * $height);
   }
 
   public static function locationify($string, $slash = '/')

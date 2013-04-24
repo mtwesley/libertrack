@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-class Controller_Import extends Controller {
+class Controller_Verification extends Controller {
 
   public function before() {
     parent::before();
@@ -23,7 +23,8 @@ class Controller_Import extends Controller {
       Session::instance()->delete('pagination.file.list');
 
       $files = ORM::factory('file')
-        ->where('operation', '=', 'I')
+        ->where('operation', '=', 'U')
+        ->and_where('operation_type', 'IN', SGS::$form_verification_type)
         ->and_where('id', '=', $id)
         ->find_all()
         ->as_array();
@@ -42,7 +43,7 @@ class Controller_Import extends Controller {
         ->as_array('id', 'name');
 
       $form = Formo::form()
-        ->add_group('operation_type', 'checkboxes', SGS::$form_data_type, NULL, array('label' => 'Type'))
+        ->add_group('operation_type', 'checkboxes', SGS::$form_verification_type, NULL, array('label' => 'Type'))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'site_operatoropts')))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
         ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
@@ -56,7 +57,9 @@ class Controller_Import extends Controller {
         $site_id        = $form->site_id->val();
         $block_id       = $form->block_id->val();
 
-        $files = ORM::factory('file')->where('operation', '=', 'I');
+        $files = ORM::factory('file')
+          ->where('operation', '=', 'U')
+          ->and_where('operation_type', 'IN', SGS::$form_verification_type);
 
         if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
         if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
@@ -79,7 +82,8 @@ class Controller_Import extends Controller {
         }
 
         $files = ORM::factory('file')
-          ->where('operation', '=', 'I');
+          ->where('operation', '=', 'U')
+          ->and_where('operation_type', 'IN', SGS::$form_verification_type);
 
         if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
         if ($operator_id)    $files->and_where('operator_id', 'IN', (array) $operator_id);
@@ -106,7 +110,6 @@ class Controller_Import extends Controller {
     if ($files) {
       $table = View::factory('files')
         ->set('classes', array('has-pagination'))
-        ->set('mode', 'import')
         ->set('files', $files)
         ->render();
       if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' file found');
@@ -126,10 +129,10 @@ class Controller_Import extends Controller {
     $file = ORM::factory('file', $id);
     if (!$file->loaded()) {
       Notify::msg('No file found.', 'warning', TRUE);
-      $this->request->redirect('import/files');
+      $this->request->redirect('verification/files');
     }
 
-    Notify::msg('Deleting this file will delete all imported data and related form data.', 'warning');
+    Notify::msg('Deleting this file will delete all verification data.', 'warning');
     $form = Formo::form()
       ->add('confirm', 'text', 'Are you sure you want to delete this file?')
       ->add('delete', 'submit', 'Delete');
@@ -162,11 +165,10 @@ class Controller_Import extends Controller {
         Notify::msg('Sorry, unable to delete file.', 'error', TRUE);
       }
 
-      $this->request->redirect('import/files');
+      $this->request->redirect('verification/files');
     }
 
     $table = View::factory('files')
-      ->set('mode', 'import')
       ->set('files', array($file))
       ->set('options', array(
         'links' => FALSE
@@ -187,7 +189,7 @@ class Controller_Import extends Controller {
     $file = ORM::factory('file', $id);
     if (!$file->loaded()) {
       Notify::msg('No file found.', 'warning', TRUE);
-      $this->request->redirect('import/files');
+      $this->request->redirect('verification/files');
     }
 
     $csvs = $file->csv
@@ -229,7 +231,6 @@ class Controller_Import extends Controller {
 
       $table = View::factory('csvs')
         ->set('classes', array('has-pagination'))
-        ->set('mode', 'import')
         ->set('csvs', $csvs)
         ->set('fields', SGS_Form_ORM::get_fields($file->operation_type))
         ->set('operator', $file->operator)
@@ -328,7 +329,7 @@ class Controller_Import extends Controller {
     $file = ORM::factory('file', $id);
     if (!$file->loaded()) {
       Notify::msg('No file found.', 'warning', TRUE);
-      $this->request->redirect('import/files');
+      $this->request->redirect('verification/files');
     }
 
     // pending
@@ -363,7 +364,7 @@ class Controller_Import extends Controller {
     if ($duplicated) Notify::msg($duplicated.' records marked as duplicates of form data.', 'warning', TRUE);
     if ($failure)  Notify::msg($failure.' records failed to be processed.', 'error', TRUE);
 
-    $this->request->redirect('import/files/'.$id.'/review');
+    $this->request->redirect('verification/files/'.$id.'/review');
   }
 
   private function handle_csv_process($id) {
@@ -371,8 +372,8 @@ class Controller_Import extends Controller {
 
     $csv = ORM::factory('csv', $id);
     if ($csv->status == 'A') {
-      Notify::msg('Sorry, import data that has already been processed and accepted cannot be re-processed. Please edit the form data instead.', 'warning', TRUE);
-      $this->request->redirect('import/data/'.$id.'/list');
+      Notify::msg('Sorry, data that has already been processed and accepted cannot be re-processed. Please edit the form data instead.', 'warning', TRUE);
+      $this->request->redirect('verification/data/'.$id.'/list');
     }
 
     $form_type = $csv->form_type;
@@ -387,7 +388,7 @@ class Controller_Import extends Controller {
       default:  Notify::msg('Updated data failed to be processed.', 'error', TRUE);
     }
 
-    $this->request->redirect('import/data/'.$id);
+    $this->request->redirect('verification/data/'.$id);
   }
 
   private function handle_csv_edit($id) {
@@ -395,8 +396,8 @@ class Controller_Import extends Controller {
 
     $csv = ORM::factory('csv', $id);
     if ($csv->status == 'A') {
-      Notify::msg('Sorry, import data that has already been processed and accepted cannot be edited. Please edit the form data instead.', 'warning', TRUE);
-      $this->request->redirect('import/data/'.$id);
+      Notify::msg('Sorry, data that has already been processed and accepted cannot be edited. Please edit the form data instead.', 'warning', TRUE);
+      $this->request->redirect('verification/data/'.$id);
     }
 
     $form_type = $csv->form_type;
@@ -427,7 +428,7 @@ class Controller_Import extends Controller {
         $csv->save();
         $updated = true;
       } catch (Exception $e) {
-        Notify::msg('Sorry, import data update failed. Please try again.', 'error');
+        Notify::msg('Sorry, verification data update failed. Please try again.', 'error');
       }
 
       if ($updated) {
@@ -440,12 +441,11 @@ class Controller_Import extends Controller {
         }
       }
 
-      $this->request->redirect('import/data/'.$csv->id);
+      $this->request->redirect('verification/data/'.$csv->id);
     }
 
     $csvs = array($csv);
     $table = View::factory('csvs')
-      ->set('mode', 'import')
       ->set('csvs', $csvs)
       ->set('fields', SGS_Form_ORM::get_fields($csv->form_type))
       ->set('operator', $csv->operator->loaded() ? $csv->operator : NULL)
@@ -465,7 +465,7 @@ class Controller_Import extends Controller {
     $csv = ORM::factory('csv', $id);
     if (!$csv->loaded()) {
       Notify::msg('No data found.', 'warning', TRUE);
-      $this->request->redirect('import/data');
+      $this->request->redirect('verification/data');
     }
 
     if ($csv->status == 'A') Notify::msg('Deleting this data will delete related form data.', 'warning');
@@ -483,11 +483,10 @@ class Controller_Import extends Controller {
         Notify::msg('Data failed to be deleted.', 'error', TRUE);
       }
 
-      $this->request->redirect('import/data');
+      $this->request->redirect('verification/data');
     }
 
     $table = View::factory('csvs')
-      ->set('mode', 'import')
       ->set('csvs', array($csv))
       ->set('fields', SGS_Form_ORM::get_fields($csv->form_type))
       ->set('options', array(
@@ -509,14 +508,15 @@ class Controller_Import extends Controller {
 
     $has_block_id   = (bool) (in_array($form_type, array('SSF', 'TDF')));
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
-    $has_specs_info = (bool) (in_array($form_type, array('SPECS','EPR')));
-    $has_exp_info   = (bool) (in_array($form_type, array('SPECS','EPR')));
+    $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
+    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
 
     if ($id) {
       Session::instance()->delete('pagination.csv');
 
       $csvs = ORM::factory('csv')
-        ->where('operation', '=', 'I')
+        ->where('operation', '=', 'U')
+        ->and_where('form_type', 'IN', SGS::$form_verification_type)
         ->and_where('id', '=', $id)
         ->find_all()
         ->as_array();
@@ -562,7 +562,8 @@ class Controller_Import extends Controller {
 //        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls']);
 
       $csvs = ORM::factory('csv')
-        ->where('operation', '=', 'I')
+        ->where('operation', '=', 'U')
+        ->and_where('form_type', 'IN', SGS::$form_verification_type)
         ->and_where('form_type', '=', $form_type)
         ->order_by('timestamp', 'DESC');
 
@@ -704,7 +705,6 @@ class Controller_Import extends Controller {
 
       $table = View::factory('csvs')
         ->set('classes', array('has-pagination'))
-        ->set('mode', 'import')
         ->set('csvs', $csvs)
         ->set('fields', SGS_Form_ORM::get_fields($form_type))
         ->set('total_items', $total_items)
@@ -748,7 +748,7 @@ class Controller_Import extends Controller {
       ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
       ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
       ->add('submit', 'submit', 'Search')
-      ->add_group('form_type', 'select', SGS::$form_data_type, NULL, array('label' => 'Form', 'required' => TRUE))
+      ->add_group('form_type', 'select', SGS::$form_verification_type, NULL, array('label' => 'Form', 'required' => TRUE))
       ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'));
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -782,6 +782,7 @@ class Controller_Import extends Controller {
     if ($search) {
       $csvs = ORM::factory('csv')
         ->where('operation', '=', 'I')
+        ->and_where('form_type', 'IN', SGS::$form_verification_type)
         ->order_by('timestamp', 'DESC');
 
       foreach ($search as $keyword) $csvs->and_where('values', 'LIKE', '%'.$keyword.'%');
@@ -809,7 +810,6 @@ class Controller_Import extends Controller {
 
       $table = View::factory('csvs')
         ->set('classes', array('has-pagination'))
-        ->set('mode', 'import')
         ->set('csvs', $csvs)
         ->set('fields', SGS_Form_ORM::get_fields($form_type))
         ->set('total_items', $total_items)
@@ -830,28 +830,28 @@ class Controller_Import extends Controller {
   public function action_upload() {
     set_time_limit(600);
     $form = Formo::form()
-      ->add('import[]', 'file', array(
+      ->add('upload[]', 'file', array(
         'label' => 'File',
         'required' => TRUE,
         'attr'  => array('multiple' => 'multiple')
       ))
-      ->add('upload', 'submit', 'Upload');
+      ->add('submit', 'submit', 'Upload');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $csv_error   = 0;
       $csv_success = 0;
-      $num_files = count(reset($_FILES['import']));
+      $num_files = count(reset($_FILES['upload']));
 
       for ($j = 0; $j < $num_files; $j++) {
-        $import = array(
-          'name'     => $_FILES['import']['name'][$j],
-          'type'     => $_FILES['import']['type'][$j],
-          'tmp_name' => $_FILES['import']['tmp_name'][$j],
-          'error'    => $_FILES['import']['error'][$j],
-          'size'     => $_FILES['import']['size'][$j]
+        $upload = array(
+          'name'     => $_FILES['upload']['name'][$j],
+          'type'     => $_FILES['upload']['type'][$j],
+          'tmp_name' => $_FILES['upload']['tmp_name'][$j],
+          'error'    => $_FILES['upload']['error'][$j],
+          'size'     => $_FILES['upload']['size'][$j]
         );
 
-        $info = pathinfo($import['name']);
+        $info = pathinfo($upload['name']);
         $ext  = $info['extension'];
 
         switch ($ext) {
@@ -865,12 +865,12 @@ class Controller_Import extends Controller {
 
         if ($reader) {
           try {
-            if (!$reader->canRead($import['tmp_name'])) {
-              $reader = PHPExcel_IOFactory::createReaderForFile($import['tmp_name']);
+            if (!$reader->canRead($upload['tmp_name'])) {
+              $reader = PHPExcel_IOFactory::createReaderForFile($upload['tmp_name']);
             }
 
             if ($reader instanceof PHPExcel_Reader_IReader) {
-              $excel = $reader->load($import['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, FALSE, TRUE, TRUE);
+              $excel = $reader->load($upload['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, FALSE, TRUE, TRUE);
             }
           } catch (Exception $e) {
             Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
@@ -891,12 +891,12 @@ class Controller_Import extends Controller {
 
             // upload file
             $file = ORM::factory('file');
-            $file->name = $import['name'];
-            $file->type = $import['type'];
-            $file->size = $import['size'];
-            $file->operation      = 'I';
+            $file->name = $upload['name'];
+            $file->type = $upload['type'];
+            $file->size = $upload['size'];
+            $file->operation      = 'U';
             $file->operation_type = $form_type;
-            $file->content_md5    = md5_file($import['tmp_name']);
+            $file->content_md5    = md5_file($upload['tmp_name']);
 
             if (isset($properties['operator_tin'])) $file->operator = SGS::lookup_operator($properties['operator_tin']);
             if (isset($properties['site_name']))    $file->site = SGS::lookup_site($properties['site_name']);
@@ -906,11 +906,11 @@ class Controller_Import extends Controller {
             try {
               $file->save();
 
-              $tempname = $import['tmp_name'];
+              $tempname = $upload['tmp_name'];
               switch ($file->operation_type) {
                 case 'SSF':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
-                    'import',
+                    'uploads',
                     $file->site->name,
                     $file->operation_type,
                     $file->block->name
@@ -932,7 +932,7 @@ class Controller_Import extends Controller {
 
                 case 'TDF':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
-                    'import',
+                    'uploads',
                     $file->site->name,
                     $file->operation_type,
                     $file->block->name
@@ -954,7 +954,7 @@ class Controller_Import extends Controller {
 
                 case 'LDF':
                   $newdir = implode(DIRECTORY_SEPARATOR, array(
-                    'import',
+                    'uploads',
                     $file->site->name,
                     $file->operation_type
                   ));
@@ -1043,7 +1043,7 @@ class Controller_Import extends Controller {
                 // save CSV
                 $csv = ORM::factory('csv');
                 $csv->file_id     = $file->id;
-                $csv->operation   = 'I';
+                $csv->operation   = 'U';
                 $csv->form_type   = $form_type;
                 $csv->values      = $data;
                 try {
@@ -1061,7 +1061,7 @@ class Controller_Import extends Controller {
       if ($csv_success) Notify::msg($csv_success.' records successfully parsed.', 'success', TRUE);
       if ($csv_serror) Notify::msg($csv_error.' records failed to be parsed.', 'error', TRUE);
 
-      $this->request->redirect('import/files');
+      $this->request->redirect('verification/files');
     }
 
     $content .= $form->render();

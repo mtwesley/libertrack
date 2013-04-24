@@ -162,7 +162,8 @@ class SGS_Form_ORM extends ORM {
       ->join('invoices')
       ->on('invoice_data.invoice_id', '=', 'invoices.id')
       ->where('invoice_data.form_type', '=', static::$type)
-      ->and_where('invoice_data.form_data_id', '=', $this->id);
+      ->and_where('invoice_data.form_data_id', '=', $this->id)
+      ->and_where('invoices.is_draft', '=', FALSE);
     if ($type) $query->and_where('invoices.type', '=', $type);
     if (!$invoice_id = $query
       ->execute()
@@ -178,7 +179,6 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function parents($max_hops = NULL, $types = array()) {
-    $types = (array) $types;
     $query = DB::select('barcode_hops_cached.parent_id', 'type')
       ->from('barcode_hops_cached')
       ->join('barcodes')
@@ -191,8 +191,8 @@ class SGS_Form_ORM extends ORM {
       ->as_array();
 
     foreach ($results as $result) {
-      $_types   = $types;
-      $_types[] = SGS::barcode_to_form_type($result['type']);
+      $_types = $types ?: SGS::barcode_to_form_type($result['type']);
+      $_types = (array) $_types;
       foreach (array_filter($_types) as $_type) {
         $parent = ORM::factory($_type)
           ->where('barcode_id', '=', $result['parent_id'])
@@ -212,7 +212,6 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function childrens($max_hops = NULL, $types = array()) {
-    $types = (array) $types;
     $query = DB::select('barcode_hops_cached.barcode_id', 'type')
       ->from('barcode_hops_cached')
       ->join('barcodes')
@@ -225,8 +224,8 @@ class SGS_Form_ORM extends ORM {
       ->as_array();
 
     foreach ($results as $result) {
-      $_types   = $types;
-      $_types[] = SGS::barcode_to_form_type($result['type']);
+      $_types = $types ?: SGS::barcode_to_form_type($result['type']);
+      $_types = (array) $_types;
       foreach (array_filter($_types) as $_type) {
         $child = ORM::factory($_type)
           ->where('barcode_id', '=', $result['barcode_id'])

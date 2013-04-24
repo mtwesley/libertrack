@@ -147,7 +147,7 @@ class Controller_PrintJobs extends Controller {
     $printjob = ORM::factory('printjob');
     $form = Formo::form()
       ->orm('load', $printjob, array('site_id'))
-      ->add('import[]', 'file', array(
+      ->add('upload[]', 'file', array(
         'label'    => 'File',
         'required' => TRUE,
         'attr'  => array('multiple' => 'multiple')
@@ -158,30 +158,30 @@ class Controller_PrintJobs extends Controller {
       $barcode_success = 0;
       $barcode_error = 0;
 
-      $num_files = count(reset($_FILES['import']));
+      $num_files = count(reset($_FILES['upload']));
       for ($j = 0; $j < $num_files; $j++) {
-        $import = array(
-          'name'     => $_FILES['import']['name'][$j],
-          'type'     => $_FILES['import']['type'][$j],
-          'tmp_name' => $_FILES['import']['tmp_name'][$j],
-          'error'    => $_FILES['import']['error'][$j],
-          'size'     => $_FILES['import']['size'][$j]
+        $upload = array(
+          'name'     => $_FILES['upload']['name'][$j],
+          'type'     => $_FILES['upload']['type'][$j],
+          'tmp_name' => $_FILES['upload']['tmp_name'][$j],
+          'error'    => $_FILES['upload']['error'][$j],
+          'size'     => $_FILES['upload']['size'][$j]
         );
 
-        $info = pathinfo($import['name']);
+        $info = pathinfo($upload['name']);
         if (!array_filter($info)) Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
         else {
 
-          $array = file($import['tmp_name']);
+          $array = file($upload['tmp_name']);
 
           // upload file
           $file = ORM::factory('file');
-          $file->name = $import['name'];
-          $file->type = $import['type'];
-          $file->size = $import['size'];
-          $file->operation = 'A';
+          $file->name = $upload['name'];
+          $file->type = $upload['type'];
+          $file->size = $upload['size'];
+          $file->operation = 'U';
           $file->operation_type = 'PJ';
-          $file->content_md5 = md5_file($import['tmp_name']);
+          $file->content_md5 = md5_file($upload['tmp_name']);
 
           try {
             $file->save();
@@ -249,7 +249,7 @@ class Controller_PrintJobs extends Controller {
 
   function action_fix() {
     $form = Formo::form()
-      ->add('import[]', 'file', array(
+      ->add('upload[]', 'file', array(
         'label'    => 'File',
         'required' => TRUE,
         'attr'  => array('multiple' => 'multiple')
@@ -260,20 +260,20 @@ class Controller_PrintJobs extends Controller {
       $barcode_success = 0;
       $barcode_error = 0;
 
-      $num_files = count(reset($_FILES['import']));
+      $num_files = count(reset($_FILES['upload']));
       for ($j = 0; $j < $num_files; $j++) {
-        $import = array(
-          'name'     => $_FILES['import']['name'][$j],
-          'type'     => $_FILES['import']['type'][$j],
-          'tmp_name' => $_FILES['import']['tmp_name'][$j],
-          'error'    => $_FILES['import']['error'][$j],
-          'size'     => $_FILES['import']['size'][$j]
+        $upload = array(
+          'name'     => $_FILES['upload']['name'][$j],
+          'type'     => $_FILES['upload']['type'][$j],
+          'tmp_name' => $_FILES['upload']['tmp_name'][$j],
+          'error'    => $_FILES['upload']['error'][$j],
+          'size'     => $_FILES['upload']['size'][$j]
         );
 
-        $info = pathinfo($import['name']);
+        $info = pathinfo($upload['name']);
         if (!array_filter($info)) Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
         else {
-          $array = file($import['tmp_name']);
+          $array = file($upload['tmp_name']);
 
           // lookup printjob
           for ($i = 0; $i < 10; $i++) {

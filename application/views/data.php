@@ -9,7 +9,6 @@ $options = (array) $options + array(
   'links'   => TRUE,
   'actions' => FALSE,
   'header'  => ($site or $operator or $specs_info or $exp_info) ? TRUE : FALSE,
-) + array(
   'hide_hidden_fields' => TRUE,
   'hide_header_info'   => FALSE
 );
@@ -20,6 +19,7 @@ $additional_columns = 3;
 if ($options['actions']) $classes[] = 'has-actions';
 if ($options['details']) $classes[] = 'has-details';
 if ($options['header'])  $classes[] = 'has-header';
+if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
 
 $fields = ORM::factory($form_type)->labels();
 $classes[] = 'data';

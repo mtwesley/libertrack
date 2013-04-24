@@ -259,7 +259,7 @@ $options = (array) $options + array(
   }
 
   .stronger {
-    padding-top: 6px !important;
+    padding-top: 7px !important;
     font-weight: bold;
     font-size: 11px;
   }
@@ -284,8 +284,12 @@ $options = (array) $options + array(
     font-size: 75%;
   }
 
+  .notes {
+    height: 40px;
+  }
+
   .verification {
-    height: 60px;
+    height: 70px;
   }
 
   .qr_image {
@@ -456,7 +460,7 @@ $options = (array) $options + array(
       <tr>
         <td colspan="2" class="blank stronger">For Administration Use Only</td>
       </tr>
-      <tr class="verification">
+      <tr class="notes">
         <td colspan="4">
           <div class="strong">Notes</div>
           <?php echo $document->values['notes']; ?>

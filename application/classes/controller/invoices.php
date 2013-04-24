@@ -775,7 +775,7 @@ class Controller_Invoices extends Controller {
       $file->name = $newname;
       $file->type = 'application/pdf';
       $file->size = filesize($fullname);
-      $file->operation      = 'A';
+      $file->operation      = 'D';
       $file->operation_type = 'INV';
       $file->content_md5    = md5_file($fullname);
       $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
@@ -1013,7 +1013,7 @@ class Controller_Invoices extends Controller {
       $file->name = $newname;
       $file->type = 'application/pdf';
       $file->size = filesize($fullname);
-      $file->operation      = 'A';
+      $file->operation      = 'D';
       $file->operation_type = 'INV';
       $file->content_md5    = md5_file($fullname);
       $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;

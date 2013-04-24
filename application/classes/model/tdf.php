@@ -24,7 +24,8 @@ class Model_TDF extends SGS_Form_ORM {
 
   protected $_ignored_columns = array(
     'diameter',
-    'bottom_diameter'
+    'bottom_diameter',
+    'volume'
   );
 
   protected function _initialize()
@@ -42,7 +43,7 @@ class Model_TDF extends SGS_Form_ORM {
         return SGS::floatify(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
       case 'volume':
-        return SGS::quantitify(pi() * (((($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4) / 2) / 100) * $this->length);
+        return SGS::volumify(($this->diameter / 100), $this->length);
 
       default:
         return parent::__get($column);

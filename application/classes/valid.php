@@ -30,7 +30,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_existing_block($array, $site_name_field, $name_field)
   {
-    $block = SGS::lookup_block($array[$site_name_field], $array[$name_field], TRUE);
+    return (bool) SGS::lookup_block($array[$site_name_field], $array[$name_field], TRUE);
   }
 
   public static function is_existing_species($value)
@@ -140,7 +140,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_operation($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^[IEUP]$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^[UD]$/', (string) $value));
   }
 
   public static function is_operation_type($value)
