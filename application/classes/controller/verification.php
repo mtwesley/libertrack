@@ -770,7 +770,7 @@ class Controller_Verification extends Controller {
 
     if ($search) {
       $csvs = ORM::factory('csv')
-        ->where('operation', '=', 'I')
+        ->where('operation', '=', 'U')
         ->and_where('form_type', 'IN', array_keys(SGS::$form_verification_type))
         ->order_by('timestamp', 'DESC');
 

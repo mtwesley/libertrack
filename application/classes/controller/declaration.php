@@ -58,7 +58,7 @@ class Controller_Declaration extends Controller {
         $block_id       = $form->block_id->val();
 
         $files = ORM::factory('file')
-          ->where('operation', '=', 'I')
+          ->where('operation', '=', 'U')
           ->and_where('operation_type', 'IN', array_keys(SGS::$form_data_type));
 
         if ($operation_type) $files->and_where('operation_type', 'IN', (array) $operation_type);
@@ -101,9 +101,9 @@ class Controller_Declaration extends Controller {
           ->offset($pagination->offset)
           ->limit($pagination->items_per_page);
         if ($sort = $this->request->query('sort')) $files->order_by($sort);
-        $files = $files->order_by('timestamp', 'DESC')
-          ->find_all()
-          ->as_array();
+        die(Debug::vars($files = $files->order_by('timestamp', 'DESC')
+          ->find_all()));
+//          ->as_array();
       }
     }
 
