@@ -41,7 +41,7 @@ class Controller_Invoices extends Controller {
       ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
     else if ($has_specs_info) {
       $form = $form
-        ->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs-numbers')) : array()))
+        ->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_number')) : array()))
         ->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
     }
     $form = $form
@@ -101,7 +101,7 @@ class Controller_Invoices extends Controller {
       switch ($invoice_type) {
         case 'ST':
           $form_type = 'LDF';
-          $ids = DB::select('ldf_data.id')
+          $ids = DB::select('barcodes.barcode', 'ldf_data.id')
             ->from('ldf_data')
             ->join('barcodes')
             ->on('ldf_data.barcode_id', '=', 'barcodes.id')
@@ -130,7 +130,7 @@ class Controller_Invoices extends Controller {
 
         case 'EXF':
           $form_type = 'SPECS';
-          $ids = DB::select('specs_data.id')
+          $ids = DB::select('barcodes.barcode', 'specs_data.id')
             ->distinct(TRUE)
             ->from('specs_data')
             ->join('document_data')

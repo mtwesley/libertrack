@@ -337,8 +337,8 @@ class SGS {
     'SSF'   => 'Stock Survey Form',
     'TDF'   => 'Tree Data Form',
     'LDF'   => 'Log Data Form',
-    'MIF'   => 'Mill Input Form',
-    'MOF'   => 'Mill Output Form',
+//    'MIF'   => 'Mill Input Form',
+//    'MOF'   => 'Mill Output Form',
     'SPECS' => 'Shipping Specification Form',
   );
 
@@ -346,9 +346,9 @@ class SGS {
     'SSFV'   => 'Stock Survey Verification Form',
     'TDFV'   => 'Tree Data Verification Form',
     'LDFV'   => 'Log Data Verification Form',
-    'MIFV'   => 'Mill Input Verification Form',
-    'MOFV'   => 'Mill Output Verification Form',
-    'SPECSV' => 'Shipping Specification Verification Form',
+//    'MIFV'   => 'Mill Input Verification Form',
+//    'MOFV'   => 'Mill Output Verification Form',
+//    'SPECSV' => 'Shipping Specification Verification Form',
   );
 
   public static $barcode_type = array(

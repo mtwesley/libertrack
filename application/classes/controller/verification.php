@@ -865,10 +865,10 @@ class Controller_Verification extends Controller {
             Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
           }
 
-          if     (strpos(strtoupper($excel[1][D]), 'STOCK SURVEY VERIFICATION FORM') !== FALSE) $form_type = 'SSFV';
+          if     (strpos(strtoupper($excel[1][C]), 'STOCK SURVEY VERIFICATION FORM') !== FALSE) $form_type = 'SSFV';
           elseif (strpos(strtoupper($excel[1][C]), 'TREE DATA VERIFICATION')         !== FALSE) $form_type = 'TDFV';
           elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA VERIFICATION FORM')     !== FALSE) $form_type = 'LDFV';
-          elseif (strpos(strtoupper($excel[1][A]), 'EXPORT SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECSV';
+//          elseif (strpos(strtoupper($excel[1][A]), 'EXPORT SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECSV';
           else   Notify::msg('Sorry, the form type cannot be determined from the uploaded file. Please check the form title for errors and try again.', 'error', TRUE);
 
           if ($form_type) {

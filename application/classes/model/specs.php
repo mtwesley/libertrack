@@ -7,7 +7,6 @@ class Model_SPECS extends SGS_Form_ORM {
   protected $_table_name = 'specs_data';
 
   protected $_belongs_to = array(
-    'csv'      => array(),
     'operator' => array(),
     'barcode'  => array(),
     'specs_barcode'  => array(
@@ -111,6 +110,7 @@ class Model_SPECS extends SGS_Form_ORM {
   }
 
   public static $type = 'SPECS';
+  public static $verification_type = 'LDFV';
 
   public static $fields = array(
     'create_date'     => 'Date',
@@ -238,7 +238,6 @@ class Model_SPECS extends SGS_Form_ORM {
   public function formo() {
     $array = array(
       'id'              => array('render' => FALSE),
-      'csv'             => array('render' => FALSE),
       'create_date'     => array('order' => 0, 'attr' => array('class' => 'dpicker')),
       'barcode'         => array('render' => FALSE),
       'contract_number' => array('render' => FALSE),

@@ -70,6 +70,7 @@ $classes[] = 'data';
     <?php endif; ?>
     <th class="type"></th>
     <th class="status"></th>
+    <th class="verified"></th>
     <?php foreach ($fields as $field => $name): ?>
     <?php
       if ($options['header'] or $options['hide_header_info']) switch ($field):
@@ -102,7 +103,7 @@ $classes[] = 'data';
         case 'signed_by':
         case 'submitted_by':
         case 'contract_number':
-        case 'reference_number':
+        case 'form_number':
         case 'is_requested':
         case 'is_fda_approved':
         case 'fda_remarks':
@@ -134,10 +135,9 @@ $classes[] = 'data';
         endswitch;
       ?>
     </td>
-    <?php
-      $errors   = $record->get_errors();
-      $warnings = $record->get_warnings();
-    ?>
+    <td class="verified">
+      <?php if ($record->verification->loaded()) echo HTML::image('images/bullet_green.png', array('class' => 'verfied', 'title' => 'Unchecked')); ?>
+    </td>
     <?php foreach ($fields as $field => $name): ?>
     <?php
       if ($options['header'] or $options['hide_header_info']) switch ($field):
@@ -169,7 +169,7 @@ $classes[] = 'data';
         case 'signed_by':
         case 'submitted_by':
         case 'contract_number':
-        case 'reference_number':
+        case 'form_number':
         case 'is_requested':
         case 'is_fda_approved':
         case 'fda_remarks':
@@ -179,6 +179,10 @@ $classes[] = 'data';
         default:
           $hidden_column = FALSE; break;
       endswitch;
+    ?>
+    <?php
+      $errors   = $record->get_errors();
+      $warnings = $record->get_warnings();
     ?>
     <td class="<?php echo $hidden_column ? 'hide' : ''; ?> <?php if ($errors[$field]) print 'error'; else if ($warnings[$field]) print 'warning'; ?>">
       <div id="<?php echo implode('-', array($record::$type, $record->id, $field)); ?>" class="<?php if (!(strpos($field, '_id'))): ?>data-eip eip<?php endif; ?>"><?php

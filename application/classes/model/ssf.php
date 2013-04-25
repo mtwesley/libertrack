@@ -7,7 +7,6 @@ class Model_SSF extends SGS_Form_ORM {
   protected $_table_name = 'ssf_data';
 
   protected $_belongs_to = array(
-    'csv'      => array(),
     'site'     => array(),
     'operator' => array(),
     'block'    => array(),
@@ -23,6 +22,7 @@ class Model_SSF extends SGS_Form_ORM {
   }
 
   public static $type = 'SSF';
+  public static $verification_type = 'SSFV';
 
   public static $fields = array(
     'create_date'     => 'Date',
@@ -85,7 +85,6 @@ class Model_SSF extends SGS_Form_ORM {
   public function formo() {
     $array = array(
       'id'        => array('render' => FALSE),
-      'csv'            => array('render' => FALSE),
       'create_date'    => array('order' => 0, 'attr' => array('class' => 'dpicker')),
       'barcode'   => array('render' => FALSE),
       'operator'  => array('render' => FALSE),
@@ -193,31 +192,31 @@ class Model_SSF extends SGS_Form_ORM {
     if ($headers) {
       $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
       $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
-      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
-      $excel->getActiveSheet()->SetCellValue('G2', 'Holder TIN:');
+      $excel->getActiveSheet()->SetCellValue('A2', 'Site Type and Reference:');
+      $excel->getActiveSheet()->SetCellValue('G2', 'Operator TIN:');
       $excel->getActiveSheet()->SetCellValue('A3', 'Date Surveyed:');
       $excel->getActiveSheet()->SetCellValue('G3', 'Enumerator:');
-      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 corners of the block map:');
+      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 Corners of the Block Map:');
       $excel->getActiveSheet()->SetCellValue('E4', 'Easting');
       $excel->getActiveSheet()->SetCellValue('G4', 'Northing');
-      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter  0 meter)');
-      $excel->getActiveSheet()->SetCellValue('A6', 'East from origin');
-      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from previous');
-      $excel->getActiveSheet()->SetCellValue('A8', 'West from previous');
-      $excel->getActiveSheet()->SetCellValue('A9', 'Date entered');
-      $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
-      $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
-      $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter 0 meter)');
+      $excel->getActiveSheet()->SetCellValue('A6', 'East from Origin');
+      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from Previous');
+      $excel->getActiveSheet()->SetCellValue('A8', 'West from Previous');
+      $excel->getActiveSheet()->SetCellValue('A9', 'Date Entered:');
+      $excel->getActiveSheet()->SetCellValue('E9', 'Entered By:');
+      $excel->getActiveSheet()->SetCellValue('A10', 'Date Checked:');
+      $excel->getActiveSheet()->SetCellValue('E10', 'Checked By:');
       $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
       $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
       $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
       $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
-      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter Class Number (cm)');
+      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter (cm)');
       $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
       $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
       $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
       $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
-      $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
+      $excel->getActiveSheet()->SetCellValue('D12', 'Cell Number');
       $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
       $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
     }
@@ -259,31 +258,31 @@ class Model_SSF extends SGS_Form_ORM {
     if ($headers) {
       $excel->getActiveSheet()->SetCellValue('D1', 'STOCK SURVEY FORM');
       $excel->getActiveSheet()->SetCellValue('J1', 'SOP7-4'); // don't know what this is for
-      $excel->getActiveSheet()->SetCellValue('A2', 'Site type and Reference:');
-      $excel->getActiveSheet()->SetCellValue('G2', 'Holder TIN:');
+      $excel->getActiveSheet()->SetCellValue('A2', 'Site Type and Reference:');
+      $excel->getActiveSheet()->SetCellValue('G2', 'Operator TIN:');
       $excel->getActiveSheet()->SetCellValue('A3', 'Date Surveyed:');
       $excel->getActiveSheet()->SetCellValue('G3', 'Enumerator:');
-      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 corners of the block map:');
+      $excel->getActiveSheet()->SetCellValue('A4', 'UTM Coordinates of the 4 Corners of the Block Map:');
       $excel->getActiveSheet()->SetCellValue('E4', 'Easting');
       $excel->getActiveSheet()->SetCellValue('G4', 'Northing');
-      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter  0 meter)');
-      $excel->getActiveSheet()->SetCellValue('A6', 'East from origin');
-      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from previous');
-      $excel->getActiveSheet()->SetCellValue('A8', 'West from previous');
-      $excel->getActiveSheet()->SetCellValue('A9', 'Date entered');
-      $excel->getActiveSheet()->SetCellValue('E9', 'Entered by');
-      $excel->getActiveSheet()->SetCellValue('A10', 'Date checked');
-      $excel->getActiveSheet()->SetCellValue('E10', 'Checked by');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Origin (0 meter 0 meter)');
+      $excel->getActiveSheet()->SetCellValue('A6', 'East from Origin');
+      $excel->getActiveSheet()->SetCellValue('A7', 'North/South from Previous');
+      $excel->getActiveSheet()->SetCellValue('A8', 'West from Previous');
+      $excel->getActiveSheet()->SetCellValue('A9', 'Date Entered:');
+      $excel->getActiveSheet()->SetCellValue('E9', 'Entered By:');
+      $excel->getActiveSheet()->SetCellValue('A10', 'Date Checked:');
+      $excel->getActiveSheet()->SetCellValue('E10', 'Checked By:');
       $excel->getActiveSheet()->SetCellValue('A11', 'Tree Barcode');
       $excel->getActiveSheet()->SetCellValue('B11', 'Tree Map Number');
       $excel->getActiveSheet()->SetCellValue('C11', 'Cell Reference');
       $excel->getActiveSheet()->SetCellValue('E11', 'Species Code');
-      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter Class Number (cm)');
+      $excel->getActiveSheet()->SetCellValue('F11', 'Diameter (cm)');
       $excel->getActiveSheet()->SetCellValue('G11', "Height (m)");
       $excel->getActiveSheet()->SetCellValue('H11', 'Crop Trees');
       $excel->getActiveSheet()->SetCellValue('J11', 'FDA Remarks/Reason for Rejection');
       $excel->getActiveSheet()->SetCellValue('C12', "Survey Line");
-      $excel->getActiveSheet()->SetCellValue('D12', 'Cell ID Number');
+      $excel->getActiveSheet()->SetCellValue('D12', 'Cell Number');
       $excel->getActiveSheet()->SetCellValue('H12', 'Requested');
       $excel->getActiveSheet()->SetCellValue('I12', 'FDA Approved');
     }

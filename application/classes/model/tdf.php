@@ -7,7 +7,6 @@ class Model_TDF extends SGS_Form_ORM {
   protected $_table_name = 'tdf_data';
 
   protected $_belongs_to = array(
-    'csv'      => array(),
     'site'     => array(),
     'operator' => array(),
     'block'    => array(),
@@ -67,6 +66,7 @@ class Model_TDF extends SGS_Form_ORM {
   }
 
   public static $type = 'TDF';
+  public static $verification_type = 'TDFV';
 
   public static $fields = array(
     'create_date'    => 'Date',
@@ -200,7 +200,6 @@ class Model_TDF extends SGS_Form_ORM {
   public function formo() {
     $array = array(
       'id'            => array('render' => FALSE),
-      'csv'           => array('render' => FALSE),
       'create_date'   => array('order' => 0, 'attr' => array('class' => 'dpicker')),
       'barcode'       => array('render' => FALSE),
       'tree_barcode'  => array('render' => FALSE),
@@ -326,10 +325,10 @@ class Model_TDF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('K6', 'Stump Barcode');
       $excel->getActiveSheet()->SetCellValue('L6', 'Action');
       $excel->getActiveSheet()->SetCellValue('M6', 'Comment');
-      $excel->getActiveSheet()->SetCellValue('F7', 'Butt end');
+      $excel->getActiveSheet()->SetCellValue('F7', 'Butt');
       $excel->getActiveSheet()->SetCellValue('H7', 'Top');
       $excel->getActiveSheet()->SetCellValue('A8', 'Survey Line');
-      $excel->getActiveSheet()->SetCellValue('B8', 'Distance Number');
+      $excel->getActiveSheet()->SetCellValue('B8', 'Cell Number');
       $excel->getActiveSheet()->SetCellValue('F8', 'Max');
       $excel->getActiveSheet()->SetCellValue('G8', 'Min');
       $excel->getActiveSheet()->SetCellValue('H8', 'Max');
@@ -387,10 +386,10 @@ class Model_TDF extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('K6', 'Stump Barcode');
       $excel->getActiveSheet()->SetCellValue('L6', 'Action');
       $excel->getActiveSheet()->SetCellValue('M6', 'Comment');
-      $excel->getActiveSheet()->SetCellValue('F7', 'Butt end');
+      $excel->getActiveSheet()->SetCellValue('F7', 'Butt');
       $excel->getActiveSheet()->SetCellValue('H7', 'Top');
       $excel->getActiveSheet()->SetCellValue('A8', 'Survey Line');
-      $excel->getActiveSheet()->SetCellValue('B8', 'Distance Number');
+      $excel->getActiveSheet()->SetCellValue('B8', 'Cell Number');
       $excel->getActiveSheet()->SetCellValue('F8', 'Max');
       $excel->getActiveSheet()->SetCellValue('G8', 'Min');
       $excel->getActiveSheet()->SetCellValue('H8', 'Max');

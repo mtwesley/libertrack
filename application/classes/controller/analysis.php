@@ -1066,13 +1066,14 @@ class Controller_Analysis extends Controller {
           $item->export_data($excel, $row);
           if (strtotime($item->create_date) > strtotime($create_date)) $create_date = $item->create_date;
           $row++;
-          unset($item);
         }
 
         // headers
         $item->export_headers($excel, array(
           'create_date' => $create_date = $create_date ?: SGS::date('now', SGS::PGSQL_DATE_FORMAT)
         ), $headers);
+
+        unset($item);
 
         // temporary file
         $tempname = tempnam(sys_get_temp_dir(), strtolower($form_type).'_').'.'.$type;
