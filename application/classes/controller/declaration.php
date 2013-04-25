@@ -101,9 +101,9 @@ class Controller_Declaration extends Controller {
           ->offset($pagination->offset)
           ->limit($pagination->items_per_page);
         if ($sort = $this->request->query('sort')) $files->order_by($sort);
-        die(Debug::vars($files = $files->order_by('timestamp', 'DESC')
-          ->find_all()));
-//          ->as_array();
+        $files = $files->order_by('timestamp', 'DESC')
+          ->find_all()
+          ->as_array();
       }
     }
 
