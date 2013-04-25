@@ -454,7 +454,7 @@ $options = (array) $options + array(
           <?php echo $document->values['fob_price_notes']; ?>
         </td>
         <td colspan="2">
-          <div class="strong">FDA Approval</div>
+          <div class="strong">FDA Approval (Managing Director)</div>
         </td>
       </tr>
       <tr>
