@@ -6,9 +6,21 @@ class SGS_Form_ORM extends ORM {
 
   public static $type = NULL;
 
+  public static $verification_type = NULL;
+
   public static function get_fields($form_type = NULL)
   {
     return call_user_func(array('Model_'.($form_type ? $form_type : static::$type), 'fields'));
+  }
+
+  public function verification() {
+    if (static::$verification_type) return ORM::factory(static::$verification_type);
+    else return NULL;
+  }
+
+  public function verified() {
+    $verification = $this->verification();
+    return ($verification and $verification->loaded()) ? TRUE : FALSE;
   }
 
   public function process_check($error_test, $warning_test, $field, $check, $params = array(), &$errors = array(), &$warnings = array()) {

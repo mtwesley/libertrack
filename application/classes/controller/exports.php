@@ -975,31 +975,47 @@ VALIDATION: $secret";
 
   private function handle_document_finalize($id) {
     $document = ORM::factory('document', $id);
-    if (!($document->loaded() and $document->is_draft)) {
-      Notify::msg('Document already finalized.', 'warning', TRUE);
-      $this->request->redirect('exports/documents/'.$id);
+
+    if (!$document->loaded()) {
+      Notify::msg('No invoice found.', 'warning', TRUE);
+      $this->request->redirect('invoices');
     }
 
-    $document->is_draft = FALSE;
-    $document->number = $document::create_document_number($document->type);
-
-    switch ($document->type) {
-      case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
-      case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
+    if (!$document->is_draft) {
+      Notify::msg('Invoice already finalized.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$id);
     }
 
-    if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);
-    else Notify::msg('Sorry, document file failed to be generated. Please try again.', 'error', TRUE);
+    $form = Formo::form()
+      ->add('confirm', 'text', 'Finalizing an invoice will make it permanent. Are you sure you want to finalize this draft invoice?')
+      ->add('delete', 'submit', 'Finalize');
 
-    try {
-      $document->save();
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $document->is_draft = FALSE;
+      $document->number = $document::create_document_number($document->type);
 
-      Notify::msg('Document finalized.', 'success', TRUE);
-      $this->request->redirect('exports/documents/'.$document->id);
-    } catch (Exception $e) {
-      Notify::msg('Sorry, unable to create document. Please try again.', 'error', TRUE);
-      $this->request->redirect('exports/documents/'.$document->id);
+      switch ($document->type) {
+        case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
+        case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
+      }
+
+      if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);
+      else Notify::msg('Sorry, document file failed to be generated. Please try again.', 'error', TRUE);
+
+      try {
+        $document->save();
+        Notify::msg('Document finalized.', 'success', TRUE);
+        $this->request->redirect('exports/documents/'.$document->id);
+      } catch (Exception $e) {
+        Notify::msg('Sorry, unable to create document. Please try again.', 'error', TRUE);
+        $this->request->redirect('exports/documents/'.$document->id);
+      }
     }
+
+    $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
   }
 
   private function handle_document_delete($id) {

@@ -139,7 +139,7 @@ class Model_LDFV extends SGS_Form_ORM {
       'site_name'       => $site_name,
       'inspection_date' => SGS::date(trim($csv[3][B] ?: $csv[3][C] ?: $csv[3][D]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'inspected_by'    => trim($csv[3][F] ?: $csv[3][G] ?: $csv[3][H]),
-    ));
+    ) + $data);
   }
 
   public function parse_data($data)

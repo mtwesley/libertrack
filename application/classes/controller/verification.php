@@ -859,7 +859,7 @@ class Controller_Verification extends Controller {
             }
 
             if ($reader instanceof PHPExcel_Reader_IReader) {
-              $excel = $reader->load($upload['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, FALSE, TRUE, TRUE);
+              $excel = $reader->load($upload['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, TRUE, TRUE, TRUE);
             }
           } catch (Exception $e) {
             Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');
@@ -1048,7 +1048,7 @@ class Controller_Verification extends Controller {
         }
       }
       if ($csv_success) Notify::msg($csv_success.' records successfully parsed.', 'success', TRUE);
-      if ($csv_serror) Notify::msg($csv_error.' records failed to be parsed.', 'error', TRUE);
+      if ($csv_error) Notify::msg($csv_error.' records failed to be parsed.', 'error', TRUE);
 
       $this->request->redirect('verification/files');
     }

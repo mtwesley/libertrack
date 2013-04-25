@@ -290,32 +290,47 @@ class Controller_Invoices extends Controller {
 
   private function handle_invoice_finalize($id) {
     $invoice = ORM::factory('invoice', $id);
-    if (!($invoice->loaded() and $invoice->is_draft)) {
+
+    if (!$invoice->loaded()) {
+      Notify::msg('No invoice found.', 'warning', TRUE);
+      $this->request->redirect('invoices');
+    }
+
+    if (!$invoice->is_draft) {
       Notify::msg('Invoice already finalized.', 'warning', TRUE);
       $this->request->redirect('invoices/'.$id);
     }
 
-    $invoice->is_draft = FALSE;
-    $invoice->number = $invoice::create_invoice_number($invoice->type);
+    $form = Formo::form()
+      ->add('confirm', 'text', 'Finalizing an invoice will make it permanent. Are you sure you want to finalize this draft invoice?')
+      ->add('delete', 'submit', 'Finalize');
 
-    switch ($invoice->type) {
-      case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, $invoice->get_data()); break;
-      case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice, $invoice->get_data()); break;
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $invoice->is_draft = FALSE;
+      $invoice->number = $invoice::create_invoice_number($invoice->type);
+
+      switch ($invoice->type) {
+        case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, $invoice->get_data()); break;
+        case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice, $invoice->get_data()); break;
+      }
+
+      if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
+      else Notify::msg('Sorry, invoice file failed to be generated. Please try again.', 'error', TRUE);
+
+      try {
+        $invoice->save();
+        Notify::msg('Invoice finalized.', 'success', TRUE);
+        $this->request->redirect('invoices/'.$invoice->id);
+      } catch (Exception $e) {
+        Notify::msg('Sorry, unable to finalize invoice. Please try again.', 'error', TRUE);
+        $this->request->redirect('invoices/'.$invoice->id);
+      }
     }
 
-    if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
-    else Notify::msg('Sorry, invoice file failed to be generated. Please try again.', 'error', TRUE);
+    $content .= $form->render();
 
-    try {
-      $invoice->save();
-
-      Notify::msg('Invoice finalized.', 'success', TRUE);
-      $this->request->redirect('invoices/'.$invoice->id);
-    } catch (Exception $e) {
-      Notify::msg('Sorry, unable to create invoice. Please try again.', 'error', TRUE);
-      $this->request->redirect('invoices/'.$invoice->id);
-    }
-
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
   }
 
   private function handle_invoice_list($id = NULL) {

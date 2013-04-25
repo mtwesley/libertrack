@@ -33,7 +33,7 @@ create domain d_length as numeric(8,1) check (value >= 0);
 
 create domain d_volume as numeric(8,3) check (value >= 0);
 
-create domain d_diameter as smallint (check value >= 0);
+create domain d_diameter as int check (value >= 0);
 
 create domain d_password as character(32) check (value ~ E'[0-9abcdef]');
 

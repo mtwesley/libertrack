@@ -859,7 +859,7 @@ class Controller_Declaration extends Controller {
             }
 
             if ($reader instanceof PHPExcel_Reader_IReader) {
-              $excel = $reader->load($upload['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, FALSE, TRUE, TRUE);
+              $excel = $reader->load($upload['tmp_name'])->setActiveSheetIndex(0)->toArray(NULL, TRUE, TRUE, TRUE);
             }
           } catch (Exception $e) {
             Notify::msg('Sorry, upload processing failed. Please try again. If you continue to receive this error, ensure that the uploaded file contains no formulas or macros.', 'error');

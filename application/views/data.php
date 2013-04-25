@@ -70,6 +70,7 @@ $classes[] = 'data';
     <?php endif; ?>
     <th class="type"></th>
     <th class="status"></th>
+    <th class="locked"></th>
     <th class="verified"></th>
     <?php foreach ($fields as $field => $name): ?>
     <?php
@@ -135,9 +136,8 @@ $classes[] = 'data';
         endswitch;
       ?>
     </td>
-    <td class="verified">
-      <?php if ($record->verification->loaded()) echo HTML::image('images/bullet_green.png', array('class' => 'verfied', 'title' => 'Unchecked')); ?>
-    </td>
+    <td class="locked"><?php if ($record->barcode->is_locked) echo HTML::image('images/bullet_locked.png', array('title' => 'Locked')); ?></td>
+    <td class="verified"><?php if ($record->verified()) echo HTML::image('images/bullet_check.png', array('title' => 'Verified')); ?></td>
     <?php foreach ($fields as $field => $name): ?>
     <?php
       if ($options['header'] or $options['hide_header_info']) switch ($field):

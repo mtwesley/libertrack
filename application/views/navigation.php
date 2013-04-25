@@ -83,7 +83,6 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'search') echo 'active'; ?>"><?php echo HTML::anchor('declaration/search', SGS::title('declaration/search')); ?></li>
 
     <?php elseif ($primary == 'verification'): ?>
-    <!--
     <li class="<?php if ($secondary == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('verification/upload', SGS::title('verification/upload')); ?></li>
     <li class="<?php if ($secondary == 'files')  echo 'active'; ?>"><?php echo HTML::anchor('verification/files', SGS::title('verification/files')); ?></li>
     <li class="<?php if ($secondary == 'data')   echo 'active'; ?>"><?php echo HTML::anchor('verification/data', SGS::title('verification/data')); ?>
@@ -97,7 +96,6 @@ if (!$command && !is_numeric($id)) {
       <?php endif; ?>
     </li>
     <li class="<?php if ($secondary == 'search') echo 'active'; ?>"><?php echo HTML::anchor('verification/search', SGS::title('verification/search')); ?></li>
-    -->
     <?php elseif ($primary == 'analysis'): ?>
     <li class="<?php if ($secondary == 'review') echo 'active'; ?>"><?php echo HTML::anchor('analysis/review', SGS::title('analysis/review')); ?>
       <?php if ($secondary == 'review'): ?>

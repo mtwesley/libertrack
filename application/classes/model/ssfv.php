@@ -87,7 +87,7 @@ class Model_SSFV extends SGS_Form_ORM {
       'block_name'      => $block_name,
       'inspection_date' => SGS::date(trim($csv[3][B] ?: $csv[3][C] ?: $csv[3][D]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'inspected_by'    => trim($csv[9][F] ?: $csv[9][G] ?: $csv[9][H]),
-    ));
+    ) + $data);
   }
 
   public function parse_data($data)
