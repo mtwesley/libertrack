@@ -107,6 +107,16 @@ if (!$command && !is_numeric($id)) {
       </ul>
       <?php endif; ?>
     </li>
+    <li class="<?php if ($secondary == 'checks') echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks', SGS::title('analysis/checks')); ?>
+      <?php if ($secondary == 'checks'): ?>
+      <ul class="nav commands">
+        <li class="<?php if ($command == 'ssf')   echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks/ssf', SGS::title('analysis/checks/ssf')); ?></li>
+        <li class="<?php if ($command == 'tdf')   echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks/tdf', SGS::title('analysis/checks/tdf')); ?></li>
+        <li class="<?php if ($command == 'ldf')   echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks/ldf', SGS::title('analysis/checks/ldf')); ?></li>
+        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks/specs', SGS::title('analysis/checks/specs')); ?></li>
+      </ul>
+      <?php endif; ?>
+    </li>
     <li class="<?php if ($secondary == 'verify') echo 'active'; ?>"><?php echo HTML::anchor('analysis/verify', SGS::title('analysis/verify')); ?>
       <?php if ($secondary == 'verify'): ?>
       <ul class="nav commands">
@@ -123,16 +133,6 @@ if (!$command && !is_numeric($id)) {
         <li class="<?php if ($command == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/download/tdf', SGS::title('analysis/download/tdf')); ?></li>
         <li class="<?php if ($command == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/download/ldf', SGS::title('analysis/download/ldf')); ?></li>
         <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('analysis/download/specs', SGS::title('analysis/download/specs')); ?></li>
-      </ul>
-      <?php endif; ?>
-    </li>
-    <li class="<?php if ($secondary == 'checks') echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks', SGS::title('analysis/checks')); ?>
-      <?php if ($secondary == 'checks'): ?>
-      <ul class="nav commands">
-        <li class="<?php if ($command == 'ssf')   echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks/ssf', SGS::title('analysis/checks/ssf')); ?></li>
-        <li class="<?php if ($command == 'tdf')   echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks/tdf', SGS::title('analysis/checks/tdf')); ?></li>
-        <li class="<?php if ($command == 'ldf')   echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks/ldf', SGS::title('analysis/checks/ldf')); ?></li>
-        <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('analysis/checks/specs', SGS::title('analysis/checks/specs')); ?></li>
       </ul>
       <?php endif; ?>
     </li>

@@ -109,7 +109,7 @@ class SGS {
     'analysis/review/ldf'   => 'Log Data',
     'analysis/review/specs' => 'Shipment Specification',
 
-    'analysis/checks'       => 'Run Checks and Queries',
+    'analysis/checks'       => 'Check Data',
     'analysis/checks/ssf'   => 'Stock Survey',
     'analysis/checks/tdf'   => 'Tree Data',
     'analysis/checks/ldf'   => 'Log Data',
