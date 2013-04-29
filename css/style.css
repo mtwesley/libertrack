@@ -490,6 +490,16 @@
   width: 10px;
 }
 
+#content table.data th.type img,
+#content table.data td.type img,
+#content table.data th.status img,
+#content table.data td.status img,
+#content table.data th.image img,
+#content table.data td.image {
+  position: relative;
+  top: 1px;
+}
+
 #content table.data td.error {
   color: #ae3636;
   font-weight: bold;

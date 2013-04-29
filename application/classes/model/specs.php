@@ -109,7 +109,8 @@ class Model_SPECS extends SGS_Form_ORM {
     parent::save($validation);
   }
 
-  public static $type = 'SPECS';
+  public static $type      = 'SPECS';
+  public static $data_type = 'SPECS';
   public static $verification_type = 'LDFV';
 
   public static $fields = array(
@@ -519,7 +520,8 @@ class Model_SPECS extends SGS_Form_ORM {
         case 'barcode':
           $query = DB::select('id')
             ->from($this->_table_name)
-            ->where($field.'_id', '=', ($val = SGS::lookup_barcode($values[$field], TRUE)) ? $val : NULL);
+            ->where($field.'_id', '=', ($val = SGS::lookup_barcode($values['barcode'], TRUE)) ? $val : NULL)
+            ->and_where($field.'_id', '=', ($val = SGS::lookup_barcode($values['specs_barcode'], TRUE)) ? $val : NULL);
 
           if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
 

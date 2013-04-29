@@ -59,7 +59,8 @@ class Model_TDFV extends SGS_Form_ORM {
     parent::save($validation);
   }
 
-  public static $type = 'TDFV';
+  public static $type      = 'TDFV';
+  public static $data_type = 'TDF';
   public static $verification_type = 'TDFV';
 
   public static $fields = array(
@@ -78,7 +79,108 @@ class Model_TDFV extends SGS_Form_ORM {
     'inspected_by'    => 'Inspector',
   );
 
-  public static $checks = array();
+  public static $checks = array(
+    'consistency' => array(
+      'title'  => 'Data Consistency',
+      'checks' => array(
+        'is_valid_barcode' => array(
+          'name'    => 'Felled Tree Barcode',
+          'title'   => 'Felled tree barcode assignment is valid',
+          'error'   => 'Felled tree barcode assignment is invalid',
+          'warning' => 'Felled tree barcode is not yet assigned',
+         ),
+    )),
+    'reliability' => array(
+      'title'  => 'Data Reliability',
+      'checks' => array(
+        'is_consistent_operator' => array(
+          'name'    => 'Operator Assignments',
+          'title'   => 'Operator assignments are consistent',
+          'warning' => 'Operator assignments are inconsistent'
+        ),
+        'is_consistent_site' => array(
+          'name'    => 'Site Assignments',
+          'title'   => 'Site assignments are consistent',
+          'warning' => 'Site assignments are inconsistent'
+        ),
+        'is_consistent_block' => array(
+          'name'    => 'Block Assignments',
+          'title'   => 'Block assignments are consistent',
+          'warning' => 'Block assignments are inconsistent'
+        )
+    )),
+    'declaration' => array(
+      'title'  => 'Declaration Performance',
+      'checks' => array(
+        'is_existing_data' => array(
+          'name'  => 'Declaration Found',
+          'title' => 'TDF record declared and verified',
+          'error' => 'TDF record not declared'
+        ),
+    )),
+    'verification' => array(
+      'title'  => 'Verification Performance',
+      'checks' => array(
+        'is_existing_verification' => array(
+          'name'  => 'Verification Found',
+          'title' => 'TDF record inspected and found',
+          'error' => 'TDF record not inspected'
+        ),
+    )),
+    'tolerance' => array(
+      'title'  => 'Tolerance',
+      'checks' => array(
+        'is_matching_diameter' => array(
+          'name'    => 'Diameter',
+          'title'   => 'Diameter matches data for TDF record',
+          'error'   => 'Diameter does not match data for TDF record',
+          'warning' => 'Diameter matches data for TDF record but is inaccurate'
+        ),
+        'is_matching_length' => array(
+          'name'    => 'Length',
+          'title'   => 'Length matches data for TDF record',
+          'error'   => 'Length does not match data for TDF record',
+          'warning' => 'Length matches data for TDF record but is inaccurate'
+        ),
+        'is_matching_species' => array(
+          'name'    => 'Species',
+          'title'   => 'Species matches data for TDF record',
+          'error'   => 'Species does not match data for TDF record',
+          'warning' => 'Species class matches data for TDF record but species code does not'
+        ),
+        'is_matching_operator' => array(
+          'name'  => 'Operator',
+          'title' => 'Operator matches data for TDF record',
+          'error' => 'Operator does not match data for TDF record',
+        ),
+        'is_matching_site' => array(
+          'name'  => 'Site',
+          'title' => 'Site matches data for TDF record',
+          'error' => 'Site does not match data for TDF record',
+        ),
+        'is_matching_block' => array(
+          'name'  => 'Block',
+          'title' => 'Block matches data for TDF record',
+          'error' => 'Block does not match data for TDF record',
+        )
+    )),
+    'deviation' => array(
+      'title'  => 'Deviation',
+      'checks' => array(
+        'is_valid_diameter' => array(
+          'name'  => 'Diameter Deviation',
+          'title' => 'Average difference of diameter in TDF and TDFV records',
+        ),
+        'is_valid_length' => array(
+          'name'  => 'Length Deviation',
+          'title' => 'Average difference of length in TDF and TDFV records',
+        ),
+        'is_valid_volume' => array(
+          'name'  => 'Volume Deviation',
+          'title' => 'Total difference of volume in TDF and TDFV records',
+        ),
+    )),
+  );
 
   public static function fields()
   {
@@ -308,7 +410,106 @@ class Model_TDFV extends SGS_Form_ORM {
     return $duplicates;
   }
 
-  public function run_checks() {}
+  public function run_checks() {
+    $this->reset_checks();
+
+    $errors    = array();
+    $warnings  = array();
+    $successes = array();
+
+    // reliability
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->barcode->printjob->site->operator->tin);
+    if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->site->operator->tin);
+    if (!(in_array('is_consistent_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->operator->tin);
+
+    if (!($this->site_id == $this->barcode->printjob->site_id)) $warnings['barcode_id']['is_consistent_site'] = array('value' => $this->site->name, 'comparison' => $this->barcode->printjob->site->name);
+    if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id']['is_consistent_site'] = array('value' => $this->site->name);
+    if (!(in_array('is_consistent_site', SGS::flattenify($errors + $warnings)))) $successes['site_id']['is_consistent_site'] = array('value' => $this->site->name, 'comparison' => $this->site->name);
+
+    if (!(in_array($this->block, $this->barcode->printjob->site->blocks->find_all()->as_array()))) $warnings['barcode_id']['is_consistent_block'] = array('value' => $this->block->name);
+    if (!(in_array($this->block, $this->site->blocks->find_all()->as_array()))) $warnings['site_id']['is_consistent_block'] = array('value' => $this->block->name);
+    if (!(in_array('is_consistent_block', SGS::flattenify($errors + $warnings)))) $successes['block_id']['is_consistent_block'] = array('value' => $this->block->name, 'comparison' => $this->block->name);
+
+    // consistency
+    switch ($this->barcode->type) {
+      case 'F': $successes['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['F']); break;
+      default:  $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['F']); break;
+    }
+
+    // traceability
+    $data = $this->data();
+
+    if ($data and $data->loaded()) {
+      if (!(ord($this->species->class) <= ord($data->species->class))) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $data->species->class);
+      else if (!($this->species->code == $data->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $data->species->code);
+
+      if (!($this->operator_id == $data->operator_id)) $warnings['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $data->operator->tin);
+      if (!($this->site_id == $data->site_id)) $errors['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $data->site->name);
+      if (!($this->block_id == $data->block_id)) $warnings['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $data->block->name);
+
+      if (!Valid::is_accurate($this->length, $data->height, SGS::tolerance('TDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->height);
+      else if (!Valid::is_accurate($this->length, $data->height, SGS::accuracy('TDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->height);
+
+      if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::tolerance('TDF', 'is_matching_diameter'))) {
+        $errors['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+        $errors['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+        $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+        $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+      }
+      else if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::accuracy('TDF', 'is_matching_diameter'))) {
+        $warnings['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+        $warnings['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+        $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+        $warnings['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+      }
+
+      $successes['barcode_id']['is_existing_data'] = array('value' => 'Found', 'comparison' => 'Found');
+    }
+    else {
+      $errors['barcode_id']['is_existing_data'] = array('value' => 'Found', 'comparison' => 'Not Found');
+    }
+
+    // all tolerance checks fail if any traceability checks fail
+    foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
+      foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['barcode_id'][$check] = array();
+      break;
+    }
+
+    // tolerance successes checks
+    if (is_object($data) and $data->loaded()) {
+      if (!(in_array('is_matching_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $data->operator->tin);
+      if (!(in_array('is_matching_site', SGS::flattenify($errors + $warnings)))) $successes['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $data->site->name);
+      if (!(in_array('is_matching_block', SGS::flattenify($errors + $warnings)))) $successes['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $data->block->name);
+      if (!(in_array('is_matching_species', SGS::flattenify($errors + $warnings)))) $successes['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $data->species->code);
+      if (!(in_array('is_matching_length', SGS::flattenify($errors + $warnings)))) $successes['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->height);
+
+      if (!(in_array('is_matching_diameter', SGS::flattenify($errors + $warnings)))) {
+        $successes['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+        $successes['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+        $successes['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+        $successes['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
+      }
+    }
+
+    if ($successes) foreach ($successes as $field => $array) {
+      foreach ($array as $success => $params) $this->set_success($field, $success, $params);
+    }
+
+    if ($warnings) foreach ($warnings as $field => $array) {
+      foreach ($array as $warning => $params) $this->set_error($field, $warning, $params); // $this->set_warning($field, $warning, $params);
+    }
+
+    if ($errors or $warnings) {
+      $this->status = 'R';
+      foreach ($errors as $field => $array) {
+        foreach ($array as $error => $params) $this->set_error($field, $error, $params);
+      }
+    } else $this->status = 'A';
+
+    $this->save();
+
+    return array($errors, $warnings);
+  }
 
   public function rules()
   {

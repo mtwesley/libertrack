@@ -21,7 +21,8 @@ class Model_SSF extends SGS_Form_ORM {
     $this->_object_plural = 'ssf';
   }
 
-  public static $type = 'SSF';
+  public static $type      = 'SSF';
+  public static $data_type = 'SSF';
   public static $verification_type = 'SSFV';
 
   public static $fields = array(
@@ -363,7 +364,7 @@ class Model_SSF extends SGS_Form_ORM {
       ->and_where('cell_number', '=', (int) $values['cell_number'])
       ->and_where('tree_map_number', '=', (int) $values['tree_map_number'])
       ->and_where('diameter', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['diameter']), SGS::accuracy('TDF', 'is_matching_diameter')))
-      ->and_where('length', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['length'], 1), SGS::accuracy('TDF', 'is_matching_length')));
+      ->and_where('height', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['height'], 1), SGS::accuracy('TDF', 'is_matching_length')));
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
     if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
@@ -386,6 +387,7 @@ class Model_SSF extends SGS_Form_ORM {
     if (!($this->operator_id == $this->site->operator_id)) $warnings['site_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->site->operator->tin);
     if (!(in_array('is_consistent_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->operator->tin);
 
+    if (!($this->site_id == $this->barcode->printjob->site_id)) $warnings['barcode_id']['is_consistent_site'] = array('value' => $this->site->name, 'comparison' => $this->barcode->printjob->site->name);
     if (!(in_array($this->site, $this->operator->sites->find_all()->as_array()))) $warnings['operator_id']['is_consistent_site'] = array('value' => $this->site->name);
     if (!(in_array('is_consistent_site', SGS::flattenify($errors + $warnings)))) $successes['site_id']['is_consistent_site'] = array('value' => $this->site->name, 'comparison' => $this->site->name);
 

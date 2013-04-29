@@ -65,8 +65,11 @@ class Model_TDF extends SGS_Form_ORM {
     parent::save($validation);
   }
 
-  public static $type = 'TDF';
+  public static $type      = 'TDF';
+  public static $data_type = 'TDF';
   public static $verification_type = 'TDFV';
+
+  public static $target_percentage = 5;
 
   public static $fields = array(
     'create_date'    => 'Date',
@@ -96,16 +99,16 @@ class Model_TDF extends SGS_Form_ORM {
       'title'  => 'Data Consistency',
       'checks' => array(
         'is_valid_barcode' => array(
-          'name'    => 'Tree Barcode',
-          'title'   => 'Tree barcode assignment is valid',
-          'error'   => 'Tree barcode assignment is invalid',
-          'warning' => 'Tree barcode is not yet assigned',
-         ),
-        'is_valid_tree_barcode' => array(
           'name'    => 'Felled Tree Barcode',
           'title'   => 'Felled tree barcode assignment is valid',
           'error'   => 'Felled tree barcode assignment is invalid',
           'warning' => 'Felled tree barcode is not yet assigned',
+         ),
+        'is_valid_tree_barcode' => array(
+          'name'    => 'Tree Barcode',
+          'title'   => 'Tree barcode assignment is valid',
+          'error'   => 'Tree barcode assignment is invalid',
+          'warning' => 'Tree barcode is not yet assigned',
          ),
         'is_valid_stump_barcode' => array(
           'name'    => 'Stump Barcode',
@@ -150,12 +153,6 @@ class Model_TDF extends SGS_Form_ORM {
     'tolerance' => array(
       'title'  => 'Tolerance',
       'checks' => array(
-        'is_matching_survey_line' => array(
-          'name'    => 'Survey Line',
-          'title'   => 'Survey line matches data for SSF record',
-          'error'   => 'Survey line does not match data for SSF record',
-          'warning' => 'Survey line matches data for SSF record but is inaccurate'
-        ),
         'is_matching_diameter' => array(
           'name'    => 'Diameter',
           'title'   => 'Diameter matches data for SSF record',
@@ -593,8 +590,8 @@ class Model_TDF extends SGS_Form_ORM {
       if (!(in_array('is_matching_length', SGS::flattenify($errors + $warnings)))) $successes['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $parent->height);
 
       if (!(in_array('is_matching_diameter', SGS::flattenify($errors + $warnings)))) {
-        $successes['bottom_min']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
-        $successes['bottom_max']['is_matching_diameter'] = array('value' => $diameter, 'comparison' => $parent->diameter);
+        $successes['bottom_min']['is_matching_diameter'] = array('value' => $this->bottom_diameter, 'comparison' => $parent->diameter);
+        $successes['bottom_max']['is_matching_diameter'] = array('value' => $this->bottom_diameter, 'comparison' => $parent->diameter);
       }
     }
 

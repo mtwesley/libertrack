@@ -8,10 +8,10 @@ $classes[] = 'data';
     <th class="status"></th>
     <th><?php print $info['title']; ?></th>
     <th class="check-info">Total Records</th>
-    <th class="check-info">Total Checked</th>
-    <th class="check-info">Total Passed</th>
-    <th class="check-info">Total Warnings</th>
-    <th class="check-info">Total Failed</th>
+    <th class="check-info">Checked</th>
+    <th class="check-info">Passed</th>
+    <th class="check-info">Failed</th>
+    <th class="check-info">Warnings</th>
     <th class="check-info">Pass Rate</th>
   </tr>
   <?php foreach ($info['checks'] as $check => $array): ?>
@@ -36,8 +36,8 @@ $classes[] = 'data';
     <td class="check-info"><?php print $records; ?></td>
     <td class="check-info"><?php print $checked; ?></td>
     <td class="check-info"><span class="accepted"><?php print $passed; ?></span></td>
-    <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>
     <td class="check-info"><span class="rejected"><?php print $failed; ?></span></td>
+    <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>
     <td class="check-info"><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
   </tr>
   <?php endforeach; ?>
@@ -49,10 +49,10 @@ $classes[] = 'data';
     <th class="status"></th>
     <th>Summary</th>
     <th class="check-info">Total Records</th>
-    <th class="check-info">Total Checked</th>
-    <th class="check-info">Total Passed</th>
-    <th class="check-info">Total Warnings</th>
-    <th class="check-info">Total Failed</th>
+    <th class="check-info">Checked</th>
+    <th class="check-info">Passed</th>
+    <th class="check-info">Failed</th>
+    <th class="check-info">Warnings</th>
     <th class="check-info">Pass Rate</th>
   </tr>
   <?php
@@ -70,8 +70,8 @@ $classes[] = 'data';
     <td class="check-info"><?php print $records; ?></td>
     <td class="check-info"><?php print $checked; ?></td>
     <td class="check-info"><span class="accepted"><?php print $passed; ?></span></td>
-    <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>
     <td class="check-info"><span class="rejected"><?php print $failed; ?></span></td>
+    <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>
     <td class="check-info"><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
   </tr>
 </table>

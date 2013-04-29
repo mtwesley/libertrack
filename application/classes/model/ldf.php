@@ -80,7 +80,8 @@ class Model_LDF extends SGS_Form_ORM {
     parent::save($validation);
   }
 
-  public static $type = 'LDF';
+  public static $type      = 'LDF';
+  public static $data_type = 'LDF';
   public static $verification_type = 'LDFV';
 
   public static $fields = array(
@@ -479,17 +480,12 @@ class Model_LDF extends SGS_Form_ORM {
 
     // consistency
     switch ($this->barcode->type) {
-      case 'F':
-        if ($this->parent_barcode->type == 'F') $successes['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['F']);
-        else $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['L']);
-        break;
       case 'L': $successes['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['L']); break;
       default:  $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::implodify(array(SGS::$barcode_type['F'], SGS::$barcode_type['L']))); break;
     }
 
     switch ($this->parent_barcode->type) {
       case 'F': $successes['parent_barcode_id']['is_valid_parent_barcode'] = array('value' => SGS::$barcode_type[$this->parent_barcode->type], 'comparison' => SGS::$barcode_type['F']); break;
-      case 'L': $successes['parent_barcode_id']['is_valid_parent_barcode'] = array('value' => SGS::$barcode_type[$this->parent_barcode->type], 'comparison' => SGS::$barcode_type['L']); break;
       default:  $warnings['parent_barcode_id']['is_valid_parent_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::implodify(array(SGS::$barcode_type['F'], SGS::$barcode_type['L']))); break;
     }
 
@@ -524,10 +520,8 @@ class Model_LDF extends SGS_Form_ORM {
         $siblings['diameter'] = (float) SGS::floatify($siblings['diameter'] / count($siblngs));
         $siblings['volume']   = (float) SGS::quantitify($siblings['volume'] / count($siblngs));
 
-        if ($parent::$type == 'LDF') {
-          if (!Valid::is_accurate($siblings['volume'], $parent->volume, SGS::tolerance('LDF', 'is_matching_volume'), FALSE)) $errors['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
-          else if (!Valid::is_accurate($siblings['volume'], $parent->volume, SGS::accuracy('LDF', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
-        }
+        if (!Valid::is_accurate($siblings['volume'], $parent->volume, SGS::tolerance('LDF', 'is_matching_volume'), FALSE)) $errors['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
+        else if (!Valid::is_accurate($siblings['volume'], $parent->volume, SGS::accuracy('LDF', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $siblings['volume'], 'comparison' => $parent->volume);
 
         if (!Valid::is_accurate($siblings['length'], $parent->length, SGS::tolerance('LDF', 'is_matching_length'), FALSE)) $errors['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
         else if (!Valid::is_accurate($siblings['length'], $parent->length, SGS::accuracy('LDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);

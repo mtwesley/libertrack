@@ -15,7 +15,7 @@
   <?php foreach ($invoices as $invoice): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
     <td class="type"><span class="data-type"><?php echo $invoice->type; ?></span></td>
-    <td class="image"><?php echo HTML::image('images/layout.png'); ?></td>
+    <td class="image"><?php echo HTML::image('images/layout_content.png'); ?></td>
     <td><?php echo $invoice->is_draft ? 'DRAFT' : $invoice->type.'-'.$invoice->number; ?></td>
     <td><?php echo $invoice->operator->name; ?></td>
     <td><?php echo $invoice->site->name; ?></td>

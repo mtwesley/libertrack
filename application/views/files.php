@@ -32,6 +32,8 @@ $classes[] = 'data';
             echo HTML::image('images/xls.png', array('class' => 'xls', 'title' => SGS::$file_type['xls'])); break;
           case 'csv':
             echo HTML::image('images/csv.png', array('class' => 'csv', 'title' => SGS::$file_type['csv'])); break;
+          case 'pdf':
+            echo HTML::image('images/csv.png', array('class' => 'csv', 'title' => SGS::$file_type['pdf'])); break;
         endswitch;
       ?>
     </td>

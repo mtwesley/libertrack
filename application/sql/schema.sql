@@ -79,6 +79,8 @@ create domain d_qrcode_type as character(1) check (value ~ E'^[P]$');
 
 create domain d_location_type as character(1) check (value ~ E'^[P]$');
 
+create domain d_check_type as character(1) check (value ~ E'^[EWS]$');
+
 create domain d_error_type as character(1) check (value ~ E'^[EWS]$');
 
 create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value < 1));
@@ -533,9 +535,9 @@ create table ssf_verification (
   cell_number d_positive_int not null,
   diameter d_diameter not null,
   height d_length not null,
-  inspected_by d_text_short,
+  inspected_by,
   inspection_date d_date not null,
-  inspection_label d_text_short not null,
+  inspection_label d_text_short,
   create_date d_date not null,
   status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
@@ -853,26 +855,26 @@ create table specs_verification (
   constraint specs_verification_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 );
 
-create table errors (
+create table checks (
   id bigserial not null,
   form_type d_form_type not null,
   form_data_id d_id not null,
-  error d_text_short,
+  "check" d_text_short,
   field d_text_short not null,
   params d_text_long,
   type d_error_type default 'E' not null,
   is_ignored d_bool default false not null,
 
-  -- constraint errors_pkey primary key (id),
+  -- constraint checks_pkey primary key (id),
 
-  constraint errors_unique unique(form_type,form_data_id,field,error,type)
+  constraint checks_unique unique(form_type,form_data_id,field,"check",type)
 );
 
 create table verification_checks (
   id bigserial not null,
-  form_type d_form_type not null,
+  form_type d_form_verification_type not null,
   form_verification_id d_id not null,
-  check d_text_short,
+  "check" d_text_short,
   field d_text_short not null,
   params d_text_long,
   type d_check_type default 'E' not null,
@@ -880,7 +882,7 @@ create table verification_checks (
 
   -- constraint verification_pkey primary key (id),
 
-  constraint verification_unique unique(form_type,form_verification_id,field,check,type)
+  constraint verification_unique unique(form_type,form_verification_id,field,"check",type)
 );
 
 create table revisions (
@@ -1082,14 +1084,14 @@ create index specs_verification_loading_date on specs_verification (id,loading_d
 create index specs_verification_create_date on specs_verification (id,create_date);
 create index specs_verification_status on specs_verification (id,status);
 
-create index errors_form_type_data_id on errors (form_type,form_data_id);
-create index errors_field on errors (form_type,form_data_id,field);
-create index errors_errors on errors (form_type,form_data_id,error);
-create index errors_type on errors (id,form_type,form_data_id,type);
+create index checks_form_type_data_id on checks (form_type,form_data_id);
+create index checks_field on checks (form_type,form_data_id,field);
+create index checks_check on checks (form_type,form_data_id,"check");
+create index checks_type on checks (id,form_type,form_data_id,type);
 
 create index verification_checks_form_type_verification_id on verification_checks (form_type,form_verification_id);
 create index verification_checks_field on verification_checks (form_type,form_verification_id,field);
-create index verification_checks_verification_checks on verification_checks (form_type,form_verification_id,error);
+create index verification_checks_check on verification_checks (form_type,form_verification_id,check);
 create index verification_checks_type on verification_checks (id,form_type,form_verification_id,type);
 
 create index revisions_model on revisions (model,model_id);

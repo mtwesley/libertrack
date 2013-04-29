@@ -50,7 +50,7 @@ class Controller_Reports extends Controller {
         ->as_array('id');
 
       $data   = $modelname::generate_report($records);
-      $report = View::factory('report')
+      $report = View::factory('reports/checks_summary')
         ->set('data', $data)
         ->set('from', $from)
         ->set('to', $to)

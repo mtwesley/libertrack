@@ -6,6 +6,8 @@ class SGS_Form_ORM extends ORM {
 
   public static $type = NULL;
 
+  public static $data_type = NULL;
+
   public static $verification_type = NULL;
 
   public static function get_fields($form_type = NULL)
@@ -13,14 +15,40 @@ class SGS_Form_ORM extends ORM {
     return call_user_func(array('Model_'.($form_type ? $form_type : static::$type), 'fields'));
   }
 
-  public function verification() {
-    if (static::$verification_type) return ORM::factory(static::$verification_type);
-    else return NULL;
+  public function is_locked() {
+    if (isset($this->barcode) and $this->barcode->loaded()) return $this->barcode->is_locked ? TRUE : FALSE;
   }
 
-  public function verified() {
+  public function data() {
+    if (static::$data_type and isset($this->barcode) and $this->barcode->loaded()) {
+      return ORM::factory(static::$data_type)
+        ->where('barcode_id', '=', $this->barcode->id)
+        ->find();
+    } else return NULL;
+  }
+
+  public function verification() {
+    if (static::$verification_type and isset($this->barcode) and $this->barcode->loaded()) {
+      return ORM::factory(static::$verification_type)
+        ->where('barcode_id', '=', $this->barcode->id)
+        ->find();
+    } else return NULL;
+  }
+
+  public function is_accurate() {
     $verification = $this->verification();
-    return ($verification and $verification->loaded()) ? TRUE : FALSE;
+    return ($verification and $verification->loaded() and $verification->status == 'A') ? TRUE : FALSE;
+  }
+
+  public function is_verified() {
+    $verification = $this->verification();
+    return ($verification and $verification->loaded() and $verification->status != 'P') ? TRUE : FALSE;
+  }
+
+  public function is_verification() {
+    if (in_array(static::$type, array_keys(SGS::$form_verification_type))) return TRUE;
+    else if (in_array(static::$type, array_keys(SGS::$form_data_type))) return FALSE;
+    else return NULL;
   }
 
   public function process_check($error_test, $warning_test, $field, $check, $params = array(), &$errors = array(), &$warnings = array()) {
@@ -69,101 +97,101 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function reset_checks() {
-    $query = DB::delete('errors')
+    $query = DB::delete($this->is_verification() ? 'verification_checks' : 'checks')
       ->where('form_type', '=', static::$type)
-      ->and_where('form_data_id', '=', $this->id);
+      ->and_where($this->is_verification() ? 'form_verification_id' : 'form_data_id', '=', $this->id);
     $query->execute();
   }
 
   public function get_successes($with_params = FALSE, $by_field = TRUE, $array = TRUE, $args = array()) {
     $query = DB::select()
-      ->from('errors')
+      ->from($this->is_verification() ? 'verification_checks' : 'checks')
       ->where('form_type', '=', static::$type)
-      ->and_where('form_data_id', '=', $this->id)
+      ->and_where($this->is_verification() ? 'form_verification_id' : 'form_data_id', '=', $this->id)
       ->and_where('type', '=', 'S');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) {
       if ($with_params) {
-        if ($array) $successes[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
-        else $successes[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
-      } else $successes[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
+        if ($array) $successes[$result[$by_field ? 'field' : 'check']][$result[$by_field ? 'check' : 'field']] = unserialize($result['params']);
+        else $successes[$result[$by_field ? 'field' : 'check']] = unserialize($result['params']);
+      } else $successes[$result[$by_field ? 'field' : 'check']][] = $result[$by_field ? 'check' : 'field'];
     }
     return (array) $successes;
   }
 
   public function unset_successes($args = array()) {
-    $query = DB::delete('errors')
+    $query = DB::delete($this->is_verification() ? 'verification_checks' : 'checks')
       ->where('form_type', '=', static::$type)
-      ->and_where('form_data_id', '=', $this->id)
+      ->and_where($this->is_verification() ? 'form_verification_id' : 'form_data_id', '=', $this->id)
       ->and_where('type', '=', 'S');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     $query->execute();
   }
 
-  public function set_success($field, $error, $params = array()) {
-    DB::insert('errors', array('form_type', 'form_data_id', 'field', 'error', 'type', 'params'))
-      ->values(array(static::$type, $this->id, $field, $error, 'S', $params ? serialize($params) : NULL))
+  public function set_success($field, $check, $params = array()) {
+    DB::insert($this->is_verification() ? 'verification_checks' : 'checks', array('form_type', $this->is_verification() ? 'form_verification_id' : 'form_data_id', 'field', 'check', 'type', 'params'))
+      ->values(array(static::$type, $this->id, $field, $check, 'S', $params ? serialize($params) : NULL))
       ->execute();
   }
 
   public function get_errors($with_params = FALSE, $by_field = TRUE, $array = TRUE, $args = array()) {
     $query = DB::select()
-      ->from('errors')
+      ->from($this->is_verification() ? 'verification_checks' : 'checks')
       ->where('form_type', '=', static::$type)
-      ->and_where('form_data_id', '=', $this->id)
+      ->and_where($this->is_verification() ? 'form_verification_id' : 'form_data_id', '=', $this->id)
       ->and_where('type', '=', 'E');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) {
       if ($with_params) {
-        if ($array) $errors[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
-        else $errors[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
-      } else $errors[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
+        if ($array) $errors[$result[$by_field ? 'field' : 'check']][$result[$by_field ? 'check' : 'field']] = unserialize($result['params']);
+        else $errors[$result[$by_field ? 'field' : 'check']] = unserialize($result['params']);
+      } else $errors[$result[$by_field ? 'field' : 'check']][] = $result[$by_field ? 'check' : 'field'];
     }
     return (array) $errors;
   }
 
   public function unset_errors($args = array()) {
-    $query = DB::delete('errors')
+    $query = DB::delete($this->is_verification() ? 'verification_checks' : 'checks')
       ->where('form_type', '=', static::$type)
-      ->and_where('form_data_id', '=', $this->id)
+      ->and_where($this->is_verification() ? 'form_verification_id' : 'form_data_id', '=', $this->id)
       ->and_where('type', '=', 'E');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     $query->execute();
   }
 
-  public function set_error($field, $error, $params = array()) {
-    DB::insert('errors', array('form_type', 'form_data_id', 'field', 'error', 'type', 'params'))
-      ->values(array(static::$type, $this->id, $field, $error, 'E', $params ? serialize($params) : NULL))
+  public function set_error($field, $check, $params = array()) {
+    DB::insert($this->is_verification() ? 'verification_checks' : 'checks', array('form_type', $this->is_verification() ? 'form_verification_id' : 'form_data_id', 'field', 'check', 'type', 'params'))
+      ->values(array(static::$type, $this->id, $field, $check, 'E', $params ? serialize($params) : NULL))
       ->execute();
   }
 
   public function get_warnings($with_params = FALSE, $by_field = TRUE, $array = TRUE, $args = array()) {
     $query = DB::select()
-      ->from('errors')
+      ->from($this->is_verification() ? 'verification_checks' : 'checks')
       ->where('form_type', '=', static::$type)
-      ->and_where('form_data_id', '=', $this->id)
+      ->and_where($this->is_verification() ? 'form_verification_id' : 'form_data_id', '=', $this->id)
       ->and_where('type', '=', 'W');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) {
       if ($with_params) {
-        if ($array) $warnings[$result[$by_field ? 'field' : 'error']][$result[$by_field ? 'error' : 'field']] = unserialize($result['params']);
-        else $warnings[$result[$by_field ? 'field' : 'error']] = unserialize($result['params']);
-      } else $warnings[$result[$by_field ? 'field' : 'error']][] = $result[$by_field ? 'error' : 'field'];
+        if ($array) $warnings[$result[$by_field ? 'field' : 'check']][$result[$by_field ? 'check' : 'field']] = unserialize($result['params']);
+        else $warnings[$result[$by_field ? 'field' : 'check']] = unserialize($result['params']);
+      } else $warnings[$result[$by_field ? 'field' : 'check']][] = $result[$by_field ? 'check' : 'field'];
     }
     return (array) $warnings;
   }
 
   public function unset_warnings($args = array()) {
-    $query = DB::delete('errors')
+    $query = DB::delete($this->is_verification() ? 'verification_checks' : 'checks')
       ->where('form_type', '=', static::$type)
-      ->and_where('form_data_id', '=', $this->id)
+      ->and_where($this->is_verification() ? 'form_verification_id' : 'form_data_id', '=', $this->id)
       ->and_where('type', '=', 'W');
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     $query->execute();
   }
 
   public function set_warning($field, $warning, $params = array()) {
-    DB::insert('errors', array('form_type', 'form_data_id', 'field', 'error', 'type', 'params'))
+    DB::insert($this->is_verification() ? 'verification_checks' : 'checks', array('form_type', $this->is_verification() ? 'form_verification_id' : 'form_data_id', 'field', 'check', 'type', 'params'))
       ->values(array(static::$type, $this->id, $field, $warning, 'W', $params ? serialize($params) : NULL))
       ->execute();
   }

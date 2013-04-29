@@ -107,6 +107,15 @@ if (!$command && !is_numeric($id)) {
       </ul>
       <?php endif; ?>
     </li>
+    <li class="<?php if ($secondary == 'verify') echo 'active'; ?>"><?php echo HTML::anchor('analysis/verify', SGS::title('analysis/verify')); ?>
+      <?php if ($secondary == 'verify'): ?>
+      <ul class="nav commands">
+        <li class="<?php if ($command == 'ssfv')   echo 'active'; ?>"><?php echo HTML::anchor('analysis/verify/ssfv', SGS::title('analysis/verify/ssfv')); ?></li>
+        <li class="<?php if ($command == 'tdfv')   echo 'active'; ?>"><?php echo HTML::anchor('analysis/verify/tdfv', SGS::title('analysis/verify/tdfv')); ?></li>
+        <li class="<?php if ($command == 'ldfv')   echo 'active'; ?>"><?php echo HTML::anchor('analysis/verify/ldfv', SGS::title('analysis/verify/ldfv')); ?></li>
+      </ul>
+      <?php endif; ?>
+    </li>
     <li class="<?php if ($secondary == 'download') echo 'active'; ?>"><?php echo HTML::anchor('analysis/download', SGS::title('analysis/download')); ?>
       <?php if ($secondary == 'download'): ?>
       <ul class="nav commands">

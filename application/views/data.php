@@ -70,8 +70,6 @@ $classes[] = 'data';
     <?php endif; ?>
     <th class="type"></th>
     <th class="status"></th>
-    <th class="locked"></th>
-    <th class="verified"></th>
     <?php foreach ($fields as $field => $name): ?>
     <?php
       if ($options['header'] or $options['hide_header_info']) switch ($field):
@@ -129,15 +127,19 @@ $classes[] = 'data';
     <td class="type"><span class="data-type"><?php echo $form_type; ?></span></td>
     <td class="status">
       <?php
-        switch ($record->status):
+        if (!$record->is_verification()) switch ($record->status):
           case 'P': echo HTML::image('images/bullet_yellow.png', array('class' => 'status pending', 'title' => 'Unchecked')); break;
           case 'A': echo HTML::image('images/bullet_green.png', array('class' => 'status accepted', 'title' => 'Passed')); break;
           case 'R': echo HTML::image('images/bullet_red.png', array('class' => 'status rejected', 'title' => 'Failed')); break;
         endswitch;
+        if (($verification = $record->verification()) and $verification->loaded()) switch ($verification->status):
+          case 'P': echo HTML::image('images/bullet_check_yellow.png', array('class' => 'status pending', 'title' => 'Unverified')); break;
+          case 'A': echo HTML::image('images/bullet_check.png', array('class' => 'status accepted', 'title' => 'Accurate')); break;
+          case 'R': echo HTML::image('images/bullet_check_red.png', array('class' => 'status rejected', 'title' => 'Inaccurate')); break;
+        endswitch;
+        if ($record->is_locked()) echo HTML::image('images/bullet_locked.png', array('class' => 'locked', 'title' => 'Locked'));
       ?>
     </td>
-    <td class="locked"><?php if ($record->barcode->is_locked) echo HTML::image('images/bullet_locked.png', array('title' => 'Locked')); ?></td>
-    <td class="verified"><?php if ($record->verified()) echo HTML::image('images/bullet_check.png', array('title' => 'Verified')); ?></td>
     <?php foreach ($fields as $field => $name): ?>
     <?php
       if ($options['header'] or $options['hide_header_info']) switch ($field):

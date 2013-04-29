@@ -115,6 +115,11 @@ class SGS {
     'analysis/checks/ldf'   => 'Log Data',
     'analysis/checks/specs' => 'Shipment Specification',
 
+    'analysis/verify'       => 'Verify Data',
+    'analysis/verify/ssfv'  => 'Stock Survey',
+    'analysis/verify/tdfv'  => 'Tree Data',
+    'analysis/verify/ldfv'  => 'Log Data',
+
     'analysis/download'       => 'Download Data',
     'analysis/download/ssf'   => 'Stock Survey',
     'analysis/download/tdf'   => 'Tree Data',
@@ -282,10 +287,10 @@ class SGS {
 
   public static $file_type = array(
     'csv'  => 'CSV Document',
-    'xls'  => 'Excel Spreadsheet',
-    'xlsx' => 'Excel Spreadsheet',
+    'xls'  => 'Microsoft Excel Spreadsheet',
+    'xlsx' => 'Microsoft Excel Spreadsheet',
     'txt'  => 'Plain Text Document',
-    'pdf'  => 'PDF Document'
+    'pdf'  => 'Adobe PDF Document'
   );
 
   public static $operation = array(
@@ -390,6 +395,13 @@ class SGS {
     'A' => 'Passed',
     'R' => 'Failed',
     'P' => 'Unchecked',
+//    'D' => 'Deleted',
+  );
+
+  public static $verification_status = array(
+    'A' => 'Accurate',
+    'R' => 'Inaccurate',
+    'P' => 'Unverified',
 //    'D' => 'Deleted',
   );
 

@@ -79,7 +79,7 @@ class Controller_Checks extends Controller {
       $modelname = get_class($model);
 
       $data   = $modelname::generate_report($records);
-      $report = View::factory('report')
+      $report = View::factory('reports/checks_summary')
         ->set('data', $data)
         ->set('from', $from)
         ->set('to', $to)

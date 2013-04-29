@@ -389,3 +389,8 @@ begin
 end
 $$ language 'plpgsql';
 
+
+-- more fixes
+
+alter table errors rename column error to "check";
+alter table errors rename to checks;
