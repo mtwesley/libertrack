@@ -679,6 +679,8 @@ class Controller_Analysis extends Controller {
         $data_record = ORM::factory($form_data_type, $declared_record_id);
         if ((!$record = $data_record->verification()) or !$record->loaded()) continue;
 
+        $data['total']['records']++;
+
         $errors   = array();
         $warnings = array();
 
