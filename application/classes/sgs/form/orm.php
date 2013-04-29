@@ -20,19 +20,15 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function data() {
-    if (static::$data_type and isset($this->barcode) and $this->barcode->loaded()) {
-      return ORM::factory(static::$data_type)
-        ->where('barcode_id', '=', $this->barcode->id)
-        ->find();
-    } else return NULL;
+    return ORM::factory(static::$data_type)
+      ->where('barcode_id', '=', $this->barcode->id)
+      ->find();
   }
 
   public function verification() {
-    if (static::$verification_type and isset($this->barcode) and $this->barcode->loaded()) {
-      return ORM::factory(static::$verification_type)
-        ->where('barcode_id', '=', $this->barcode->id)
-        ->find();
-    } else return NULL;
+    return ORM::factory(static::$verification_type)
+      ->where('barcode_id', '=', $this->barcode->id)
+      ->find();
   }
 
   public function is_accurate() {

@@ -677,7 +677,7 @@ class Controller_Analysis extends Controller {
       set_time_limit(0);
       foreach ($declared_record_ids as $declared_record_id) {
         $data_record = ORM::factory($form_data_type, $declared_record_id);
-        if (!$record = $data_record->verification()) continue;
+        if (($record = $data_record->verification()) and $record->loaded()) continue;
 
         $data['total']['records']++;
 
@@ -800,7 +800,7 @@ class Controller_Analysis extends Controller {
 //        ));
 //      }
 
-      if ($unable)     Notify::msg('Sorry, unable to run checks and queries on '.$unable.' records. Please try again.', 'error', TRUE);
+      if ($unable)     Notify::msg('Sorry, unable to very '.$unable.' records. Please try again.', 'error', TRUE);
       if ($accurate)   Notify::msg($accurate.' records are verified and accurate.', 'success', TRUE);
       if ($inaccurate) Notify::msg($inaccurate.' records are verified and inaccurate.', 'error', TRUE);
       if ($unverified) Notify::msg($unverified.' records could not be verified.', 'warning', TRUE);
