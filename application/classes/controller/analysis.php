@@ -595,7 +595,7 @@ class Controller_Analysis extends Controller {
     }
 
     $form = $form
-      ->add_group('status', 'checkboxes', SGS::$verification_status, array('A'), array('label' => 'Declared Status'))
+      ->add_group('status', 'checkboxes', SGS::$data_status, array('A'), array('label' => 'Declared Status'))
       ->add('inspected_from', 'input', array('label' => 'Inspected From', 'attr' => array('class' => 'dpicker', 'id' => 'inspeced-from-dpicker')))
       ->add('inspected_to', 'input', array('label' => 'Inspected To', 'attr' => array('class' => 'dpicker', 'id' => 'inspected-to-dpicker')))
       ->add_group('checks', 'checkboxes', $check_options, array_diff(array_keys($check_options), array('consistency', 'reliability')), array('label' => 'Check'))
@@ -677,8 +677,7 @@ class Controller_Analysis extends Controller {
       set_time_limit(0);
       foreach ($declared_record_ids as $declared_record_id) {
         $data_record = ORM::factory($form_data_type, $declared_record_id);
-
-        if ($data_record->is_verified()) $record = $data_record->verification();
+        if ($data_record->loaded()) $record = $data_record->verification();
         else continue;
 
         $data['total']['records']++;
