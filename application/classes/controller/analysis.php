@@ -677,9 +677,7 @@ class Controller_Analysis extends Controller {
       set_time_limit(0);
       foreach ($declared_record_ids as $declared_record_id) {
         $data_record = ORM::factory($form_data_type, $declared_record_id);
-        if (($record = $data_record->verification()) and $record->loaded()) continue;
-
-        $data['total']['records']++;
+        if ((!$record = $data_record->verification()) or !$record->loaded()) continue;
 
         $errors   = array();
         $warnings = array();
