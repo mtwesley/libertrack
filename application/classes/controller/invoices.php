@@ -639,6 +639,12 @@ class Controller_Invoices extends Controller {
     $signature_remaining  = TRUE;
     while ($cntr < $summary_count) {
       $options = array();
+
+      $first = FALSE;
+      $last  = FALSE;
+      $one   = FALSE;
+      $sign  = FALSE;
+
       if ($cntr == 0) $first = TRUE;
       if (($summary_count - $cntr) <= $summary_last_page_max) $last = TRUE;
       if (($cntr == 0) and ($summary_count <= $summary_one_page_max)) $one = TRUE;
@@ -873,6 +879,12 @@ class Controller_Invoices extends Controller {
     $signature_remaining  = TRUE;
     while ($cntr < $summary_count) {
       $options = array();
+
+      $first = FALSE;
+      $last  = FALSE;
+      $one   = FALSE;
+      $sign  = FALSE;
+
       if ($cntr == 0) $first = TRUE;
       if (($summary_count - $cntr) <= $summary_last_page_max) $last = TRUE;
       if (($cntr == 0) and ($summary_count <= $summary_one_page_max)) $one = TRUE;
