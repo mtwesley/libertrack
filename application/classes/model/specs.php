@@ -669,7 +669,8 @@ class Model_SPECS extends SGS_Form_ORM {
     return array(
       'operator_id'        => array(array('not_empty')),
       'species_id'         => array(array('not_empty')),
-      'barcode_id'         => array(array('not_empty')),
+      'barcode_id'         => array(array('not_empty'),
+                                    array('is_unique_fields', array($this->_table_name, array(':field', 'specs_barcode_id'), array(':field' => ':value', 'specs_barcode_id' => $this->specs_barcode->id), $this->id))),
       'specs_barcode_id'   => array(array('not_empty')),
       'exp_barcode_id'     => array(array('not_empty')),
       'top_min'            => array(array('not_empty'),
