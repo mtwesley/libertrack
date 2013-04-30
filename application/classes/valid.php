@@ -16,7 +16,7 @@ class Valid extends Kohana_Valid {
   public static function is_unique_fields($table, $fields, $values, $id = array())
   {
     $query = DB::select_array($fields)->from($table);
-    foreach ($fields as $field => $value) $query->where($values[$field], '=', $value);
+    foreach ($values as $field => $value) $query->where($field, '=', $value);
     if ($id) $query->and_where('id', 'NOT IN', (array) $id);
 
     return ! (bool) $query->execute()->as_array();
