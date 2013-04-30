@@ -640,6 +640,7 @@ class Controller_Invoices extends Controller {
     while ($cntr < $summary_count) {
       $options = array();
 
+      $max   = 0;
       $first = FALSE;
       $last  = FALSE;
       $one   = FALSE;
@@ -880,6 +881,7 @@ class Controller_Invoices extends Controller {
     while ($cntr < $summary_count) {
       $options = array();
 
+      $max   = 0;
       $first = FALSE;
       $last  = FALSE;
       $one   = FALSE;
