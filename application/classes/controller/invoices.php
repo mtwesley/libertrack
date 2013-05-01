@@ -636,11 +636,12 @@ class Controller_Invoices extends Controller {
     }
 
     $cntr  = 0;
-    $signature_remaining  = TRUE;
+    $signature_remaining = TRUE;
+    $total_remaining = TRUE;
     while ($cntr < $summary_count) {
       $options = array();
 
-      $max   = 0;
+      $max   = NULL;
       $first = FALSE;
       $last  = FALSE;
       $one   = FALSE;
@@ -687,6 +688,8 @@ class Controller_Invoices extends Controller {
         $options['signature'] = TRUE;
       }
 
+      if ($options['total']) $total_remaining = FALSE;
+
       $set = array_filter(array_slice($summary_data, $cntr, $max));
       if ($set) $html .= View::factory('invoices/st')
         ->set('invoice', $invoice)
@@ -713,13 +716,15 @@ class Controller_Invoices extends Controller {
       }
 
       $cntr += $max;
-      $first = $last = FALSE;
     }
 
     if ($signature_remaining) {
       $html .= View::factory('invoices/st')
         ->set('invoice', $invoice)
-        ->set('options', array('signature' => TRUE))
+        ->set('options', array(
+          'signature' => TRUE,
+          'total'     => $total_remaining ? TRUE : FALSE
+        ))
         ->render();
     }
 
@@ -877,11 +882,12 @@ class Controller_Invoices extends Controller {
     }
 
     $cntr  = 0;
-    $signature_remaining  = TRUE;
+    $signature_remaining = TRUE;
+    $total_remaining = TRUE;
     while ($cntr < $summary_count) {
       $options = array();
 
-      $max   = 0;
+      $max   = NULL;
       $first = FALSE;
       $last  = FALSE;
       $one   = FALSE;
@@ -930,6 +936,8 @@ class Controller_Invoices extends Controller {
         $options['signature'] = TRUE;
       }
 
+      if ($options['total']) $total_remaining = FALSE;
+
       $set = array_filter(array_slice($summary_data, $cntr, $max));
       if ($set) $html .= View::factory('invoices/exf')
         ->set('invoice', $invoice)
@@ -958,13 +966,15 @@ class Controller_Invoices extends Controller {
       }
 
       $cntr += $max;
-      $first = $last = FALSE;
     }
 
     if ($signature_remaining) {
       $html .= View::factory('invoices/exf')
         ->set('invoice', $invoice)
-        ->set('options', array('signature' => TRUE))
+        ->set('options', array(
+          'signature' => TRUE,
+          'total'     => $total_remaining ? TRUE : FALSE
+        ))
         ->render();
     }
 
