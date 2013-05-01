@@ -1243,7 +1243,7 @@ class Controller_Analysis extends Controller {
         ))
         ->render();
 
-      $report = View::factory('report')
+      $report = View::factory('reports/checks_summary')
         ->set('from', $from)
         ->set('to', $to)
         ->set('form_type', $form_type)
