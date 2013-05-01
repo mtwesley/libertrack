@@ -349,14 +349,14 @@ $options = (array) $options + array(
       </tr>
       <tr class="total head">
         <td class="volume">Volume<br />(m<sup>3</sup>)</td>
-        <td class="desc" colspan="2">Description</td>
+        <td class="desc" colspan="2">Logs</td>
         <td class="fee_desc">Fee Description</td>
         <td class="tax_code">Tax Code</td>
         <td class="total" colspan="2">Total<br />(USD)</td>
       </tr>
       <tr class="total">
         <td class="volume" rowspan="2"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
-        <td class="desc" colspan="2" rowspan="2">Total</td>
+        <td class="desc" colspan="2" rowspan="3"><?php echo $total['summary']['count']; ?></td>
         <td class="fee_desc">
           Stumpage Fee (GoL share)<br />
           <em>FDA Regulation 107-7, Section 22(b)</em>

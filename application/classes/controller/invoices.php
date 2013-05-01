@@ -625,6 +625,7 @@ class Controller_Invoices extends Controller {
     $summary_normal_page_max    = 13;
 
     $summary_count = count($summary_data);
+    $summary_total['count'] = $summary_count;
     foreach ($summary_data as $record) {
       foreach ($record as $key => $value) $summary_total[$key] += $value;
       $summary_total['total'] += $record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']];
@@ -872,6 +873,7 @@ class Controller_Invoices extends Controller {
     $summary_normal_page_max    = 13;
 
     $summary_count = count($summary_data);
+    $summary_total['count'] = $summary_count;
     foreach ($summary_data as $record) {
       foreach ($record as $key => $value) $summary_total[$key] += $value;
       $summary_total['total'] += $record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']];
