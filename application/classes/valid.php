@@ -193,7 +193,7 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_char($value) AND preg_match('/^[PARDU]$/', (string) $value));
   }
 
-  public static function is_coc_status($value)
+  public static function is_barcode_activity($value)
   {
     return (bool) (self::is_char($value) AND preg_match('/^[PIHTXDNESYALZ]$/', (string) $value));
   }

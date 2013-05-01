@@ -379,12 +379,14 @@ $options = (array) $options + array(
         <td colspan="5" class="blank">&nbsp;</td>
         <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total']); ?></td>
       </tr>
+      <?php if ($options['signature']): ?>
       <tr>
         <td colspan="7" class="blank">&nbsp;</td>
       </tr>
       <tr>
         <td colspan="7" class="blank">&nbsp;</td>
       </tr>
+      <?php endif; ?>
       <?php endif; ?>
     </table>
   </div>
