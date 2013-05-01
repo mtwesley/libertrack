@@ -59,6 +59,8 @@ class Controller_Exports extends Controller {
       ->execute()
       ->get('sum');
 
+    $total_items = count($data_ids);
+
     $qr_array = array(
       'EP NUMBER'           => $document->number,
       'EXPORTER'            => $document->operator->name,
@@ -111,6 +113,7 @@ VALIDATION: $secret";
       ->set('document', $document)
       ->set('total_quantity', $total_quantity)
       ->set('total_fob', $total_fob)
+      ->set('total_items', $total_items)
       ->render();
 
     // generate pdf

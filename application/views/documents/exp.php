@@ -384,13 +384,17 @@ $options = (array) $options + array(
         <td colspan="4" class="blank stronger">Overall Shipment Description</td>
       </tr>
       <tr>
-        <td colspan="2">
+        <td>
           <div class="strong">Type</div>
           <?php echo $document->values['product_type']; ?>
         </td>
         <td>
           <div class="strong">Quantity</div>
           <?php echo SGS::quantitify($total_quantity); ?> m<sup>3</sup>
+        </td>
+        <td>
+          <div class="strong">Items</div>
+          <?php echo $total_items; ?>
         </td>
         <td>
           <div class="strong">Total FOB Value (USD)</div>
