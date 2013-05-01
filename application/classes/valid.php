@@ -195,7 +195,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_coc_status($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^[PIHTXDESYALZ]$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^[PIHTXDNESYALZ]$/', (string) $value));
   }
 
   public static function is_username($value)

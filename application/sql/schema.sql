@@ -69,9 +69,9 @@ create domain d_barcode as character varying(13) check (value ~ E'^[0123456789AC
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHE]$');
 
-create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDESYALZ]$');
+create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDNESYALZ]$');
 
-create domain d_barcode_lock as character varying(6) check (value ~ E'(ADMIN|INV|DOC|BRCODE)');
+create domain d_barcode_lock as character varying(6) check (value ~ E'(ADMIN|INV|DOC|BRCODE|VERIFY)');
 
 create domain d_qrcode as character(64);
 
@@ -1399,6 +1399,25 @@ end
 $$ language 'plpgsql';
 
 
+create function verification_update_barcodes()
+  returns trigger as
+$$
+begin
+  if (tg_op = 'UPDATE') or (tg_op = 'DELETE') then
+    delete from barcode_activity where id in (select id from barcode_activity where barcode_id = old.id and activity = 'N' and trigger = 'verification' limit 1);
+    delete from barcode_locks where barcode_id = old.barcode_id and lock = 'VERIFY' and lock_id = old.id;
+  end if;
+
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    insert into barcode_activity (barcode_id,activity,trigger) values (new.id,'N','verification');
+    insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (new.barcode_id,'VERIFY',new.id,new.user_id);
+  else  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
 create function barcode_locks_update_locks()
   returns trigger as
 $$
@@ -1605,7 +1624,7 @@ end
 $$ language 'plpgsql';
 
 
-create or replace function invoice_data_update_barcodes()
+create function invoice_data_update_barcodes()
   returns trigger as
 $$
   declare x_data record;
@@ -1633,6 +1652,11 @@ begin
   end case;
 
   if (tg_op = 'DELETE') then
+    case x_invoice.type
+      when 'ST'  then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in 'T' and trigger = 'invoice_data' limit 1);
+      when 'EXF' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in 'X' and trigger = 'invoice_data' limit 1);
+      else null;
+    end case;
     delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'INV' and lock_id = old.invoice_id;
   else
     if (tg_op = 'INSERT') then
@@ -1664,7 +1688,7 @@ end
 $$ language 'plpgsql';
 
 
-create or replace function document_data_update_barcodes()
+create function document_data_update_barcodes()
   returns trigger as
 $$
   declare x_data record;
@@ -1691,6 +1715,10 @@ begin
   end case;
 
   if (tg_op = 'DELETE') then
+    case x_invoice.type
+      when 'EXP' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in 'E' and trigger = 'document_data' limit 1);
+      else null;
+    end case;
     delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'DOC' and lock_id = old.document_id;
   else
     if (tg_op = 'INSERT') then
@@ -1781,6 +1809,36 @@ create trigger t_barcodes_locks
   after insert or update on barcodes
   for each row
   execute procedure barcodes_locks();
+
+create trigger t_ssf_verification_update_barcodes
+  after insert or update or delete on ssf_verification
+  for each row
+  execute procedure verification_update_barcodes();
+
+create trigger t_tdf_verification_update_barcodes
+  after insert or update or delete on ssf_verification
+  for each row
+  execute procedure verification_update_barcodes();
+
+create trigger t_ldf_verification_update_barcodes
+  after insert or update or delete on ssf_verification
+  for each row
+  execute procedure verification_update_barcodes();
+
+create trigger t_mif_verification_update_barcodes
+  after insert or update or delete on ssf_verification
+  for each row
+  execute procedure verification_update_barcodes();
+
+create trigger t_mof_verification_update_barcodes
+  after insert or update or delete on mof_verification
+  for each row
+  execute procedure verification_update_barcodes();
+
+create trigger t_specs_verification_update_barcodes
+  after insert or update or delete on specs_verification
+  for each row
+  execute procedure verification_update_barcodes();
 
 create trigger t_check_barcode_locks
   before update or delete on ssf_data

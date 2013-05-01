@@ -247,8 +247,12 @@ $classes[] = 'data';
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php if ($record->is_verification()): ?>
+          <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Verify</span>
+          <?php else: ?>
           <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Check</span>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/hierarchy', 'Hierarchy', array('class' => 'link')); ?>
+          <?php endif; // verification ?>
           <?php endif; // links ?>
           <?php if ($options['details']): ?>
           <span class="link toggle-details">Details</span>

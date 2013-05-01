@@ -77,7 +77,7 @@ class Model_Barcode extends ORM {
       $trigger = $caller['function'];
     }
 
-    if (in_array($activity, SGS::$coc_status))
+    if (in_array($activity, SGS::$barcode_activity))
       DB::insert('barcode_activity', array('barcode_id', 'activity', 'user_id'))
         ->values(array($this->id, $activity, Auth::instance()->get_user()->id ?: 1,))
         ->execute();

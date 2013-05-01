@@ -267,7 +267,7 @@ class SGS {
       'is_conversion_factor' => ':field must be a fraction or decimal number between 0 and 1',
       'is_block_name'        => ':field must match the required block name format',
       'is_status'            => ':field must be either (P)ending, (A)ctive or (R)ejected',
-      'is_coc_status'        => ':field must be a CoC status (for example, "Pending")',
+      'is_barcode_activity'  => ':field must be a CoC status (for example, "Pending")',
     )
   );
 
@@ -405,13 +405,14 @@ class SGS {
 //    'D' => 'Deleted',
   );
 
-  public static $coc_status = array(
+  public static $barcode_activity = array(
     'P' => 'Pending',
     'I' => 'In Progress',
     'H' => 'On Hold / Investigation',
     'T' => 'Stumpage Invoiced',
     'X' => 'Export Fee Invoiced',
     'D' => 'Declared for Export',
+    'N' => 'Inspected',
     'E' => 'Exported',
     'S' => 'Short-Shipped',
     'Y' => 'Sold Locally',
