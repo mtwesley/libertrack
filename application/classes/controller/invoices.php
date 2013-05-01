@@ -723,8 +723,10 @@ class Controller_Invoices extends Controller {
         ->set('invoice', $invoice)
         ->set('options', array(
           'signature' => TRUE,
+          'summary'   => $total_remaining ? TRUE : FALSE,
           'total'     => $total_remaining ? TRUE : FALSE
         ))
+        ->set('total', $total_remaining ? array('summary' => $summary_total) : NULL)
         ->render();
     }
 
@@ -973,8 +975,10 @@ class Controller_Invoices extends Controller {
         ->set('invoice', $invoice)
         ->set('options', array(
           'signature' => TRUE,
+          'summary'   => $total_remaining ? TRUE : FALSE,
           'total'     => $total_remaining ? TRUE : FALSE
         ))
+        ->set('total', $total_remaining ? array('summary' => $summary_total) : NULL)
         ->render();
     }
 
