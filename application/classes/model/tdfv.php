@@ -574,7 +574,7 @@ class Model_TDFV extends SGS_Form_ORM {
       'bottom_min'       => self::$fields['bottom_min'],
       'bottom_max'       => self::$fields['bottom_max'],
       'length'           => self::$fields['length'],
-      'inspection_date'  => self::$fields['inspection_date'],
+//      'inspection_date'  => self::$fields['inspection_date'],
       'inspected_by'     => self::$fields['inspected_by'],
 //      'user_id'         => self::$fields['user_id'],
 //      'timestamp'       => self::$fields['timestamp'],

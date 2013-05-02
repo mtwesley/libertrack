@@ -538,7 +538,7 @@ class Model_SSFV extends SGS_Form_ORM {
       'cell_number'     => self::$fields['cell_number'],
       'diameter'        => self::$fields['diameter'],
       'height'          => self::$fields['height'],
-      'inspection_date' => self::$fields['inspection_date'],
+//      'inspection_date' => self::$fields['inspection_date'],
       'inspected_by'    => self::$fields['inspected_by'],
 //      'user_id'         => self::$fields['user_id'],
 //      'timestamp'       => self::$fields['timestamp'],

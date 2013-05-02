@@ -85,8 +85,8 @@ begin
 
   if (tg_op = 'DELETE') then
     case x_invoice.type
-      when 'ST'  then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in 'T' and trigger = 'invoice_data' limit 1);
-      when 'EXF' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in 'X' and trigger = 'invoice_data' limit 1);
+      when 'ST'  then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('T') and trigger = 'invoice_data' limit 1);
+      when 'EXF' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('X') and trigger = 'invoice_data' limit 1);
       else null;
     end case;
     delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'INV' and lock_id = old.invoice_id;
@@ -138,7 +138,7 @@ begin
 
   if (tg_op = 'DELETE') then
     case x_invoice.type
-      when 'EXP' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in 'E' and trigger = 'document_data' limit 1);
+      when 'EXP' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('E') and trigger = 'document_data' limit 1);
       else null;
     end case;
     delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'DOC' and lock_id = old.document_id;

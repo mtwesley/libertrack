@@ -726,6 +726,7 @@ class Controller_Analysis extends Controller {
             if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['verification']['checks']), $errors)) continue;
             $data['checks'][$type][$check]['records']++;
             if (in_array($check, $errors)) $data['checks'][$type][$check]['inaccurate']++;
+            /*** WARNINGS ARE IGNORED
             else if (in_array($check, $warnings)) {
               $data['checks'][$type][$check]['warned']++;
               if (!$check_warned) {
@@ -733,7 +734,7 @@ class Controller_Analysis extends Controller {
               }
               if (!$total_warned) $total_warned = TRUE;
               $data['checks'][$type][$check]['inaccurate']++;
-            }
+            } ***/
             else $data['checks'][$type][$check]['accurate']++;
           }
           if ($total_warned) $data['total']['warned']++;
