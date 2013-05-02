@@ -493,7 +493,7 @@ class Model_LDFV extends SGS_Form_ORM {
       foreach ($array as $warning => $params) $this->set_error($field, $warning, $params); // $this->set_warning($field, $warning, $params);
     }
 
-    if ($errors or $warnings) {
+    if ($errors) {
       $this->status = 'R';
       foreach ($errors as $field => $array) {
         foreach ($array as $error => $params) $this->set_error($field, $error, $params);

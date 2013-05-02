@@ -716,11 +716,11 @@ class Controller_Analysis extends Controller {
         if (in_array('height', array_keys($data['deviation'])) and
             in_array('length', array_keys($data['deviation']))) unset($data['deviation']['length']);
 
-        $total_warned = FALSE;
+        /*** $total_warned = FALSE; ***/
         foreach ($record::$checks as $type => $info) {
           if (!in_array($type, $checks)) continue;
           foreach ($info['checks'] as $check => $array) {
-            $check_warned = FALSE;
+            /*** $check_warned = FALSE; ***/
             if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['traceability']['checks']), $errors)) continue;
             if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['declaration']['checks']), $errors)) continue;
             if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['verification']['checks']), $errors)) continue;
@@ -737,7 +737,7 @@ class Controller_Analysis extends Controller {
             } ***/
             else $data['checks'][$type][$check]['accurate']++;
           }
-          if ($total_warned) $data['total']['warned']++;
+          /*** if ($total_warned) $data['total']['warned']++; ***/
         }
 
         switch ($record->status) {
