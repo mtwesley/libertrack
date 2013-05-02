@@ -363,8 +363,8 @@ class Model_SSF extends SGS_Form_ORM {
       ->where('survey_line', '=', (int) $values['survey_line'])
       ->and_where('cell_number', '=', (int) $values['cell_number'])
       ->and_where('tree_map_number', '=', (int) $values['tree_map_number'])
-      ->and_where('diameter', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['diameter']), SGS::accuracy('TDF', 'is_matching_diameter')))
-      ->and_where('height', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['height'], 1), SGS::accuracy('TDF', 'is_matching_length')));
+      ->and_where('diameter', 'BETWEEN', SGS::variance_range(SGS::floatify($values['diameter']), SGS::accuracy('TDF', 'is_matching_diameter')))
+      ->and_where('height', 'BETWEEN', SGS::variance_range(SGS::floatify($values['height'], 1), SGS::accuracy('TDF', 'is_matching_length')));
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
     if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);

@@ -505,11 +505,11 @@ class SGS {
     );
   }
 
-  public static function deviation_range($value, $deviation)
+  public static function variance_range($value, $variance)
   {
     return array(
-      $value - $deviation,
-      $value + $deviation
+      $value - $variance,
+      $value + $variance
     );
   }
 

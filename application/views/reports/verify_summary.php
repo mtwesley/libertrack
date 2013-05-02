@@ -78,12 +78,12 @@ $verification_percentage = $total_declared ? floor($total_records * 100 / ($tota
 </table>
 <?php endif; ?>
 
-<?php if ($info = $checks[$type = 'deviation']): ?>
+<?php if ($info = $checks[$type = 'variance']): ?>
 <table class="<?php echo SGS::render_classes($classes); ?> report-summary">
   <tr class="head">
     <th class="type"></th>
     <th class="status"></th>
-    <th>Deviation</th>
+    <th>Variance</th>
     <th></th>
     <th></th>
     <th class="check-info">Declared</th>
@@ -94,10 +94,10 @@ $verification_percentage = $total_declared ? floor($total_records * 100 / ($tota
   <?php
     $field = str_replace('is_valid_', '', $check);
 
-    $dtotal = $report['deviation'][$field]['data']['total'];
-    $dcount = $report['deviation'][$field]['data']['count'];
-    $itotal = $report['deviation'][$field]['verification']['total'];
-    $icount = $report['deviation'][$field]['verification']['count'];
+    $dtotal = $report['variance'][$field]['data']['total'];
+    $dcount = $report['variance'][$field]['data']['count'];
+    $itotal = $report['variance'][$field]['verification']['total'];
+    $icount = $report['variance'][$field]['verification']['count'];
 
     switch ($field) {
       case 'diameter':
@@ -139,7 +139,7 @@ $verification_percentage = $total_declared ? floor($total_records * 100 / ($tota
 <?php endif; ?>
 
 <?php if ($checks) foreach ($checks as $type => $info): ?>
-<?php if (in_array($type, array('verification', 'declaration', 'deviation'))) continue; ?>
+<?php if (in_array($type, array('verification', 'declaration', 'variance'))) continue; ?>
 <table class="<?php echo SGS::render_classes($classes); ?> report-summary">
   <tr class="head">
     <th class="type"></th>

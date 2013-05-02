@@ -480,11 +480,11 @@ class Model_TDF extends SGS_Form_ORM {
       ->from($this->_table_name)
       ->where('survey_line', '=', (int) $values['survey_line'])
       ->and_where('cell_number', '=', (int) $values['cell_number'])
-      ->and_where('bottom_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('bottom_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('top_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('top_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('length', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['length'], 1), SGS::accuracy(self::$type, 'is_matching_length')));
+      ->and_where('bottom_min', 'BETWEEN', SGS::variance_range(SGS::floatify($values['bottom_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('bottom_max', 'BETWEEN', SGS::variance_range(SGS::floatify($values['bottom_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_min', 'BETWEEN', SGS::variance_range(SGS::floatify($values['top_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_max', 'BETWEEN', SGS::variance_range(SGS::floatify($values['top_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('length', 'BETWEEN', SGS::variance_range(SGS::floatify($values['length'], 1), SGS::accuracy(self::$type, 'is_matching_length')));
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
     if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);

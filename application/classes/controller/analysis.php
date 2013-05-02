@@ -670,7 +670,7 @@ class Controller_Analysis extends Controller {
           'accurate'   => 0,
           'inaccurate' => 0,
         ),
-        'deviation' => array()
+        'variance' => array()
       );
 
       $unable = 0;
@@ -695,26 +695,26 @@ class Controller_Analysis extends Controller {
           $unable++;
         }
 
-        $deviation_fields = array(
+        $variance_fields = array(
           'diameter',
           'height',
           'length',
           'volume'
         );
 
-        foreach ($deviation_fields as $dfield) {
+        foreach ($variance_fields as $dfield) {
           try {
-            $data['deviation'][$dfield]['data']['total'] += $data_record->$dfield;
-            $data['deviation'][$dfield]['data']['count']++;
+            $data['variance'][$dfield]['data']['total'] += $data_record->$dfield;
+            $data['variance'][$dfield]['data']['count']++;
           } catch (Exception $e) {}
           try {
-            $data['deviation'][$dfield]['verification']['total'] += $record->$dfield;
-            $data['deviation'][$dfield]['verification']['count']++;
+            $data['variance'][$dfield]['verification']['total'] += $record->$dfield;
+            $data['variance'][$dfield]['verification']['count']++;
           } catch (Exception $e) {}
         }
 
-        if (in_array('height', array_keys($data['deviation'])) and
-            in_array('length', array_keys($data['deviation']))) unset($data['deviation']['length']);
+        if (in_array('height', array_keys($data['variance'])) and
+            in_array('length', array_keys($data['variance']))) unset($data['variance']['length']);
 
         /*** $total_warned = FALSE; ***/
         foreach ($record::$checks as $type => $info) {

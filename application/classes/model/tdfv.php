@@ -164,19 +164,19 @@ class Model_TDFV extends SGS_Form_ORM {
           'error' => 'Block does not match data for TDF record',
         )
     )),
-    'deviation' => array(
-      'title'  => 'Deviation',
+    'variance' => array(
+      'title'  => 'Variance',
       'checks' => array(
         'is_valid_diameter' => array(
-          'name'  => 'Diameter Deviation',
+          'name'  => 'Diameter Variance',
           'title' => 'Average difference of diameter in TDF and TDFV records',
         ),
         'is_valid_length' => array(
-          'name'  => 'Length Deviation',
+          'name'  => 'Length Variance',
           'title' => 'Average difference of length in TDF and TDFV records',
         ),
         'is_valid_volume' => array(
-          'name'  => 'Volume Deviation',
+          'name'  => 'Volume Variance',
           'title' => 'Total difference of volume in TDF and TDFV records',
         ),
     )),
@@ -395,11 +395,11 @@ class Model_TDFV extends SGS_Form_ORM {
     // everything else
     $query = DB::select('id')
       ->from($this->_table_name)
-      ->where('bottom_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('bottom_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['bottom_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('top_min', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('top_max', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['top_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('length', 'BETWEEN', SGS::deviation_range(SGS::floatify($values['length'], 1), SGS::accuracy(self::$type, 'is_matching_length')));
+      ->where('bottom_min', 'BETWEEN', SGS::variance_range(SGS::floatify($values['bottom_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('bottom_max', 'BETWEEN', SGS::variance_range(SGS::floatify($values['bottom_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_min', 'BETWEEN', SGS::variance_range(SGS::floatify($values['top_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('top_max', 'BETWEEN', SGS::variance_range(SGS::floatify($values['top_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->and_where('length', 'BETWEEN', SGS::variance_range(SGS::floatify($values['length'], 1), SGS::accuracy(self::$type, 'is_matching_length')));
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
     if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
