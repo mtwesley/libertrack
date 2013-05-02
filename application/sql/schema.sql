@@ -23,6 +23,8 @@ create domain d_md5 as character(32);
 
 create domain d_sha as character(64);
 
+create domain d_utm as character varying(21) check (value ~ E'29N [0-9]{6}mE [0-9]{1,8}mN');
+
 create domain d_timestamp as timestamp without time zone;
 
 create domain d_measurement_int as int check (value >= 0);
@@ -502,6 +504,10 @@ create table ssf_data (
   entered_by d_text_short,
   checked_date d_date,
   checked_by d_text_short,
+  utm_origin d_utm,
+  utm_east d_utm,
+  utm_north_south d_utm,
+  utm_west d_utm,
   survey_line d_survey_line not null,
   cell_number d_positive_int not null,
   tree_map_number d_positive_int not null,
@@ -531,6 +537,10 @@ create table ssf_verification (
   block_id d_id not null,
   barcode_id d_id unique not null,
   species_id d_id not null,
+  utm_origin d_utm,
+  utm_east d_utm,
+  utm_north_south d_utm,
+  utm_west d_utm,
   survey_line d_survey_line not null,
   cell_number d_positive_int not null,
   diameter d_diameter not null,

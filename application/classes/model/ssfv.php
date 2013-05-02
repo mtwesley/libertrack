@@ -186,6 +186,10 @@ class Model_SSFV extends SGS_Form_ORM {
       'block_name'      => $block_name,
       'inspection_date' => SGS::date(trim($csv[3][B] ?: $csv[3][C] ?: $csv[3][D]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'inspected_by'    => trim($csv[9][F] ?: $csv[9][G] ?: $csv[9][H]),
+      'utm_origin'      => SGS::utmify(trim($csv[5][E] ?: $csv[5][F]), trim($csv[5][G] ?: $csv[5][H])),
+      'utm_east'        => SGS::utmify(trim($csv[6][E] ?: $csv[6][F]), trim($csv[6][G] ?: $csv[6][H])),
+      'utm_north_south' => SGS::utmify(trim($csv[7][E] ?: $csv[7][F]), trim($csv[7][G] ?: $csv[7][H])),
+      'utm_west'        => SGS::utmify(trim($csv[8][E] ?: $csv[8][F]), trim($csv[8][G] ?: $csv[8][H])),
     ) + $data);
   }
 
@@ -215,6 +219,12 @@ class Model_SSFV extends SGS_Form_ORM {
 
       case 'height':
         $this->$key = SGS::floatify($value, 1); break;
+
+      case 'utm_origin':
+      case 'utm_east':
+      case 'utm_north_south':
+      case 'utm_west':
+        $this->$key = $value ?: NULL; break;
 
       default:
         try { $this->$key = $value; } catch (Exception $e) {} break;

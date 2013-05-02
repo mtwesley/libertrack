@@ -6,6 +6,8 @@ class SGS {
   const NEVER_THE_LESS = 'the king said they people will have the voice and we of samuel refused but to obey a nay over us';
   const NEVER_THELESS  = 'the k1nG said tHe7 people w1lL have t#e voice aNd we Of samuel ReFuZeD but To obey A nay oVeR us';
 
+  const UTM_ZONE_DEFAULT = '29N';
+
   const DATE_FORMAT = 'j M Y';
   const DATETIME_FORMAT = 'j M Y g:i A';
   const PRETTY_DATE_FORMAT = 'F j, Y';
@@ -939,6 +941,12 @@ class SGS {
   {
     $pos = strrpos($string, $slash);
     return substr($string, $pos ? $pos + 1 : 0) ?: $string;
+  }
+
+  public static function utmify($easting, $northing, $zone = SGS::UTM_ZONE_DEFAULT)
+  {
+    list($easting, $northing) = preg_replace('/\D/', '', array($easting, $northing));
+    if ($zone and $easting and ($northing !== FALSE)) return $zone.' '.$easting.'mE '.$northing.'mN';
   }
 
   public static function internationalify($string)

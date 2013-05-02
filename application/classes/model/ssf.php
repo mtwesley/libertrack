@@ -137,6 +137,10 @@ class Model_SSF extends SGS_Form_ORM {
       'entered_by'      => trim($csv[9][H] ?: $csv[9][I] ?: $csv[9][J]),
       'checked_date'    => SGS::date(trim($csv[10][B] ?: $csv[10][C] ?: $csv[10][D]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'checked_by'      => trim($csv[10][H] ?: $csv[10][I] ?: $csv[10][J]),
+      'utm_origin'      => SGS::utmify(trim($csv[5][E] ?: $csv[5][F]), trim($csv[5][G] ?: $csv[5][H])),
+      'utm_east'        => SGS::utmify(trim($csv[6][E] ?: $csv[6][F]), trim($csv[6][G] ?: $csv[6][H])),
+      'utm_north_south' => SGS::utmify(trim($csv[7][E] ?: $csv[7][F]), trim($csv[7][G] ?: $csv[7][H])),
+      'utm_west'        => SGS::utmify(trim($csv[8][E] ?: $csv[8][F]), trim($csv[8][G] ?: $csv[8][H])),
     ) + $data + array(
       'is_requested'    => trim($row[H]) == 'NO' ? 'NO' : 'YES',
       'is_fda_approved' => trim($row[I]) == 'NO' ? 'NO' : 'YES',
@@ -170,6 +174,12 @@ class Model_SSF extends SGS_Form_ORM {
 
       case 'height':
         $this->$key = SGS::floatify($value, 1); break;
+
+      case 'utm_origin':
+      case 'utm_east':
+      case 'utm_north_south':
+      case 'utm_west':
+        $this->$key = $value ?: NULL; break;
 
       default:
         try { $this->$key = $value; } catch (Exception $e) {} break;
