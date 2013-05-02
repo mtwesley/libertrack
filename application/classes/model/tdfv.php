@@ -496,7 +496,7 @@ class Model_TDFV extends SGS_Form_ORM {
     }
 
     if ($warnings) foreach ($warnings as $field => $array) {
-      foreach ($array as $warning => $params) $this->set_error($field, $warning, $params); // $this->set_warning($field, $warning, $params);
+      foreach ($array as $warning => $params) $this->set_warning($field, $warning, $params);
     }
 
     if ($errors) {
