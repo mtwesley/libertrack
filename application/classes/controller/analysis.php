@@ -253,7 +253,7 @@ class Controller_Analysis extends Controller {
         $form->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')));
         $form->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
       }
-      $form->add_group('status', 'checkboxes', in_array($form_type, array_keys(SGS::$verification)) ? SGS::$verification_status : SGS::$data_status, NULL, array('label' => 'Status'));
+      $form->add_group('status', 'checkboxes', in_array($form_type, array_keys(SGS::$form_verification_type)) ? SGS::$verification_status : SGS::$data_status, NULL, array('label' => 'Status'));
       $form->add('search', 'submit', 'Filter');
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -1382,7 +1382,7 @@ class Controller_Analysis extends Controller {
     }
 
     $form = $form
-      ->add_group('status', 'checkboxes', in_array($form_type, array_keys(SGS::$verification)) ? SGS::$verification_status : SGS::$data_status, array('A'), array('label' => 'Status'))
+      ->add_group('status', 'checkboxes', in_array($form_type, array_keys(SGS::$form_verification_type)) ? SGS::$verification_status : SGS::$data_status, array('A'), array('label' => 'Status'))
       ->add('type', 'radios', 'xls', array(
         'options' => array(
           'xls' => SGS::$file_type['xls'],
