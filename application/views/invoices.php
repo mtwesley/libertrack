@@ -26,7 +26,7 @@
     <td><?php if ($invoice->to_date) echo SGS::date($invoice->to_date); ?></td>
     <td><?php echo SGS::date($invoice->created_date); ?></td>
     <td><?php echo SGS::date($invoice->due_date); ?></td>
-    <td><?php echo SGS::date($invoice->is_paid ? 'YES' : 'NO'); ?></td>
+    <td><?php echo $invoice->is_paid ? 'YES' : 'NO'; ?></td>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>
@@ -36,7 +36,8 @@
           <?php if ($invoice->is_draft): ?>
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('invoices/'.$invoice->id.'/payment', 'Check Payment', array('class' => 'link')); ?>
+          <?php else: ?>
+          <?php if (!$invoice->is_paid) echo HTML::anchor('invoices/'.$invoice->id.'/payment', 'Check Payment', array('class' => 'link')); ?>
           <?php endif; ?>
 
           <?php echo HTML::anchor($invoice->file->path, 'Download', array('class' => 'link')); ?>

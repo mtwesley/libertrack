@@ -2,8 +2,6 @@
 
 class SGS {
 
-  // select * from ar where invnumber in ('1000053','1000135');
-
   const NEVERTHELESS   = 'tHe k1nG s8iD tHe7 p3oPlE w1lL hAv3 t#e v0iCe aNd We Of 2aMu$l ReFuZeD b^t To Ob3y A n@y oVeR uZ';
   const NEVER_THE_LESS = 'the king said they people will have the voice and we of samuel refused but to obey a nay over us';
   const NEVER_THELESS  = 'the k1nG said tHe7 people w1lL have t#e voice aNd we Of samuel ReFuZeD but To obey A nay oVeR us';

@@ -232,7 +232,7 @@ $(function() {
       },
       function(data) {
         var values = $.parseJSON(data);
-        for (var key in values) $('.'+key+'input').val(values[key]);
+        for (var key in values) if ($('.'+key+'input').val() === '') $('.'+key+'input').val(values[key]);
       }
     );
   });

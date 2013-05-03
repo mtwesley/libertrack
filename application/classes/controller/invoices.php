@@ -343,6 +343,42 @@ class Controller_Invoices extends Controller {
     $this->response->body($view);
   }
 
+  private function handle_invoice_payment($id) {
+    $invoice = ORM::factory('invoice', $id);
+
+    if (!$invoice->loaded()) {
+      Notify::msg('No invoice found.', 'warning', TRUE);
+      $this->request->redirect('invoices');
+    }
+
+    if ($invoice->is_draft) {
+      Notify::msg('Invoice must be finalized to check payment.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
+    if (!$invoice->invnumber) {
+      Notify::msg('Invoice must have an invoice number to check payment.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
+    try {
+      $paid = $invoice->check_payment();
+    } catch (Database_Exception $e) {
+      Notify::msg('Sorry, unable to connect to invoice database. Please try again.', 'error', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
+    if ($paid === NULL) Notify::msg('Sorry, unable to check invoice status.', 'error', TRUE);
+    else {
+      if ($paid) Notify::msg('Invoice has successfully been paid.', 'success', TRUE);
+      else Notify::msg('Invoice has not yet been paid.', 'warning', TRUE);
+      $invoice->is_paid = $paid;
+      $invoice->save();
+    }
+
+    $this->request->redirect('invoices/'.$id);
+  }
+
   private function handle_invoice_list($id = NULL) {
     if (!Request::$current->query()) Session::instance()->delete('pagination.invoice.list');
     if ($id) {
@@ -557,6 +593,7 @@ class Controller_Invoices extends Controller {
     switch ($command) {
       case 'download': return self::handle_invoice_download($id);
       case 'finalize': return self::handle_invoice_finalize($id);
+      case 'payment': return self::handle_invoice_payment($id);
       case 'delete': return self::handle_invoice_delete($id);
       case 'list': default: return self::handle_invoice_list($id);
     }

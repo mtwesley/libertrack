@@ -36,6 +36,23 @@ class Model_Invoice extends ORM {
       ->execute();
   }
 
+  public function check_payment() {
+    if ($this->is_draft or !$this->invnumber) return;
+
+    $ledger  = Database::instance('ledger');
+    $account = DB::select('amount', 'netamount', 'paid')
+      ->from('ar')
+      ->where('invnumber', '=', $this->invnumber)
+      ->execute($ledger)
+      ->as_array();
+
+    extract($account);
+
+    if ($amount == $netamount)
+    if ($amount == $paid) return TRUE;
+    else return FALSE;
+  }
+
   public function set($column, $value) {
     switch ($column) {
       case 'values':

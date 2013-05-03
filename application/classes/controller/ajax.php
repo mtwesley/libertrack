@@ -415,7 +415,7 @@ class Controller_Ajax extends Controller {
           ->execute()
           ->as_array(NULL, 'number'))) {
           $output .= '<optgroup label="Shipment Specification Number">';
-          foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.$number.'</option>';
+          foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.SGS::numberify($number).'</option>';
           $output .= '</optgroup>';
         }
       }

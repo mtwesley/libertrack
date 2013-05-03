@@ -62,14 +62,15 @@ class Controller_Exports extends Controller {
     $total_items = count($data_ids);
 
     $qr_array = array(
-      'EP NUMBER'           => $document->number,
-      'EXPORTER'            => $document->operator->name,
-      'BUYER'               => $document->values['buyer'],
-      'ORIGIN'              => $document->values['origin'],
-      'DESTINATION'         => $document->values['destination'],
-      'VESSEL'              => $document->values['vessel'],
-      'QUANTITY'            => SGS::quantitify($total_quantity).'m3',
-      'FOB'                 => '$'.SGS::amountify($total_fob),
+      'EP NUMBER'    => $document->number,
+      'SPEC BARCODE' => $document->values['specs_barcode'],
+      'EXPORTER'     => $document->operator->name,
+      'BUYER'        => $document->values['buyer'],
+      'ORIGIN'       => $document->values['origin'],
+      'DESTINATION'  => $document->values['destination'],
+      'VESSEL'       => $document->values['vessel'],
+      'QUANTITY'     => SGS::quantitify($total_quantity).'m3',
+      'FOB'          => '$'.SGS::amountify($total_fob),
     );
 
     $hash   = $document->get_hash();
@@ -197,7 +198,6 @@ VALIDATION: $secret";
       return FALSE;
     }
 
-    $exp = SGS::lookup_document('EXP', $document->values['exp_number']);
     $records = ORM::factory('SPECS')
       ->where('specs.id', 'IN', (array) $data_ids)
       ->join('barcodes')
@@ -214,12 +214,12 @@ VALIDATION: $secret";
       ->get('sum');
 
     $qr_array = array(
-      'SPEC NUMBER' => $document->number,
-      'EP NUMBER'   => $exp->number,
-      'EXPORTER'    => $document->operator->name,
-      'ORIGIN'      => $document->values['origin'],
-      'DESTINATION' => $document->values['destination'],
-      'QUANTITY'    => SGS::quantitify($total).'m3',
+      'SPEC NUMBER'  => $document->number,
+      'SPEC BARCODE' => $document->values['specs_barcode'],
+      'EXPORTER'     => $document->operator->name,
+      'ORIGIN'       => $document->values['origin'],
+      'DESTINATION'  => $document->values['destination'],
+      'QUANTITY'     => SGS::quantitify($total).'m3',
     );
 
     $hash   = $document->get_hash();
@@ -352,7 +352,7 @@ VALIDATION: $secret";
       ->as_array('id', 'name');
 
     $form = Formo::form()
-      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_number')));
+      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts')));
 
     switch ($document_type) {
       case 'EXP':
@@ -442,7 +442,7 @@ VALIDATION: $secret";
       Session::instance()->set('pagination.exports.document.data', array(
         'operator_id'   => $operator_id,
         'specs_barcode' => $specs_barcode,
-        'exp_number'    => $exp_number,
+        // 'exp_number'    => $exp_number,
         'format'        => $format,
         'created'       => $created,
         'values'        => $values
@@ -766,7 +766,7 @@ VALIDATION: $secret";
         ->add_group('type', 'checkboxes', array('SPECS' => SGS::$document_type['SPECS'], 'EXP' => SGS::$document_type['EXP']), NULL, array('label' => 'Type'))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')))
         ->add_group('specs_barcode', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')))
-        ->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')))
+        // ->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')))
         ->add('submit', 'submit', 'Filter');
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -774,32 +774,32 @@ VALIDATION: $secret";
         $type          = $form->type->val();
         $operator_id   = $form->operator_id->val();
         $specs_barcode = $form->specs_barcode->val();
-        $exp_barcode   = $form->exp_barcode->val();
+        // $exp_barcode   = $form->exp_barcode->val();
 
         Session::instance()->set('pagination.exports.documents.list', array(
           'type'          => $type,
           'operator_id'   => $operator_id,
           'specs_barcode' => $specs_barcode,
-          'exp_barcode'   => $exp_barcode
+          // 'exp_barcode'   => $exp_barcode
         ));
 
         if ($type)        $documents->and_where('type', 'IN', (array) $type);
         if ($operator_id) $documents->and_where('operator_id', 'IN', (array) $operator_id);
 
         if (Valid::is_barcode($specs_barcode)) $documents->and_where('values', 'LIKE', '%"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"%');
-        if (Valid::numeric($exp_number)) $documents->and_where('values', 'LIKE', '%"exp_number";s:'.strlen($exp_number).':"'.$exp_number.'"%');
+        // if (Valid::numeric($exp_number)) $documents->and_where('values', 'LIKE', '%"exp_number";s:'.strlen($exp_number).':"'.$exp_number.'"%');
       }
       else if ($settings = Session::instance()->get('pagination.exports.documents.list')) {
         $form->type->val($type = $settings['type']);
         $form->operator_id->val($operator_id = $settings['operator_id']);
         $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
-        $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
+        // $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
 
         if ($type)    $documents->and_where('type', 'IN', (array) $type);
         if ($site_id) $documents->and_where('site_id', 'IN', (array) $site_id);
 
         if (Valid::is_barcode($specs_barcode)) $documents->and_where('values', 'LIKE', '%"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"%');
-        if (Valid::numeric($exp_number)) $documents->and_where('values', 'LIKE', '%"exp_number";s:'.strlen($exp_number).':"'.$exp_number.'"%');
+        // if (Valid::numeric($exp_number)) $documents->and_where('values', 'LIKE', '%"exp_number";s:'.strlen($exp_number).':"'.$exp_number.'"%');
       }
 
       if ($documents) {
@@ -1056,13 +1056,13 @@ VALIDATION: $secret";
       ->add('delete', 'submit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      try {
+//      try {
         $document->delete();
         if ($document->loaded()) throw new Exception();
-        Notify::msg('Draft document successfully deleted.', 'success', TRUE);
-      } catch (Exception $e) {
-        Notify::msg('Draft document failed to be deleted.', 'error', TRUE);
-      }
+//        Notify::msg('Draft document successfully deleted.', 'success', TRUE);
+//      } catch (Exception $e) {
+//        Notify::msg('Draft document failed to be deleted.', 'error', TRUE);
+//      }
 
       $this->request->redirect('exports/documents');
     }

@@ -84,6 +84,7 @@ begin
   end case;
 
   if (tg_op = 'DELETE') then
+    select type,number,is_draft from invoices where id = old.invoice_id into x_invoice;
     case x_invoice.type
       when 'ST'  then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('T') and trigger = 'invoice_data' limit 1);
       when 'EXF' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('X') and trigger = 'invoice_data' limit 1);
@@ -137,7 +138,8 @@ begin
   end case;
 
   if (tg_op = 'DELETE') then
-    case x_invoice.type
+    select type,number,is_draft from documents where id = old.document_id into x_document;
+    case x_document.type
       when 'EXP' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('E') and trigger = 'document_data' limit 1);
       else null;
     end case;
