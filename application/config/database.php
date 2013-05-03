@@ -37,4 +37,20 @@ return array(
 		'caching'      => FALSE,
 		'profiling'    => TRUE,
 	),
+	'ledger' => array(
+		'type'       => 'postgresql',
+		'connection' => array(
+			'hostname'   => 'localhost',
+			'username'   => 'sgs',
+			'password'   => '5gSu8z_',
+			'persistent' => FALSE,
+			'database'   => 'ledger',
+		),
+		'primary_key'  => 'id',
+		'schema'       => '',
+		'table_prefix' => '',
+		'charset'      => 'utf8',
+		'caching'      => FALSE,
+		'profiling'    => TRUE,
+	),
 );

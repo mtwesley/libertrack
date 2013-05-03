@@ -273,7 +273,7 @@ $num = $cntr;
         <td class="label">SPEC Number:</td>
         <td><?php echo $document->number ? 'SPEC '.$document->number : 'DRAFT'; ?></td>
         <td class="label">EP Number:</td>
-        <td><?php echo $exp->number ? 'EP '.$exp->number : 'DRAFT'; ?></td>
+        <td><?php echo $document->values['specs_barcode']; ?></td>
       </tr>
       <tr>
         <td class="label">Exporter Name:</td>

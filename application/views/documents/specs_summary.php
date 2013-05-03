@@ -26,8 +26,8 @@ $classes[] = 'data';
   <tr>
     <td class="label">SPEC Number:</td>
     <td><?php echo $document->number ? 'SPEC '.$document->number : 'DRAFT'; ?></td>
-    <td class="label">EP Number:</td>
-    <td><?php echo 'EP '.$exp->number; ?></td>
+    <td class="label">SPEC Barcode:</td>
+    <td><?php echo $document->values['specs_barcode']; ?></td>
   </tr>
   <tr>
     <td class="label">Exporter TIN:</td>

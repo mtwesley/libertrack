@@ -163,7 +163,7 @@ $$ language 'plpgsql';
 
 -- utm coordinates
 
-create domain d_utm as character varying(21) check (value ~ E'29N [0-9]{6}mE [0-9]{1,8}mN');
+create domain d_utm as character varying(21) check (value ~ E'[0-9]{1,2} [0-9]{6}mE [0-9]{1,8}mN');
 
 alter table ssf_data add column utm_origin d_utm;
 alter table ssf_data add column utm_east d_utm;
@@ -174,4 +174,12 @@ alter table ssf_verification add column utm_origin d_utm;
 alter table ssf_verification add column utm_east d_utm;
 alter table ssf_verification add column utm_north_south d_utm;
 alter table ssf_verification add column utm_west d_utm;
+
+
+-- invoice number
+
+alter table invoices add column invnumber d_text_short;
+
+alter table invoices add column is_paid d_bool default true not null;
+alter table invoices alter column is_paid set default false;
 

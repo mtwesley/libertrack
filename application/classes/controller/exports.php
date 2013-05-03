@@ -187,7 +187,6 @@ VALIDATION: $secret";
 
     return View::factory('documents/specs_summary')
       ->set('document', $document)
-      ->set('exp', SGS::lookup_document('EXP', $document->values['exp_number']))
       ->set('total', $total)
       ->render();
   }
@@ -271,7 +270,6 @@ VALIDATION: $secret";
         ))
         ->set('qr_image', $tempname)
         ->set('document', $document)
-        ->set('exp', $exp)
         ->set('cntr', $cntr)
         ->set('total', $total)
         ->render();
@@ -377,7 +375,7 @@ VALIDATION: $secret";
         break;
 
       case 'SPECS':
-        $form->add_group('exp_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts exp_specsinputs exp_number')));
+        $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_specsinputs')));
         $form->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'attr' => array('class' => 'origininput')));
         $form->add('destination', 'input', NULL, array('required' => TRUE, 'label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
         $form->add('buyer', 'input', NULL, array('required' => TRUE, 'label' => 'Buyer', 'attr' => array('class' => 'buyerinput')));
@@ -428,9 +426,9 @@ VALIDATION: $secret";
           break;
 
         case 'SPECS':
-          $exp_number = $form->exp_number->val();
+          $specs_barcode = $form->specs_barcode->val();
           $values = array(
-            'exp_number'      => $form->exp_number->val(),
+            'specs_barcode'   => $specs_barcode,
             'origin'          => $form->origin->val(),
             'destination'     => $form->destination->val(),
             'buyer'           => $form->buyer->val(),
@@ -473,7 +471,7 @@ VALIDATION: $secret";
           break;
 
         case 'SPECS':
-          $form->exp_number->val($exp_number = $settings['exp_number']);
+          $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
           $form->origin->val($values['origin'] = $settings['values']['origin']);
           $form->destination->val($values['destination'] = $settings['values']['destination']);
           $form->buyer->val($values['buyer'] = $settings['values']['buyer']);
@@ -501,6 +499,11 @@ VALIDATION: $secret";
             ->on('document_data.document_id', '=', 'documents.id')
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
+            ->join('invoice_data')
+            ->on('specs_data.id', '=', 'invoice_data.form_data_id')
+            ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
+            ->join('invoices')
+            ->on('invoice_data.invoice_id', '=', 'invoices.id')
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
             ->where('specs_data.operator_id', '=', $operator_id)
@@ -514,6 +517,8 @@ VALIDATION: $secret";
               ->where('documents.type', '<>', 'EXP')
               ->or_where('documents.id', '=', NULL)
             ->and_where_close()
+            ->and_where('invoices.type', '=', 'EXF')
+            ->and_where('invoices.is_paid', '=', TRUE)
             ->order_by('barcode')
             ->execute()
             ->as_array(NULL, 'id');
@@ -521,22 +526,45 @@ VALIDATION: $secret";
 
         case 'SPECS':
           $form_type = 'SPECS';
-          $ids = DB::select('document_data.form_data_id')
-            ->from('document_data')
-            ->join('specs_data')
-            ->on('document_data.form_data_id', '=', 'specs_data.id')
+          $ids = DB::select('specs_data.id','barcodes.barcode')
+            ->distinct(TRUE)
+            ->from('specs_data')
+            ->join('document_data', 'LEFT OUTER')
+            ->on('specs_data.id', '=', 'document_data.form_data_id')
             ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+            ->join('documents', 'LEFT OUTER')
+            ->on('document_data.document_id', '=', 'documents.id')
+            ->join('barcode_activity', 'LEFT OUTER')
+            ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
-            ->where('document_data.document_id', '=', SGS::lookup_document('EXP', $exp_number))
+            ->where('specs_data.operator_id', '=', $operator_id)
+            ->and_where('specs_data.status', '=', 'A')
+            ->and_where('specs_data.specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
+            ->and_where_open()
+              ->where('barcode_activity.activity', 'NOT IN', array('E'))
+              ->or_where('barcode_activity.activity', '=', NULL)
+            ->and_where_close()
+            ->and_where_open()
+              ->where('documents.type', '<>', 'SPECS')
+              ->or_where('documents.id', '=', NULL)
+            ->and_where_close()
             ->order_by('barcode')
             ->execute()
-            ->as_array(NULL, 'form_data_id');
+            ->as_array(NULL, 'id');
           break;
       }
 
       if ($form_type and $ids) {
         $operator = ORM::factory('operator', $operator_id);
+
+        $document = ORM::factory('document');
+        $document->operator = $operator;
+        $document->type     = $document_type;
+        $document->is_draft = $is_draft ? TRUE : FALSE;
+        $document->number   = $is_draft ? NULL : $document::create_document_number($document_type);
+        $document->values   = (array) $values;
+        $document->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
 
         switch ($format) {
           case 'preview':
@@ -560,12 +588,6 @@ VALIDATION: $secret";
             if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
             elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
             else Notify::msg('No records found');
-
-            $document = ORM::factory('document');
-            $document->operator = $operator;
-            $document->type     = $document_type;
-            $document->values   = (array) $values;
-            $document->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
 
             $func = strtolower('generate_'.$document_type.'_preview');
             $summary = self::$func($document, (array) $ids);
@@ -615,13 +637,8 @@ VALIDATION: $secret";
 
           case 'final':
             set_time_limit(1800);
-            $document = ORM::factory('document');
-            $document->operator = $operator;
-            $document->type     = $document_type;
             $document->is_draft = $is_draft ? TRUE : FALSE;
             $document->number   = $is_draft ? NULL : $document::create_document_number($document_type);
-            $document->values   = (array) $values;
-            $document->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
 
             $func = strtolower('generate_'.$document_type.'_document');
             $document->file_id = self::$func($document, $ids);

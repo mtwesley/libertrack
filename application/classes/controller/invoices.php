@@ -45,6 +45,7 @@ class Controller_Invoices extends Controller {
         ->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
     }
     $form = $form
+      ->add('invnumber', 'input', NULL, array('label' => 'Invoice Number'))
       ->add('created', 'input', SGS::date('now', SGS::US_DATE_FORMAT), array('label' => 'Date Created', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'created-dpicker')))
       ->add('due', 'input', SGS::date('now + 30 days', SGS::US_DATE_FORMAT), array('label' => 'Date Due', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'due-dpicker')))
       ->add('format', 'radios', 'preview', array(
@@ -69,8 +70,9 @@ class Controller_Invoices extends Controller {
         $operator_id  = $form->operator_id->val();
         $specs_number = $form->specs_number->val();
       }
-      $created  = $form->created->val();
-      $due      = $form->due->val();
+      $invnumber = trim($form->invnumber->val());
+      $created   = $form->created->val();
+      $due       = $form->due->val();
 
       Session::instance()->set('pagination.invoice.data', array(
         'format'       => $format,
@@ -79,6 +81,7 @@ class Controller_Invoices extends Controller {
         'specs_number' => $specs_number,
         'from'         => $from,
         'to'           => $to,
+        'invnumber'    => $invnumber,
         'created'      => $created,
         'due'          => $due
       ));
@@ -93,6 +96,7 @@ class Controller_Invoices extends Controller {
         $form->operator_id->val($operator_id = $settings['operator_id']);
         $form->specs_number->val($specs_number = $settings['specs_number']);
       }
+      $form->invnumber->val($invnumber = $settings['invnumber']);
       $form->created->val($created = $settings['created']);
       $form->due->val($due = $settings['due']);
     }
@@ -100,28 +104,35 @@ class Controller_Invoices extends Controller {
     if ($format) {
       switch ($invoice_type) {
         case 'ST':
-          $form_type = 'LDF';
-          $ids = DB::select('barcodes.barcode', 'ldf_data.id')
-            ->from('ldf_data')
+          $form_type = 'TDF';
+          $ids = DB::select('barcodes.barcode', 'tdf_data.id')
+            ->distinct(TRUE)
+            ->from('tdf_data')
             ->join('barcodes')
-            ->on('ldf_data.barcode_id', '=', 'barcodes.id')
-            ->join(DB::expr('"barcodes" as "parent_barcodes"'))
-            ->on('ldf_data.parent_barcode_id', '=', 'parent_barcodes.id')
-            ->join('barcode_hops_cached')
-            ->on('ldf_data.barcode_id', '=', 'barcode_hops_cached.barcode_id')
-            ->on('ldf_data.parent_barcode_id', '=', 'barcode_hops_cached.parent_id')
+            ->on('tdf_data.barcode_id', '=', 'barcodes.id')
+            ->join('barcode_hops_cached', 'LEFT OUTER')
+            ->on('tdf_data.barcode_id', '=', 'barcode_hops_cached.parent_id')
+            ->join('ldf_data', 'LEFT OUTER')
+            ->on('barcode_hops_cached.barcode_id', '=', 'ldf_data.barcode_id')
             ->join('invoice_data', 'LEFT OUTER')
-            ->on('ldf_data.id', '=', 'invoice_data.form_data_id')
-            ->on('invoice_data.form_type', '=', DB::expr("'LDF'"))
+            ->on('tdf_data.id', '=', 'invoice_data.form_data_id')
+            ->on('invoice_data.form_type', '=', DB::expr("'TDF'"))
+            ->join(DB::expr('"invoice_data" as "ldf_invoice_data"'), 'LEFT OUTER')
+            ->on('ldf_data.id', '=', 'ldf_invoice_data.form_data_id')
+            ->on('ldf_invoice_data.form_type', '=', DB::expr("'LDF'"))
             ->join('invoices', 'LEFT OUTER')
             ->on('invoice_data.invoice_id', '=', 'invoices.id')
-            ->where('ldf_data.site_id', '=', $site_id)
-            ->and_where('ldf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
-            ->and_where('parent_barcodes.type', '=', 'F')
-            ->and_where('barcode_hops_cached.hops', '=', '1')
+            ->join(DB::expr('"invoices" as "ldf_invoices"'), 'LEFT OUTER')
+            ->on('ldf_invoice_data.invoice_id', '=', 'ldf_invoices.id')
+            ->where('tdf_data.site_id', '=', $site_id)
+            ->and_where('tdf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
             ->and_where_open()
               ->where('invoices.type', '<>', 'ST')
               ->or_where('invoices.id', '=', NULL)
+            ->and_where_close()
+            ->and_where_open()
+              ->where('ldf_invoices.type', '<>', 'ST')
+              ->or_where('ldf_invoices.id', '=', NULL)
             ->and_where_close()
             ->order_by('barcodes.barcode')
             ->execute()
@@ -165,6 +176,17 @@ class Controller_Invoices extends Controller {
         $site     = ORM::factory('site', $site_id);
         $operator = ORM::factory('operator', $operator_id ?: $site->operator->id);
 
+        $invoice = ORM::factory('invoice');
+        $invoice->type = $invoice_type;
+        $invoice->invnumber = $invnumber;
+        $invoice->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
+        $invoice->due_date = SGS::date($due, SGS::PGSQL_DATE_FORMAT, TRUE);
+
+        if ($from) $invoice->from_date = SGS::date($from, SGS::PGSQL_DATE_FORMAT, TRUE);
+        if ($to) $invoice->to_date = SGS::date($to, SGS::PGSQL_DATE_FORMAT, TRUE);
+        if ($operator->loaded()) $invoice->operator = $operator;
+        if ($site->loaded()) $invoice->site = $site;
+
         switch ($format) {
           case 'preview':
             $data = ORM::factory($form_type)
@@ -189,7 +211,7 @@ class Controller_Invoices extends Controller {
             else Notify::msg('No records found');
 
             $func = strtolower('generate_'.$invoice_type.'_preview');
-            $summary = self::$func((array) $ids);
+            $summary = self::$func($invoice, (array) $ids);
 
             unset($info);
             if ($specs_number) {
@@ -242,20 +264,8 @@ class Controller_Invoices extends Controller {
 
           case 'final':
             set_time_limit(1800);
-            $invoice = ORM::factory('invoice');
-
-            if ($operator->loaded()) $invoice->operator = $operator;
-            if ($site->loaded())     $invoice->site = $site;
-
-            $invoice->type = $invoice_type;
             $invoice->is_draft = $is_draft ? TRUE : FALSE;
             $invoice->number = $is_draft ? NULL : $invoice::create_invoice_number($invoice_type);
-
-            if ($from) $invoice->from_date = SGS::date($from, SGS::PGSQL_DATE_FORMAT, TRUE);
-            if ($to) $invoice->to_date = SGS::date($to, SGS::PGSQL_DATE_FORMAT, TRUE);
-
-            $invoice->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
-            $invoice->due_date = SGS::date($due, SGS::PGSQL_DATE_FORMAT, TRUE);
 
             $func = strtolower('generate_'.$invoice_type.'_invoice');
             $invoice->file_id = self::$func($invoice, $ids);
@@ -344,10 +354,10 @@ class Controller_Invoices extends Controller {
       if ($invoice->loaded()) {
         $ids  = $invoice->get_data();
         $func = strtolower('generate_'.$invoice->type.'_preview');
-        $summary = self::$func((array) $ids);
+        $summary = self::$func($invoice, (array) $ids);
 
         switch ($invoice->type) {
-          case 'ST': $form_type = 'LDF'; break;
+          case 'ST':  $form_type = strtotime($invoice->created_date) <= strtotime('2013-05-01') ? 'LDF' : 'TDF'; break;
           case 'EXF': $form_type = 'SPECS'; break;
         }
 
@@ -571,12 +581,16 @@ class Controller_Invoices extends Controller {
   }
 
 
-  private function generate_st_preview($data_ids) {
-    $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
-      ->from('ldf_data')
+  private function generate_st_preview($invoice, $data_ids) {
+    // pi() * pow(($diameter / 2), 2) * $height
+
+    $table = strtotime($invoice->created_date) <= strtotime('2013-05-01') ? 'ldf_data' : 'tdf_data';
+
+    $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
+      ->from($table)
       ->join('species')
       ->on('species_id', '=', 'species.id')
-      ->where('ldf_data.id', 'IN', (array) $data_ids)
+      ->where($table.'.id', 'IN', (array) $data_ids)
       ->group_by('species_code', 'species_class', 'fob_price')
       ->execute()
       ->as_array();
@@ -599,11 +613,13 @@ class Controller_Invoices extends Controller {
       return FALSE;
     }
 
-    $summary_data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
-      ->from('ldf_data')
+    $table = strtotime($invoice->created_date) <= strtotime('2013-05-01') ? 'ldf_data' : 'tdf_data';
+
+    $summary_data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
+      ->from($table)
       ->join('species')
       ->on('species_id', '=', 'species.id')
-      ->where('ldf_data.id', 'IN', (array) $data_ids)
+      ->where($table.'.id', 'IN', (array) $data_ids)
       ->group_by('species_code', 'species_class', 'fob_price')
       ->execute()
       ->as_array();
@@ -619,8 +635,8 @@ class Controller_Invoices extends Controller {
       ->execute() as $result) $details_data[$result['species_code']][] = $result;
 
     $summary_signature_page_max = 4;
-    $summary_one_page_max       = 8;
-    $summary_first_page_max     = 10;
+    $summary_one_page_max       = 7;
+    $summary_first_page_max     = 9;
     $summary_last_page_max      = 11;
     $summary_normal_page_max    = 13;
 
@@ -817,7 +833,7 @@ class Controller_Invoices extends Controller {
     }
   }
 
-  private function generate_exf_preview($data_ids) {
+  private function generate_exf_preview($invoice, $data_ids) {
     $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
       ->from('specs_data')
       ->join('species')

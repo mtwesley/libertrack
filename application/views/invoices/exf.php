@@ -268,36 +268,40 @@ $options = (array) $options + array(
       <tr>
         <td class="label label-left">Contact:</td>
         <td class="desc-left"><?php echo $invoice->operator->contact; ?></td>
-        <td class="label">Reference No:</td>
-        <td><?php echo $invoice->is_draft ? 'DRAFT' : 'EXF-'.$invoice->number; ?></td>
+        <td class="label">Invoice No:</td>
+        <td><?php echo $invoice->invnumber; ?></td>
       </tr>
       <tr>
         <td class="label label-left">Company:</td>
         <td class="desc-left"><?php echo $invoice->operator->name; ?></td>
-        <td class="label">Date Created:</td>
-        <td><?php echo SGS::date($invoice->created_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td class="label">Reference No:</td>
+        <td><?php echo $invoice->is_draft ? 'DRAFT' : 'EXF-'.$invoice->number; ?></td>
       </tr>
       <tr>
-        <td rowspan="2" class="label label-left">Address:</td>
-        <td class="desc-left address" rowspan="4"><?php echo SGS::breakify($invoice->operator->address); ?></td>
-        <td class="label">Date Due:</td>
-        <td><?php echo SGS::date($invoice->due_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+        <td rowspan="3" class="label label-left">Address:</td>
+        <td class="desc-left address" rowspan="3"><?php echo SGS::breakify($invoice->operator->address); ?></td>
+        <td class="label">Payee TIN:</td>
+        <td><?php echo $operator->tin; ?></td>
       </tr>
       <tr>
         <td class="label specs_number">SPEC Number:</td>
         <td><?php if ($specs_number) echo $specs_number; ?></td>
       </tr>
       <tr>
-        <td class="label label-left">Telephone:</td>
-        <td class="desc-left"><?php echo $operator->phone; ?></td>
         <td class="label specs_barcode">SPEC Barcode:</td>
         <td><?php if ($specs_barcode) echo $specs_barcode; ?></td>
       </tr>
       <tr>
+        <td class="label label-left">Telephone:</td>
+        <td class="desc-left"><?php echo $operator->phone; ?></td>
+        <td class="label">Date Created:</td>
+        <td><?php echo SGS::date($invoice->created_date, SGS::PRETTY_DATE_FORMAT); ?></td>
+      </tr>
+      <tr>
         <td class="label label-left">E-mail:</td>
         <td class="desc-left"><?php echo $operator->email; ?></td>
-        <td class="label">Payee TIN:</td>
-        <td><?php echo $operator->tin; ?></td>
+        <td class="label">Date Due:</td>
+        <td><?php echo SGS::date($invoice->due_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
     </table>
   </div>

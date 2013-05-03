@@ -23,7 +23,7 @@ create domain d_md5 as character(32);
 
 create domain d_sha as character(64);
 
-create domain d_utm as character varying(21) check (value ~ E'29N [0-9]{6}mE [0-9]{1,8}mN');
+create domain d_utm as character varying(21) check (value ~ E'[0-9]{1,2} [0-9]{6}mE [0-9]{1,8}mN');
 
 create domain d_timestamp as timestamp without time zone;
 
@@ -369,6 +369,8 @@ create table invoices (
   operator_id d_id,
   site_id d_id,
   number d_invoice_number,
+  invnumber d_text_short,
+  is_paid d_bool default false not null,
   is_draft d_bool default true not null,
   from_date d_date,
   to_date d_date,

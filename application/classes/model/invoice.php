@@ -52,6 +52,7 @@ class Model_Invoice extends ORM {
           $value = serialize($value);
         }
         else if (!is_string($value)) $value = NULL;
+
       default:
         parent::set($column, $value);
     }
@@ -63,6 +64,7 @@ class Model_Invoice extends ORM {
         $value = parent::__get($column);
         return is_string($value) ? unserialize($value) : $value;
 
+      case 'is_paid':
       case 'is_draft':
         return parent::__get($column) == 't' ? TRUE : FALSE;
 

@@ -259,22 +259,36 @@ $options = (array) $options + array(
       <tr>
         <td class="label label-left">Contact:</td>
         <td class="desc-left"><?php echo $invoice->site->operator->contact; ?></td>
-        <td class="label">Reference No:</td>
-        <td><?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->number; ?></td>
+        <td class="label">Invoice No:</td>
+        <td><?php echo $invoice->invnumber; ?></td>
       </tr>
       <tr>
         <td class="label label-left">Company:</td>
         <td class="desc-left"><?php echo $invoice->site->operator->name; ?></td>
+        <td class="label">Reference No:</td>
+        <td><?php echo $invoice->is_draft ? 'DRAFT' : 'ST-'.$invoice->number; ?></td>
+      </tr>
+      <tr>
+        <td rowspan="4" class="label label-left">Address:</td>
+        <td class="desc-left" rowspan="4"><?php echo SGS::breakify($invoice->site->operator->address); ?></td>
+        <td class="label">Site Reference:</td>
+        <td><?php echo $site->type.'/'.$site->name; ?></td>
+      </tr>
+      <tr>
+        <td class="label">Payee TIN:</td>
+        <td><?php echo $operator->tin; ?></td>
+      </tr>
+      <tr>
         <td class="label">Date Created:</td>
         <td><?php echo SGS::date($invoice->created_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
-        <td rowspan="3" class="label label-left">Address:</td>
-        <td class="desc-left" rowspan="3"><?php echo SGS::breakify($invoice->site->operator->address); ?></td>
         <td class="label">Date Due:</td>
         <td><?php echo SGS::date($invoice->due_date, SGS::PRETTY_DATE_FORMAT); ?></td>
       </tr>
       <tr>
+        <td class="label label-left">Telephone:</td>
+        <td class="desc-left"><?php echo $operator->phone; ?></td>
         <?php if ($invoice->from_date): ?>
         <td class="label from">Logs Declared From:</td>
         <td><?php if ($invoice->from_date) echo SGS::date($invoice->from_date, SGS::PRETTY_DATE_FORMAT); ?></td>
@@ -284,6 +298,8 @@ $options = (array) $options + array(
         <?php endif; ?>
       </tr>
       <tr>
+        <td class="label label-left">E-mail:</td>
+        <td class="desc-left"><?php echo $operator->email; ?></td>
         <?php if ($invoice->to_date): ?>
         <td class="label to"><?php if (!$invoice->from_date) echo 'Logs Declared '; ?>To:</td>
         <td><?php if ($invoice->to_date) echo SGS::date($invoice->to_date, SGS::PRETTY_DATE_FORMAT); ?></td>
@@ -291,18 +307,6 @@ $options = (array) $options + array(
         <td></td>
         <td></td>
         <?php endif; ?>
-      </tr>
-      <tr>
-        <td class="label label-left">Telephone:</td>
-        <td class="desc-left"><?php echo $operator->phone; ?></td>
-        <td class="label">Site Reference:</td>
-        <td><?php echo $site->type.'/'.$site->name; ?></td>
-      </tr>
-      <tr>
-        <td class="label label-left">E-mail:</td>
-        <td class="desc-left"><?php echo $operator->email; ?></td>
-        <td class="label">Payee TIN:</td>
-        <td><?php echo $operator->tin; ?></td>
       </tr>
     </table>
   </div>
