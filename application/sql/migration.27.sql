@@ -185,3 +185,116 @@ alter table invoices add column invnumber d_text_short;
 alter table invoices add column is_paid d_bool default true not null;
 alter table invoices alter column is_paid set default false;
 
+
+-- min diameter
+
+alter table species add column min_diameter d_diameter;
+
+update species set min_diameter = 60 where code = 'AFRO';
+update species set min_diameter = 70 where code = 'AFZ';
+update species set min_diameter = 60 where code = 'ALB';
+update species set min_diameter = 70 where code = 'ALS';
+update species set min_diameter = 60 where code = 'AMP';
+update species set min_diameter = 60 where code = 'ANH';
+update species set min_diameter = 80 where code = 'ANI';
+update species set min_diameter = 60 where code = 'ANO';
+update species set min_diameter = 60 where code = 'ANT';
+update species set min_diameter = 60 where code = 'ANTH';
+update species set min_diameter = 60 where code = 'ARA';
+update species set min_diameter = 60 where code = 'AUB';
+update species set min_diameter = 60 where code = 'BEI';
+update species set min_diameter = 60 where code = 'BER';
+update species set min_diameter = 70 where code = 'BOM';
+update species set min_diameter = 90 where code = 'BRA';
+update species set min_diameter = 60 where code = 'BRI';
+update species set min_diameter = 60 where code = 'BUS';
+update species set min_diameter = 60 where code = 'CAL';
+update species set min_diameter = 80 where code = 'CAN';
+update species set min_diameter = 90 where code = 'CEI';
+update species set min_diameter = 60 where code = 'CEL';
+update species set min_diameter = 60 where code = 'CHI';
+update species set min_diameter = 80 where code = 'CHL';
+update species set min_diameter = 60 where code = 'CHR';
+update species set min_diameter = 60 where code = 'COM';
+update species set min_diameter = 60 where code = 'COP';
+update species set min_diameter = 60 where code = 'COU';
+update species set min_diameter = 60 where code = 'CRY';
+update species set min_diameter = 60 where code = 'CYN';
+update species set min_diameter = 60 where code = 'DAC';
+update species set min_diameter = 70 where code = 'DAN';
+update species set min_diameter = 60 where code = 'DIA';
+update species set min_diameter = 60 where code = 'DID';
+update species set min_diameter = 60 where code = 'DIO';
+update species set min_diameter = 80 where code = 'DIS';
+update species set min_diameter = 90 where code = 'ENTA';
+update species set min_diameter = 90 where code = 'ENTC';
+update species set min_diameter = 90 where code = 'ENTCY';
+update species set min_diameter = 100 where code = 'ENTU';
+update species set min_diameter = 80 where code = 'ERY';
+update species set min_diameter = 60 where code = 'ERYM';
+update species set min_diameter = 60 where code = 'FAG';
+update species set min_diameter = 60 where code = 'FUN';
+update species set min_diameter = 60 where code = 'GIL';
+update species set min_diameter = 60 where code = 'GLU';
+update species set min_diameter = 80 where code = 'GUA';
+update species set min_diameter = 60 where code = 'GUI';
+update species set min_diameter = 80 where code = 'HAL';
+update species set min_diameter = 60 where code = 'HAN';
+update species set min_diameter = 60 where code = 'HAP';
+update species set min_diameter = 60 where code = 'IRV';
+update species set min_diameter = 70 where code = 'KHA';
+update species set min_diameter = 70 where code = 'KHI';
+update species set min_diameter = 60 where code = 'KLA';
+update species set min_diameter = 80 where code = 'LOP';
+update species set min_diameter = 70 where code = 'LOV';
+update species set min_diameter = 60 where code = 'MAM';
+update species set min_diameter = 60 where code = 'MAN';
+update species set min_diameter = 60 where code = 'MANI';
+update species set min_diameter = 60 where code = 'MON';
+update species set min_diameter = 60 where code = 'MUS';
+update species set min_diameter = 80 where code = 'NAU';
+update species set min_diameter = 60 where code = 'NES';
+update species set min_diameter = 60 where code = 'NEW';
+update species set min_diameter = 60 where code = 'OLD';
+update species set min_diameter = 60 where code = 'ONG';
+update species set min_diameter = 60 where code = 'PAC';
+update species set min_diameter = 60 where code = 'PAK';
+update species set min_diameter = 60 where code = 'PAR';
+update species set min_diameter = 60 where code = 'PEN';
+update species set min_diameter = 60 where code = 'PENT';
+update species set min_diameter = 60 where code = 'PER';
+update species set min_diameter = 80 where code = 'PIP';
+update species set min_diameter = 60 where code = 'PTE';
+update species set min_diameter = 70 where code = 'PYC';
+update species set min_diameter = 60 where code = 'RHO';
+update species set min_diameter = 60 where code = 'RIC';
+update species set min_diameter = 60 where code = 'SAB';
+update species set min_diameter = 70 where code = 'SAC';
+update species set min_diameter = 60 where code = 'SAM';
+update species set min_diameter = 60 where code = 'SAN';
+update species set min_diameter = 60 where code = 'STR';
+update species set min_diameter = 60 where code = 'SYM';
+update species set min_diameter = 60 where code = 'SYN';
+update species set min_diameter = 60 where code = 'TAR';
+update species set min_diameter = 70 where code = 'TEI';
+update species set min_diameter = 70 where code = 'TES';
+update species set min_diameter = 60 where code = 'TET';
+update species set min_diameter = 100 where code = 'TIE';
+update species set min_diameter = 90 where code = 'TRI';
+update species set min_diameter = 80 where code = 'TUR';
+update species set min_diameter = 60 where code = 'UAP';
+update species set min_diameter = 60 where code = 'UNK';
+update species set min_diameter = 60 where code = 'XYL';
+update species set min_diameter = 60 where code = 'XYLO';
+
+
+-- utm again
+
+alter domain d_utm drop constraint d_utm_check;
+alter domain d_utm add check (value ~ E'^[0-9]{1,2} [0-9]{6}E [0-9]{1,8}N$');
+
+alter table blocks add column utm_origin d_utm;
+alter table blocks add column utm_east d_utm;
+alter table blocks add column utm_north_south d_utm;
+alter table blocks add column utm_west d_utm;
+

@@ -221,8 +221,8 @@ class Model_SPECS extends SGS_Form_ORM {
       'checks' => array(
         'is_invoiced_st' => array(
           'name'    => 'Stumpage Fee Invoiced',
-          'title'   => 'Stumpage fee invoiced',
-          'error'   => 'Stumpage fee has not been invoiced',
+          'title'   => 'Stumpage fee invoiced and paid',
+          'error'   => 'Stumpage fee has not been invoiced or paid',
         ),
       )),
   );
@@ -618,7 +618,7 @@ class Model_SPECS extends SGS_Form_ORM {
     $ldf_parent = $ldf->parent(array('LDF', 'TDF'));
     if ($ldf_parent and $ldf_parent->loaded()) {
       if ($ldf_parent::$type == 'TDF') {
-        if ($ldf->is_invoiced('ST')) $successes['barcode_id']['is_invoiced_st'] = array('value' => 'Invoiced', 'comparison' => 'N/A');
+        if ($ldf->is_invoiced('ST', TRUE)) $successes['barcode_id']['is_invoiced_st'] = array('value' => 'Invoiced', 'comparison' => 'N/A');
         else $errors['barcode_id']['is_invoiced_st'] = array('value' => 'Not Invoiced', 'comparison' => 'N/A');
       }
       else $successes['barcode_id']['is_invoiced_st'] = array('value' => 'N/A', 'comparison' => 'N/A');

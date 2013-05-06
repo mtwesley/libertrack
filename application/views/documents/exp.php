@@ -393,7 +393,7 @@ $options = (array) $options + array(
           <?php echo SGS::quantitify($total_quantity); ?> m<sup>3</sup>
         </td>
         <td>
-          <div class="strong">Items</div>
+          <div class="strong"><?php echo $document->values['product_type']; ?></div>
           <?php echo $total_items; ?>
         </td>
         <td>

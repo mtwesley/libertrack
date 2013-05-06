@@ -15,10 +15,6 @@ class SGS_Form_ORM extends ORM {
     return call_user_func(array('Model_'.($form_type ? $form_type : static::$type), 'fields'));
   }
 
-  public function is_locked() {
-    if (isset($this->barcode) and $this->barcode->loaded()) return $this->barcode->is_locked ? TRUE : FALSE;
-  }
-
   public function data() {
     return ORM::factory(static::$data_type)
       ->where('barcode_id', '=', $this->barcode->id)
@@ -29,6 +25,10 @@ class SGS_Form_ORM extends ORM {
     return ORM::factory(static::$verification_type)
       ->where('barcode_id', '=', $this->barcode->id)
       ->find();
+  }
+
+  public function is_locked() {
+    if (isset($this->barcode) and $this->barcode->loaded()) return $this->barcode->is_locked ? TRUE : FALSE;
   }
 
   public function is_accurate() {
@@ -45,6 +45,23 @@ class SGS_Form_ORM extends ORM {
     if (in_array(static::$type, array_keys(SGS::$form_verification_type))) return TRUE;
     else if (in_array(static::$type, array_keys(SGS::$form_data_type))) return FALSE;
     else return NULL;
+  }
+
+  public function is_invoiced($type = NULL, $is_paid = NULL) {
+    $query = DB::select('invoices.id')
+      ->from('invoice_data')
+      ->join('invoices')
+      ->on('invoice_data.invoice_id', '=', 'invoices.id')
+      ->where('invoice_data.form_type', '=', static::$type)
+      ->and_where('invoice_data.form_data_id', '=', $this->id)
+      ->and_where('invoices.is_draft', '=', FALSE);
+    if ($type) $query->and_where('invoices.type', '=', $type);
+    if ($is_paid !== NULL) $query->and_where('is_paid', '=', (bool) $is_paid);
+    if (!$invoice_id = $query->execute()->as_array('id', NULL)) {
+      $parent = $this->parent();
+      if ($parent and $parent->loaded()) $invoice_id = $parent->is_invoiced($type, $is_paid);
+    }
+    return $invoice_id;
   }
 
   public function process_check($error_test, $warning_test, $field, $check, $params = array(), &$errors = array(), &$warnings = array()) {
@@ -190,24 +207,6 @@ class SGS_Form_ORM extends ORM {
     DB::insert($this->is_verification() ? 'verification_checks' : 'checks', array('form_type', $this->is_verification() ? 'form_verification_id' : 'form_data_id', 'field', 'check', 'type', 'params'))
       ->values(array(static::$type, $this->id, $field, $warning, 'W', $params ? serialize($params) : NULL))
       ->execute();
-  }
-
-  public function is_invoiced($type = NULL) {
-    $query = DB::select('invoices.id')
-      ->from('invoice_data')
-      ->join('invoices')
-      ->on('invoice_data.invoice_id', '=', 'invoices.id')
-      ->where('invoice_data.form_type', '=', static::$type)
-      ->and_where('invoice_data.form_data_id', '=', $this->id)
-      ->and_where('invoices.is_draft', '=', FALSE);
-    if ($type) $query->and_where('invoices.type', '=', $type);
-    if (!$invoice_id = $query
-      ->execute()
-      ->as_array('id', NULL)) {
-      $parent = $this->parent();
-      if ($parent and $parent->loaded()) $invoice_id = $parent->is_invoiced();
-    }
-    return $invoice_id;
   }
 
   public function parent($types = array()) {

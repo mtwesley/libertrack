@@ -242,6 +242,10 @@ class Controller_Analysis extends Controller {
         ->execute()
         ->as_array('id', 'name');
 
+      $check_options = array();
+      $model = ORM::factory($form_type);
+      foreach ($model::$checks as $type => $info) $check_options[$type] = $info['title'];
+
       $form = Formo::form();
       if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
       else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')) : array()));
@@ -254,6 +258,7 @@ class Controller_Analysis extends Controller {
         $form->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
       }
       $form->add_group('status', 'checkboxes', in_array($form_type, array_keys(SGS::$form_verification_type)) ? SGS::$verification_status : SGS::$data_status, NULL, array('label' => 'Status'));
+      $form->add_group('errors', 'checkboxes', $check_options, NULL, array('label' => 'Errors'));
       $form->add('search', 'submit', 'Filter');
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -265,6 +270,7 @@ class Controller_Analysis extends Controller {
         if ($has_exp_info) $exp_barcode = $form->exp_barcode->val();
 
         $status = $form->status->val();
+        $errors = $form->errors->val();
 
         $data = ORM::factory($form_type);
 
@@ -272,6 +278,20 @@ class Controller_Analysis extends Controller {
         if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
         if ($status)      $data->and_where('status', 'IN', (array) $status);
+
+        if ($errors) {
+          foreach ($model::$checks as $type => $info) if (in_array($type, $errors))
+            foreach ($info['checks'] as $check => $array) $checks[] = $check;
+
+          if ($checks) $data->join('checks')
+            ->distinct(TRUE)
+            ->on(strtolower($form_type).'.id', '=', 'checks.form_data_id')
+            ->on('checks.form_type', '=', DB::expr("'".$form_type."'"))
+            ->and_where_open()
+              ->and_where('checks.check', 'IN', (array) $checks)
+              ->and_where('checks.type', '=', 'E')
+            ->and_where_close();
+        }
 
         if (Valid::is_barcode($specs_barcode)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
         if (Valid::is_barcode($exp_barcode))   $data->and_where('exp_barcode_id', '=', SGS::lookup_barcode($exp_barcode, NULL, TRUE));
@@ -288,6 +308,7 @@ class Controller_Analysis extends Controller {
           'specs_barcode' => $specs_barcode,
           'exp_barcode'   => $exp_barcode,
           'status'        => $status,
+          'errors'        => $errors,
           'from'          => $from,
           'to'            => $to
         ));
@@ -305,7 +326,8 @@ class Controller_Analysis extends Controller {
             $form->to->val($to = $settings['to']);
           }
 
-          $form->status->val($block_id = $settings['block_id']);
+          $form->status->val($status = $settings['status']);
+          $form->errors->val($errors = $settings['errors']);
         }
 
         $data = ORM::factory($form_type);
@@ -314,6 +336,20 @@ class Controller_Analysis extends Controller {
         if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
         if ($status)      $data->and_where('status', 'IN', (array) $status);
+
+        if ($errors) {
+          foreach ($model::$checks as $type => $info) if (in_array($type, $errors))
+            foreach ($info['checks'] as $check => $array) $checks[] = $check;
+
+          if ($checks) $data->join('checks')
+            ->distinct(TRUE)
+            ->on(strtolower($form_type).'.id', '=', 'checks.form_data_id')
+            ->on('checks.form_type', '=', DB::expr("'".$form_type."'"))
+            ->and_where_open()
+              ->and_where('checks.check', 'IN', (array) $checks)
+              ->and_where('checks.type', '=', 'E')
+            ->and_where_close();
+        }
 
         if (Valid::is_barcode($specs_barcode)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
         if (Valid::is_barcode($exp_barcode)) $data->and_where('exp_barcode_id', '=', SGS::lookup_barcode($exp_barcode, NULL, TRUE));

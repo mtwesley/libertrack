@@ -203,6 +203,11 @@ class Valid extends Kohana_Valid {
     return (bool) (self::is_char($value) AND preg_match('/^[0-9A-Za-z_]{3,24}$/', (string) $value));
   }
 
+  public static function is_utm($value)
+  {
+    return (bool) (self::is_varchar($value, 19) AND preg_match('/^[0-9]{1,2} [0-9]{6}E [0-9]{1,8}N$/', (string) $value));
+  }
+
   public static function is_accurate($value, $test, $tolerance = 0, $lower_bound = TRUE, $upper_bound = TRUE)
   {
     return (bool) ((($upper_bound ? ($value - $tolerance) : $test) <= $test) AND (($lower_bound ? ($value + $tolerance) : $test) >= $test));

@@ -188,11 +188,11 @@ class Controller_Barcodes extends Controller {
 
       switch ($similarity) {
         case 'exact': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', TRUE, 2, 0.8, 1, 25, 0); break;
-        case 'high': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', TRUE, 2, 0.5, 5, 25, 0); break;
-        case 'low': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', TRUE, 2, 0.1, 10, 25, 0); break;
+        case 'high': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.5, 5, 25, 0); break;
+        case 'low': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.1, 10, 25, 0); break;
 
         case 'medium':
-        default: $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', TRUE, 2, 0.3, 7, 25, 0); break;
+        default: $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.3, 7, 25, 0); break;
       }
 
       if ($suggestions) {

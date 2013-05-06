@@ -469,11 +469,11 @@ class Model_TDFV extends SGS_Form_ORM {
       $errors['barcode_id']['is_existing_data'] = array('value' => 'Found', 'comparison' => 'Not Found');
     }
 
-    // all tolerance checks fail if any traceability checks fail
+    /*** all tolerance checks fail if any traceability checks fail
     foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
       foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['barcode_id'][$check] = array();
       break;
-    }
+    } ***/
 
     // tolerance successes checks
     if (is_object($data) and $data->loaded()) {

@@ -201,10 +201,10 @@ if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
           <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span>
           <?php endif; ?>
 
+          <?php endif; // links ?>
+
           <?php if ($options['details'] and $errors = $csv->get_errors()): ?>
           <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
-          <?php endif; ?>
-
           <?php endif; ?>
         </div>
       </div>

@@ -23,7 +23,7 @@ create domain d_md5 as character(32);
 
 create domain d_sha as character(64);
 
-create domain d_utm as character varying(21) check (value ~ E'[0-9]{1,2} [0-9]{6}mE [0-9]{1,8}mN');
+create domain d_utm as character varying(19) check (value ~ E'^[0-9]{1,2} [0-9]{6}E [0-9]{1,8}N$');
 
 create domain d_timestamp as timestamp without time zone;
 
@@ -173,6 +173,7 @@ create table species (
   botanic_name d_text_short unique,
   trade_name d_text_short unique,
   fob_price d_money not null,
+  min_diameter d_diameter not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -220,6 +221,10 @@ create table blocks (
   id bigserial not null,
   site_id d_id not null,
   name d_block_name not null,
+  utm_origin d_utm,
+  utm_east d_utm,
+  utm_north_south d_utm,
+  utm_west d_utm,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 

@@ -75,7 +75,17 @@ class Model_SSF extends SGS_Form_ORM {
           'title'   => 'Block assignments are consistent',
           'warning' => 'Block assignments are inconsistent'
         )
-    ))
+    )),
+    'tolerance' => array(
+      'title'  => 'Tolerance',
+      'checks' => array(
+        'is_valid_diameter' => array(
+          'name'    => 'Diameter',
+          'title'   => 'Diameter above minimum cutting limits for species',
+          'error'   => 'Diameter below minimum cutting limits for species',
+          'warning' => 'Diameter below minimum cutting limits for site',
+        ),
+    )),
   );
 
   public static function fields()
@@ -410,6 +420,9 @@ class Model_SSF extends SGS_Form_ORM {
       case 'T': $successes['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['T']); break;
       default:  $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['T']); break;
     }
+
+    if (!($this->diameter >= $this->species->min_diameter)) $errors['diameter']['is_valid_diameter'] = array('value' => $this->diameter, 'comparison' => $this->species->min_diameter);
+    else $successes['diameter']['is_valid_diameter'] = array('value' => $this->diameter, 'comparison' => $this->species->min_diameter);
 
     if ($successes) foreach ($successes as $field => $array) {
       foreach ($array as $success => $params) $this->set_success($field, $success, $params);

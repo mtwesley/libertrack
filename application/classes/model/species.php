@@ -23,7 +23,8 @@ class Model_Species extends ORM {
       'class'        => 'Class',
       'botanic_name' => 'Botanic Name',
       'trade_name'   => 'Trade Name',
-      'fob_price'    => 'FOB Price'
+      'fob_price'    => 'FOB Price',
+      'min_diameter' => 'Minimum Diameter'
     );
   }
 

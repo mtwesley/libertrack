@@ -1007,7 +1007,7 @@ VALIDATION: $secret";
     }
 
     $form = Formo::form()
-      ->add('confirm', 'text', 'Finalizing an invoice will make it permanent. Are you sure you want to finalize this draft invoice?')
+      ->add('confirm', 'text', 'Finalizing an invoice will make it permanent. Are you sure you want to finalize this draft document?')
       ->add('delete', 'submit', 'Finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -1056,13 +1056,13 @@ VALIDATION: $secret";
       ->add('delete', 'submit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-//      try {
+      try {
         $document->delete();
         if ($document->loaded()) throw new Exception();
-//        Notify::msg('Draft document successfully deleted.', 'success', TRUE);
-//      } catch (Exception $e) {
-//        Notify::msg('Draft document failed to be deleted.', 'error', TRUE);
-//      }
+        Notify::msg('Draft document successfully deleted.', 'success', TRUE);
+      } catch (Exception $e) {
+        Notify::msg('Draft document failed to be deleted.', 'error', TRUE);
+      }
 
       $this->request->redirect('exports/documents');
     }
