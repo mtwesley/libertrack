@@ -243,11 +243,12 @@ $classes[] = 'data';
       <div class="links-container">
         <span class="link link-title">+</span>
         <div class="links-links">
-          <?php if ($options['links']): ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
+          <?php if ($options['links']): ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php if ($record->is_verification()): ?>
+          <?php $record_data = $record->data(); if ($record_data->loaded()) echo HTML::anchor('analysis/review/'.strtolower($record_data::$type).'/'.$record->data()->id, 'View Data', array('class' => 'link')); ?>
           <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Verify</span>
           <?php else: ?>
           <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Check</span>
@@ -274,7 +275,7 @@ $classes[] = 'data';
         <tr class="head">
           <th class="result">Result</th>
           <th class="type">Type</th>
-          <th>Check</th>
+          <th>Description</th>
           <th>Fields Checked</th>
           <th class="value">Value</th>
           <th class="value">Comparison</th>
@@ -285,21 +286,21 @@ $classes[] = 'data';
         ?>
         <tr>
           <td class="result">
-            <?php if ($record->status == 'P'): ?>
+            <?php if ($record->status == 'P' or !in_array($check, array_keys($errors + $warnings + $successes))): $desc = 'title'; ?>
             <div class="warning">Unchecked</div>
 
-            <?php elseif (in_array($check, array_keys($errors))): $sts = 'E'; ?>
+            <?php elseif (in_array($check, array_keys($errors))): $sts = 'E'; $desc = 'error'; ?>
             <div class="error">Failed</div>
 
-            <?php elseif (in_array($check, array_keys($warnings))): $sts = 'W'; ?>
-            <div class="warning">Warned<?php // print $array['warning']; ?></div>
+            <?php elseif (in_array($check, array_keys($warnings))): $sts = 'W'; $desc = 'warning'; ?>
+            <div class="warning">Warned</div>
 
-            <?php else: $sts = 'S'; ?>
+            <?php else: $sts = 'S'; $desc = 'title'; ?>
             <div class="success">Passed</div>
             <?php endif; ?>
           </td>
           <td class="type"><span class="data-type"><?php print $info['title']; ?></span></td>
-          <td><?php print $array['title']; ?></td>
+          <td><?php print $array[$desc]; ?></td>
           <td>
             <?php
               $fld  = NULL;

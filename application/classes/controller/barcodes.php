@@ -40,7 +40,7 @@ class Controller_Barcodes extends Controller {
           try {
             $barcode->save();
             Notify::msg('Print job successfully updated.', 'success', TRUE);
-            $this->request->redirect('barcodes/'.$barcode->id);
+            $this->request->redirect('config/barcodes/'.$barcode->id);
           } catch (Database_Exception $e) {
             Notify::msg('Sorry, unable to save print job due to incorrect or missing input. Please try again.', 'error');
           } catch (Exception $e) {

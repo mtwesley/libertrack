@@ -19,7 +19,7 @@
       <div class="links-container">
         <span class="link link-title">+</span>
         <div class="links-links">
-          <?php echo HTML::anchor('admin/sites/'.$site->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/sites/'.$site->id.'/edit', 'Edit', array('class' => 'link')); ?>
         </div>
       </div>
     </td>

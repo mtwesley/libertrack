@@ -298,3 +298,12 @@ alter table blocks add column utm_east d_utm;
 alter table blocks add column utm_north_south d_utm;
 alter table blocks add column utm_west d_utm;
 
+
+-- error types
+
+alter domain d_check_type drop constraint d_check_type_check;
+alter domain d_check_type add check (value ~ E'^[EWSU]$');
+
+alter domain d_error_type drop constraint d_error_type_check;
+alter domain d_error_type add check (value ~ E'^[EWSU]$');
+

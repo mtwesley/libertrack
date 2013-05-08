@@ -27,8 +27,8 @@
       <div class="links-container">
         <span class="link link-title">+</span>
         <div class="links-links">
-          <?php echo HTML::anchor('barcodes/'.$barcode->id, 'View', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('barcodes/'.$barcode->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/barcodes/'.$barcode->id, 'View', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/barcodes/'.$barcode->id.'/edit', 'Edit', array('class' => 'link')); ?>
         </div>
       </div>
     </td>

@@ -23,7 +23,7 @@
       <div class="links-container">
         <span class="link link-title">+</span>
         <div class="links-links">
-          <?php echo HTML::anchor('admin/species/'.$spcs->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/species/'.$spcs->id.'/edit', 'Edit', array('class' => 'link')); ?>
         </div>
       </div>
     </td>

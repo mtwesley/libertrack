@@ -480,13 +480,16 @@ $num = $cntr;
         </td>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="status">
-          <?php if (in_array($kck, array_keys($errors))): ?>
+          <?php if (!in_array($kck, array_keys($errors + $warnings + $successes))): $sts = 'U'; ?>
+          <div class="warning">-</div>
+
+          <?php elseif (in_array($kck, array_keys($errors))): $sts = 'E'; ?>
           <div class="error">F</div>
 
-          <?php elseif (in_array($kck, array_keys($warnings))): ?>
+          <?php elseif (in_array($kck, array_keys($warnings))): $sts = 'W'; ?>
           <div class="warning">W</div>
 
-          <?php else: ?>
+          <?php else: $sts = 'S'; ?>
           <div class="success">P</div>
           <?php endif; ?>
         </td>

@@ -81,9 +81,9 @@ create domain d_qrcode_type as character(1) check (value ~ E'^[P]$');
 
 create domain d_location_type as character(1) check (value ~ E'^[P]$');
 
-create domain d_check_type as character(1) check (value ~ E'^[EWS]$');
+create domain d_check_type as character(1) check (value ~ E'^[EWSU]$');
 
-create domain d_error_type as character(1) check (value ~ E'^[EWS]$');
+create domain d_error_type as character(1) check (value ~ E'^[EWSU]$');
 
 create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value < 1));
 
@@ -194,14 +194,6 @@ create table operators (
 
   constraint operators_pkey primary key (id),
   constraint operators_user_id_fkey foreign key (user_id) references users (id) on update cascade
-);
-
-create table operator_tins (
-  id bigserial not null,
-  operator_id d_id not null,
-  tin d_operator_tin unique not null,
-
-  constraint operator_tins_operator_id_fkey foreign key (operator_id) referenes operators (id) on update cascade on delete cascade
 );
 
 create table sites (

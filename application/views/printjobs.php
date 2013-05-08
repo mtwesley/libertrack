@@ -19,11 +19,11 @@
       <div class="links-container">
         <span class="link link-title">+</span>
         <div class="links-links">
-          <?php echo HTML::anchor('printjobs/'.$printjob->id, 'View', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('printjobs/'.$printjob->id.'/edit', 'Edit', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('printjobs/'.$printjob->id.'/download', 'Download', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('printjobs/'.$printjob->id.'/barcodes', 'Barcodes', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('printjobs/'.$printjob->id.'/labels', 'Labels', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/printjobs/'.$printjob->id, 'View', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/printjobs/'.$printjob->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/printjobs/'.$printjob->id.'/download', 'Download', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/printjobs/'.$printjob->id.'/barcodes', 'Barcodes', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/printjobs/'.$printjob->id.'/labels', 'Labels', array('class' => 'link')); ?>
         </div>
       </div>
     </td>

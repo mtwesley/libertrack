@@ -45,14 +45,14 @@ class Controller_Invoices extends Controller {
         ->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
     }
     $form = $form
-      ->add('invnumber', 'input', NULL, array('label' => 'Invoice Number'))
       ->add('created', 'input', SGS::date('now', SGS::US_DATE_FORMAT), array('label' => 'Date Created', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'created-dpicker')))
       ->add('due', 'input', SGS::date('now + 30 days', SGS::US_DATE_FORMAT), array('label' => 'Date Due', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'due-dpicker')))
       ->add('format', 'radios', 'preview', array(
         'options' => array(
           'preview' => 'Preview',
           'draft'   => 'Draft Copy',
-          'final'   => 'Final Copy'),
+//          'final'   => 'Final Copy'
+        ),
         'label' => '&nbsp;',
         'required' => TRUE,
         ))
@@ -70,7 +70,6 @@ class Controller_Invoices extends Controller {
         $operator_id  = $form->operator_id->val();
         $specs_number = $form->specs_number->val();
       }
-      $invnumber = trim($form->invnumber->val());
       $created   = $form->created->val();
       $due       = $form->due->val();
 
@@ -81,7 +80,6 @@ class Controller_Invoices extends Controller {
         'specs_number' => $specs_number,
         'from'         => $from,
         'to'           => $to,
-        'invnumber'    => $invnumber,
         'created'      => $created,
         'due'          => $due
       ));
@@ -96,7 +94,6 @@ class Controller_Invoices extends Controller {
         $form->operator_id->val($operator_id = $settings['operator_id']);
         $form->specs_number->val($specs_number = $settings['specs_number']);
       }
-      $form->invnumber->val($invnumber = $settings['invnumber']);
       $form->created->val($created = $settings['created']);
       $form->due->val($due = $settings['due']);
     }
@@ -178,7 +175,6 @@ class Controller_Invoices extends Controller {
 
         $invoice = ORM::factory('invoice');
         $invoice->type = $invoice_type;
-        $invoice->invnumber = $invnumber;
         $invoice->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
         $invoice->due_date = SGS::date($due, SGS::PGSQL_DATE_FORMAT, TRUE);
 
@@ -313,11 +309,13 @@ class Controller_Invoices extends Controller {
 
     $form = Formo::form()
       ->add('confirm', 'text', 'Finalizing an invoice will make it permanent. Are you sure you want to finalize this draft invoice?')
+      ->add('invnumber', 'input', NULL, array('required' => TRUE, 'label' => 'Invoice Number'))
       ->add('delete', 'submit', 'Finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $invoice->is_draft = FALSE;
       $invoice->number = $invoice::create_invoice_number($invoice->type);
+      $invoice->invnumber = trim($form->invnumber->val());
 
       switch ($invoice->type) {
         case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, $invoice->get_data()); break;
