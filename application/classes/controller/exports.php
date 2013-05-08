@@ -390,7 +390,8 @@ VALIDATION: $secret";
         'options' => array(
           'preview' => 'Preview',
           'draft'   => 'Draft Copy',
-          'final'   => 'Final Copy'),
+//          'final'   => 'Final Copy'
+        ),
         'label' => '&nbsp;',
         'required' => TRUE,
         ))

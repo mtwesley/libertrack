@@ -2,7 +2,7 @@
 
 class ORM extends Kohana_ORM {
 
-  private function create_revision()
+  private function set_revision()
   {
     $new = $this->_object;
     $old = $this->_original_values;
@@ -33,6 +33,20 @@ class ORM extends Kohana_ORM {
     }
   }
 
+  public function get_revisions() {
+    $revisions = array();
+    foreach (DB::select('id', 'data', 'user_id', 'timestamp')
+      ->from('revisions')
+      ->where('model', '=', $this->_object_name)
+      ->and_where('model_id', '=', $this->id)
+      ->order_by('timestamp', 'DESC')
+      ->execute()
+      ->as_array() as $values) $revisions[$values['id']] = ORM::factory($this->_object_name)->values(unserialize($values['data']));
+//          ->user_id = $values['user_id']
+//          ->timestamp = $values['timestamp'];
+    return $revisions;
+  }
+
 	public function save(Validation $validation = NULL)
 	{
     if ($this->_changed and isset($this->user)) $this->user = Auth::instance()->get_user();
@@ -43,18 +57,18 @@ class ORM extends Kohana_ORM {
   public function create(Validation $validation = NULL)
   {
     parent::create($validation);
-    $this->create_revision();
+    $this->set_revision();
   }
 
   public function update(Validation $validation = NULL)
   {
-    $this->create_revision();
+    $this->set_revision();
     parent::update($validation);
   }
 
   public function delete()
   {
-    $this->create_revision();
+    $this->set_revision();
     parent::delete();
   }
 

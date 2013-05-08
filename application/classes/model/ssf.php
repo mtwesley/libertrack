@@ -421,7 +421,7 @@ class Model_SSF extends SGS_Form_ORM {
       default:  $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['T']); break;
     }
 
-    if (!($this->diameter >= $this->species->min_diameter)) $errors['diameter']['is_valid_diameter'] = array('value' => $this->diameter, 'comparison' => $this->species->min_diameter);
+    if (!($this->diameter >= $this->species->min_diameter)) $warnings['diameter']['is_valid_diameter'] = array('value' => $this->diameter, 'comparison' => $this->species->min_diameter);
     else $successes['diameter']['is_valid_diameter'] = array('value' => $this->diameter, 'comparison' => $this->species->min_diameter);
 
     if ($successes) foreach ($successes as $field => $array) {
