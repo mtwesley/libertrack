@@ -97,6 +97,7 @@ class Controller_Ajax extends Controller {
     $details = $this->request->post('details');
     $header  = $this->request->post('header');
     $hide_header_info = $this->request->post('hide_header_header');
+    $hide_upload_info = $this->request->post('hide_upload_upload');
 
     $csv   = ORM::factory('CSV', $id);
     $model = ORM::factory($csv->form_type, $csv->form_data_id);
@@ -112,6 +113,7 @@ class Controller_Ajax extends Controller {
         'header'  => FALSE,
         'actions' => $actions ? TRUE : FALSE,
         'hide_header_info' => $header or $hide_header_info ? TRUE : FALSE,
+        'hide_upload_info' => $hide_header_info ? TRUE : FALSE,
       ))
       ->render());
   }
@@ -125,6 +127,7 @@ class Controller_Ajax extends Controller {
     $details   = $this->request->post('details');
     $header    = $this->request->post('header');
     $hide_header_info = $this->request->post('hide_header_header');
+    $hide_upload_info = $this->request->post('hide_upload_upload');
 
     $data = ORM::factory($form_type, $id);
 
@@ -138,6 +141,7 @@ class Controller_Ajax extends Controller {
         'details' => $details ? TRUE : FALSE,
         'actions' => $actions ? TRUE : FALSE,
         'hide_header_info' => $header or $hide_header_info ? TRUE : FALSE,
+        'hide_upload_info' => $hide_header_info ? TRUE : FALSE,
       ))
       ->render());
   }

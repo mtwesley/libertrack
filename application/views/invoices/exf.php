@@ -326,7 +326,7 @@ $options = (array) $options + array(
           Timber Export License Fee<br />
           <em>FDA Regulation 107-7, Section 42(c)</em>
         </td>
-        <td class="tax_code">1415-09</td>
+        <td class="tax_code">1415-16</td>
         <td class="fob_price"><?php echo SGS::amountify(100); ?></td>
         <td class="total"><?php echo SGS::amountify(100); ?></td>
       </tr>
@@ -353,7 +353,7 @@ $options = (array) $options + array(
           Log and Wood Product Export Fee<br />
           <em>FDA Regulation 107-7, Section 44-45</em>
         </td>
-        <td class="tax_code">1415-10</td>
+        <td class="tax_code">1415-17</td>
         <td class="fob_price" rowspan="2"><?php echo SGS::amountify($record['fob_price']); ?></td>
         <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']]); ?></td>
       </tr>
@@ -362,7 +362,7 @@ $options = (array) $options + array(
           Chain of Custody Management Fee<br />
           <em>GoL-SGS Contract (1.4% of FOB Value)</em>
         </td>
-        <td class="tax_code">1415-11</td>
+        <td class="tax_code">1415-18</td>
         <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::FEE_SGS_CONTRACT_RATE); ?></td>
       </tr>
       <?php endforeach; ?>
@@ -385,7 +385,7 @@ $options = (array) $options + array(
           Timber Export License Fee<br />
           <em>FDA Regulation 107-7, Section 42(c)</em>
         </td>
-        <td class="tax_code">1415-09</td>
+        <td class="tax_code">1415-16</td>
         <td class="total" colspan="2"><?php echo SGS::amountify($fee_total = 100); ?></td>
       </tr>
       <tr class="total">
@@ -393,7 +393,7 @@ $options = (array) $options + array(
           Log and Wood Product Export Fee<br />
           <em>FDA Regulation 107-7, Section 44-45</em>
         </td>
-        <td class="tax_code">1415-10</td>
+        <td class="tax_code">1415-17</td>
         <td class="total" colspan="2"><?php echo SGS::amountify($gol_total = $total['summary']['total']); ?></td>
       </tr>
       <tr class="total">
@@ -401,7 +401,7 @@ $options = (array) $options + array(
           Chain of Custody Management Fee<br />
           <em>GoL-SGS Contract (1.4% of FOB Value)</em>
         </td>
-        <td class="tax_code">1415-11</td>
+        <td class="tax_code">1415-18</td>
         <td class="total" colspan="2"><?php echo SGS::amountify($sgs_total = $total['summary']['fob_total'] * SGS::FEE_SGS_CONTRACT_RATE); ?></td>
       </tr>
       <tr>

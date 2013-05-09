@@ -141,6 +141,13 @@
   white-space: nowrap;
 }
 
+#content form p.text span.confirm {
+  margin-bottom: 15px;
+  display: block;
+  color: #bc672e;
+  text-align: center;
+}
+
 #content form p span.error-message {
   margin-left: 590px;
   padding: 5px 8px;

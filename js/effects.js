@@ -278,7 +278,8 @@ function update_csv(id, new_id) {
       actions: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
       details: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
       header: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
-      hide_header_info: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0
+      hide_header_info: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
+      hide_upload_info: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
     },
     function(data) {
       $("#csv-"+id+"-deleted").next("tr.details").remove();
@@ -305,7 +306,8 @@ function update_data(type, id, new_id) {
       actions: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
       details: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
       header: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
-      hide_header_info: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0
+      hide_header_info: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
+      hide_upload_info: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
     },
     function(data) {
       $("#"+type+"-"+id+"-deleted").next("tr.details").remove();

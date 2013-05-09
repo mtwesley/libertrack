@@ -11,8 +11,9 @@ $options = (array) $options + array(
   'actions' => FALSE,
   'resolve' => FALSE,
   'header'  => $site or $operator ? TRUE : FALSE,
-  'hide_hidden_fields' => TRUE,
-  'hide_header_info'   => FALSE
+  'hide_hidden_info' => TRUE,
+  'hide_header_info' => FALSE,
+  'hide_upload_info' => TRUE,
 );
 
 $header_columns = 0;
@@ -21,7 +22,8 @@ $additional_columns = 3;
 if ($options['actions']) $classes[] = 'has-actions';
 if ($options['details']) $classes[] = 'has-details';
 if ($options['header'])  $classes[] = 'has-header';
-if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
+if ($options['hide_header_info']) $classes[] = 'has-hide-header';
+if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
 
 ?>
 <?php if ($options['header']): ?>
@@ -90,7 +92,7 @@ if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
       endswitch;
     ?>
     <?php
-      if ($options['hide_hidden_fields']) switch ($field):
+      if ($options['hide_hidden_info']) switch ($field):
         case 'enumerator':
         case 'buyer':
         case 'entered_date':
@@ -115,6 +117,9 @@ if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
     ?>
     <th class="<?php echo $hidden_column ? 'hide' : ''; ?>"><?php echo $name; ?></th>
     <?php endforeach; ?>
+    <?php $hide_upload_info = $options['hide_upload_info'] ? TRUE : FALSE; ?>
+    <th class="<?php echo $hide_upload_info ? 'hide' : ''; ?>">Uploaded By</th>
+    <th class="<?php echo $hide_upload_info ? 'hide' : ''; ?>">Uploaded Date and Time</th>
     <th class="links"></th>
   </tr>
 <?php endif; // table ?>
@@ -156,7 +161,7 @@ if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
       endswitch;
     ?>
    <?php
-      if ($options['hide_hidden_fields']) switch ($field):
+      if ($options['hide_hidden_info']) switch ($field):
         case 'enumerator':
         case 'buyer':
         case 'entered_date':
@@ -183,6 +188,8 @@ if ($options['hide_header_info'])  $classes[] = 'has-hide-header';
       <div id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>" class="<?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"><?php echo trim($csv->values[$field]); ?></div>
     </td>
     <?php endforeach; ?>
+    <td class="<?php echo $hide_upload_info ? 'hide' : ''; ?>"><?php echo ORM::factory('user', $csv->user_id)->name; ?></td>
+    <td class="<?php echo $hide_upload_info ? 'hide' : ''; ?>"><?php echo SGS::datetime($csv->timestamp); ?></td>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>

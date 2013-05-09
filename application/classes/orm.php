@@ -41,9 +41,12 @@ class ORM extends Kohana_ORM {
       ->and_where('model_id', '=', $this->id)
       ->order_by('timestamp', 'DESC')
       ->execute()
-      ->as_array() as $values) $revisions[$values['id']] = ORM::factory($this->_object_name)->values(unserialize($values['data']));
-//          ->user_id = $values['user_id']
-//          ->timestamp = $values['timestamp'];
+      ->as_array() as $values) {
+        $revision = ORM::factory($this->_object_name)->values(unserialize($values['data']));
+        $revision->user_id = $values['user_id'];
+        $revision->timestamp = $values['timestamp'];
+        $revisions[$values['id']] = $revision;
+      }
     return $revisions;
   }
 
