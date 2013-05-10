@@ -96,8 +96,8 @@ class Controller_Ajax extends Controller {
     $actions = $this->request->post('actions');
     $details = $this->request->post('details');
     $header  = $this->request->post('header');
-    $hide_header_info = $this->request->post('hide_header_header');
-    $hide_upload_info = $this->request->post('hide_upload_upload');
+    $hide_header_info = $this->request->post('hide_header_info');
+    $hide_upload_info = $this->request->post('hide_upload_info');
 
     $csv   = ORM::factory('CSV', $id);
     $model = ORM::factory($csv->form_type, $csv->form_data_id);
@@ -126,8 +126,8 @@ class Controller_Ajax extends Controller {
     $actions   = $this->request->post('actions');
     $details   = $this->request->post('details');
     $header    = $this->request->post('header');
-    $hide_header_info = $this->request->post('hide_header_header');
-    $hide_upload_info = $this->request->post('hide_upload_upload');
+    $hide_header_info = $this->request->post('hide_header_info');
+    $hide_upload_info = $this->request->post('hide_upload_info');
 
     $data = ORM::factory($form_type, $id);
 
