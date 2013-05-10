@@ -626,7 +626,7 @@ class Controller_Invoices extends Controller {
   private function generate_st_preview($invoice, $data_ids) {
     $table = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-09')) ? 'tdf_data' : 'ldf_data';
 
-    $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', $table == 'ldf_data' ? 'volume' : array(DB::expr('sum(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
+    $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
       ->from($table)
       ->join('species')
       ->on('species_id', '=', 'species.id')
@@ -664,13 +664,13 @@ class Controller_Invoices extends Controller {
       ->execute()
       ->as_array();
 
-    foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), array('class', 'species_class'), array('botanic_name', 'species_botanic_name'), array(DB::expr('((top_min + top_max + bottom_min + bottom_max) / 4)'), 'diameter'), 'length', $table == 'ldf_data' ? 'volume' : array(DB::expr('sum(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
+    foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), array('class', 'species_class'), array('botanic_name', 'species_botanic_name'), array(DB::expr('((top_min + top_max + bottom_min + bottom_max) / 4)'), 'diameter'), 'length', array(DB::expr('(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
       ->from($table)
       ->join('barcodes')
       ->on('barcode_id', '=', 'barcodes.id')
       ->join('species')
       ->on('species_id', '=', 'species.id')
-      ->where('ldf_data.id', 'IN', (array) $data_ids)
+      ->where($table.'.id', 'IN', (array) $data_ids)
       ->order_by('barcode')
       ->execute() as $result) $details_data[$result['species_code']][] = $result;
 
