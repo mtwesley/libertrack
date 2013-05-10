@@ -115,12 +115,23 @@ class Controller_Invoices extends Controller {
             ->join('invoice_data', 'LEFT OUTER')
             ->on('ldf_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'LDF'"))
+            ->join('tdf_data', 'LEFT OUTER')
+            ->on('parent_barcodes.id', '=', 'tdf_data.barcode_id')
+            ->join(DB::expr('"invoice_data" as "tdf_invoice_data"'), 'LEFT OUTER')
+            ->on('tdf_data.id', '=', 'tdf_invoice_data.form_data_id')
+            ->on('tdf_invoice_data.form_type', '=', DB::expr("'TDF'"))
             ->join('invoices', 'LEFT OUTER')
             ->on('invoice_data.invoice_id', '=', 'invoices.id')
+            ->join(DB::expr('"invoices" as "tdf_invoices"'), 'LEFT OUTER')
+            ->on('tdf_invoice_data.invoice_id', '=', 'tdf_invoices.id')
             ->where('ldf_data.site_id', '=', $site_id)
             ->and_where('ldf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
             ->and_where('parent_barcodes.type', '=', 'F')
             ->and_where('barcode_hops_cached.hops', '=', '1')
+            ->and_where_open()
+              ->where('tdf_invoices.type', '<>', 'ST')
+              ->or_where('tdf_invoices.id', '=', NULL)
+            ->and_where_close()
             ->and_where_open()
               ->where('invoices.type', '<>', 'ST')
               ->or_where('invoices.id', '=', NULL)
@@ -385,7 +396,7 @@ class Controller_Invoices extends Controller {
         $summary = self::$func($invoice, (array) $ids);
 
         switch ($invoice->type) {
-          case 'ST':  $form_type = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-10')) ? 'TDF' : 'LDF'; break;
+          case 'ST':  $form_type = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-09')) ? 'TDF' : 'LDF'; break;
           case 'EXF': $form_type = 'SPECS'; break;
         }
 
@@ -611,7 +622,7 @@ class Controller_Invoices extends Controller {
 
 
   private function generate_st_preview($invoice, $data_ids) {
-    $table = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-10')) ? 'tdf_data' : 'ldf_data';
+    $table = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-09')) ? 'tdf_data' : 'ldf_data';
 
     $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
       ->from($table)
@@ -640,7 +651,7 @@ class Controller_Invoices extends Controller {
       return FALSE;
     }
 
-    $table = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-10')) ? 'tdf_data' : 'ldf_data';
+    $table = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-09')) ? 'tdf_data' : 'ldf_data';
 
     $summary_data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
       ->from($table)
