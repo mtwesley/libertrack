@@ -269,6 +269,11 @@ class Controller_Analysis extends Controller {
         if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
         if ($has_exp_info) $exp_barcode = $form->exp_barcode->val();
 
+        if (!$has_specs_info and !$has_exp_info) {
+          $from = $form->from->val();
+          $to   = $form->to->val();
+        }
+
         $status = $form->status->val();
         $errors = $form->errors->val();
 
@@ -295,11 +300,7 @@ class Controller_Analysis extends Controller {
 
         if (Valid::is_barcode($specs_barcode)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
         if (Valid::is_barcode($exp_barcode))   $data->and_where('exp_barcode_id', '=', SGS::lookup_barcode($exp_barcode, NULL, TRUE));
-
-        if (!$has_specs_info and !$has_exp_info) {
-          $from = $form->from->val();
-          $to   = $form->to->val();
-        }
+        if (!$has_specs_info and !$has_exp_info) $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
         Session::instance()->set('pagination.data', array(
           'site_id'       => $site_id,
