@@ -497,7 +497,7 @@ class Controller_Verification extends Controller {
     $this->response->body($view);
   }
 
-  private function handle_csv_list($form_type = NULL, $id = NULL) {
+  private function handle_csv_list($form_type, $id = NULL) {
     if (!Request::$current->query()) Session::instance()->delete('pagination.csv');
 
     $has_block_id   = (bool) (in_array($form_type, array('SSFV', 'TDFV')));
@@ -711,7 +711,36 @@ class Controller_Verification extends Controller {
     $this->response->body($view);
   }
 
-  public function action_index() {
+  private function handle_csv_revisions($form_type, $id) {
+    $csv      = ORM::factory('CSV', $id);
+    $revisions = $csv->get_revisions();
+
+    $table = View::factory('csvs')
+      ->set('csvs', array($csv))
+      ->set('fields', SGS_Form_ORM::get_fields($form_type))
+      ->set('operator', $csv->operator->loaded() ? $csv->operator : NULL)
+      ->set('site', $csv->site->loaded() ? $csv->site : NULL)
+      ->set('block', $csv->block->loaded() ? $csv->block : NULL)
+      ->set('options', array('header' => TRUE))
+      ->render();
+
+    if ($revisions) $table .= View::factory('csvs')
+      ->set('classes', array('has-section'))
+      ->set('csvs', $revisions)
+      ->set('fields', SGS_Form_ORM::get_fields($form_type))
+      ->set('operator', $csv->operator->loaded() ? $csv->operator : NULL)
+      ->set('site', $csv->site->loaded() ? $csv->site : NULL)
+      ->set('block', $csv->block->loaded() ? $csv->block : NULL)
+      ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE, 'links' => FALSE))
+      ->render();
+
+    $content .= $table;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+   public function action_index() {
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
   }
@@ -1089,9 +1118,10 @@ class Controller_Verification extends Controller {
     }
 
     switch ($command) {
-      case 'edit': return self::handle_csv_edit(NULL, $id);
-      case 'delete': return self::handle_csv_delete(NULL, $id);
-      case 'process': return self::handle_csv_process(NULL, $id);
+      case 'edit': return self::handle_csv_edit($id);
+      case 'delete': return self::handle_csv_delete($id);
+      case 'process': return self::handle_csv_process($id);
+      case 'revisions': return self::handle_csv_revisions($id);
 
       case 'ssfv': return self::handle_csv_list('SSFV');
       case 'tdfv': return self::handle_csv_list('TDFV');

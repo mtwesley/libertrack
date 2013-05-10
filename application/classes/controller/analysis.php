@@ -424,7 +424,7 @@ class Controller_Analysis extends Controller {
       ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
       ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
       ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-        ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
+      ->set('options', array('header' => TRUE))
       ->render();
 
     if ($parents) foreach (array_reverse($parents) as $parent) {
@@ -466,6 +466,37 @@ class Controller_Analysis extends Controller {
         ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
         ->render();
     }
+
+    $content .= $table;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_data_revisions($form_type, $id) {
+    $item      = ORM::factory($form_type, $id);
+    $revisions = $item->get_revisions();
+
+    $table = View::factory('data')
+      ->set('form_type', $item::$type)
+      ->set('data', array($item))
+      ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
+      ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)
+      ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
+      ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+      ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('options', array('header' => TRUE, 'hide_header_info' => TRUE))
+      ->render();
+
+    if ($revisions) $table .= View::factory('data')
+      ->set('classes', array('has-section'))
+      ->set('form_type', $form_type)
+      ->set('data', $revisions)
+      ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
+      ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)
+      ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
+      ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE, 'links' => FALSE))
+      ->render();
 
     $content .= $table;
 
@@ -1332,6 +1363,7 @@ class Controller_Analysis extends Controller {
       case 'edit': return self::handle_data_edit($form_type, $id);
       case 'check': return self::handle_data_check($form_type, $id);
       case 'hierarchy': return self::handle_data_hierarchy($form_type, $id);
+      case 'revisions': return self::handle_data_revisions($form_type, $id);
       case 'list':
       default: return self::handle_data_list($form_type, $id);
     }

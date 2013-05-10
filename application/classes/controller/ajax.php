@@ -112,8 +112,8 @@ class Controller_Ajax extends Controller {
         'details' => $details ? TRUE: FALSE,
         'header'  => FALSE,
         'actions' => $actions ? TRUE : FALSE,
-        'hide_header_info' => $header or $hide_header_info ? TRUE : FALSE,
-        'hide_upload_info' => $hide_header_info ? TRUE : FALSE,
+        'hide_header_info' => ($header or $hide_header_info) ? TRUE : FALSE,
+        'hide_upload_info' => $hide_upload_info ? TRUE : FALSE,
       ))
       ->render());
   }
@@ -140,8 +140,8 @@ class Controller_Ajax extends Controller {
         'header'  => FALSE,
         'details' => $details ? TRUE : FALSE,
         'actions' => $actions ? TRUE : FALSE,
-        'hide_header_info' => $header or $hide_header_info ? TRUE : FALSE,
-        'hide_upload_info' => $hide_header_info ? TRUE : FALSE,
+        'hide_header_info' => ($header or $hide_header_info) ? TRUE : FALSE,
+        'hide_upload_info' => $hide_upload_info ? TRUE : FALSE,
       ))
       ->render());
   }

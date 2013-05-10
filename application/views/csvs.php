@@ -194,22 +194,18 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
       <div class="links-container">
         <span class="link link-title">+</span>
         <div class="links-links">
+          <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id, 'View', array('class' => 'link')); ?>
           <?php if ($options['links']): ?>
-          <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/view', 'View', array('class' => 'link')); ?>
           <?php if ($csv->form_data_id) echo HTML::anchor('analysis/review/'.strtolower($csv->form_type).'/'.$csv->form_data_id, 'View '.$csv->form_type, array('class' => 'link')); ?>
-
           <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
           <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
           <?php endif; ?>
-
           <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
-
           <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
           <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span>
           <?php endif; ?>
-
+          <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/revisions', 'Revisions', array('class' => 'link')); ?>
           <?php endif; // links ?>
-
           <?php if ($options['details'] and $errors = $csv->get_errors()): ?>
           <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
           <?php endif; ?>

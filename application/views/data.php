@@ -252,6 +252,7 @@ $classes[] = 'data';
         <div class="links-links">
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
           <?php if ($options['links']): ?>
+          <?php if ($record->csv()->loaded()) echo HTML::anchor($record->csv()->data_type.'/data/'.$record->csv()->id, 'View CSV', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php if ($record->is_verification()): ?>
@@ -260,6 +261,7 @@ $classes[] = 'data';
           <?php else: ?>
           <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Check</span>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/hierarchy', 'Hierarchy', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/revisions', 'Revisions', array('class' => 'link')); ?>
           <?php endif; // verification ?>
           <?php endif; // links ?>
           <?php if ($options['details']): ?>

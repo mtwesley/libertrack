@@ -44,6 +44,10 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($primary == 'config')     echo 'active'; ?>"><?php echo HTML::anchor('config', SGS::title('config')); ?></li>
     <?php endif; ?>
 
+    <?php if (Auth::instance()->logged_in('admin')): ?>
+    <li class="<?php if ($primary == 'manage')     echo 'active'; ?>"><?php echo HTML::anchor('manage', SGS::title('manage')); ?></li>
+    <?php endif; ?>
+
     <?php if (Auth::instance()->logged_in('users')): ?>
     <li class="<?php if ($primary == 'users')     echo 'active'; ?> right"><?php echo HTML::anchor('users', SGS::title('users')); ?></li>
     <?php endif; ?>
@@ -53,7 +57,6 @@ if (!$command && !is_numeric($id)) {
     <?php endif; ?>
   </ul>
 
-
   <?php if ($primary and $primary != 'index'): ?>
   <ul class="nav secondary">
     <?php if ($primary == 'config'): ?>
@@ -61,24 +64,27 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'sites')      echo 'active'; ?>"><?php echo HTML::anchor('config/sites', SGS::title('config/sites')); ?></li>
     <li class="<?php if ($secondary == 'blocks')     echo 'active'; ?>"><?php echo HTML::anchor('config/blocks', SGS::title('config/blocks')); ?></li>
     <li class="<?php if ($secondary == 'species')    echo 'active'; ?>"><?php echo HTML::anchor('config/species', SGS::title('config/species')); ?></li>
-    <li class="<?php if ($secondary == 'printjobs')  echo 'active'; ?>"><?php echo HTML::anchor('config/printjobs', SGS::title('config/printjobs')); ?>
+
+    <?php elseif ($primary == 'manage'): ?>
+    <li class="<?php if ($secondary == 'printjobs')  echo 'active'; ?>"><?php echo HTML::anchor('manage/printjobs', SGS::title('manage/printjobs')); ?>
       <?php if ($secondary == 'printjobs'): ?>
       <ul class="nav commands">
-        <li class="<?php if ($command == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('config/printjobs/list', SGS::title('config/printjobs/list')); ?></li>
-        <li class="<?php if ($command == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('config/printjobs/upload', SGS::title('config/printjobs/upload')); ?></li>
-        <li class="<?php if ($command == 'download') echo 'active'; ?>"><?php echo HTML::anchor('config/printjobs/download', SGS::title('config/printjobs/download')); ?></li>
+        <li class="<?php if ($command == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('manage/printjobs/list', SGS::title('manage/printjobs/list')); ?></li>
+        <li class="<?php if ($command == 'upload')   echo 'active'; ?>"><?php echo HTML::anchor('manage/printjobs/upload', SGS::title('manage/printjobs/upload')); ?></li>
+        <li class="<?php if ($command == 'download') echo 'active'; ?>"><?php echo HTML::anchor('manage/printjobs/download', SGS::title('manage/printjobs/download')); ?></li>
       </ul>
       <?php endif; ?>
     </li>
-    <li class="<?php if ($secondary == 'barcodes')   echo 'active'; ?>"><?php echo HTML::anchor('config/barcodes', SGS::title('config/barcodes')); ?>
+    <li class="<?php if ($secondary == 'barcodes')   echo 'active'; ?>"><?php echo HTML::anchor('manage/barcodes', SGS::title('manage/barcodes')); ?>
       <?php if ($secondary == 'barcodes'): ?>
       <ul class="nav commands">
-        <li class="<?php if ($command == 'list')   echo 'active'; ?>"><?php echo HTML::anchor('config/barcodes/list', SGS::title('config/barcodes/list')); ?></li>
-        <li class="<?php if ($command == 'query')  echo 'active'; ?>"><?php echo HTML::anchor('config/barcodes/query', SGS::title('config/barcodes/query')); ?></li>
+        <li class="<?php if ($command == 'list')   echo 'active'; ?>"><?php echo HTML::anchor('manage/barcodes/list', SGS::title('manage/barcodes/list')); ?></li>
+        <li class="<?php if ($command == 'query')  echo 'active'; ?>"><?php echo HTML::anchor('manage/barcodes/query', SGS::title('manage/barcodes/query')); ?></li>
       </ul>
       <?php endif; ?>
     </li>
 
+    <?php elseif ($primary == 'admin'): ?>
     <!-- <li class="<?php if ($secondary == 'tolerances') echo 'active'; ?>"><?php echo HTML::anchor('config/tolerances', SGS::title('config/tolerances')); ?></li> -->
 
     <?php elseif ($primary == 'declaration'): ?>

@@ -92,14 +92,15 @@ class SGS {
     'config/species'    => 'Species Configuration',
     'config/tolerances' => 'Accuracy and Tolerance Configuration',
 
-    'config/printjobs'          => 'Print Job Management',
-    'config/printjobs/list'     => 'List Print Jobs',
-    'config/printjobs/upload'   => 'Upload Print Jobs',
-    'config/printjobs/download' => 'Download Print Jobs',
+    'manage'                    => 'Management',
+    'manage/printjobs'          => 'Print Job Management',
+    'manage/printjobs/list'     => 'List Print Jobs',
+    'manage/printjobs/upload'   => 'Upload Print Jobs',
+    'manage/printjobs/download' => 'Download Print Jobs',
 
-    'config/barcodes'       => 'Barcode Management',
-    'config/barcodes/query' => 'Query Barcodes',
-    'config/barcodes/list'  => 'List Barcodes',
+    'manage/barcodes'       => 'Barcode Management',
+    'manage/barcodes/query' => 'Query Barcodes',
+    'manage/barcodes/list'  => 'List Barcodes',
 
     'users'           => 'Users',
     'users/list'      => 'Manage Users',

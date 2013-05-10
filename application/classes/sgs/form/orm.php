@@ -15,6 +15,13 @@ class SGS_Form_ORM extends ORM {
     return call_user_func(array('Model_'.($form_type ? $form_type : static::$type), 'fields'));
   }
 
+  public function csv() {
+    return ORM::factory('CSV')
+      ->where('form_type', '=', static::$type)
+      ->and_where('form_data_id', '=', $this->id)
+      ->find();
+  }
+
   public function data() {
     return ORM::factory(static::$data_type)
       ->where('barcode_id', '=', $this->barcode->id)
