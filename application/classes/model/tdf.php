@@ -23,6 +23,7 @@ class Model_TDF extends SGS_Form_ORM {
 
   protected $_ignored_columns = array(
     'diameter',
+    'top_diameter',
     'bottom_diameter',
     'volume'
   );
@@ -35,6 +36,9 @@ class Model_TDF extends SGS_Form_ORM {
 
   public function __get($column) {
     switch ($column) {
+      case 'top_diameter':
+        return SGS::floatify(($this->top_min + $this->top_max) / 2);
+
       case 'bottom_diameter':
         return SGS::floatify(($this->bottom_min + $this->bottom_max) / 2);
 
@@ -691,10 +695,10 @@ class Model_TDF extends SGS_Form_ORM {
       'stump_barcode_id' => self::$fields['stump_barcode'],
       'survey_line'      => self::$fields['survey_line'],
       'cell_number'      => self::$fields['cell_number'],
-      'top_min'          => self::$fields['top_min'],
-      'top_max'          => self::$fields['top_max'],
       'bottom_min'       => self::$fields['bottom_min'],
       'bottom_max'       => self::$fields['bottom_max'],
+      'top_min'          => self::$fields['top_min'],
+      'top_max'          => self::$fields['top_max'],
       'length'           => self::$fields['length'],
       'action'           => self::$fields['action'],
       'comment'          => self::$fields['comment'],

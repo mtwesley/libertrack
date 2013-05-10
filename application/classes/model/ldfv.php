@@ -15,7 +15,9 @@ class Model_LDFV extends SGS_Form_ORM {
   );
 
   protected $_ignored_columns = array(
-    'diameter'
+    'diameter',
+    'top_diameter',
+    'bottom_diameter'
   );
 
   protected function _initialize() {
@@ -27,6 +29,12 @@ class Model_LDFV extends SGS_Form_ORM {
     switch ($column) {
       case 'volume':
         return SGS::volumify(($this->diameter / 100), $this->length);
+
+      case 'top_diameter':
+        return SGS::floatify(($this->top_min + $this->top_max) / 2);
+
+      case 'bottom_diameter':
+        return SGS::floatify(($this->bottom_min + $this->bottom_max) / 2);
 
       case 'diameter':
         return SGS::floatify(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
@@ -565,10 +573,10 @@ class Model_LDFV extends SGS_Form_ORM {
       'site_id'            => 'Site',
       'species_id'         => 'Species',
       'barcode_id'         => self::$fields['barcode'],
-      'top_min'            => self::$fields['top_min'],
-      'top_max'            => self::$fields['top_max'],
       'bottom_min'         => self::$fields['bottom_min'],
       'bottom_max'         => self::$fields['bottom_max'],
+      'top_min'            => self::$fields['top_min'],
+      'top_max'            => self::$fields['top_max'],
       'length'             => self::$fields['length'],
       'volume'             => self::$fields['volume'],
 //      'inspection_date'    => self::$fields['inspection_date'],
