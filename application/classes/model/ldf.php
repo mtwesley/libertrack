@@ -540,6 +540,21 @@ class Model_LDF extends SGS_Form_ORM {
           $errors['bottom_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $errors['bottom_max']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
         }
+        else if (count($siblngs) > 1) {
+          usort($siblngs, function($a, $b) { return $a->bottom_diameter > $b->bottom_diameter ? 1 : -1; });
+          for ($s = 1; $s < count($siblngs); $s++) if (!Valid::is_accurate($siblngs[$s-1]->top_diameter, $siblngs[$s]->bottom_diameter, 10))
+            if ($siblngs[$s-1]->id == $this->id) {
+            $errors['top_min']['is_matching_diameter'] = array('value' => $siblngs[$s-1]->top_diameter, 'comparison' => $siblngs[$s]->bottom_diameter);
+            $errors['top_max']['is_matching_diameter'] = array('value' => $siblngs[$s-1]->top_diameter, 'comparison' => $siblngs[$s]->bottom_diameter);
+            $errors['bottom_min']['is_matching_diameter'] = array('value' => $siblngs[$s-1]->top_diameter, 'comparison' => $siblngs[$s]->bottom_diameter);
+            $errors['bottom_max']['is_matching_diameter'] = array('value' => $siblngs[$s-1]->top_diameter, 'comparison' => $siblngs[$s]->bottom_diameter);
+          } else if ($siblngs[$s]->id == $this->id) {
+            $errors['top_min']['is_matching_diameter'] = array('value' => $siblngs[$s]->bottom_diameter, 'comparison' => $siblngs[$s-1]->top_diameter);
+            $errors['top_max']['is_matching_diameter'] = array('value' => $siblngs[$s]->bottom_diameter, 'comparison' => $siblngs[$s-1]->top_diameter);
+            $errors['bottom_min']['is_matching_diameter'] = array('value' => $siblngs[$s]->bottom_diameter, 'comparison' => $siblngs[$s-1]->top_diameter);
+            $errors['bottom_max']['is_matching_diameter'] = array('value' => $siblngs[$s]->bottom_diameter, 'comparison' => $siblngs[$s-1]->top_diameter);
+          }
+        }
         else if (!Valid::is_accurate($siblings['diameter'], $parent->diameter, SGS::accuracy('LDF', 'is_matching_diameter'))) {
           $warnings['top_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $warnings['top_max']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
