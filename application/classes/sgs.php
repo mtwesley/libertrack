@@ -90,7 +90,9 @@ class SGS {
     'config/sites'      => 'Site Registration',
     'config/blocks'     => 'Block Registration',
     'config/species'    => 'Species Configuration',
-    'config/tolerances' => 'Accuracy and Tolerance Configuration',
+
+    'settings'            => 'Settings',
+    'settings/tolerances' => 'Accuracy and Tolerance',
 
     'manage'                    => 'Management',
     'manage/printjobs'          => 'Print Job Management',
@@ -103,7 +105,7 @@ class SGS {
     'manage/barcodes/list'  => 'List Barcodes',
 
     'users'           => 'Users',
-    'users/list'      => 'Manage Users',
+    'users/list'      => 'List Users',
 
     'analysis'              => 'Analysis',
 
