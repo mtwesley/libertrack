@@ -484,7 +484,7 @@ class Controller_Manage extends Controller {
           ->and_where('invoice_data.form_data_id', '=', $id)
           ->or_where_close();
       }
-      $invoices = $invoices->find_all();
+      $invoices = $invoices->find_all()->as_array();
 
       if ($invoices) $data_table .= View::factory('invoices')
         ->set('classes', array('has-section'))
@@ -503,7 +503,7 @@ class Controller_Manage extends Controller {
           ->and_where('document_data.form_data_id', '=', $id)
           ->or_where_close();
       }
-      $documents = $documents->find_all();
+      $documents = $documents->find_all()->as_array();
 
       if ($documents) $data_table .= View::factory('documents')
         ->set('classes', array('has-section'))
