@@ -37,6 +37,7 @@ $classes[] = 'data';
           <?php endif; ?>
 
           <?php echo HTML::anchor($document->file->path, 'Download', array('class' => 'link')); ?>
+          <?php if (!$document->is_draft and $document->type == 'EXP') echo HTML::anchor($mode.'documents/'.$document->id.'/asycuda', 'Download ASYCUDA', array('class' => 'link')); ?>
         </div>
       </div>
     </td>

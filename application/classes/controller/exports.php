@@ -18,6 +18,11 @@ class Controller_Exports extends Controller {
   }
 
   private function generate_exp_preview($document, $data_ids) {
+    if (!($data_ids = $data_ids ?: $document->get_data())) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
     $total_quantity = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
       ->where('id', 'IN', (array) $data_ids)
@@ -40,7 +45,7 @@ class Controller_Exports extends Controller {
   }
 
   private function generate_exp_document($document, $data_ids) {
-    if (!($data_ids ?: $document->get_data())) {
+    if (!($data_ids = $data_ids ?: $document->get_data())) {
       Notify::msg('No data found. Unable to generate document.', 'warning');
       return FALSE;
     }
@@ -83,7 +88,7 @@ EMAIL: MYERS.TUWEH@SGS.COM
 
 VALIDATION: $secret";
 
-    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\n";
+    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\r\n";
     $qr_text .= $disclaimer;
 
     $tempname = tempnam(sys_get_temp_dir(), 'qr_').'.png';
@@ -180,6 +185,11 @@ VALIDATION: $secret";
   }
 
   private function generate_specs_preview($document, $data_ids) {
+    if (!($data_ids = $data_ids ?: $document->get_data())) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
     $total  = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
       ->where('id', 'IN', (array) $data_ids)
@@ -193,7 +203,7 @@ VALIDATION: $secret";
   }
 
   private function generate_specs_document($document, $data_ids) {
-    if (!($data_ids ?: $document->get_data())) {
+    if (!($data_ids = $data_ids ?: $document->get_data())) {
       Notify::msg('No data found. Unable to generate document.', 'warning');
       return FALSE;
     }
@@ -232,7 +242,7 @@ EMAIL: MYERS.TUWEH@SGS.COM
 
 VALIDATION: $secret";
 
-    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\n";
+    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\r\n";
     $qr_text .= $disclaimer;
 
     $tempname = tempnam(sys_get_temp_dir(), 'qr_').'.png';
@@ -994,21 +1004,144 @@ VALIDATION: $secret";
     $this->response->body($view);
   }
 
+  private function handle_document_asycuda($id) {
+    $document = ORM::factory('document', $id);
+
+    if (!($data_ids = $data_ids ?: $document->get_data())) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
+    if (!$document->loaded()) {
+      Notify::msg('No document found.', 'warning', TRUE);
+      $this->request->redirect('documents');
+    }
+
+    if ($document->type !== 'EXP') {
+      Notify::msg('Document must be of correct type before creating ASYCUDA text file.', 'warning', TRUE);
+      $this->request->redirect('documents/'.$id);
+    }
+
+    if ($document->is_draft) {
+      Notify::msg('Document must be finalized before creating ASYCUDA text file.', 'warning', TRUE);
+      $this->request->redirect('documents/'.$id);
+    }
+
+    $text = '';
+
+    // general info
+
+    $format   = '%-3.3s%-17.17s%-10.10s%-10.10s%-9.9s%-20.20s%-3.3s %-1.1s%-2.2s%-3.3s';
+
+    $flag_sgs = 'EB1';
+    $num_sgs  = 'LRBUC110079760011'; // TODO: what is this number?
+    $date_sgs = SGS::date($document->created_date, SGS::US_DATE_FORMAT);
+    $dec_cod  = '';
+    $exp_cod  = '';
+    $bol_number   = '';
+    $cod_currency = 'USD';
+    $mot_cod  = 'S';
+    $cty_exp  = '';
+    $tel_del  = 'FOB';
+
+    $text .= sprintf($format, $flag_sgs, $num_sgs, $date_sgs, $dec_cod, $exp_cod, $bol_number, $cod_currency, $mot_cod, $cty_exp, $tel_del);
+
+    // summary info
+
+    $summary_info  = array();
+    $species_order = array();
+
+    $summary_info  = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array('sum("volume")', 'volume'), array('count("specs_data"."id")', 'count'))
+      ->from('specs_data')
+      ->join('species')
+      ->on('species_id', '=', 'species.id')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->group_by('species_code', 'species_class', 'fob_price')
+      ->execute()
+      ->as_array();
+
+    $format = '%-1.1s%-17.17s%-4.4s%-11.11s%-8.8s%-2.2s%-15.15s%-15.15s%-15.15s%-2.2s%-4.4s%-1.1s%-12.12s';
+
+    $flag_item   = 'I';
+    $num_sgs     = 'LRBUC110079760011'; // TODO: what is this number?
+    $line_number = 0;
+
+    foreach ($summary_info as $info) {
+      $hs_code = '';
+      $quantity = str_pad($info['count'], 8, '0', STR_PAD_LEFT);
+      $sta_unit = '';
+      $fob_value = str_pad(number_format($info['fob_price'], 2, ',', ''), 15, '0', STR_PAD_LEFT);
+      $freight_value = '';
+      $unit_price = '';
+      $cty_origine_code = '';
+      $tax_rat = '';
+      $species_class = $info['species_class'];
+      $supplementary_unit_value = str_pad(number_format($info['volume'], 3, ',', ''), 12, '0', STR_PAD_LEFT);
+
+      $species_order[] = $info['species_code'];
+      $text .= "\r\n".sprintf($format, $flag_item, $num_sgs, $line_number++, $hs_code, $quantity, $sta_unit, $fob_value, $freight_value, $unit_price, $cty_origine_code, $tax_rat, $species_class, $supplementary_unit_value);
+    }
+
+    // details info
+
+    $details_info = array();
+    foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), array('class', 'species_class'), array('botanic_name', 'species_botanic_name'), 'top_min', 'top_max', 'bottom_min', 'bottom_max', array(DB::expr('((top_min + top_max + bottom_min + bottom_max) / 4)'), 'diameter'), 'length', 'volume', 'grade')
+      ->from('specs_data')
+      ->join('barcodes')
+      ->on('barcode_id', '=', 'barcodes.id')
+      ->join('species')
+      ->on('species_id', '=', 'species.id')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->order_by('barcode')
+      ->execute() as $result) $details_info[$result['species_code']][] = $result;
+
+    $format = '%-1.1s%-5.5s%-12.12s%-4.4s%-3.3s%-3.3s%-3.3s%-3.3s%-6.6s%-4.4s%-7.7s';
+
+    $flag_log = 'L';
+    $num_log  = 0;
+
+    foreach ($species_order as $species_order_code)
+    foreach ($details_info[$species_order_code] as $info) {
+      $log_id = $info['barcode'];
+      $species_code = $info['species_code'];
+      $d1 = str_pad($info['bottom_max'], 3, '0', STR_PAD_LEFT);
+      $d2 = str_pad($info['bottom_min'], 3, '0', STR_PAD_LEFT);
+      $d3 = str_pad($info['top_max'], 3, '0', STR_PAD_LEFT);
+      $d4 = str_pad($info['top_min'], 3, '0', STR_PAD_LEFT);
+      $length = str_pad(number_format($info['length'], 2, ',', ''), 6, '0', STR_PAD_LEFT);
+      $atibt = $info['grade'];
+      $volume = str_pad(number_format($info['volume'], 3, ',', ''), 7, '0', STR_PAD_LEFT);
+
+      $text .= "\r\n".sprintf($format, $flag_log, $num_log++, $log_id, $species_code, $d1,$d2, $d3, $d4, $length, $atibt, $volume);
+    }
+
+    try {
+      $tempname = tempnam(sys_get_temp_dir(), 'ASYCUDA_').'.txt';
+      $fullname .= 'sgsasycu_ep_'.$document->number.'.txt';
+
+      file_put_contents($tempname, $text);
+
+      $this->response->send_file($tempname, $fullname, array('mime_type' => 'text/plain', 'delete' => TRUE));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to download ASYCUDA text file. Please try again.', 'error');
+    }
+  }
+
   private function handle_document_finalize($id) {
     $document = ORM::factory('document', $id);
 
     if (!$document->loaded()) {
-      Notify::msg('No invoice found.', 'warning', TRUE);
-      $this->request->redirect('invoices');
+      Notify::msg('No document found.', 'warning', TRUE);
+      $this->request->redirect('documents');
     }
 
     if (!$document->is_draft) {
-      Notify::msg('Invoice already finalized.', 'warning', TRUE);
-      $this->request->redirect('invoices/'.$id);
+      Notify::msg('Document already finalized.', 'warning', TRUE);
+      $this->request->redirect('documents/'.$id);
     }
 
     $form = Formo::form()
-      ->add('confirm', 'text', 'Finalizing an invoice will make it permanent. Are you sure you want to finalize this draft document?')
+      ->add('confirm', 'text', 'Finalizing a document will make it permanent. Are you sure you want to finalize this draft document?')
       ->add('delete', 'submit', 'Finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -1092,6 +1225,7 @@ VALIDATION: $secret";
       case 'create': return self::handle_create();
       case 'validate': return self::handle_document_validate();
       case 'finalize': return self::handle_document_finalize($id);
+      case 'asycuda': return self::handle_document_asycuda($id);
       case 'delete': return self::handle_document_delete($id);
       case 'list':
       default: return self::handle_document_list($id);
