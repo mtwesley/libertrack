@@ -136,36 +136,38 @@ class Model_TDFV extends SGS_Form_ORM {
       'checks' => array(
         'is_matching_diameter' => array(
           'name'    => 'Diameter',
-          'title'   => 'Diameter matches data for TDF record',
-          'error'   => 'Diameter does not match data for TDF record',
-          'warning' => 'Diameter matches data for TDF record but is inaccurate'
+          'title'   => 'Diameter matches TDF record data',
+          'error'   => 'Diameter does not match TDF record data',
+          'warning' => 'Diameter matches TDF record data, data but is inaccurate'
         ),
         'is_matching_length' => array(
           'name'    => 'Length',
-          'title'   => 'Length matches data for TDF record',
-          'error'   => 'Length does not match data for TDF record',
-          'warning' => 'Length matches data for TDF record but is inaccurate'
+          'title'   => 'Length matches TDF record data',
+          'error'   => 'Length does not match TDF record data',
+          'warning' => 'Length matches TDF record data, but is inaccurate'
         ),
         'is_matching_species' => array(
           'name'    => 'Species',
-          'title'   => 'Species matches data for TDF record',
-          'error'   => 'Species does not match data for TDF record',
-          'warning' => 'Species class matches data for TDF record but species code does not'
+          'title'   => 'Species matches TDF record data',
+          'error'   => 'Species does not match TDF record data',
+          'warning' => 'Species class matches TDF record data, but species code does not'
         ),
         'is_matching_operator' => array(
-          'name'  => 'Operator',
-          'title' => 'Operator matches data for TDF record',
-          'error' => 'Operator does not match data for TDF record',
+          'name'    => 'Operator',
+          'title'   => 'Operator matches TDF record data',
+          'error'   => 'Operator does not match TDF record data',
+          'warning' => 'Operator does not match TDF record data',
         ),
         'is_matching_site' => array(
           'name'  => 'Site',
-          'title' => 'Site matches data for TDF record',
-          'error' => 'Site does not match data for TDF record',
+          'title' => 'Site matches TDF record data',
+          'error' => 'Site does not match TDF record data',
         ),
         'is_matching_block' => array(
-          'name'  => 'Block',
-          'title' => 'Block matches data for TDF record',
-          'error' => 'Block does not match data for TDF record',
+          'name'    => 'Block',
+          'title'   => 'Block matches TDF record data',
+          'error'   => 'Block does not match TDF record data',
+          'warning' => 'Block does not match TDF record data',
         )
     )),
     'variance' => array(
@@ -258,10 +260,16 @@ class Model_TDFV extends SGS_Form_ORM {
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
       case 'bottom_min':
+        $this->$key = SGS::floatify(min(array($data['bottom_min'],$data['bottom_max']))); break;
+
       case 'bottom_max':
+        $this->$key = SGS::floatify(max(array($data['bottom_min'],$data['bottom_max']))); break;
+
       case 'top_min':
+        $this->$key = SGS::floatify(min(array($data['top_min'],$data['top_max']))); break;
+
       case 'top_max':
-        $this->$key = SGS::floatify($value); break;
+        $this->$key = SGS::floatify(max(array($data['top_min'],$data['top_max']))); break;
 
       case 'length':
         $this->$key = SGS::floatify($value, 1); break;

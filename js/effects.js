@@ -268,25 +268,26 @@ $(function() {
 function update_csv(id, new_id) {
   new_id = new_id || id;
 
-  $("#csv-"+id).addClass('loading');
-//  $("#csv-"+id).addClass('loading-small');
-  $("#csv-"+id).attr("id", "csv-"+id+"-deleted");
+  $(".csv"+id).addClass('loading');
+//  $(".csv"+id).addClass('loading-small');
+  $(".csv"+id).addClass("csv-"+id+"-deleted");
+  $(".csv"+id).removeClass("csv-"+id);
   $.post(
     "/ajax/update",
     {
       id: new_id,
-      actions: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
-      details: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
-      header: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
-      hide_header_info: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
-      hide_upload_info: $("#csv-"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
+      actions: $(".csv"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
+      details: $(".csv"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
+      header: $(".csv"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
+      hide_header_info: $(".csv"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
+      hide_upload_info: $(".csv"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
     },
     function(data) {
-      $("#csv-"+id+"-deleted").next("tr.details").remove();
-      $("#csv-"+id+"-deleted").replaceWith(data);
-      $("#csv-"+new_id+" .csv-eip").editable("/ajax/csv", csvEditableOptions);
-//      $("#csv-"+new_id).next("tr.details").hide();
-//      $("#csv-"+new_id).next("tr.details").children("td").text("").addClass('loading');
+      $(".csv"+id+"-deleted").next("tr.details").remove();
+      $(".csv"+id+"-deleted").replaceWith(data);
+      $(".csv"+new_id+" .csv-eip").editable("/ajax/csv", csvEditableOptions);
+//      $(".csv"+new_id).next("tr.details").hide();
+//      $(".csv"+new_id).next("tr.details").children("td").text("").addClass('loading');
     },
     "html"
   );
@@ -295,26 +296,27 @@ function update_csv(id, new_id) {
 function update_data(type, id, new_id) {
   new_id = new_id || id;
 
-  $("#"+type+"-"+id).addClass('loading');
-//  $("#"+type+"-"+id).addClass('loading-small');
-  $("#"+type+"-"+id).attr("id", type+"-"+id+"-deleted");
+  $("."+type+"-"+id).addClass('loading');
+//  $("."+type+"-"+id).addClass('loading-small');
+  $("."+type+"-"+id).addClass(type+"-"+id+"-deleted");
+  $("."+type+"-"+id).removeClass(type+"-"+id);
   $.post(
     "/ajax/updatedata",
     {
       id: new_id,
       type: type,
-      actions: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
-      details: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
-      header: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
-      hide_header_info: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
-      hide_upload_info: $("#"+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
+      actions: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
+      details: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
+      header: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
+      hide_header_info: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
+      hide_upload_info: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
     },
     function(data) {
-      $("#"+type+"-"+id+"-deleted").next("tr.details").remove();
-      $("#"+type+"-"+id+"-deleted").replaceWith(data);
-      $("#"+type+"-"+new_id+" .data-eip").editable("/ajax/data", dataEditableOptions);
-//      $("#"+type+"-"+new_id).next("tr.details").hide();
-//      $("#"+type+"-"+new_id).next("tr.details").children("td").text("").addClass('loading');
+      $("."+type+"-"+id+"-deleted").next("tr.details").remove();
+      $("."+type+"-"+id+"-deleted").replaceWith(data);
+      $("."+type+"-"+new_id+" .data-eip").editable("/ajax/data", dataEditableOptions);
+//      $("."+type+"-"+new_id).next("tr.details").hide();
+//      $("."+type+"-"+new_id).next("tr.details").children("td").text("").addClass('loading');
     },
     "html"
   );

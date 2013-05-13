@@ -117,16 +117,15 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
     ?>
     <th class="<?php echo $hidden_column ? 'hide' : ''; ?>"><?php echo $name; ?></th>
     <?php endforeach; ?>
-    <?php $hide_upload_info = $options['hide_upload_info'] ? TRUE : FALSE; ?>
-    <th class="<?php echo $hide_upload_info ? 'hide' : ''; ?>">Uploaded By</th>
-    <th class="<?php echo $hide_upload_info ? 'hide' : ''; ?>">Uploaded Date and Time</th>
+    <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Uploaded By</th>
+    <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Uploaded Date and Time</th>
     <th class="links"></th>
   </tr>
 <?php endif; // table ?>
   <?php foreach ($csvs as $csv): ?>
   <?php if ($options['rows']): ?>
   <?php $errors = $csv->get_errors(); ?>
-  <tr id="csv-<?php echo $csv->id; ?>" class="<?php print SGS::odd_even($odd); ?>">
+  <tr id="csv-<?php echo $csv->id; ?>" class="csv-<?php echo $csv->id; ?> <?php print SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
     <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $csv->id; ?>" /></td>
     <?php endif; ?>
@@ -188,8 +187,8 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
       <div id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>" class="<?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"><?php echo trim($csv->values[$field]); ?></div>
     </td>
     <?php endforeach; ?>
-    <td class="<?php echo $hide_upload_info ? 'hide' : ''; ?>"><?php echo ORM::factory('user', $csv->user_id)->name; ?></td>
-    <td class="<?php echo $hide_upload_info ? 'hide' : ''; ?>"><?php echo SGS::datetime($csv->timestamp); ?></td>
+    <td class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>"><?php echo ORM::factory('user', $csv->user_id)->name; ?></td>
+    <td class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>"><?php echo SGS::datetime($csv->timestamp); ?></td>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>

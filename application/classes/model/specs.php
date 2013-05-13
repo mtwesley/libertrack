@@ -188,32 +188,33 @@ class Model_SPECS extends SGS_Form_ORM {
       'checks' => array(
         'is_matching_species' => array(
           'name'    => 'Species',
-          'title'   => 'Species matches data for LDF',
-          'error'   => 'Species does not match data for LDF',
-          'warning' => 'Species class matches data for LDF but species code does not'
+          'title'   => 'Species matches LDF record data',
+          'error'   => 'Species does not match LDF record data',
+          'warning' => 'Species class matches LDF record data, but species code does not'
         ),
         'is_matching_length' => array(
           'name'    => 'Length',
-          'title'   => 'Length matches data for LDF',
-          'error'   => 'Length does not match data for LDF',
-          'warning' => 'Length matches data for LDF but is inaccurate'
+          'title'   => 'Length matches LDF record data',
+          'error'   => 'Length does not match LDF record data',
+          'warning' => 'Length matches LDF record data, but is inaccurate'
         ),
         'is_matching_diameter' => array(
           'name'    => 'Diameter',
-          'title'   => 'Diameter matches data for LDF',
-          'error'   => 'Diameter does not match data for LDF',
-          'warning' => 'Diameter matches data for LDF but is inaccurate'
+          'title'   => 'Diameter matches LDF record data',
+          'error'   => 'Diameter does not match LDF record data',
+          'warning' => 'Diameter matches LDF record data, but is inaccurate'
         ),
         'is_matching_volume' => array(
           'name'    => 'Volume',
-          'title'   => 'Volume matches data for LDF',
-          'error'   => 'Volume does not match data for LDF',
-          'warning' => 'Volume matches data for LDF but is inaccurate'
+          'title'   => 'Volume matches LDF record data',
+          'error'   => 'Volume does not match LDF record data',
+          'warning' => 'Volume matches LDF record data, but is inaccurate'
         ),
         'is_matching_operator' => array(
-          'name'  => 'Operator',
-          'title' => 'Operator matches data for LDF',
-          'error' => 'Operator does not match data for LDF',
+          'name'    => 'Operator',
+          'title'   => 'Operator matches LDF record data',
+          'error'   => 'Operator does not match LDF record data',
+          'warning' => 'Operator does not match LDF record data',
         ),
     )),
     'payment' => array(
@@ -314,10 +315,16 @@ class Model_SPECS extends SGS_Form_ORM {
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
       case 'bottom_min':
+        $this->$key = SGS::floatify(min(array($data['bottom_min'],$data['bottom_max']))); break;
+
       case 'bottom_max':
+        $this->$key = SGS::floatify(max(array($data['bottom_min'],$data['bottom_max']))); break;
+
       case 'top_min':
+        $this->$key = SGS::floatify(min(array($data['top_min'],$data['top_max']))); break;
+
       case 'top_max':
-        $this->$key = SGS::floatify($value); break;
+        $this->$key = SGS::floatify(max(array($data['top_min'],$data['top_max']))); break;
 
       case 'length':
         $this->$key = SGS::floatify($value, 1); break;
@@ -582,8 +589,8 @@ class Model_SPECS extends SGS_Form_ORM {
 
     if ($ldf and $ldf->loaded()) {
       if ($ldf->status == 'P') $ldf->run_checks();
-      if ($ldf->status != 'A') $errors['barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$ldf->status]);
-      else $successes['barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$ldf->status]);
+      if ($ldf->status != 'A') $errors['barcode_id']['is_valid_parent'] = array('value' => SGS::$data_status[$this->status], 'comparison' => SGS::$data_status[$ldf->status]);
+      else $successes['barcode_id']['is_valid_parent'] = array('value' => SGS::$data_status[$this->status], 'comparison' => SGS::$data_status[$ldf->status]);
 
       if (!(ord($this->species->class) <= ord($ldf->species->class))) $errors['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $ldf->species->class);
       if (!($this->species->code == $ldf->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $ldf->species->code);

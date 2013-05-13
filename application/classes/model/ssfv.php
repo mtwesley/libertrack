@@ -94,36 +94,38 @@ class Model_SSFV extends SGS_Form_ORM {
       'checks' => array(
         'is_matching_diameter' => array(
           'name'    => 'Diameter',
-          'title'   => 'Diameter matches data for SSF record',
-          'error'   => 'Diameter does not match data for SSF record',
-          'warning' => 'Diameter matches data for SSF record but is inaccurate'
+          'title'   => 'Diameter matches SSF record data',
+          'error'   => 'Diameter does not match SSF record data',
+          'warning' => 'Diameter matches SSF record data, but is inaccurate'
         ),
         'is_matching_height' => array(
           'name'    => 'Height',
-          'title'   => 'Height matches data for SSF record',
-          'error'   => 'Height does not match data for SSF record',
-          'warning' => 'Height matches data for SSF record but is inaccurate'
+          'title'   => 'Height matches SSF record data',
+          'error'   => 'Height does not match SSF record data',
+          'warning' => 'Height matches SSF record data, but is inaccurate'
         ),
         'is_matching_species' => array(
           'name'    => 'Species',
-          'title'   => 'Species matches data for SSF record',
-          'error'   => 'Species does not match data for SSF record',
-          'warning' => 'Species class matches data for SSF record but species code does not'
+          'title'   => 'Species matches SSF record data',
+          'error'   => 'Species does not match SSF record data',
+          'warning' => 'Species class matches SSF record data, but species code does not'
         ),
         'is_matching_operator' => array(
-          'name'  => 'Operator',
-          'title' => 'Operator matches data for SSF record',
-          'error' => 'Operator does not match data for SSF record',
+          'name'    => 'Operator',
+          'title'   => 'Operator matches SSF record data',
+          'error'   => 'Operator does not match SSF record data',
+          'warning' => 'Operator does not match SSF record data',
         ),
         'is_matching_site' => array(
           'name'  => 'Site',
-          'title' => 'Site matches data for SSF record',
-          'error' => 'Site does not match data for SSF record',
+          'title' => 'Site matches SSF record data',
+          'error' => 'Site does not match SSF record data',
         ),
         'is_matching_block' => array(
-          'name'  => 'Block',
-          'title' => 'Block matches data for SSF record',
-          'error' => 'Block does not match data for SSF record',
+          'name'    => 'Block',
+          'title'   => 'Block matches SSF record data',
+          'error'   => 'Block does not match SSF record data',
+          'warning' => 'Block does not match SSF record data',
         )
     )),
     'variance' => array(

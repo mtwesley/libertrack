@@ -117,15 +117,14 @@ $classes[] = 'data';
     ?>
     <th class="<?php echo $hidden_column ? 'hide' : ''; ?>"> <?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => $field)), $name); ?></th>
     <?php endforeach; ?>
-    <?php $hide_upload_info = $options['hide_upload_info'] ? TRUE : FALSE; ?>
-    <th class="<?php echo $hide_upload_info ? 'hide' : ''; ?>">Uploaded By</th>
-    <th class="<?php echo $hide_upload_info ? 'hide' : ''; ?>">Uploaded Date and Time</th>
+    <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Uploaded By</th>
+    <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Uploaded Date and Time</th>
     <th class="links"></th>
   </tr>
 <?php endif; // table ?>
   <?php foreach ($data as $record): ?>
   <?php if ($options['rows']): ?>
-  <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="<?php echo SGS::odd_even($odd); ?>">
+  <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="<?php echo $record::$type.'-'.$record->id; ?> <?php echo SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
     <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $record->id; ?>" /></td>
     <?php endif; ?>
@@ -244,8 +243,8 @@ $classes[] = 'data';
       ?></div>
     </td>
     <?php endforeach; ?>
-    <td class="<?php echo $hide_upload_info ? 'hide' : ''; ?>"><?php echo ORM::factory('user', $record->user_id)->name; ?></td>
-    <td class="<?php echo $hide_upload_info ? 'hide' : ''; ?>"><?php echo SGS::datetime($record->timestamp); ?></td>
+    <td class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>"><?php echo ORM::factory('user', $record->user_id)->name; ?></td>
+    <td class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>"><?php echo SGS::datetime($record->timestamp); ?></td>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>

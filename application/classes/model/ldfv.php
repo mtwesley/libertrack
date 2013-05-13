@@ -141,37 +141,38 @@ class Model_LDFV extends SGS_Form_ORM {
       'checks' => array(
         'is_matching_species' => array(
           'name'    => 'Species',
-          'title'   => 'Species matches data for LDF record',
-          'error'   => 'Species does not match data for LDF record',
-          'warning' => 'Species class matches data for LDF record but species code does not'
+          'title'   => 'Species matches LDF record data',
+          'error'   => 'Species does not match LDF record data',
+          'warning' => 'Species class matches LDF record data, but species code does not'
         ),
         'is_matching_diameter' => array(
           'name'    => 'Diameter',
-          'title'   => 'Diameter of all siblings matches data for LDF record',
-          'error'   => 'Diameter of all siblings does not match data for LDF record',
-          'warning' => 'Diameter of all siblings matches data for LDF record but is inaccurate'
+          'title'   => 'Diameter of all siblings matches LDF record data',
+          'error'   => 'Diameter of all siblings does not match LDF record data',
+          'warning' => 'Diameter of all siblings matches LDF record data, but is inaccurate'
         ),
         'is_matching_length' => array(
           'name'    => 'Length',
-          'title'   => 'Length of all siblings matches data for LDF record',
-          'error'   => 'Length of all siblings does not match data for LDF record',
-          'warning' => 'Length of all siblings matches data for LDF record but is inaccurate'
+          'title'   => 'Length of all siblings matches LDF record data',
+          'error'   => 'Length of all siblings does not match LDF record data',
+          'warning' => 'Length of all siblings matches LDF record data, but is inaccurate'
         ),
         'is_matching_volume' => array(
           'name'    => 'Volume',
-          'title'   => 'Volume of all siblings matches data for LDF record',
-          'error'   => 'Volume of all siblings does not match data for LDF record',
-          'warning' => 'Volume of all siblings matches data for LDF record but is inaccurate'
+          'title'   => 'Volume of all siblings matches LDF record data',
+          'error'   => 'Volume of all siblings does not match LDF record data',
+          'warning' => 'Volume of all siblings matches LDF record data, but is inaccurate'
         ),
         'is_matching_operator' => array(
-          'name'  => 'Operator',
-          'title' => 'Operator matches data for LDF record',
-          'error' => 'Operator does not match data for LDF record',
+          'name'    => 'Operator',
+          'title'   => 'Operator matches LDF record data',
+          'error'   => 'Operator does not match LDF record data',
+          'warning' => 'Operator does not match LDF record data',
         ),
         'is_matching_site' => array(
           'name'  => 'Site',
-          'title' => 'Site matches data for LDF record',
-          'error' => 'Site does not match data for LDF record',
+          'title' => 'Site matches LDF record data',
+          'error' => 'Site does not match LDF record data',
         )
     )),
     'variance' => array(
@@ -255,10 +256,16 @@ class Model_LDFV extends SGS_Form_ORM {
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
       case 'bottom_min':
+        $this->$key = SGS::floatify(min(array($data['bottom_min'],$data['bottom_max']))); break;
+
       case 'bottom_max':
+        $this->$key = SGS::floatify(max(array($data['bottom_min'],$data['bottom_max']))); break;
+
       case 'top_min':
+        $this->$key = SGS::floatify(min(array($data['top_min'],$data['top_max']))); break;
+
       case 'top_max':
-        $this->$key = SGS::floatify($value); break;
+        $this->$key = SGS::floatify(max(array($data['top_min'],$data['top_max']))); break;
 
       case 'length':
         $this->$key = SGS::floatify($value, 1); break;

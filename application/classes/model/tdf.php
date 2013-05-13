@@ -159,36 +159,38 @@ class Model_TDF extends SGS_Form_ORM {
       'checks' => array(
         'is_matching_diameter' => array(
           'name'    => 'Diameter',
-          'title'   => 'Diameter matches data for SSF record',
-          'error'   => 'Diameter does not match data for SSF record',
-          'warning' => 'Diameter matches data for SSF record but is inaccurate'
+          'title'   => 'Diameter matches SSF record data',
+          'error'   => 'Diameter does not match SSF record data',
+          'warning' => 'Diameter matches SSF record data, but is inaccurate'
         ),
         'is_matching_length' => array(
           'name'    => 'Length',
-          'title'   => 'Length matches data for SSF record',
-          'error'   => 'Length does not match data for SSF record',
-          'warning' => 'Length matches data for SSF record but is inaccurate'
+          'title'   => 'Length matches SSF record data',
+          'error'   => 'Length does not match SSF record data',
+          'warning' => 'Length matches SSF record data, but is inaccurate'
         ),
         'is_matching_species' => array(
           'name'    => 'Species',
-          'title'   => 'Species matches data for SSF record',
-          'error'   => 'Species does not match data for SSF record',
-          'warning' => 'Species class matches data for SSF record but species code does not'
+          'title'   => 'Species matches SSF record data',
+          'error'   => 'Species does not match SSF record data',
+          'warning' => 'Species class matches SSF record data, but species code does not'
         ),
         'is_matching_operator' => array(
-          'name'  => 'Operator',
-          'title' => 'Operator matches data for SSF record',
-          'error' => 'Operator does not match data for SSF record',
+          'name'    => 'Operator',
+          'title'   => 'Operator matches SSF record data',
+          'error'   => 'Operator does not match SSF record data',
+          'warning' => 'Operator does not match SSF record data',
         ),
         'is_matching_site' => array(
           'name'  => 'Site',
-          'title' => 'Site matches data for SSF record',
-          'error' => 'Site does not match data for SSF record',
+          'title' => 'Site matches SSF record data',
+          'error' => 'Site does not match SSF record data',
         ),
         'is_matching_block' => array(
-          'name'  => 'Block',
-          'title' => 'Block matches data for SSF record',
-          'error' => 'Block does not match data for SSF record',
+          'name'    => 'Block',
+          'title'   => 'Block matches SSF record data',
+          'error'   => 'Block does not match SSF record data',
+          'warning' => 'Block does not match SSF record data',
         )
     )),
   );
@@ -277,10 +279,16 @@ class Model_TDF extends SGS_Form_ORM {
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
       case 'bottom_min':
+        $this->$key = SGS::floatify(min(array($data['bottom_min'],$data['bottom_max']))); break;
+
       case 'bottom_max':
+        $this->$key = SGS::floatify(max(array($data['bottom_min'],$data['bottom_max']))); break;
+
       case 'top_min':
+        $this->$key = SGS::floatify(min(array($data['top_min'],$data['top_max']))); break;
+
       case 'top_max':
-        $this->$key = SGS::floatify($value); break;
+        $this->$key = SGS::floatify(max(array($data['top_min'],$data['top_max']))); break;
 
       case 'length':
         $this->$key = SGS::floatify($value, 1); break;
@@ -546,8 +554,8 @@ class Model_TDF extends SGS_Form_ORM {
 
     if ($parent and $parent->loaded()) {
        if ($parent->status == 'P') $parent->run_checks();
-       if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
-       else $successes['tree_barcode_id']['is_valid_parent'] = array('comparison' => SGS::$data_status[$parent->status]);
+       if ($parent->status != 'A') $errors['tree_barcode_id']['is_valid_parent'] = array('value' => SGS::$data_status[$this->status], 'comparison' => SGS::$data_status[$parent->status]);
+       else $successes['tree_barcode_id']['is_valid_parent'] = array('value' => SGS::$data_status[$this->status], 'comparison' => SGS::$data_status[$parent->status]);
 
       if (!(ord($this->species->class) <= ord($parent->species->class))) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $parent->species->class);
       else if (!($this->species->code == $parent->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);
