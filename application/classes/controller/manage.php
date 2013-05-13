@@ -447,7 +447,10 @@ class Controller_Manage extends Controller {
       $barcode = ORM::factory('barcode', $id);
       $barcodes = array($barcode);
 
+      $ids  = array();
       $data = array();
+
+      // data
 
       foreach (array('SSF', 'TDF', 'LDF', 'SPECS') as $key) {
         $search = ORM::factory($key);
@@ -460,6 +463,7 @@ class Controller_Manage extends Controller {
         case 'TDF':
         case 'LDF':
         case 'SPECS':
+          foreach ($items as $item) $ids[$type][] = $item->id;
           $data_table .= View::factory('data')
             ->set('classes', array('has-section'))
             ->set('form_type', $type)
@@ -467,6 +471,44 @@ class Controller_Manage extends Controller {
             ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE))
             ->render();
       }
+
+      // invoices
+
+      $invoices = ORM::factory('invoice')
+        ->join('invoice_data')
+        ->on('invoice_id', '=', 'invoices.id');
+      foreach ($ids as $type => $id) if ($id) {
+        $invoices = $invoices
+          ->or_where_open()
+          ->where('invoice_data.form_type', '=', $type)
+          ->and_where('invoice_data.form_data_id', '=', $id)
+          ->or_where_close();
+      }
+      $invoices = $invoices->find_all();
+
+      $data_table .= View::factory('invoices')
+        ->set('classes', array('has-section'))
+        ->set('invoices', $invoices)
+        ->render();
+
+      // documents
+
+      $documents = ORM::factory('document')
+        ->join('document_data')
+        ->on('document_id', '=', 'documents.id');
+      foreach ($ids as $type => $id) if ($id) {
+        $documents = $documents
+          ->or_where_open()
+          ->where('document_data.form_type', '=', $type)
+          ->and_where('document_data.form_data_id', '=', $id)
+          ->or_where_close();
+      }
+      $documents = $documents->find_all();
+
+      $data_table .= View::factory('documents')
+        ->set('classes', array('has-section'))
+        ->set('documents', $documents)
+        ->render();
     }
     else {
       if (!Request::$current->query()) Session::instance()->delete('pagination.barcode.list');
