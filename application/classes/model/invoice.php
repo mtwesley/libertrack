@@ -47,10 +47,9 @@ class Model_Invoice extends ORM {
       ->as_array();
 
     extract($account);
+    if (($amount and $netamount and $paid) and ($amount == $netamount) and ($amount == $paid)) return TRUE;
 
-    if ($amount == $netamount)
-    if ($amount == $paid) return TRUE;
-    else return FALSE;
+    return FALSE;
   }
 
   public function set($column, $value) {
