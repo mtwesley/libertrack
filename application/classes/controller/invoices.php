@@ -675,9 +675,9 @@ class Controller_Invoices extends Controller {
       ->execute() as $result) $details_data[$result['species_code']][] = $result;
 
     $summary_signature_page_max = 4;
-    $summary_one_page_max       = 7;
+    $summary_one_page_max       = 6;
     $summary_first_page_max     = 9;
-    $summary_last_page_max      = 11;
+    $summary_last_page_max      = 10;
     $summary_normal_page_max    = 13;
 
     $summary_count = count($summary_data);
@@ -923,9 +923,9 @@ class Controller_Invoices extends Controller {
       ->execute() as $result) $details_data[$result['species_code']][] = $result;
 
     $summary_signature_page_max = 4;
-    $summary_one_page_max       = 6;
+    $summary_one_page_max       = 5;
     $summary_first_page_max     = 8;
-    $summary_last_page_max      = 11;
+    $summary_last_page_max      = 12;
     $summary_normal_page_max    = 13;
 
     $summary_count = count($summary_data);
