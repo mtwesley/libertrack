@@ -259,6 +259,7 @@ $classes[] = 'data';
           <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Verify</span>
           <?php else: ?>
           <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Check</span>
+          <?php echo HTML::anchor('manage/barcodes/'.$record->barcode->id, 'Barcode', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/hierarchy', 'Hierarchy', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/revisions', 'Revisions', array('class' => 'link')); ?>
           <?php endif; // verification ?>
