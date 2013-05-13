@@ -476,7 +476,7 @@ class Controller_Manage extends Controller {
 
       $invoices = ORM::factory('invoice')
         ->join('invoice_data')
-        ->on('invoice_id', '=', 'invoices.id');
+        ->on('invoice_id', '=', 'invoice.id');
       foreach ($ids as $type => $id) if ($id) {
         $invoices = $invoices
           ->or_where_open()
@@ -486,7 +486,7 @@ class Controller_Manage extends Controller {
       }
       $invoices = $invoices->find_all();
 
-      $data_table .= View::factory('invoices')
+      if ($invoices) $data_table .= View::factory('invoices')
         ->set('classes', array('has-section'))
         ->set('invoices', $invoices)
         ->render();
@@ -495,7 +495,7 @@ class Controller_Manage extends Controller {
 
       $documents = ORM::factory('document')
         ->join('document_data')
-        ->on('document_id', '=', 'documents.id');
+        ->on('document_id', '=', 'document.id');
       foreach ($ids as $type => $id) if ($id) {
         $documents = $documents
           ->or_where_open()
@@ -505,7 +505,7 @@ class Controller_Manage extends Controller {
       }
       $documents = $documents->find_all();
 
-      $data_table .= View::factory('documents')
+      if ($documents) $data_table .= View::factory('documents')
         ->set('classes', array('has-section'))
         ->set('documents', $documents)
         ->render();
