@@ -1060,14 +1060,14 @@ VALIDATION: $secret";
       ->execute()
       ->as_array();
 
-    $format = '%-1.1s%-17.17s%-4.4s%-11.11s%-8.8s%-2.2s%-15.15s%-15.15s%-15.15s%-2.2s%-4.4s%-1.1s%-12.12s';
+    $format = '%-1.1s%-17.17s%04u%-11.11s%-8.8s%-2.2s%-15.15s%-15.15s%-15.15s%-2.2s%-4.4s%-1.1s%-12.12s';
 
     $flag_item   = 'I';
     $num_sgs     = 'LRBUC110079760011'; // TODO: what is this number?
     $line_number = 0;
 
     foreach ($summary_info as $info) {
-      $line_number = str_pad($line_number++, 4, '0', STR_PAD_LEFT);
+      $line_number++;
       $hs_code = '';
       $quantity = str_pad($info['count'], 8, '0', STR_PAD_LEFT);
       $sta_unit = '';
@@ -1096,14 +1096,14 @@ VALIDATION: $secret";
       ->order_by('barcode')
       ->execute() as $result) $details_info[$result['species_code']][] = $result;
 
-    $format = '%-1.1s%-5.5s%-12.12s%-4.4s%-3.3s%-3.3s%-3.3s%-3.3s%-6.6s%-4.4s%-7.7s';
+    $format = '%-1.1s%05u%-12.12s%-4.4s%-3.3s%-3.3s%-3.3s%-3.3s%-6.6s%-4.4s%-7.7s';
 
     $flag_log = 'L';
     $num_log  = 0;
 
     foreach ($species_order as $species_order_code)
     foreach ($details_info[$species_order_code] as $info) {
-      $num_log = str_pad($num_log++, 5, '0', STR_PAD_LEFT);
+      $num_log++;
       $log_id = $info['barcode'];
       $species_code = $info['species_code'];
       $d1 = str_pad($info['bottom_max'], 3, '0', STR_PAD_LEFT);
