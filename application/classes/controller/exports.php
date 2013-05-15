@@ -1067,6 +1067,7 @@ VALIDATION: $secret";
     $line_number = 0;
 
     foreach ($summary_info as $info) {
+      $line_number = str_pad($line_number++, 4, '0', STR_PAD_LEFT);
       $hs_code = '';
       $quantity = str_pad($info['count'], 8, '0', STR_PAD_LEFT);
       $sta_unit = '';
@@ -1079,7 +1080,7 @@ VALIDATION: $secret";
       $supplementary_unit_value = str_pad(number_format($info['volume'], 3, ',', ''), 12, '0', STR_PAD_LEFT);
 
       $species_order[] = $info['species_code'];
-      $text .= "\r\n".sprintf($format, $flag_item, $num_sgs, $line_number++, $hs_code, $quantity, $sta_unit, $fob_value, $freight_value, $unit_price, $cty_origine_code, $tax_rat, $species_class, $supplementary_unit_value);
+      $text .= "\r\n".sprintf($format, $flag_item, $num_sgs, $line_number, $hs_code, $quantity, $sta_unit, $fob_value, $freight_value, $unit_price, $cty_origine_code, $tax_rat, $species_class, $supplementary_unit_value);
     }
 
     // details info
@@ -1102,7 +1103,8 @@ VALIDATION: $secret";
 
     foreach ($species_order as $species_order_code)
     foreach ($details_info[$species_order_code] as $info) {
-      $log_id = str_pad($info['barcode'], 5, '0', STR_PAD_LEFT);
+      $num_log = str_pad($num_log++, 5, '0', STR_PAD_LEFT);
+      $log_id = $info['barcode'];
       $species_code = $info['species_code'];
       $d1 = str_pad($info['bottom_max'], 3, '0', STR_PAD_LEFT);
       $d2 = str_pad($info['bottom_min'], 3, '0', STR_PAD_LEFT);
@@ -1112,7 +1114,7 @@ VALIDATION: $secret";
       $atibt = $info['grade'];
       $volume = str_pad(number_format($info['volume'], 3, ',', ''), 7, '0', STR_PAD_LEFT);
 
-      $text .= "\r\n".sprintf($format, $flag_log, $num_log++, $log_id, $species_code, $d1,$d2, $d3, $d4, $length, $atibt, $volume);
+      $text .= "\r\n".sprintf($format, $flag_log, $num_log, $log_id, $species_code, $d1,$d2, $d3, $d4, $length, $atibt, $volume);
     }
 
     try {

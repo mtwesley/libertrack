@@ -424,7 +424,8 @@ class SGS {
     'Y' => 'Sold Locally',
     'A' => 'Abandoned',
     'L' => 'Lost',
-    'Z' => 'Seized'
+    'Z' => 'Seized',
+    'C' => 'Commented'
   );
 
   public static $access_level = array(
