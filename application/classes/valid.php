@@ -195,7 +195,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_barcode_activity($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^[PIHTXDNESYALZ]$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^[PIHTXDNESYALZC]$/', (string) $value));
   }
 
   public static function is_username($value)
@@ -210,6 +210,6 @@ class Valid extends Kohana_Valid {
 
   public static function is_accurate($value, $test, $tolerance = 0, $lower_bound = TRUE, $upper_bound = TRUE)
   {
-    return (bool) ((($upper_bound ? ($value - $tolerance) : $test) <= $test) AND (($lower_bound ? ($value + $tolerance) : $test) >= $test));
+    return (bool) ((($lower_bound ? ($test - $tolerance) : $value) <= $value) AND (($upper_bound ? ($test + $tolerance) : $value) >= $value));
   }
 }

@@ -163,7 +163,7 @@ class Controller_Invoices extends Controller {
             ->and_where('document_data.document_id', '=', SGS::lookup_document('SPECS', $specs_number, TRUE))
             ->and_where('invoice_data.form_data_id', '=', NULL)
             ->and_where_open()
-              ->where('barcode_activity.activity', 'NOT IN', array('S'))
+              ->where('barcode_activity.activity', 'NOT IN', array('S','E', 'H', 'Y', 'A', 'L', 'S'))
               ->or_where('barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where_open()

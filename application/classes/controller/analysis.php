@@ -1478,11 +1478,11 @@ class Controller_Analysis extends Controller {
 
       $data_ids = DB::select('id')->from($model->table_name());
 
-      if ($has_site_id) $data_ids->where('site_id', 'IN', (array) $site_id);
+      if ($has_site_id and $site_id) $data_ids->where('site_id', 'IN', (array) $site_id);
       else $data_ids->where('operator_id', 'IN', (array) $operator_id);
-      if ($has_site_id and $has_block_id) $data_ids->where('block_id', 'IN', (array) $block_id);
+      if ($has_site_id and $has_block_id and $block_id) $data_ids->where('block_id', 'IN', (array) $block_id);
 
-      if ($has_specs_info) $data_ids->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
+      if ($has_specs_info and $specs_barcode) $data_ids->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
       else $data_ids->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       $data_ids = $data_ids

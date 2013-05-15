@@ -196,6 +196,7 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
           <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id, 'View', array('class' => 'link')); ?>
           <?php if ($options['links']): ?>
           <?php if ($csv->form_data_id) echo HTML::anchor('analysis/review/'.strtolower($csv->form_type).'/'.$csv->form_data_id, 'View '.$csv->form_type, array('class' => 'link')); ?>
+          <?php echo HTML::anchor($csv->data_type.'/files/'.$csv->file->id, 'View File', array('class' => 'link')); ?>
           <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
           <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
           <?php endif; ?>

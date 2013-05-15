@@ -331,7 +331,7 @@ class Controller_Ajax extends Controller {
       ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
       ->where('specs_data.status', '=', 'A')
       ->and_where_open()
-        ->where('barcode_activity.activity', 'NOT IN', array('E'))
+        ->where('barcode_activity.activity', 'NOT IN', array('E', 'H', 'Y', 'A', 'L', 'S'))
         ->or_where('barcode_activity.activity', '=', NULL)
       ->and_where_close()
       ->and_where_open()

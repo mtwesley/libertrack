@@ -71,7 +71,7 @@ create domain d_barcode as character varying(13) check (value ~ E'^[0123456789AC
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHE]$');
 
-create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDNESYALZ]$');
+create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDNESYALZC]$');
 
 create domain d_barcode_lock as character varying(6) check (value ~ E'(ADMIN|INV|DOC|BRCODE|VERIFY)');
 
@@ -315,6 +315,7 @@ create table barcode_activity (
   barcode_id d_id not null,
   activity d_barcode_activity default 'P' not null,
   trigger d_text_short default 'system' not null,
+  comment d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -892,6 +893,20 @@ create table verification_checks (
   -- constraint verification_pkey primary key (id),
 
   constraint verification_unique unique(form_type,form_verification_id,field,"check",type)
+);
+
+create table status_activity (
+  id bigsearial not null,
+  form_type d_form_type not null,
+  form_data_id d_id not null,
+  old_status d_data_status not null,
+  new_status d_data_status not null,
+  comment d_text_long,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint status_activity_pkey primary key (id),
+  constraint status_activity_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table revisions (
