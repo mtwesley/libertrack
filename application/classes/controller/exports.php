@@ -1102,7 +1102,7 @@ VALIDATION: $secret";
 
     foreach ($species_order as $species_order_code)
     foreach ($details_info[$species_order_code] as $info) {
-      $log_id = $info['barcode'];
+      $log_id = str_pad($info['barcode'], 5, '0', STR_PAD_LEFT);
       $species_code = $info['species_code'];
       $d1 = str_pad($info['bottom_max'], 3, '0', STR_PAD_LEFT);
       $d2 = str_pad($info['bottom_min'], 3, '0', STR_PAD_LEFT);
