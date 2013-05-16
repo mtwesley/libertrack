@@ -502,8 +502,8 @@ class Controller_Verification extends Controller {
 
     $has_block_id   = (bool) (in_array($form_type, array('SSFV', 'TDFV')));
     $has_site_id    = (bool) (in_array($form_type, array('SSFV', 'TDFV', 'LDFV')));
-    $has_specs_info = (bool) (in_array($form_type, array('SPECSV')));
-    $has_exp_info   = (bool) (in_array($form_type, array('SPECSV')));
+//    $has_specs_info = (bool) (in_array($form_type, array('SPECSV')));
+//    $has_exp_info   = (bool) (in_array($form_type, array('SPECSV')));
 
     if ($id) {
       Session::instance()->delete('pagination.csv');
@@ -635,7 +635,7 @@ class Controller_Verification extends Controller {
               case 'SSFV': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'SSFV_'.($block->name ? '_'.$block->name : '')).'.'.$ext; break;
               case 'TDFV': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'TDFV_'.($block->name ? $block->name.'_' : '').SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
               case 'LDFV': $fullname = SGS::wordify(($site->name ? $site->name.'_' : '').'LDFV_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
-              case 'SPECSV': $fullname = SGS::wordify(($operator->tin ? $operator->tin.'_' : '').'SPECSV_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
+//              case 'SPECSV': $fullname = SGS::wordify(($operator->tin ? $operator->tin.'_' : '').'SPECSV_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext; break;
             }
 
             $writer->save($tempname);
@@ -987,17 +987,17 @@ class Controller_Verification extends Controller {
                   $newname = SGS::wordify($file->site->name.'_LDFV_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
 
-                case 'SPECSV':
-                  $newdir = implode(DIRECTORY_SEPARATOR, array(
-                    'specs',
-                    $file->operator->tin
-                  ));
-                  if (!($file->operator->name and $file->operation_type)) {
-                    Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
-                    throw new Exception();
-                  }
-                  $newname = SGS::wordify('SPECSV_'.$file->operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
-                  break;
+//                case 'SPECSV':
+//                  $newdir = implode(DIRECTORY_SEPARATOR, array(
+//                    'specs',
+//                    $file->operator->tin
+//                  ));
+//                  if (!($file->operator->name and $file->operation_type)) {
+//                    Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
+//                    throw new Exception();
+//                  }
+//                  $newname = SGS::wordify('SPECSV_'.$file->operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+//                  break;
               }
 
               if ($newname !== $file->name) {
@@ -1126,7 +1126,7 @@ class Controller_Verification extends Controller {
       case 'ssfv': return self::handle_csv_list('SSFV');
       case 'tdfv': return self::handle_csv_list('TDFV');
       case 'ldfv': return self::handle_csv_list('LDFV');
-      case 'specsv': return self::handle_csv_list('SPECSV');
+//      case 'specsv': return self::handle_csv_list('SPECSV');
 
       default:
       case 'list': return self::handle_csv_list(NULL, $id);

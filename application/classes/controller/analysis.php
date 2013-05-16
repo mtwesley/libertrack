@@ -636,8 +636,8 @@ class Controller_Analysis extends Controller {
 
     $has_block_id   = (bool) (in_array($form_verification_type, array('SSFV', 'TDFV')));
     $has_site_id    = (bool) (in_array($form_verification_type, array('SSFV', 'TDFV', 'LDFV')));
-    $has_specs_info = (bool) (in_array($form_verification_type, array('SPECSV')));
-    $has_exp_info   = (bool) (in_array($form_verification_type, array('SPECSV')));
+//    $has_specs_info = (bool) (in_array($form_verification_type, array('SPECSV')));
+//    $has_exp_info   = (bool) (in_array($form_verification_type, array('SPECSV')));
 
     if ($has_site_id) $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -654,20 +654,20 @@ class Controller_Analysis extends Controller {
     if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('required' => TRUE, 'label' => 'Site', 'attr' => array('class' => 'siteopts')));
     else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('required' => TRUE, 'label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode')) : array()));
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
-    if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+//    if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
 
-    if (!$has_specs_info and !$has_exp_info) {
+//    if (!$has_specs_info and !$has_exp_info) {
       $form = $form
         ->add('from', 'input', array('label' => 'Declared From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
         ->add('to', 'input', array('label' => 'Declared To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
-    }
+//    }
 
     $form = $form
       ->add_group('status', 'checkboxes', SGS::$data_status, array('A'), array('label' => 'Declared Status'))
       ->add('inspected_from', 'input', array('label' => 'Inspected From', 'attr' => array('class' => 'dpicker', 'id' => 'inspeced-from-dpicker')))
       ->add('inspected_to', 'input', array('label' => 'Inspected To', 'attr' => array('class' => 'dpicker', 'id' => 'inspected-to-dpicker')))
       ->add_group('checks', 'checkboxes', $check_options, array_diff(array_keys($check_options), array('consistency', 'reliability')), array('label' => 'Check'))
-      ->add_group('format', 'radios', array('R' => 'Run Checks', 'D' => 'Download Report', 'RD' => 'Run Checks and Download Report'), 'R', array('label' => 'Action'))
+      ->add_group('format', 'radios', array('R' => 'Verify', 'D' => 'Download Report', 'RD' => 'Verify and Download Report'), 'R', array('label' => 'Action'))
       ->add('submit', 'submit', 'Go');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -1047,7 +1047,7 @@ class Controller_Analysis extends Controller {
         10000 => '10000 records'), NULL, array('label' => 'Limit'))
       ->add_group('status', 'checkboxes', SGS::$data_status, array('P', 'R'), array('label' => 'Status'))
       ->add_group('checks', 'checkboxes', $check_options, array_diff(array_keys($check_options), array('consistency', 'reliability')), array('label' => 'Check'))
-      ->add_group('format', 'radios', array('R' => 'Run Checks', 'D' => 'Download Report', 'RD' => 'Run Checks and Download Report'), 'R', array('label' => 'Action'))
+      ->add_group('format', 'radios', array('R' => 'Check', 'D' => 'Download Report', 'RD' => 'Check and Download Report'), 'R', array('label' => 'Action'))
       ->add('submit', 'submit', 'Go');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -1512,7 +1512,7 @@ class Controller_Analysis extends Controller {
           $mime_type = 'application/vnd.ms-excel';
           $headers = FALSE;
           break;
-      }
+      } else Notify::msg('No data found. Skipping download.', 'warning');
 
       if ($excel) {
         // data
@@ -1638,7 +1638,7 @@ class Controller_Analysis extends Controller {
         }
 
         $this->response->send_file(preg_replace('/\/$/', '', DOCROOT).$file->path, $file->name, array('mime_type' => $mime_type));
-      }
+      } else Notify::msg('Sorry, unable to process download. Please try again.', 'error');
     }
 
     $content .= $form->render();

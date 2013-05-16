@@ -115,7 +115,7 @@ if (!$command && !is_numeric($id)) {
         <li class="<?php if ($command == 'ssfv') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/ssfv', SGS::title('verification/data/ssfv')); ?></li>
         <li class="<?php if ($command == 'tdfv') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/tdfv', SGS::title('verification/data/tdfv')); ?></li>
         <li class="<?php if ($command == 'ldfv') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/ldfv', SGS::title('verification/data/ldfv')); ?></li>
-        <li class="<?php if ($command == 'specsv') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/specsv', SGS::title('verification/data/specsv')); ?></li>
+        <!-- <li class="<?php if ($command == 'specsv') echo 'active'; ?>"><?php echo HTML::anchor('verification/data/specsv', SGS::title('verification/data/specsv')); ?></li> -->
       </ul>
       <?php endif; ?>
     </li>

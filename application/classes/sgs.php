@@ -82,7 +82,7 @@ class SGS {
     'verification/data/ssfv'   => 'Stock Survey Verification Form',
     'verification/data/tdfv'   => 'Tree Data Verification Form',
     'verification/data/ldfv'   => 'Log Data Verification Form',
-    'verification/data/specsv' => 'Shipment Specification Verification Form',
+//    'verification/data/specsv' => 'Shipment Specification Verification Form',
 
     'config'            => 'Configuration',
 //    'config/files'      => 'File Management',
@@ -316,7 +316,7 @@ class SGS {
     'MOF'    => 'Mill Output',
     'MOFV'   => 'Mill Output Verification',
     'SPECS'  => 'Shipping Specification',
-    'SPECSV' => 'Shipping Specification Verification',
+//    'SPECSV' => 'Shipping Specification Verification',
     'EXP'    => 'Export Permit',
     'CHECKS' => 'Checks and Queries Report',
     'INV'    => 'Invoice',
