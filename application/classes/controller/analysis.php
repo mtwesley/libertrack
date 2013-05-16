@@ -1530,8 +1530,6 @@ class Controller_Analysis extends Controller {
           'create_date' => $create_date = $create_date ?: SGS::date('now', SGS::PGSQL_DATE_FORMAT)
         ), $headers);
 
-        unset($item);
-
         // temporary file
         $tempname = tempnam(sys_get_temp_dir(), strtolower($form_type).'_').'.'.$type;
         $writer->save($tempname);
@@ -1638,7 +1636,7 @@ class Controller_Analysis extends Controller {
         }
 
         $this->response->send_file(preg_replace('/\/$/', '', DOCROOT).$file->path, $file->name, array('mime_type' => $mime_type));
-      } else Notify::msg('Sorry, unable to process download. Please try again.', 'error');
+      } else if ($data_ids) Notify::msg('Sorry, unable to process download. Please try again.', 'error');
     }
 
     $content .= $form->render();
