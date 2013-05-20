@@ -88,7 +88,7 @@ EMAIL: MYERS.TUWEH@SGS.COM
 
 VALIDATION: $secret";
 
-    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\r\n";
+    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\n";
     $qr_text .= $disclaimer;
 
     $tempname = tempnam(sys_get_temp_dir(), 'qr_').'.png';
@@ -242,7 +242,7 @@ EMAIL: MYERS.TUWEH@SGS.COM
 
 VALIDATION: $secret";
 
-    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\r\n";
+    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\n";
     $qr_text .= $disclaimer;
 
     $tempname = tempnam(sys_get_temp_dir(), 'qr_').'.png';
@@ -1031,17 +1031,17 @@ VALIDATION: $secret";
 
     // general info
 
-    $format   = '%-3.3s%-17.17s%-10.10s%-10.10s%-9.9s%-20.20s%-3.3s %-1.1s%-2.2s%-3.3s';
+    $format   = '%3.3s%17.17s%10.10s%10.10s%9.9s%20.20s%3.3s %1.1s%2.2s%3.3s';
 
     $flag_sgs = 'EB1';
     $num_sgs  = 'LRBUC110079760011'; // TODO: what is this number?
-    $date_sgs = SGS::date($document->created_date, SGS::US_DATE_FORMAT);
+    $date_sgs = SGS::date($document->created_date, SGS::US_DATE_CORRECT_FORMAT);
     $dec_cod  = '';
-    $exp_cod  = '';
-    $bol_number   = '';
+    $exp_cod  = '0522743H'; // SAMPLE
+    $bol_number   = 'MSCURM918564'; // SAMPLE
     $cod_currency = 'USD';
     $mot_cod  = 'S';
-    $cty_exp  = '';
+    $cty_exp  = 'US'; // SAMPLE
     $tel_del  = 'FOB';
 
     $text .= sprintf($format, $flag_sgs, $num_sgs, $date_sgs, $dec_cod, $exp_cod, $bol_number, $cod_currency, $mot_cod, $cty_exp, $tel_del);
@@ -1060,7 +1060,7 @@ VALIDATION: $secret";
       ->execute()
       ->as_array();
 
-    $format = '%-1.1s%-17.17s%04u%-11.11s%-8.8s%-2.2s%-15.15s%-15.15s%-15.15s%-2.2s%-4.4s%-1.1s%-12.12s';
+    $format = '%1.1s%17.17s%04u%011u%08u%2.2s%-15.15s%15.15s%15.15s%2.2s%4.4s%1.1s%12.12s';
 
     $flag_item   = 'I';
     $num_sgs     = 'LRBUC110079760011'; // TODO: what is this number?
@@ -1068,19 +1068,19 @@ VALIDATION: $secret";
 
     foreach ($summary_info as $info) {
       $line_number++;
-      $hs_code = '';
+      $hs_code = '70511000000'; // SAMPLE
       $quantity = str_pad($info['count'], 8, '0', STR_PAD_LEFT);
       $sta_unit = '';
       $fob_value = str_pad(number_format($info['fob_price'], 2, ',', ''), 15, '0', STR_PAD_LEFT);
-      $freight_value = '';
-      $unit_price = '';
-      $cty_origine_code = '';
-      $tax_rat = '';
+      $freight_value = str_pad(number_format('', 2, ',', ''), 15, '0', STR_PAD_LEFT);
+      $unit_price = str_pad(number_format('', 2, ',', ''), 15, '0', STR_PAD_LEFT);
+      $cty_origine_code = 'LR'; // SAMPLE
+      $tax_rat = str_pad(number_format('', 1, ',', ''), 3, '0', STR_PAD_LEFT);
       $species_class = $info['species_class'];
       $supplementary_unit_value = str_pad(number_format($info['volume'], 3, ',', ''), 12, '0', STR_PAD_LEFT);
 
       $species_order[] = $info['species_code'];
-      $text .= "\r\n".sprintf($format, $flag_item, $num_sgs, $line_number, $hs_code, $quantity, $sta_unit, $fob_value, $freight_value, $unit_price, $cty_origine_code, $tax_rat, $species_class, $supplementary_unit_value);
+      $text .= "\n".sprintf($format, $flag_item, $num_sgs, $line_number, $hs_code, $quantity, $sta_unit, $fob_value, $freight_value, $unit_price, $cty_origine_code, $tax_rat, $species_class, $supplementary_unit_value);
     }
 
     // details info
@@ -1096,7 +1096,7 @@ VALIDATION: $secret";
       ->order_by('barcode')
       ->execute() as $result) $details_info[$result['species_code']][] = $result;
 
-    $format = '%-1.1s%05u%-12.12s%-4.4s%-3.3s%-3.3s%-3.3s%-3.3s%-6.6s%-4.4s%-7.7s';
+    $format = '%1.1s%05u%12.12s%-4.4s%-3.3s%-3.3s%-3.3s%-3.3s%-6.6s%-4.4s%7.7s';
 
     $flag_log = 'L';
     $num_log  = 0;
@@ -1104,7 +1104,7 @@ VALIDATION: $secret";
     foreach ($species_order as $species_order_code)
     foreach ($details_info[$species_order_code] as $info) {
       $num_log++;
-      $log_id = $info['barcode'];
+      $log_id = str_pad($info['barcode'], 12, '0', STR_PAD_LEFT);
       $species_code = $info['species_code'];
       $d1 = str_pad($info['bottom_max'], 3, '0', STR_PAD_LEFT);
       $d2 = str_pad($info['bottom_min'], 3, '0', STR_PAD_LEFT);
@@ -1114,7 +1114,7 @@ VALIDATION: $secret";
       $atibt = $info['grade'];
       $volume = str_pad(number_format($info['volume'], 3, ',', ''), 7, '0', STR_PAD_LEFT);
 
-      $text .= "\r\n".sprintf($format, $flag_log, $num_log, $log_id, $species_code, $d1,$d2, $d3, $d4, $length, $atibt, $volume);
+      $text .= "\n".sprintf($format, $flag_log, $num_log, $log_id, $species_code, $d1,$d2, $d3, $d4, $length, $atibt, $volume);
     }
 
     try {

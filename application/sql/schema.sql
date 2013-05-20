@@ -282,18 +282,18 @@ create table barcodes (
   constraint barcodes_unique_type unique(barcode,type)
 );
 
-create table barcode_hops_cached (
+create table barcode_hops (
   id bigserial not null,
   barcode_id d_id not null,
   parent_id d_id not null,
   hops d_positive_int not null,
 
-  -- constraint barcode_hops_cached_pkey primary key (id),
-  constraint barcode_hops_cached_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
-  constraint barcode_hops_cached_parent_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
+  -- constraint barcode_hops_pkey primary key (id),
+  constraint barcode_hops_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
+  constraint barcode_hops_parent_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
 
-  constraint barcode_hops_cached_unique unique(barcode_id,parent_id),
-  constraint barcode_hops_cached_unique_parent unique(barcode_id,hops)
+  constraint barcode_hops_unique unique(barcode_id,parent_id),
+  constraint barcode_hops_unique_parent unique(barcode_id,hops)
 );
 
 create table barcode_locks (
@@ -367,7 +367,7 @@ create table invoices (
   operator_id d_id,
   site_id d_id,
   number d_invoice_number,
-  invnumber d_text_short,
+  invnumber d_text_short unique,
   is_paid d_bool default false not null,
   is_draft d_bool default true not null,
   from_date d_date,
@@ -386,6 +386,19 @@ create table invoices (
 
   constraint invoices_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
   constraint invoices_check check (not((operator_id is null) and (site_id is null)))
+);
+
+create table invoice_payments (
+  id bigserial not null,
+  invoice_id d_id not null,
+  number d_text_short unique not null,
+  amount d_money not null,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint invoice_payment_pkey primary key (id),
+  constraint invoice_payment_invoice_id foreign key (invoice_id) references invoices (id) on update cascade on delete cascade,
+  constraint invoice_payment_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 );
 
 create table invoice_data (
@@ -975,7 +988,7 @@ create index printjobs_number on printjobs (id,number);
 
 create unique index barcodes_unique on barcodes (barcode) where type not in ('F','L','P');
 
-create index barcode_hops_cached_parent_id on barcode_hops_cached (barcode_id,parent_id);
+create index barcode_hops_parent_id on barcode_hops (barcode_id,parent_id);
 
 create index barcodes_barcode on barcodes (id,barcode);
 create index barcodes_type on barcodes (id,type);
@@ -995,11 +1008,11 @@ create index location_hops_parent_id on location_hops (location_id,parent_id);
 
 create index invoices_type on invoices (id,type);
 create index invoices_number on invoices (id,number);
-create index invoices_type_number on invoices (id,type,number);
+create unique index invoices_type_number on invoices (id,type,number);
 
 create index documents_type on documents (id,type);
 create index documents_number on documents (id,number);
-create index documents_type_number on documents (id,type,number);
+create unique index documents_type_number on documents (id,type,number);
 
 create index files_operation on files (id,operation);
 
@@ -1348,10 +1361,10 @@ begin
   if (tg_op = 'INSERT') then
     perform rebuild_barcode_hops(new.id);
   elseif (tg_op = 'UPDATE') then
-    delete from barcode_hops_cached where barcode_id = new.id;
+    delete from barcode_hops where barcode_id = new.id;
     perform rebuild_barcode_hops(new.id);
   elseif (tg_op = 'DELETE') then
-    delete from barcode_hops_cached where barcode_id = old.id;
+    delete from barcode_hops where barcode_id = old.id;
   end if;
 
   return null;
@@ -1366,19 +1379,19 @@ $$
   declare x_hops d_positive_int;
 begin
   if (x_barcode_id is null) then
-    truncate barcode_hops_cached;
+    truncate barcode_hops;
 
     for x_id in select id from barcodes where parent_id is not null loop
       perform rebuild_barcode_hops(x_id);
     end loop;
   else
-    delete from barcode_hops_cached where barcode_id = x_barcode_id;
+    delete from barcode_hops where barcode_id = x_barcode_id;
     select parent_id from barcodes where id = x_barcode_id and parent_id is not null into x_id;
 
     begin
       x_hops = 1;
       while x_id is not null loop
-        insert into barcode_hops_cached(barcode_id,parent_id,hops)
+        insert into barcode_hops(barcode_id,parent_id,hops)
         values(x_barcode_id,x_id,x_hops);
         x_hops = x_hops + 1;
         select parent_id from barcodes where id = x_id into x_id;
@@ -1386,7 +1399,7 @@ begin
     exception
       when integrity_constraint_violation then
         raise warning 'barcode id(%) hierarchy cannot be determined', x_id;
-        delete from barcode_hops_cached where barcode_id = x_id or parent_id = x_id;
+        delete from barcode_hops where barcode_id = x_id or parent_id = x_id;
         return;
     end;
 
@@ -1449,7 +1462,7 @@ $$
 begin
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
     delete from barcode_locks where lock = 'BRCODE' and lock_id = new.barcode_id;
-    for x_id in select barcode_id from barcode_hops_cached where parent_id = new.barcode_id loop
+    for x_id in select barcode_id from barcode_hops where parent_id = new.barcode_id loop
       insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_id,'BRCODE',new.barcode_id,new.user_id);
     end loop;
 

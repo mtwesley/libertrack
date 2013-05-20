@@ -221,11 +221,11 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function parents($max_hops = NULL, $types = array()) {
-    $query = DB::select('barcode_hops_cached.parent_id', 'type')
-      ->from('barcode_hops_cached')
+    $query = DB::select('barcode_hops.parent_id', 'type')
+      ->from('barcode_hops')
       ->join('barcodes')
-      ->on('barcode_hops_cached.parent_id', '=', 'barcodes.id')
-      ->where('barcode_hops_cached.barcode_id', '=', $this->barcode->id);
+      ->on('barcode_hops.parent_id', '=', 'barcodes.id')
+      ->where('barcode_hops.barcode_id', '=', $this->barcode->id);
     if ($max_hops) $query->and_where('hops', '<=', $max_hops);
     $results = $query
       ->order_by('hops', 'ASC')
@@ -254,11 +254,11 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function childrens($max_hops = NULL, $types = array()) {
-    $query = DB::select('barcode_hops_cached.barcode_id', 'type')
-      ->from('barcode_hops_cached')
+    $query = DB::select('barcode_hops.barcode_id', 'type')
+      ->from('barcode_hops')
       ->join('barcodes')
-      ->on('barcode_hops_cached.barcode_id', '=', 'barcodes.id')
-      ->where('barcode_hops_cached.parent_id', '=', $this->barcode->id);
+      ->on('barcode_hops.barcode_id', '=', 'barcodes.id')
+      ->where('barcode_hops.parent_id', '=', $this->barcode->id);
     if ($max_hops) $query->and_where('hops', '<=', $max_hops);
     $results = $query
       ->order_by('hops', 'ASC')

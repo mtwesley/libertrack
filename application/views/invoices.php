@@ -37,7 +37,10 @@
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
           <?php else: ?>
-          <?php if (!$invoice->is_paid) echo HTML::anchor('invoices/'.$invoice->id.'/payment', 'Check Payment', array('class' => 'link')); ?>
+          <?php if (!$invoice->is_paid): ?>
+          <?php echo HTML::anchor('invoices/'.$invoice->id.'/payment', 'Add Payment', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('invoices/'.$invoice->id.'/check', 'Check Payment', array('class' => 'link')); ?>
+          <?php endif; // is paid ?>
           <?php endif; ?>
 
           <?php echo HTML::anchor($invoice->file->path, 'Download', array('class' => 'link')); ?>

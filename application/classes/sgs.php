@@ -16,6 +16,7 @@ class SGS {
   const PGSQL_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
   const US_DATE_FORMAT = 'n/j/Y';
+  const US_DATE_CORRECT_FORMAT = 'm/d/Y';
 
   const PGSQL_TRUE  = 't';
   const PGSQL_FALSE = 'f';

@@ -400,6 +400,12 @@
   border: 1px solid #d9c7ad;
 }
 
+#content table.has-section-full {
+  width:  100%;
+  margin: 10px auto;
+  border: 1px solid #d9c7ad;
+}
+
 #content table.has-actions {
   margin-top: 0;
 }

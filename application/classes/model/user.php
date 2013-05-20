@@ -1,6 +1,6 @@
 <?php
 
-class Model_User extends Model_Auth_User {
+class Model_User extends Model_ACL_User {
 
   protected $_has_many = array(
 //    'species' => array(),
@@ -12,12 +12,16 @@ class Model_User extends Model_Auth_User {
 //    'files' => array(),
 //    'csv' => array(),
 //    'invoices' => array(),
-		'user_tokens' => array(
+		'user_tokens'  => array(
       'model' => 'user_token'
     ),
-		'roles'       => array(
+		'roles'        => array(
       'model'   => 'role',
       'through' => 'roles_users'
+    ),
+		'capabilities' => array(
+      'model' => 'capability',
+      'through' => 'capabilities_users'
     ),
   );
 

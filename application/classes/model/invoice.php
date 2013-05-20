@@ -9,6 +9,10 @@ class Model_Invoice extends ORM {
     'user'     => array()
   );
 
+  protected $_has_many = array(
+    'payments' => array()
+  );
+
   public static function create_invoice_number($type) {
     return DB::query(Database::SELECT, "SELECT nextval('s_invoices_{$type}_number') number")
       ->execute()
@@ -34,22 +38,6 @@ class Model_Invoice extends ORM {
     DB::insert('invoice_data', array('invoice_id', 'form_type', 'form_data_id'))
       ->values(array($this->id, $form_type, $form_data_id))
       ->execute();
-  }
-
-  public function check_payment() {
-    if ($this->is_draft or !$this->invnumber) return;
-
-    $ledger  = Database::instance('ledger');
-    $account = DB::select('amount', 'netamount', 'paid')
-      ->from('ar')
-      ->where('invnumber', '=', $this->invnumber)
-      ->execute($ledger)
-      ->as_array();
-
-    extract($account);
-    if (($amount and $netamount and $paid) and ($amount == $netamount) and ($amount == $paid)) return TRUE;
-
-    return FALSE;
   }
 
   public function set($column, $value) {

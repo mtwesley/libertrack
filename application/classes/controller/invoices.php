@@ -109,9 +109,9 @@ class Controller_Invoices extends Controller {
             ->on('ldf_data.barcode_id', '=', 'barcodes.id')
             ->join(DB::expr('"barcodes" as "parent_barcodes"'))
             ->on('ldf_data.parent_barcode_id', '=', 'parent_barcodes.id')
-            ->join('barcode_hops_cached')
-            ->on('ldf_data.barcode_id', '=', 'barcode_hops_cached.barcode_id')
-            ->on('ldf_data.parent_barcode_id', '=', 'barcode_hops_cached.parent_id')
+            ->join('barcode_hops')
+            ->on('ldf_data.barcode_id', '=', 'barcode_hops.barcode_id')
+            ->on('ldf_data.parent_barcode_id', '=', 'barcode_hops.parent_id')
             ->join('invoice_data', 'LEFT OUTER')
             ->on('ldf_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'LDF'"))
@@ -128,7 +128,7 @@ class Controller_Invoices extends Controller {
             ->and_where('ldf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
             ->and_where('ldf_data.status', '=', 'A')
             ->and_where('parent_barcodes.type', '=', 'F')
-            ->and_where('barcode_hops_cached.hops', '=', '1')
+            ->and_where('barcode_hops.hops', '=', '1')
             ->and_where_open()
               ->where('tdf_invoices.type', '<>', 'ST')
               ->or_where('tdf_invoices.id', '=', NULL)
@@ -349,6 +349,51 @@ class Controller_Invoices extends Controller {
   }
 
   private function handle_invoice_payment($id) {
+    $invoice  = ORM::factory('invoice', $id);
+    $payments = $invoice->payments->find_all()->as_array();
+
+    $form = Formo::form(array('attr' => array('style' => 'display: none;')))
+      ->add('number', 'input', array('label' => 'Payment Number'))
+      ->add('amount', 'input', array('label' => 'Amount'))
+      ->add('save', 'submit', array('label' => 'Add Payment'));
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      try {
+        $payment = ORM::factory('payment');
+        $payment->invoice = $invoice;
+        $payment->number  = $form->number->val();
+        $payment->amount  = $form->amount->val();
+        $payment->save();
+        Notify::msg('Payment successfully added.', 'success', TRUE);
+        $this->request->redirect('invoices/'.$invoice->id);
+      } catch (Database_Exception $e) {
+        Notify::msg('Sorry, unable to add invoice payment due to incorrect or missing input. Please try again.', 'error');
+      } catch (Exception $e) {
+        Notify::msg('Sorry, invoice payment failed to be saved. Please try again.', 'error');
+      }
+    }
+
+    $table = View::factory('invoices')
+      ->set('invoices', array($invoice))
+      ->render();
+
+    if ($payments) $table .= View::factory('payments')
+      ->set('classes', array('has-section-full'))
+      ->set('payments', $payments);
+
+    $count = count($payments);
+    if ($count == 1) Notify::msg($count.' payment found');
+    elseif ($count) Notify::msg($count.' payments found');
+    else Notify::msg('No invoice payments found');
+
+    $content .= SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= $table;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_invoice_check($id) {
     $invoice = ORM::factory('invoice', $id);
 
     if (!$invoice->loaded()) {
@@ -367,18 +412,63 @@ class Controller_Invoices extends Controller {
     }
 
     try {
-      $paid = $invoice->check_payment();
+      $ledger  = Database::instance('ledger');
     } catch (Database_Exception $e) {
       Notify::msg('Sorry, unable to connect to invoice database. Please try again.', 'error', TRUE);
       $this->request->redirect('invoices/'.$id);
     }
 
-    if ($paid === NULL) Notify::msg('Sorry, unable to check invoice status.', 'error', TRUE);
+    $account = DB::select('amount', 'netamount', 'paid')
+      ->from('ar')
+      ->where('invnumber', '=', $invoice->invnumber)
+      ->execute($ledger)
+      ->as_array();
+
+    if ($account) extract(reset($account));
+    if (!(($amount and $netamount and $paid) and ($amount == $netamount) and ($amount == $paid))) {
+      Notify::msg('Invoice has not yet been paid.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
+    $ledger_payments = DB::select(array('acc_trans.amount', 'amount'), 'memo')
+      ->from('ar')
+      ->join('acc_trans')
+      ->on('ar.id', '=', 'acc_trans.trans_id')
+      ->where('invnumber', '=', $invoice->invnumber)
+      ->and_where('acc_trans.id', '!=', NULL)
+      ->and_where('memo', '!=', NULL)
+      ->execute($ledger)
+      ->as_array('memo', 'amount');
+
+    $default_payments = $invoice->payments->find_all()->as_array('number', 'amount');
+
+    $no_payment = array();
+    foreach ($default_payments as $key => $value)
+      if (!$ledger_payments[$key]) $no_payment[] = $key;
+      else if (abs($ledger_payments[$key]) !== abs($default_payments[$key])) $bad_payment = $key;
+
+    foreach ($ledger_payments as $key => $value)
+      if (!$default_payments[$key]) $no_payment[] = $key;
+      else if (abs($default_payments[$key]) !== abs($ledger_payments[$key])) $bad_payment = $key;
+
+    foreach ($default_payments as $amt) $default_amount += $amt;
+    foreach ($ledger_payments as $amt) $ledger_amount += $amt;
+
+    if (($default_amount != $amount) or ($ledger_amount != $amount) or
+        (count($default_payments) != count($ledger_payments))) $no_payment[] = TRUE;
+
+    if ($no_payment) Notify::msg('Missing payment information.', 'error', TRUE);
+    if ($bad_payment)  Notify::msg('Invalid payment information.', 'error', TRUE);
+
+    if ($no_payment or $bad_payment) Notify::msg('Unable to confirm payment status.', 'warning', TRUE);
     else {
-      if ($paid) Notify::msg('Invoice has successfully been paid.', 'success', TRUE);
-      else Notify::msg('Invoice has not yet been paid.', 'warning', TRUE);
-      $invoice->is_paid = $paid;
-      $invoice->save();
+      try {
+        $invoice->is_paid = TRUE;
+        $invoice->save();
+        Notify::msg('Invoice has successfully been paid.', 'success', TRUE);
+      } catch (Exception $e) {
+        Notify::msg('Sorry, unable to update invoice paid status.', 'error', TRUE);
+      }
     }
 
     $this->request->redirect('invoices/'.$id);
@@ -432,6 +522,8 @@ class Controller_Invoices extends Controller {
           );
         }
 
+        $payments = $invoice->payments->find_all()->as_array();
+
         $summary_header = View::factory('data')
           ->set('form_type', $form_type)
           ->set('data', $summary_data)
@@ -449,7 +541,7 @@ class Controller_Invoices extends Controller {
           ))
           ->render();
 
-        $summary_table = View::factory('data')
+        $summary_table .= View::factory('data')
           ->set('classes', array('has-pagination'))
           ->set('form_type', $form_type)
           ->set('data', $summary_data)
@@ -543,6 +635,9 @@ class Controller_Invoices extends Controller {
     }
     else Notify::msg('No invoices found');
 
+    if ($payments) $table .= View::factory('payments')
+      ->set('payments', $payments);
+
     if ($form) $content .= $form->render();
 
     $content .= $summary_header;
@@ -598,8 +693,9 @@ class Controller_Invoices extends Controller {
     switch ($command) {
       case 'download': return self::handle_invoice_download($id);
       case 'finalize': return self::handle_invoice_finalize($id);
-      case 'payment': return self::handle_invoice_payment($id);
+      case 'check': return self::handle_invoice_check($id);
       case 'delete': return self::handle_invoice_delete($id);
+      case 'payment': return self::handle_invoice_payment($id);
       case 'list': default: return self::handle_invoice_list($id);
     }
   }
