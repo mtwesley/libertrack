@@ -1072,10 +1072,10 @@ VALIDATION: $secret";
       $quantity = str_pad($info['count'], 8, '0', STR_PAD_LEFT);
       $sta_unit = '';
       $fob_value = str_pad(number_format($info['fob_price'], 2, ',', ''), 15, '0', STR_PAD_LEFT);
-      $freight_value = str_pad(number_format('', 2, ',', ''), 15, '0', STR_PAD_LEFT);
-      $unit_price = str_pad(number_format('', 2, ',', ''), 15, '0', STR_PAD_LEFT);
+      $freight_value = str_pad('', 15, '0', STR_PAD_LEFT);
+      $unit_price = str_pad('', 15, '0', STR_PAD_LEFT);
       $cty_origine_code = 'LR'; // SAMPLE
-      $tax_rat = str_pad(number_format('', 1, ',', ''), 3, '0', STR_PAD_LEFT);
+      $tax_rat = str_pad('', 3, '0', STR_PAD_LEFT);
       $species_class = $info['species_class'];
       $supplementary_unit_value = str_pad(number_format($info['volume'], 3, ',', ''), 12, '0', STR_PAD_LEFT);
 

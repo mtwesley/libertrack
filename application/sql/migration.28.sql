@@ -86,6 +86,26 @@ end
 $$ language 'plpgsql';
 
 
+create or replace function barcode_locks_update_locks()
+  returns trigger as
+$$
+  declare x_id d_id;
+begin
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    delete from barcode_locks where lock = 'BRCODE' and lock_id = new.barcode_id;
+    for x_id in select barcode_id from barcode_hops where parent_id = new.barcode_id loop
+      insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_id,'BRCODE',new.barcode_id,new.user_id);
+    end loop;
+
+  elseif (tg_op = 'DELETE') then
+    delete from barcode_locks where lock = 'BRCODE' and lock_id = old.barcode_id;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
 -- invoice payments
 
 create table invoice_payments (
@@ -100,4 +120,10 @@ create table invoice_payments (
   constraint invoice_payment_invoice_id foreign key (invoice_id) references invoices (id) on update cascade on delete cascade,
   constraint invoice_payment_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
+
+
+-- verification operation type
+
+alter domain d_operation_type drop constraint d_operation_type_check;
+alter domain d_operation_type add check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV|CHECKS|VERIFY|EXP|INV|DOC|PJ|UNKWN)$');
 

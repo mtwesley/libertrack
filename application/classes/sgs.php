@@ -873,7 +873,7 @@ class SGS {
     // $string = str_replace('_id', '', $string);
     $string = str_replace('_', ' ', $string);
     $string = preg_replace('/\b(\w)/e', 'strtoupper("$1")', $string, 1);
-    return $string;
+    return trim($string);
   }
 
   public static function cleanify($array)
@@ -910,7 +910,7 @@ class SGS {
   {
     $string = preg_replace('/[^0123456789ACEFHJKLMNPRYXW]/', '', $string);
     if (strlen($string) > 8) $string = substr($string, 0, 8).'-'.substr($string, 8);
-    return $string;
+    return trim($string);
   }
 
   public static function numberify($number)
@@ -946,13 +946,13 @@ class SGS {
   public static function locationify($string, $slash = '/')
   {
     $pos = strrpos($string, $slash);
-    return substr($string, $pos ? $pos + 1 : 0) ?: $string;
+    return trim(substr($string, $pos ? $pos + 1 : 0) ?: $string);
   }
 
   public static function utmify($easting, $northing, $zone = SGS::UTM_ZONE_DEFAULT)
   {
     list($easting, $northing) = preg_replace('/\D/', '', array($easting, $northing));
-    if ($zone and $easting and ($northing !== FALSE)) return $zone.' '.$easting.'mE '.$northing.'mN';
+    if ($zone and $easting and ($northing !== FALSE)) return trim($zone.' '.$easting.'mE '.$northing.'mN');
   }
 
   public static function internationalify($string)

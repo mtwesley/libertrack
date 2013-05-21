@@ -193,7 +193,7 @@ $verification_percentage = $total_declared ? floor($total_records * 100 / ($tota
     $records = $report['total']['records'] ?: 0;
     $accurate  = $report['total']['accurate'] ?: 0;
     $inaccurate  = $report['total']['inaccurate'] ?: 0;
-    $percentage = $verified ? floor($accurate * 100 / $records) : 100;
+    $percentage = $total_inspected ? floor($accurate * 100 / $total_inspected) : 100;
   ?>
   <tr>
     <td class="type"><span class="data-type"><?php print $form_type; ?></span></td>

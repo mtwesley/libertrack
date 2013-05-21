@@ -131,11 +131,11 @@ class Controller_Analysis extends Controller {
 
     switch ($form_type) {
       case 'SSF':
-        $newname = SGS::wordify('SSF_'.$site->name.'_'.$block->name.'_'.SGS::date('now', 'm_d_Y')).'.'.$ext;
+        $newname = SGS::wordify('SSF_'.$site->name.'_'.($block ? $block->name.'_' : '').SGS::date('now', 'm_d_Y')).'.'.$ext;
         break;
 
       case 'TDF':
-        $newname = SGS::wordify('TDF_'.$site->name.'_'.$block->name.'_'.SGS::date('now', 'm_d_Y')).'.'.$ext;
+        $newname = SGS::wordify('TDF_'.$site->name.'_'.($block ? $block->name.'_' : '').SGS::date('now', 'm_d_Y')).'.'.$ext;
         break;
 
       case 'LDF':
@@ -195,6 +195,225 @@ class Controller_Analysis extends Controller {
       $file->size = filesize($fullname);
       $file->operation      = 'D';
       $file->operation_type = 'CHECKS';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+
+      if ($operator) $file->operator = $operator;
+      if ($site) $file->site = $site;
+      if ($block) $file->block = $block;
+
+      $file->save();
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }
+
+    Notify::clear();
+    $this->response->send_file($fullname);
+  }
+
+  private function download_verify_report($form_type, $record_ids, $info = array()) {
+    if (!$record_ids) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
+    $passed_records    = array();
+    $failed_records    = array();
+    $unchecked_records = array();
+
+    foreach ($record_ids as $record_id) {
+      $record = ORM::factory($form_type, $record_id);
+      if ($record->status == 'A') $passed_records[] = $record;
+      else if ($record->status == 'R') $failed_records[] = $record;
+      else $unchecked_records[] = $record;
+    }
+
+    extract($info);
+
+    // verification, declaration, variance
+
+    $first  = array();
+    $second = array();
+    foreach ($checks as $typ => $inf)
+      if (in_array($typ, array('verification', 'declaration', 'variance'))) $first[$typ] = $inf;
+      else $second[$typ] = $inf;
+
+    $html .= View::factory('reports/verify')
+      ->set('form_type', $form_type)
+      ->set('report', $report)
+      ->set('checks', $first)
+      ->set('operator', $operator)
+      ->set('site', $site)
+      ->set('block', $block)
+      ->set('specs_info', $specs_info)
+      ->set('exp_info', $exp_info)
+      ->set('options', array(
+        'info'     => TRUE,
+        'summary'  => TRUE,
+        'details'  => FALSE,
+        'styles'   => TRUE,
+        'subtitle' => 'Results Summary'
+      ))
+      ->render();
+
+    $html .= View::factory('reports/verify')
+      ->set('form_type', $form_type)
+      ->set('report', $report)
+      ->set('checks', $second)
+      ->set('operator', $operator)
+      ->set('site', $site)
+      ->set('block', $block)
+      ->set('specs_info', $specs_info)
+      ->set('exp_info', $exp_info)
+      ->set('options', array(
+        'info'     => TRUE,
+        'summary'  => TRUE,
+        'summary_total' => TRUE,
+        'details'  => FALSE,
+        'styles'   => TRUE,
+        'subtitle' => 'Results Summary'
+      ))
+      ->render();
+
+    $page_count = 0;
+    $page_max   = 20;
+
+    // passed
+    $cntr  = 0;
+    while ($cntr < count($passed_records)) {
+      $max = $page_max;
+      $set = array_slice($passed_records, $cntr, $max);
+      $html .= View::factory('reports/verify')
+        ->set('form_type', $form_type)
+        ->set('checks', $checks)
+        ->set('data', $set)
+        ->set('options', array(
+          'info'     => FALSE,
+          'details'  => TRUE,
+          'styles'   => FALSE,
+          'subtitle' => 'Records Where All Verified as Accurate'
+        ))
+        ->set('cntr', $cntr)
+        ->render();
+
+      $cntr += $max;
+    }
+
+    // failed
+    $cntr  = 0;
+    while ($cntr < count($failed_records)) {
+      $max = $page_max;
+      $set = array_slice($failed_records, $cntr, $max);
+      $html .= View::factory('reports/verify')
+        ->set('form_type', $form_type)
+        ->set('checks', $checks)
+        ->set('data', $set)
+        ->set('options', array(
+          'info'     => FALSE,
+          'details'  => TRUE,
+          'styles'   => FALSE,
+          'subtitle' => 'Records Where Any Verified as Inaccurate'
+        ))
+        ->set('cntr', $cntr)
+        ->render();
+
+      $cntr += $max;
+    }
+
+    // unchecked
+    $cntr  = 0;
+    while ($cntr < count($unchecked_records)) {
+      $max = $page_max;
+      $set = array_slice($unchecked_records, $cntr, $max);
+      $html .= View::factory('reports/verify')
+        ->set('form_type', $form_type)
+        ->set('checks', $checks)
+        ->set('data', $set)
+        ->set('options', array(
+          'info'     => FALSE,
+          'details'  => TRUE,
+          'styles'   => FALSE,
+          'subtitle' => 'Records Not Yet Verified'
+        ))
+        ->set('cntr', $cntr)
+        ->render();
+
+      $cntr += $max;
+    }
+
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array(
+      'checks',
+    ));
+
+    switch ($form_type) {
+      case 'SSFV':
+        $newname = SGS::wordify('SSFV_'.$site->name.'_'.($block ? $block->name.'_' : '').SGS::date('now', 'm_d_Y')).'.'.$ext;
+        break;
+
+      case 'TDFV':
+        $newname = SGS::wordify('TDFV_'.$site->name.'_'.($block ? $block->name.'_' : '').SGS::date('now', 'm_d_Y')).'.'.$ext;
+        break;
+
+      case 'LDFV':
+        $newname = SGS::wordify('LDFV_'.$site->name.'_'.SGS::date('now', 'm_d_Y')).'.'.$ext;
+        break;
+
+    }
+
+    if ($is_draft) $newname = 'VERIFY_DRAFT_'.$newname;
+    else $newname = 'VERIFY_'.$newname;
+
+    $version  = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 22,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'orientation' => 'Landscape',
+        'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('reports/checks')
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->set('page', $page)
+          ->set('page_count', $page_count)
+          ->render()
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
+
+    try {
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'D';
+      $file->operation_type = 'VERIFY';
       $file->content_md5    = md5_file($fullname);
       $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
 
@@ -707,24 +926,29 @@ class Controller_Analysis extends Controller {
       if ($block_id)    $record_ids->where('block_id', 'IN', (array) $block_id);
       if (Valid::is_barcode($specs_barcode)) $record_ids->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
 
-      if ($download) $download_record_ids = clone($record_ids);
       $declared_record_ids  = clone($record_ids);
       $inspected_record_ids = clone($record_ids);
 
       if ($status) $declared_record_ids->where('status', 'IN', (array) $status);
       if (!$has_specs_info and !$has_exp_info) $declared_record_ids->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
       $declared_record_ids = $declared_record_ids
-        ->select($model_data->table_name().'.id')
+        ->select($model_data->table_name().'.id', 'barcode')
         ->distinct(TRUE)
         ->from($model_data->table_name())
+        ->join('barcodes')
+        ->on('barcodes.id', '=', 'barcode_id')
+        ->order_by('barcode')
         ->execute()
         ->as_array(NULL, 'id');
 
       $inspected_record_ids = $inspected_record_ids
-        ->select($model->table_name().'.id')
+        ->select($model->table_name().'.id', 'barcode')
         ->distinct(TRUE)
-        ->where('create_date', 'BETWEEN', SGS::db_range($inspected_from, $inspected_to))
         ->from($model->table_name())
+        ->join('barcodes')
+        ->on('barcodes.id', '=', 'barcode_id')
+        ->order_by('barcode')
+        ->where('create_date', 'BETWEEN', SGS::db_range($inspected_from, $inspected_to))
         ->execute()
         ->as_array(NULL, 'id');
 
@@ -744,9 +968,9 @@ class Controller_Analysis extends Controller {
 
       $unable = 0;
       set_time_limit(0);
-      foreach ($declared_record_ids as $declared_record_id) {
-        $data_record = ORM::factory($form_data_type, $declared_record_id);
-        if ((!$record = $data_record->verification()) or !$record->loaded()) continue;
+      foreach ($inspected_record_ids as $inspected_record_id) {
+        $record = ORM::factory($form_verification_type, $inspected_record_id);
+        if ((!$data_record = $record->data()) or !$data_record->loaded()) continue;
 
         $data['total']['records']++;
 
@@ -838,37 +1062,30 @@ class Controller_Analysis extends Controller {
         unset($data_record);
       }
 
-//      if ($download) {
-//        $download_record_ids = $download_record_ids
-//          ->join('barcodes')
-//          ->on('barcodes.id', '=', 'barcode_id')
-//          ->order_by('barcode')
-//          ->execute()
-//          ->as_array();
-//
-//        unset($info);
-//        if ($specs_barcode) {
-//          $sample = ORM::factory($form_verification_type, reset($download_record_ids));
-//          $info['specs'] = array(
-//            'number'  => $sample->specs_number,
-//            'barcode' => $sample->specs_barcode->barcode
-//          );
-//        }
-//
-//        foreach ($model::$checks as $type => $info) if (in_array($type, $checks)) $_checks[$type] = $info;
-//
-//        self::download_checks_report($form_verification_type, $download_record_ids, array(
-//          'specs_barcode' => $info ? array_filter((array) $info['specs']) : NULL,
-//          'exp_info'      => $info ? array_filter((array) $info['exp']) : NULL,
-//          'operator'      => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
-//          'site'          => $site_id ? ORM::factory('site', $site_id) : NULL,
-//          'block'         => $block_id ? ORM::factory('block', $block_id) : NULL,
-//          'from'          => $from,
-//          'to'            => $to,
-//          'checks'        => $_checks,
-//          'report'        => $data,
-//        ));
-//      }
+      if ($download) {
+        unset($info);
+        if ($specs_barcode) {
+          $sample = ORM::factory($form_verification_type, reset($inspected_record_ids));
+          $info['specs'] = array(
+            'number'  => $sample->specs_number,
+            'barcode' => $sample->specs_barcode->barcode
+          );
+        }
+
+        foreach ($model::$checks as $type => $info) if (in_array($type, $checks)) $_checks[$type] = $info;
+
+        self::download_verify_report($form_verification_type, $inspected_record_ids, array(
+          'specs_barcode' => $info ? array_filter((array) $info['specs']) : NULL,
+          'exp_info'      => $info ? array_filter((array) $info['exp']) : NULL,
+          'operator'      => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
+          'site'          => $site_id ? ORM::factory('site', $site_id) : NULL,
+          'block'         => $block_id ? ORM::factory('block', $block_id) : NULL,
+          'from'          => $from,
+          'to'            => $to,
+          'checks'        => $_checks,
+          'report'        => $data,
+        ));
+      }
 
       if ($unable)     Notify::msg('Sorry, unable to very '.$unable.' records. Please try again.', 'error', TRUE);
       if ($accurate)   Notify::msg($accurate.' records are verified and accurate.', 'success', TRUE);
@@ -1089,9 +1306,11 @@ class Controller_Analysis extends Controller {
       if (!$has_specs_info and !$has_exp_info) $record_ids->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       if ($limit) $record_ids->limit($limit);
-      if ($download) $download_record_ids = clone($record_ids);
 
       $record_ids = $record_ids
+        ->join('barcodes')
+        ->on('barcodes.id', '=', 'barcode_id')
+        ->order_by('barcode')
         ->execute()
         ->as_array(NULL, 'id');
 
@@ -1177,16 +1396,9 @@ class Controller_Analysis extends Controller {
       }
 
       if ($download) {
-        $download_record_ids = $download_record_ids
-          ->join('barcodes')
-          ->on('barcodes.id', '=', 'barcode_id')
-          ->order_by('barcode')
-          ->execute()
-          ->as_array();
-
         unset($info);
         if ($specs_barcode) {
-          $sample = ORM::factory($form_type, reset($download_record_ids));
+          $sample = ORM::factory($form_type, reset($record_ids));
           $info['specs'] = array(
             'number'  => $sample->specs_number,
             'barcode' => $sample->specs_barcode->barcode
@@ -1195,7 +1407,7 @@ class Controller_Analysis extends Controller {
 
         foreach ($model::$checks as $type => $info) if (in_array($type, $checks)) $_checks[$type] = $info;
 
-        self::download_checks_report($form_type, $download_record_ids, array(
+        self::download_checks_report($form_type, $record_ids, array(
           'specs_barcode' => $info ? array_filter((array) $info['specs']) : NULL,
           'exp_info'      => $info ? array_filter((array) $info['exp']) : NULL,
           'operator'      => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
@@ -1251,7 +1463,7 @@ class Controller_Analysis extends Controller {
       $record_ids  = $settings['record_ids'];
     }
 
-    if ($data) {
+    if ($data and $record_ids) {
       $model = ORM::factory($form_type);
       foreach ($model::$checks as $type => $info) {
         if (in_array($type, $checks)) $_checks[$type] = $info;

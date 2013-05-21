@@ -67,6 +67,8 @@ class Model_TDFV extends SGS_Form_ORM {
   public static $data_type = 'TDF';
   public static $verification_type = 'TDFV';
 
+  public static $target_percentage = 5;
+
   public static $fields = array(
     'create_date'     => 'Date',
     'operator_tin'    => 'Operator TIN',

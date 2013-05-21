@@ -7,6 +7,7 @@ $options = (array) $options + array(
   'styles'    => FALSE,
   'info'      => FALSE,
   'summary'   => FALSE,
+  'summary_total' => FALSE,
   'details'   => FALSE,
   'format'    => 'pdf'
 );
@@ -60,89 +61,89 @@ $num = $cntr;
     height: 32px;
   }
 
-  .checks {
+  .verify {
     padding: 20px 25px;
   }
 
-  .checks-page-break {
+  .verify-page-break {
     page-break-before: always;
   }
 
-  .checks-header {}
+  .verify-header {}
 
-  .checks-header,
-  .checks-info,
-  .checks-summary {
+  .verify-header,
+  .verify-info,
+  .verify-summary {
     width: 100%;
   }
 
-  .checks-summary-table {
+  .verify-summary-table {
     margin-bottom: 10px;
   }
 
-  .checks-summary-table,
-  .checks-details-table,
-  .checks-signature-table,
-  .checks-info-table,
-  .checks-header-table {
+  .verify-summary-table,
+  .verify-details-table,
+  .verify-signature-table,
+  .verify-info-table,
+  .verify-header-table {
     width: 100%;
     border-collapse: collapse;
   }
 
-  .checks-summary-table tr td {
+  .verify-summary-table tr td {
     padding: 3px 5px;
     border: 1px solid #000;
   }
 
-  .checks-details-table tr td {
+  .verify-details-table tr td {
     padding: 1px 3px;
     border: 1px solid #000;
   }
 
-  .checks-summary-table tr.head td,
-  .checks-details-table tr.head td {
+  .verify-summary-table tr.head td,
+  .verify-details-table tr.head td {
     padding: 6px 5px;
     background-color: #cfcfcf;
     font-weight: bold;
   }
 
-  .checks-details-table tr.head td {
+  .verify-details-table tr.head td {
     padding: 4px 3px;
   }
 
-  .checks-summary-table tr td.blank-slim {
+  .verify-summary-table tr td.blank-slim {
     border: none;
     font-size: 6px;
   }
 
-  .checks-summary-table tr td.volume,
-  .checks-summary-table tr td.species_code,
-  .checks-summary-table tr td.species_class,
-  .checks-summary-table tr td.fob_price,
-  .checks-summary-table tr td.tax_code,
-  .checks-summary-table tr td.total {
+  .verify-summary-table tr td.volume,
+  .verify-summary-table tr td.species_code,
+  .verify-summary-table tr td.species_class,
+  .verify-summary-table tr td.fob_price,
+  .verify-summary-table tr td.tax_code,
+  .verify-summary-table tr td.total {
     text-align: center;
   }
 
-  .checks-summary-table tr td.fee_desc,
-  .checks-summary-table tr td.fee_desc em {
+  .verify-summary-table tr td.fee_desc,
+  .verify-summary-table tr td.fee_desc em {
     font-size: 8px;
     white-space: nowrap;
   }
 
-  .checks-summary-table tr.head td.fee_desc {
+  .verify-summary-table tr.head td.fee_desc {
     font-size: 10px;
   }
 
-  .checks-summary-table tr td.check-info {
+  .verify-summary-table tr td.check-info {
     width: 10%;
   }
 
-  .checks-summary-table tr td.check-desc {
+  .verify-summary-table tr td.check-desc {
     border-left: none;
   }
 
-  .checks-summary-table tr td.status {
+  .verify-summary-table tr td.status {
     width: 1px;
     padding-right: 0;
     padding-left: 3px;
@@ -150,16 +151,16 @@ $num = $cntr;
     border-right: none;
   }
 
-  .checks-details-table tr td.status {
+  .verify-details-table tr td.status {
     padding: 1px;
   }
 
-  .checks-summary-table tr td.status .error,
-  .checks-summary-table tr td.status .warning,
-  .checks-summary-table tr td.status .success,
-  .checks-details-table tr td.status .error,
-  .checks-details-table tr td.status .warning,
-  .checks-details-table tr td.status .success {
+  .verify-summary-table tr td.status .error,
+  .verify-summary-table tr td.status .warning,
+  .verify-summary-table tr td.status .success,
+  .verify-details-table tr td.status .error,
+  .verify-details-table tr td.status .warning,
+  .verify-details-table tr td.status .success {
     margin: 0;
     padding: 2px 4px;
     width: 50px;
@@ -170,108 +171,108 @@ $num = $cntr;
     font-weight: bold;
   }
 
-  .checks-details-table tr td.status .error,
-  .checks-details-table tr td.status .warning,
-  .checks-details-table tr td.status .success {
+  .verify-details-table tr td.status .error,
+  .verify-details-table tr td.status .warning,
+  .verify-details-table tr td.status .success {
     padding: 2px;
     width: 10px;
   }
 
-  .checks-summary-table tr td.status .error,
-  .checks-details-table tr td.status .error {
+  .verify-summary-table tr td.status .error,
+  .verify-details-table tr td.status .error {
     /* background-color: #fcdfe0; */
     background-color: #ea2528;
     /* color: #ae3636; */
   }
 
-  .checks-summary-table tr td.status .warning,
-  .checks-details-table tr td.status .warning {
+  .verify-summary-table tr td.status .warning,
+  .verify-details-table tr td.status .warning {
     /* background-color: #f8f5e1; */
     background-color: #dccf64;
     /* color: #a5890b; */
   }
 
-  .checks-summary-table tr td.status .success,
-  .checks-details-table tr td.status .success {
+  .verify-summary-table tr td.status .success,
+  .verify-details-table tr td.status .success {
     /* background-color: #dde5c5; */
     background-color: #4caa41;
     /* color: #63922d; */
   }
 
-  .checks-details-table {}
+  .verify-details-table {}
 
-  .checks-details-table tr td.check-type {
+  .verify-details-table tr td.check-type {
     padding: 5px 3px;
     text-align: center;
   }
 
-  .checks-details-table tr td.traceability {
+  .verify-details-table tr td.inspection {
     padding: 5px 3px;
     text-align: left;
   }
 
-  .checks-details-table tr td.title {
+  .verify-details-table tr td.title {
     text-align: left;
     font-size: 16px;
   }
 
-  .checks-details-table tr td.value,
-  .checks-details-table tr td.comparison,
-  .checks-details-table tr td.status {
+  .verify-details-table tr td.value,
+  .verify-details-table tr td.comparison,
+  .verify-details-table tr td.status {
     text-align: center;
   }
 
-  .checks-details-table tr td {
+  .verify-details-table tr td {
     white-space: nowrap;
   }
 
-  .checks-details-table tr td.barcode {
+  .verify-details-table tr td.barcode {
     text-align: left;
   }
 
-  .checks-details-table tr.even {
+  .verify-details-table tr.even {
     background-color: #fafafa;
   }
 
-  .checks-signature-table tr td {
+  .verify-signature-table tr td {
     padding: 5px;
     border: 1px solid #000;
   }
 
-  .checks-signature-table tr td.signature {
+  .verify-signature-table tr td.signature {
     width: 24%;
     height: 150px;
     vertical-align: top;
   }
 
-  .checks-signature-table tr td.half-signature {
+  .verify-signature-table tr td.half-signature {
     height: 75px;
   }
 
-  .checks-info-table {
+  .verify-info-table {
     margin-bottom: 8px;
   }
 
-  .checks-info-table tr td {
+  .verify-info-table tr td {
     padding: 4px 5px;
     vertical-align: top;
   }
 
-  .checks-info-table tr td.label {
+  .verify-info-table tr td.label {
     font-weight: bold;
     width: 1px;
     white-space: nowrap;
   }
 
-  .checks-titles {}
+  .verify-titles {}
 
-  .checks-title {
+  .verify-title {
     margin: 2px 0 5px;
     font-size: 18px;
     text-align: center;
   }
 
-  .checks-subtitle {
+  .verify-subtitle {
     margin-bottom: 8px;
     text-align: center;
     text-transform: uppercase;
@@ -293,25 +294,25 @@ $num = $cntr;
 </style>
 <?php endif; ?>
 
-<div class="checks <?php if ($options['break']) echo 'checks-page-break'; ?>">
+<div class="verify <?php if ($options['break']) echo 'verify-page-break'; ?>">
   <?php if ($options['header']): ?>
-  <div class="checks-header">
-    <table class="checks-header-table">
+  <div class="verify-header">
+    <table class="verify-header-table">
       <tr>
         <td class="liberfor-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_liberfor.jpg" /></td>
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="checks-title"><?php echo SGS::$form_data_type[$form_type]; ?> Check Report</div>
+    <div class="verify-title"><?php echo SGS::$form_verification_type[$form_type]; ?> Check Report</div>
     <?php if ($options['subtitle']): ?>
-    <div class="checks-subtitle"><?php echo $options['subtitle']; ?></div>
+    <div class="verify-subtitle"><?php echo $options['subtitle']; ?></div>
     <?php endif; ?>
   </div>
   <?php endif; ?>
 
   <?php if ($options['info']): ?>
-  <div class="checks-info">
-    <table class="checks-info-table">
+  <div class="verify-info">
+    <table class="verify-info-table">
       <tr>
         <td class="label">Operator:</td>
         <td><?php if ($operator) echo $operator->name; ?></td>
@@ -339,113 +340,230 @@ $num = $cntr;
   <?php endif; ?>
 
   <?php if ($options['summary']): ?>
-  <div class="checks-summary">
-    <table class="<?php echo SGS::render_classes($classes); ?> checks-summary-table">
-      <?php if ($checks): ?>
-      <?php foreach ($checks as $type => $info): ?>
+  <div class="verify-summary">
+    <?php
+      $model = ORM::factory($form_type);
+
+      $total_records    = $report['total']['records'];
+      $total_declared   = $report['total']['declared'];
+      $total_inspected  = $report['total']['inspected'];
+      $total_verified   = $report['total']['verified'];
+      $total_unverified = $report['total']['unverified'];
+      $total_accurate   = $report['total']['accurate'];
+      $total_inaccurate = $report['total']['inaccurate'];
+
+      $declaration_percentage  = $total_accurate ? floor($total_accurate * 100 / $total_inspected) : 100;
+      $verification_percentage = $total_declared ? floor($total_records * 100 / ($total_declared + $total_inspected - $total_records)) : 100;
+    ?>
+
+    <?php if ($info = $checks[$type = 'declaration']): ?>
+    <table class="<?php echo SGS::render_classes($classes); ?> verify-summary-table">
       <tr class="head">
-        <td colspan="2"><?php print $info['title']; ?></td>
-        <td class="check-info">Total<br />Records</td>
-        <td class="check-info">Total<br />Checked</td>
-        <td class="check-info">Total<br />Passed</td>
-        <td class="check-info">Total<br />Warnings</td>
-        <td class="check-info">Total<br />Failed</td>
-        <td class="check-info">Pass<br />Rate</td>
+        <td colspan="2">Declaration Performance</td>
+        <td class="check-info">Inspected</td>
+        <td class="check-info">Found</td>
+        <td class="check-info">Verified</td>
+        <td class="check-info">Accurate</td>
+        <td class="check-info">Accuracy Rate</td>
       </tr>
       <?php foreach ($info['checks'] as $check => $array): ?>
-      <?php
-        $records = $report['total']['records'] ?: 0;
-        $checked = $report['checks'][$type][$check]['checked'] ?: 0;
-        $passed  = $report['checks'][$type][$check]['passed'] ?: 0;
-        $failed  = $report['checks'][$type][$check]['failed'] ?: 0;
-        $warned  = $report['checks'][$type][$check]['warned'] ?: 0;
-        $percentage = $checked ? floor($passed * 100 / $checked) : 100;
-      ?>
       <tr>
         <td class="status">
-          <?php if ($percentage < 100): ?>
-          <div class="error">Failed</div>
-
-          <?php elseif ($warned): ?>
-          <div class="warning">Warned</div>
-
+          <?php if ($declaration_percentage < 80): ?>
+          <div class="error">Inaccurate</div>
           <?php else: ?>
-          <div class="success">Passed</div>
+          <div class="success">Accurate</div>
           <?php endif; ?>
         </td>
         <td class="check-desc"><?php print $array['title']; ?></td>
-        <td class="check-info"><?php print $records; ?></td>
-        <td class="check-info"><?php print $checked; ?></td>
-        <td class="check-info"><span class="accepted"><?php print $passed; ?></span></td>
-        <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>
-        <td class="check-info"><span class="rejected"><?php print $failed; ?></span></td>
-        <td class="check-info"><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
+        <td class="check-info"><?php print $total_inspected; ?></td>
+        <td class="check-info"><?php print $total_records; ?></td>
+        <td class="check-info"><?php print $total_verified; ?></td>
+        <td class="check-info"><?php print $total_accurate; ?></td>
+        <td class="check-info"><span class="<?php print $declaration_percentage >= 80 ? 'accepted' : 'rejected'; ?>"><?php print $declaration_percentage; ?>%</span></td>
       </tr>
       <?php endforeach; ?>
-      <tr>
-        <td colspan="8" class="blank-slim">&nbsp;</td>
-      </tr>
-      <?php endforeach; ?>
-      <?php endif; ?>
+    </table>
+    <?php endif; ?>
+
+    <?php if ($info = $checks[$type = 'verification']): ?>
+    <table class="<?php echo SGS::render_classes($classes); ?> verify-summary-table">
       <tr class="head">
-        <td colspan="2">Summary</td>
-        <td class="check-info">Total<br />Records</td>
-        <td class="check-info">Total<br />Checked</td>
-        <td class="check-info">Total<br />Passed</td>
-        <td class="check-info">Total<br />Warnings</td>
-        <td class="check-info">Total<br />Failed</td>
-        <td class="check-info">Pass<br />Rate</td>
+        <td colspan="2">Verification Performance</td>
+        <td class="check-info">Declared</td>
+        <td class="check-info">Inspected</td>
+        <td class="check-info">Found</td>
+        <td class="check-info">Not Found</td>
+        <td class="check-info">Inspection Rate</td>
       </tr>
+      <?php foreach ($info['checks'] as $check => $array): ?>
+      <tr>
+        <td class="status">
+          <?php if ($verification_percentage < $model::$target_percentage): ?>
+          <div class="error">Inaccurate</div>
+          <?php else: ?>
+          <div class="success">Accurate</div>
+          <?php endif; ?>
+        </td>
+        <td class="check-desc"><?php print $array['title']; ?></td>
+        <td class="check-info"><?php print $total_declared; ?></td>
+        <td class="check-info"><?php print $total_inspected; ?></td>
+        <td class="check-info"><?php print $total_records; ?></td>
+        <td class="check-info"><?php print $total_inspected - $total_records; ?></td>
+        <td class="check-info"><span class="<?php print $verification_percentage >= $model::$target_percentage ? 'accepted' : 'rejected'; ?>"><?php print $verification_percentage; ?>%</span></td>
+      </tr>
+      <?php endforeach; ?>
+    </table>
+    <?php endif; ?>
+
+    <?php if ($info = $checks[$type = 'variance']): ?>
+    <table class="<?php echo SGS::render_classes($classes); ?> verify-summary-table">
+      <tr class="head">
+        <td colspan="4">Variance</td>
+        <td class="check-info">Declared</td>
+        <td class="check-info">Inspected</td>
+        <td class="check-info">Difference</td>
+      </tr>
+      <?php foreach ($info['checks'] as $check => $array): ?>
       <?php
-        $records = $report['total']['records'] ?: 0;
-        $checked = $report['total']['checked'] ?: 0;
-        $passed  = $report['total']['passed'] ?: 0;
-        $failed  = $report['total']['failed'] ?: 0;
-        $warned  = $report['total']['warned'] ?: 0;
-        $percentage = $checked ? floor($passed * 100 / $checked) : 100;
+        $field = str_replace('is_valid_', '', $check);
+
+        $dtotal = $report['variance'][$field]['data']['total'];
+        $dcount = $report['variance'][$field]['data']['count'];
+        $itotal = $report['variance'][$field]['verification']['total'];
+        $icount = $report['variance'][$field]['verification']['count'];
+
+        switch ($field) {
+          case 'diameter':
+            $declared  = SGS::floatify($dcount ? ($dtotal / $dcount) : 0);
+            $inspected = SGS::floatify($icount ? ($itotal / $icount) : 0);
+            $difference = SGS::floatify(abs($declared - $inspected));
+            break;
+
+          case 'length':
+            $declared  = SGS::amountify($dcount ? ($dtotal / $dcount) : 0);
+            $inspected = SGS::amountify($icount ? ($itotal / $icount) : 0);
+            $difference = SGS::amountify(abs($declared - $inspected));
+            break;
+
+          case 'volume':
+            $declared  = SGS::quantitify($dtotal);
+            $inspected = SGS::quantitify($itotal);
+            $difference = SGS::quantitify(abs($declared - $inspected));
+            break;
+        }
+      ?>
+      <tr>
+        <td class="status">
+          <?php if (($inspected ? ($difference / $inspected) : 0) > 0.1): ?>
+          <div class="warning">Warned</div>
+
+          <?php else: ?>
+          <div class="success">Accurate</div>
+          <?php endif; ?>
+        </td>
+        <td class="check-desc" colspan="3"><?php print $array['title']; ?></td>
+        <td class="check-info"><?php print $declared; ?></td>
+        <td class="check-info"><?php print $inspected; ?></td>
+        <td class="check-info"><span class="<?php print ($inspected ? ($difference / $inspected) : 0) <= 0.1 ? 'accepted' : 'rejected'; ?>"><?php print $difference; ?></span></td>
+      </tr>
+      <?php endforeach; ?>
+    </table>
+    <?php endif; ?>
+
+    <?php if ($checks) foreach ($checks as $type => $info): ?>
+    <?php if (in_array($type, array('verification', 'declaration', 'variance'))) continue; ?>
+    <table class="<?php echo SGS::render_classes($classes); ?> verify-summary-table">
+      <tr class="head">
+        <td colspan="2"><?php print $info['title']; ?></td>
+        <td class="check-info">Inspected</td>
+        <td class="check-info">Verified</td>
+        <td class="check-info">Correct</td>
+        <td class="check-info">Incorrect</td>
+        <td class="check-info">Correctness Rate</td>
+      </tr>
+      <?php foreach ($info['checks'] as $check => $array): ?>
+      <?php
+        $records    = $report['checks'][$type][$check]['records'] ?: 0;
+        $accurate   = $report['checks'][$type][$check]['accurate'] ?: 0;
+        $inaccurate = $report['checks'][$type][$check]['inaccurate'] ?: 0;
+        $percentage = $total_inspected ? floor($accurate * 100 / $total_inspected) : 100;
       ?>
       <tr>
         <td class="status">
           <?php if ($percentage < 100): ?>
-          <div class="error">Failed</div>
-
-          <?php elseif ($warned): ?>
-          <div class="warning">Warned</div>
-
+          <div class="error">Inaccurate</div>
           <?php else: ?>
-          <div class="success">Passed</div>
+          <div class="success">Accurate</div>
+          <?php endif; ?>
+        </td>
+        <td class="check-desc"><?php print $array['title']; ?></td>
+        <td class="check-info"><?php print $total_inspected; ?></td>
+        <td class="check-info"><?php print $records; ?></td>
+        <td class="check-info"><span class="accepted"><?php print $accurate; ?></span></td>
+        <td class="check-info"><span class="rejected"><?php print $inaccurate; ?></span></td>
+        <td class="check-info"><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
+      </tr>
+      <?php endforeach; ?>
+    </table>
+    <?php endforeach; ?>
+
+    <?php if ($options['summary_total']): ?>
+    <table class="<?php echo SGS::render_classes($classes); ?> verify-summary-table">
+      <tr class="head">
+        <td colspan="2">Total</td>
+        <td class="check-info">Inspected</td>
+        <td class="check-info">Verified</td>
+        <td class="check-info">Correct</td>
+        <td class="check-info">Incorrect</td>
+        <td class="check-info">Correctness Rate</td>
+      </tr>
+      <?php
+        $records = $report['total']['records'] ?: 0;
+        $accurate  = $report['total']['accurate'] ?: 0;
+        $inaccurate  = $report['total']['inaccurate'] ?: 0;
+        $percentage = $verified ? floor($accurate * 100 / $records) : 100;
+      ?>
+      <tr>
+        <td class="status">
+          <?php if ($percentage < 5): ?>
+          <div class="error">Inaccurate</div>
+          <?php else: ?>
+          <div class="success">Accurate</div>
           <?php endif; ?>
         </td>
         <td class="check-desc">Total</td>
+        <td class="check-info"><?php print $total_inspected; ?></td>
         <td class="check-info"><?php print $records; ?></td>
-        <td class="check-info"><?php print $checked; ?></td>
-        <td class="check-info"><span class="accepted"><?php print $passed; ?></span></td>
-        <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>
-        <td class="check-info"><span class="rejected"><?php print $failed; ?></span></td>
+        <td class="check-info"><span class="accepted"><?php print $accurate; ?></span></td>
+        <td class="check-info"><span class="rejected"><?php print $inaccurate; ?></span></td>
         <td class="check-info"><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
       </tr>
     </table>
+    <?php endif; ?>
+
   </div>
   <?php endif; ?>
 
   <?php if ($options['details']): ?>
-  <div class="checks-details">
-    <table class="checks-details-table">
-      <?php if ($data): $chks = $checks; unset($chks['traceability']); ?>
-      <?php /* if ($options['title']): ?>
+  <div class="verify-details">
+    <table class="verify-details-table">
+      <?php if ($data): ?>
+      <?php
+        $chks = $checks;
+        unset($chks['verification']);
+        unset($chks['declaration']);
+        unset($chks['variance']);
+      ?>
       <tr class="head">
-        <td class="title" colspan="<?php foreach ($chks as $chk) foreach ($chk['checks'] as $ck) $cnt++; echo (($cnt + 1) * 3); ?>"><?php echo $options['title']; ?></td>
-      </tr>
-      <?php endif; */ ?>
-      <tr class="head">
-        <td class="check-type traceability" colspan="3">Traceability</td>
+        <td class="check-type inspection" colspan="3">Inspection</td>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $ck): ?>
         <td class="check-type" colspan="3"><?php echo $ck['name']; ?></td>
         <?php endforeach; ?>
       </tr>
       <tr class="head">
-        <td class="barcode" colspan="2">Barcode</td>
-        <td class="barcode">Parent Barcode</td>
+        <td class="barcode" colspan="2">Verification Barcode</td>
+        <td class="barcode">Declaration Barcode</td>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="value" colspan="2">Value</td>
         <td class="comparison">Comp</td>
@@ -459,25 +577,18 @@ $num = $cntr;
       ?>
       <tr class="<?php print SGS::odd_even($odd); ?>">
         <td class="status">
-          <?php if (in_array('is_valid_parent', array_keys($errors))): ?>
+          <?php if (in_array('is_existing_data', array_keys($errors)) or in_array('is_existing_verification', array_keys($errors))): ?>
           <div class="error">F</div>
 
-          <?php elseif (in_array('is_valid_parent', array_keys($warnings))): ?>
+          <?php elseif (in_array('is_existing_data', array_keys($warnings)) or in_array('is_existing_verification', array_keys($warnings))): ?>
           <div class="warning">W</div>
 
           <?php else: ?>
           <div class="success">P</div>
           <?php endif; ?>
         </td>
-        <td class="barcode value"><?php echo $record->barcode->barcode; ?></td>
-        <td class="barcode comparison">
-          <?php
-            if ($form_type == 'SSF') echo 'N/A';
-            else if ($form_type == 'TDF') echo $record->tree_barcode->barcode;
-            else if ($form_type == 'LDF') echo $record->parent_barcode->barcode;
-            else if ($form_type == 'SPECS') echo $record->barcode->barcode;
-          ?>
-        </td>
+        <td class="barcode value"><?php echo $record->verification()->barcode->barcode; ?></td>
+        <td class="barcode comparison"><?php echo $record->data()->barcode->barcode; ?></td>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="status">
           <?php if (in_array($kck, array_keys($errors))): ?>
@@ -490,14 +601,14 @@ $num = $cntr;
           <div class="success">P</div>
           <?php endif; ?>
         </td>
-        <td class="value"><?php echo $errors[$kck]['value'] ?: $warnings[$kck]['value'] ?: $successes[$kck]['value']; ?> </td>
-        <td class="comparison"><?php echo $errors[$kck]['comparison'] ?: $warnings[$kck]['comparison'] ?: $successes[$kck]['comparison']; ?> </td>
+        <td class="value"><?php echo $errors[$kck]['value'] ?: $warnings[$kck]['value'] ?: $successes[$kck]['value'] ?: ' - '; ?> </td>
+        <td class="comparison"><?php echo $errors[$kck]['comparison'] ?: $warnings[$kck]['comparison'] ?: $successes[$kck]['comparison'] ?: ' - '; ?> </td>
         <?php endforeach; ?>
       </tr>
       <?php endforeach; ?>
-      <?php endif; ?>
     </table>
   </div>
+  <?php endif; ?>
   <?php endif; ?>
 
   <?php if ($options['footer']): ?>
@@ -535,47 +646,47 @@ $num = $cntr;
       height: 22px;
     }
 
-    .checks-footer {
+    .verify-footer {
       margin: 0 25px;
     }
 
-    .checks-footer-table {
+    .verify-footer-table {
       margin-top: 0;
       width: 100%;
       border-collapse: collapse;
     }
 
-    .checks-footer-table tr td.date,
-    .checks-footer-table tr td.info,
-    .checks-footer-table tr td.pageinfo {
+    .verify-footer-table tr td.date,
+    .verify-footer-table tr td.info,
+    .verify-footer-table tr td.pageinfo {
       vertical-align: bottom;
       white-space: nowrap;
     }
 
-    .checks-footer-table tr td.date,
-    .checks-footer-table tr td.pageinfo {
+    .verify-footer-table tr td.date,
+    .verify-footer-table tr td.pageinfo {
       width: 120px;
     }
 
-    .checks-footer-table tr td.date {
+    .verify-footer-table tr td.date {
       text-align: left;
     }
 
-    .checks-footer-table tr td.info {
+    .verify-footer-table tr td.info {
       text-align: center;
     }
 
-    .checks-footer-table tr td.pageinfo {
+    .verify-footer-table tr td.pageinfo {
       text-align: right;
       position: relative;
     }
 
-    .checks-footer-table tr td.pageinfo .ref {
+    .verify-footer-table tr td.pageinfo .ref {
       margin-bottom: 12px;
     }
   </style>
-  <div class="checks-footer">
-    <table class="checks-footer-table">
+  <div class="verify-footer">
+    <table class="verify-footer-table">
       <tr>
         <td class="date"><?php echo SGS::date('now', SGS::PRETTY_DATE_FORMAT); ?></td>
         <td class="info">

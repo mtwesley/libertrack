@@ -345,11 +345,11 @@ $num = $cntr;
       <?php foreach ($checks as $type => $info): ?>
       <tr class="head">
         <td colspan="2"><?php print $info['title']; ?></td>
-        <td class="check-info">Total<br />Records</td>
-        <td class="check-info">Total<br />Checked</td>
-        <td class="check-info">Total<br />Passed</td>
-        <td class="check-info">Total<br />Warnings</td>
-        <td class="check-info">Total<br />Failed</td>
+        <td class="check-info">Records</td>
+        <td class="check-info">Checked</td>
+        <td class="check-info">Passed</td>
+        <td class="check-info">Warnings</td>
+        <td class="check-info">Failed</td>
         <td class="check-info">Pass<br />Rate</td>
       </tr>
       <?php foreach ($info['checks'] as $check => $array): ?>
@@ -389,11 +389,11 @@ $num = $cntr;
       <?php endif; ?>
       <tr class="head">
         <td colspan="2">Summary</td>
-        <td class="check-info">Total<br />Records</td>
-        <td class="check-info">Total<br />Checked</td>
-        <td class="check-info">Total<br />Passed</td>
-        <td class="check-info">Total<br />Warnings</td>
-        <td class="check-info">Total<br />Failed</td>
+        <td class="check-info">Records</td>
+        <td class="check-info">Checked</td>
+        <td class="check-info">Passed</td>
+        <td class="check-info">Warnings</td>
+        <td class="check-info">Failed</td>
         <td class="check-info">Pass<br />Rate</td>
       </tr>
       <?php
@@ -431,12 +431,11 @@ $num = $cntr;
   <?php if ($options['details']): ?>
   <div class="checks-details">
     <table class="checks-details-table">
-      <?php if ($data): $chks = $checks; unset($chks['traceability']); ?>
-      <?php /* if ($options['title']): ?>
-      <tr class="head">
-        <td class="title" colspan="<?php foreach ($chks as $chk) foreach ($chk['checks'] as $ck) $cnt++; echo (($cnt + 1) * 3); ?>"><?php echo $options['title']; ?></td>
-      </tr>
-      <?php endif; */ ?>
+      <?php if ($data): ?>
+      <?php
+        $chks = $checks;
+        unset($chks['traceability']);
+      ?>
       <tr class="head">
         <td class="check-type traceability" colspan="3">Traceability</td>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $ck): ?>
@@ -444,8 +443,18 @@ $num = $cntr;
         <?php endforeach; ?>
       </tr>
       <tr class="head">
+        <?php if ($form_type == 'SSF'): ?>
+        <td class="barcode" colspan="3">Tree Barcode</td>
+        <?php elseif ($form_type == 'TDF'): ?>
+        <td class="barcode" colspan="2">Felled Tree Barcode</td>
+        <td class="barcode">Tree Barcode</td>
+        <?php elseif ($form_type == 'LDF'): ?>
         <td class="barcode" colspan="2">Barcode</td>
         <td class="barcode">Parent Barcode</td>
+        <?php elseif ($form_type == 'SPECS'): ?>
+        <td class="barcode" colspan="2">Barcode</td>
+        <td class="barcode">Log Barcode</td>
+        <?php endif; ?>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="value" colspan="2">Value</td>
         <td class="comparison">Comp</td>
@@ -469,6 +478,9 @@ $num = $cntr;
           <div class="success">P</div>
           <?php endif; ?>
         </td>
+        <?php if ($form_type == 'SSF'): ?>
+        <td class="barcode value" colspan="2"><?php echo $record->barcode->barcode; ?></td>
+        <?php else: ?>
         <td class="barcode value"><?php echo $record->barcode->barcode; ?></td>
         <td class="barcode comparison">
           <?php
@@ -478,6 +490,7 @@ $num = $cntr;
             else if ($form_type == 'SPECS') echo $record->barcode->barcode;
           ?>
         </td>
+        <?php endif; ?>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="status">
           <?php if (!in_array($kck, array_keys($errors + $warnings + $successes))): $sts = 'U'; ?>
@@ -493,8 +506,8 @@ $num = $cntr;
           <div class="success">P</div>
           <?php endif; ?>
         </td>
-        <td class="value"><?php echo $errors[$kck]['value'] ?: $warnings[$kck]['value'] ?: $successes[$kck]['value']; ?> </td>
-        <td class="comparison"><?php echo $errors[$kck]['comparison'] ?: $warnings[$kck]['comparison'] ?: $successes[$kck]['comparison']; ?> </td>
+        <td class="value"><?php echo $errors[$kck]['value'] ?: $warnings[$kck]['value'] ?: $successes[$kck]['value'] ?: ' - '; ?> </td>
+        <td class="comparison"><?php echo $errors[$kck]['comparison'] ?: $warnings[$kck]['comparison'] ?: $successes[$kck]['comparison'] ?: ' - '; ?> </td>
         <?php endforeach; ?>
       </tr>
       <?php endforeach; ?>
