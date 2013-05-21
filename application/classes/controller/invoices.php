@@ -364,12 +364,14 @@ class Controller_Invoices extends Controller {
         $payment->number  = $form->number->val();
         $payment->amount  = $form->amount->val();
         $payment->save();
-        Notify::msg('Payment successfully added.', 'success');
+        Notify::msg('Payment successfully added.', 'success', TRUE);
+        $this->request->redirect('invoices/'.$invoice->id.'/payment');
       } catch (Database_Exception $e) {
-        Notify::msg('Sorry, unable to add invoice payment due to incorrect or missing input. Please try again.', 'error');
+        Notify::msg('Sorry, unable to add invoice payment due to incorrect or missing input. Please try again.', 'error', TRUE);
       } catch (Exception $e) {
-        Notify::msg('Sorry, invoice payment failed to be saved. Please try again.', 'error');
+        Notify::msg('Sorry, invoice payment failed to be saved. Please try again.', 'error', TRUE);
       }
+      $this->request->redirect('invoices/'.$invoice->id.'/payment');
     }
 
     $table = View::factory('invoices')
