@@ -364,8 +364,7 @@ class Controller_Invoices extends Controller {
         $payment->number  = $form->number->val();
         $payment->amount  = $form->amount->val();
         $payment->save();
-        Notify::msg('Payment successfully added.', 'success', TRUE);
-        $this->request->redirect('invoices/'.$invoice->id);
+        Notify::msg('Payment successfully added.', 'success');
       } catch (Database_Exception $e) {
         Notify::msg('Sorry, unable to add invoice payment due to incorrect or missing input. Please try again.', 'error');
       } catch (Exception $e) {
@@ -447,15 +446,15 @@ class Controller_Invoices extends Controller {
       if (!$ledger_payments[$key]) $no_payment[] = $key;
       else if (SGS::amountify(abs($ledger_payments[$key])) !== SGS::amountify(abs($default_payments[$key]))) $bad_payment = $key;
 
-    foreach ($ledger_payments as $key => $value)
-      if (!$default_payments[$key]) $no_payment[] = $key;
-      else if (SGS::amountify(abs($default_payments[$key])) !== SGS::amountify(abs($ledger_payments[$key]))) $bad_payment = $key;
+//    foreach ($ledger_payments as $key => $value)
+//      if (!$default_payments[$key]) $no_payment[] = $key;
+//      else if (SGS::amountify(abs($default_payments[$key])) !== SGS::amountify(abs($ledger_payments[$key]))) $bad_payment = $key;
 
-    foreach ($default_payments as $amt) $default_amount += abs($amt);
+//    foreach ($default_payments as $amt) $default_amount += abs($amt);
     foreach ($ledger_payments as $amt) $ledger_amount += abs($amt);
 
-    if (($default_amount != $amount) or ($ledger_amount != $amount) or
-        (count($default_payments) != count($ledger_payments))) $no_payment[] = TRUE;
+    if (/* ($default_amount != $amount) or */ ($ledger_amount != $amount) /* or
+        (count($default_payments) != count($ledger_payments)) */) $no_payment[] = TRUE;
 
     if ($no_payment) Notify::msg('Missing payment information.', 'error', TRUE);
     if ($bad_payment) Notify::msg('Invalid payment information.', 'error', TRUE);
