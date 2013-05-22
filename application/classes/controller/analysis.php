@@ -1706,8 +1706,8 @@ class Controller_Analysis extends Controller {
       else $data_ids->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       if ($errors) {
-        foreach ($model::$checks as $type => $info) if (in_array($type, $errors))
-          foreach ($info['checks'] as $check => $array) $checks[] = $check;
+        foreach ($model::$checks as $typ => $inf) if (in_array($typ, $errors))
+          foreach ($inf['checks'] as $check => $array) $checks[] = $check;
 
         if ($checks) $data_ids->join('checks')
           ->distinct(TRUE)
