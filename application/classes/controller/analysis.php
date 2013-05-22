@@ -726,6 +726,8 @@ class Controller_Analysis extends Controller {
   }
 
   private function handle_data_edit($form_type, $id) {
+    return $this->response->status(401);
+
     $item = ORM::factory($form_type, $id);
 
     $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
@@ -1709,7 +1711,7 @@ class Controller_Analysis extends Controller {
 
         if ($checks) $data_ids->join('checks')
           ->distinct(TRUE)
-          ->on(strtolower($form_type).'.id', '=', 'checks.form_data_id')
+          ->on($model->table_name().'.id', '=', 'checks.form_data_id')
           ->on('checks.form_type', '=', DB::expr("'".$form_type."'"))
           ->and_where_open()
             ->and_where('checks.check', 'IN', (array) $checks)

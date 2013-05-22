@@ -34,6 +34,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_data() {
+    return $this->response->status(401);
     if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
 
     $vars    = explode('-', $this->request->post('id'));
