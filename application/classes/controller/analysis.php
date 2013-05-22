@@ -1696,7 +1696,7 @@ class Controller_Analysis extends Controller {
       $errors = $form->errors->val();
       $type   = $form->type->val();
 
-      $data_ids = DB::select('id')->from($model->table_name());
+      $data_ids = DB::select($model->table_name().'.id')->from($model->table_name());
 
       if ($has_site_id and $site_id) $data_ids->where('site_id', 'IN', (array) $site_id);
       else $data_ids->where('operator_id', 'IN', (array) $operator_id);
