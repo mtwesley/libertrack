@@ -4,13 +4,14 @@ if ($block and !$site) $site = $block->site;
 if ($site  and !$operator) $operator = $site->operator;
 
 $options = (array) $options + array(
-  'table'   => TRUE,
-  'rows'    => TRUE,
-  'details' => TRUE,
-  'links'   => TRUE,
-  'actions' => FALSE,
-  'resolve' => FALSE,
-  'header'  => $site or $operator ? TRUE : FALSE,
+  'table'    => TRUE,
+  'rows'     => TRUE,
+  'details'  => TRUE,
+  'links'    => TRUE,
+  'actions'  => FALSE,
+  'resolve'  => FALSE,
+  'header'   => $site or $operator ? TRUE : FALSE,
+  'dropdown' => TRUE,
   'hide_hidden_info' => TRUE,
   'hide_header_info' => FALSE,
   'hide_upload_info' => TRUE,
@@ -118,8 +119,10 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
     <th class="<?php echo $hidden_column ? 'hide' : ''; ?>"><?php echo $name; ?></th>
     <?php endforeach; ?>
     <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Uploaded By</th>
-    <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Uploaded Date and Time</th>
+    <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Date and Time</th>
+    <?php if ($options['dropdown']): ?>
     <th class="links"></th>
+    <?php endif; ?>
   </tr>
 <?php endif; // table ?>
   <?php foreach ($csvs as $csv): ?>
@@ -189,6 +192,7 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
     <?php endforeach; ?>
     <td class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>"><?php echo ORM::factory('user', $csv->user_id)->name; ?></td>
     <td class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>"><?php echo SGS::datetime($csv->timestamp); ?></td>
+    <?php if ($options['dropdown']): ?>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>
@@ -212,6 +216,7 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
         </div>
       </div>
     </td>
+    <?php endif; ?>
   </tr>
   <?php endif; // rows ?>
   <?php if ($options['details']): ?>

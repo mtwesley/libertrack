@@ -716,7 +716,7 @@ class Controller_Analysis extends Controller {
       ->set('operator', (isset($item->operator) and $item->operator->loaded()) ? $item->operator : NULL)
       ->set('site', (isset($item->site) and $item->site->loaded()) ? $item->site : NULL)
       ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
-      ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE, 'links' => FALSE))
+      ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE, 'hide_upload_info' => FALSE, 'links' => FALSE, 'dropdown' => FALSE))
       ->render();
 
     $content .= $table;

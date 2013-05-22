@@ -731,7 +731,7 @@ class Controller_Verification extends Controller {
       ->set('operator', $csv->operator->loaded() ? $csv->operator : NULL)
       ->set('site', $csv->site->loaded() ? $csv->site : NULL)
       ->set('block', $csv->block->loaded() ? $csv->block : NULL)
-      ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE, 'links' => FALSE))
+      ->set('options', array('header' => FALSE, 'hide_header_info' => TRUE, 'hide_upload_info' => FALSE, 'links' => FALSE, 'dropdown' => FALSE))
       ->render();
 
     $content .= $table;

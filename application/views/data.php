@@ -3,12 +3,13 @@ if ($block and !$site) $site = $block->site;
 if ($site  and !$operator) $operator = $site->operator;
 
 $options = (array) $options + array(
-  'table'   => TRUE,
-  'rows'    => TRUE,
-  'details' => TRUE,
-  'links'   => TRUE,
-  'actions' => FALSE,
-  'header'  => ($site or $operator or $specs_info or $exp_info) ? TRUE : FALSE,
+  'table'    => TRUE,
+  'rows'     => TRUE,
+  'details'  => TRUE,
+  'links'    => TRUE,
+  'actions'  => FALSE,
+  'dropdown' => TRUE,
+  'header'   => ($site or $operator or $specs_info or $exp_info) ? TRUE : FALSE,
   'hide_hidden_info' => TRUE,
   'hide_header_info' => FALSE,
   'hide_upload_info' => TRUE,
@@ -118,8 +119,10 @@ $classes[] = 'data';
     <th class="<?php echo $hidden_column ? 'hide' : ''; ?>"> <?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => $field)), $name); ?></th>
     <?php endforeach; ?>
     <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Uploaded By</th>
-    <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Uploaded Date and Time</th>
+    <th class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>">Date and Time</th>
+    <?php if ($options['dropdown']): ?>
     <th class="links"></th>
+    <?php endif; ?>
   </tr>
 <?php endif; // table ?>
   <?php foreach ($data as $record): ?>
@@ -245,6 +248,7 @@ $classes[] = 'data';
     <?php endforeach; ?>
     <td class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>"><?php echo ORM::factory('user', $record->user_id)->name; ?></td>
     <td class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>"><?php echo SGS::datetime($record->timestamp); ?></td>
+    <?php if ($options['dropdown']): ?>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>
@@ -270,6 +274,7 @@ $classes[] = 'data';
         </div>
       </div>
     </td>
+    <?php endif; ?>
   </tr>
   <?php endif; // rows ?>
   <?php if ($options['details']): ?>
