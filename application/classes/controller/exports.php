@@ -1031,14 +1031,14 @@ VALIDATION: $secret";
 
     // general info
 
-    $format   = '%3.3s%17.17s%10.10s%10.10s%9.9s%20.20s%3.3s %1.1s%2.2s%3.3s';
+    $format   = '%3.3s%17.17s%10.10s%10.10s%9.9s%20.20s%3.3s%1.1s%2.2s%3.3s';
 
     $flag_sgs = 'EB1';
     $num_sgs  = 'LRBUC110079760011'; // TODO: what is this number?
     $date_sgs = SGS::date($document->created_date, SGS::US_DATE_CORRECT_FORMAT);
     $dec_cod  = '';
-    $exp_cod  = '0522743H'; // SAMPLE
-    $bol_number   = 'MSCURM918564'; // SAMPLE
+    $exp_cod  = '400065004'; // SAMPLE
+    $bol_number   = ''; // SAMPLE
     $cod_currency = 'USD';
     $mot_cod  = 'S';
     $cty_exp  = 'US'; // SAMPLE
@@ -1070,10 +1070,10 @@ VALIDATION: $secret";
       $line_number++;
       $hs_code = '70511000000'; // SAMPLE
       $quantity = str_pad($info['count'], 8, '0', STR_PAD_LEFT);
-      $sta_unit = '';
+      $sta_unit = str_pad('', 2, '0', STR_PAD_LEFT);
       $fob_value = str_pad(number_format($info['fob_price'], 2, ',', ''), 15, '0', STR_PAD_LEFT);
-      $freight_value = str_pad('', 15, '0', STR_PAD_LEFT);
-      $unit_price = str_pad('', 15, '0', STR_PAD_LEFT);
+      $freight_value = str_pad(number_format('', 2, ',', ''), 15, '0', STR_PAD_LEFT);
+      $unit_price = str_pad(number_format('', 2, ',', ''), 15, '0', STR_PAD_LEFT);
       $cty_origine_code = 'LR'; // SAMPLE
       $tax_rat = str_pad('', 3, '0', STR_PAD_LEFT);
       $species_class = $info['species_class'];
@@ -1111,7 +1111,7 @@ VALIDATION: $secret";
       $d3 = str_pad($info['top_max'], 3, '0', STR_PAD_LEFT);
       $d4 = str_pad($info['top_min'], 3, '0', STR_PAD_LEFT);
       $length = str_pad(number_format($info['length'], 2, ',', ''), 6, '0', STR_PAD_LEFT);
-      $atibt = $info['grade'];
+      $atibt = '4444'; // SAMPLE
       $volume = str_pad(number_format($info['volume'], 3, ',', ''), 7, '0', STR_PAD_LEFT);
 
       $text .= "\n".sprintf($format, $flag_log, $num_log, $log_id, $species_code, $d1,$d2, $d3, $d4, $length, $atibt, $volume);

@@ -318,6 +318,7 @@ class SGS {
     'MOFV'   => 'Mill Output Verification',
     'SPECS'  => 'Shipping Specification',
 //    'SPECSV' => 'Shipping Specification Verification',
+    'WB'     => 'Waybill',
     'EXP'    => 'Export Permit',
     'CHECKS' => 'Checks and Queries Report',
     'INV'    => 'Invoice',
@@ -352,6 +353,7 @@ class SGS {
 //    'MIF'   => 'Mill Input Form',
 //    'MOF'   => 'Mill Output Form',
     'SPECS' => 'Shipping Specification Form',
+    'WB'    => 'Waybill',
   );
 
   public static $form_verification_type = array(
@@ -371,7 +373,8 @@ class SGS {
     'L' => 'Log',
     'R' => 'Sawnmill Timber',
     'H' => 'Shipment Specification',
-    'E' => 'Export Permit'
+    'E' => 'Export Permit',
+    'W' => 'Waybill',
   );
 
   public static $invoice_type = array(

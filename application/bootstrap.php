@@ -114,10 +114,10 @@ Kohana::modules(array(
 	'snappy'       => MODPATH.'snappy',       // PDF library
 	'image'        => MODPATH.'image',        // Image manipulation
 	// 'unittest'  => MODPATH.'unittest',     // Unit testing
-	'userguide'    => MODPATH.'userguide',    // User guide and API documentation
   'formo'        => MODPATH.'formo',        // Object-based form handling
   'notify'       => MODPATH.'notify',       // Message notification system
-  'pagination'   => MODPATH.'pagination'    // Simple breadcrumbs navigation
+  'pagination'   => MODPATH.'pagination',    // Simple breadcrumbs navigation
+	'userguide'    => MODPATH.'userguide',    // User guide and API documentation
 	));
 
 /**

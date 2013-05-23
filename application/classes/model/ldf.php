@@ -200,16 +200,17 @@ class Model_LDF extends SGS_Form_ORM {
 
   public function formo() {
     $array = array(
-      'id'             => array('render' => FALSE),
-      'create_date'    => array('order' => 0, 'attr' => array('class' => 'dpicker')),
-      'barcode'        => array('render' => FALSE),
-      'parent_barcode' => array('render' => FALSE),
-      'operator'       => array('render' => FALSE),
-      'site'           => array('render' => FALSE),
-      'status'         => array('render' => FALSE),
-      'user'           => array('render' => FALSE),
-      'timestamp'      => array('render' => FALSE),
-      'species'        => array(
+      'id'              => array('render' => FALSE),
+      'create_date'     => array('order' => 0, 'attr' => array('class' => 'dpicker')),
+      'barcode'         => array('render' => FALSE),
+      'parent_barcode'  => array('render' => FALSE),
+      'operator'        => array('render' => FALSE),
+      'site'            => array('render' => FALSE),
+      'original_volume' => array('render' => FALSE),
+      'status'          => array('render' => FALSE),
+      'user'            => array('render' => FALSE),
+      'timestamp'       => array('render' => FALSE),
+      'species'         => array(
         'orm_primary_val' => 'code',
         'label' => 'Species'
       ),

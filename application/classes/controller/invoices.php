@@ -1022,7 +1022,7 @@ class Controller_Invoices extends Controller {
     $summary_signature_page_max = 4;
     $summary_one_page_max       = 5;
     $summary_first_page_max     = 8;
-    $summary_last_page_max      = 12;
+    $summary_last_page_max      = 10;
     $summary_normal_page_max    = 13;
 
     $summary_count = count($summary_data);

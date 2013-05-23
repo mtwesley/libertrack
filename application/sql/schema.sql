@@ -43,7 +43,7 @@ create domain d_file_type as character varying(100);
 
 create domain d_operation as character(1) check (value ~ E'^[UD]$');
 
-create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV|CHECKS|VERIFY|EXP|INV|DOC|PJ|UNKWN)$');
+create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB|SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV|CHECKS|VERIFY|EXP|INV|DOC|PJ|UNKWN)$');
 
 create domain d_species_code as character varying(5) check (value ~ E'^[A-Z]{3,5}$');
 
@@ -57,9 +57,9 @@ create domain d_operator_tin as bigint check (value > 0);
 
 create domain d_survey_line as numeric(2) check ((value > 0) and (value <= 20));
 
-create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS)$');
+create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB)$');
 
-create domain d_form_data_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS)$');
+create domain d_form_data_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB)$');
 
 create domain d_form_verification_type as character varying(6) check (value ~ E'^(SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV)$');
 
@@ -69,7 +69,7 @@ create domain d_grade as character varying(3) check (value ~ E'^(LM|A|AB|B|BC|C|
 
 create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
 
-create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHE]$');
+create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHEW]$');
 
 create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDNESYALZC]$');
 
@@ -840,42 +840,46 @@ create table specs_data (
   constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_specs_barcode_id_fkey foreign key (specs_barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_exp_barcode_id_fkey foreign key (exp_barcode_id) references barcodes (id) on update cascade,
-  constraint specs_data_specs_id_fkey foreign key (specs_id) references specs (id) on update cascade on delete set null,
   constraint specs_data_exp_id_fkey foreign key (exp_id) references exp (id) on update cascade on delete set null,
   constraint specs_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
   constraint specs_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
-  constraint specs_data_specs_check check (specs_id is not null or specs_barcode_id is not null),
-  constraint specs_data_exp_check check (exp_id is not null or exp_barcode_id is not null),
-
   constraint specs_data_unique_barcode unique(barcode_id,specs_barcode_id)
 );
 
-create table specs_verification (
+create table wb_data (
   id bigserial not null,
-  operator_id d_id not null,
+  log_operator_id d_id not null,
+  transport_operator_id d_id not null,
+  wb_barcode_id d_id not null,
   barcode_id d_id not null,
   species_id d_id not null,
-  top_min d_diameter not null,
-  top_max d_diameter not null,
-  bottom_min d_diameter not null,
-  bottom_max d_diameter not null,
+  diameter d_diameter not null,
   length d_length not null,
   original_volume d_volume not null,
   volume d_volume not null,
-  inspected_by d_text_short,
-  inspection_date d_date not null,
-  inspection_label d_text_short not null,
+  origin d_text_short not null,
+  origin_date d_date not null,
+  destination d_text_short not null,
+  destination_date d_date not null,
+  loading_supervised_by d_text_short,
+  receiving_supervised_by d_text_short,
+  truck_number d_text_short,
+  entered_by d_text_short,
   create_date d_date not null,
   status d_data_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
-  constraint specs_verification_pkey primary key (id),
-  constraint specs_verification_operator_id_fkey foreign key (operator_id) references operators (id) on update cascade,
-  constraint specs_verification_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
-  constraint specs_verification_species_id_fkey foreign key (species_id) references species (id) on update cascade,
-  constraint specs_verification_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint wb_data_pkey primary key (id),
+  constraint wb_data_log_operator_id_fkey foreign key (log_operator_id) references operators (id) on update cascade,
+  constraint wb_data_transport_operator_id_fkey foreign key (transport_operator_id) references operators (id) on update cascade,
+  constraint wb_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
+  constraint wb_data_wb_barcode_id_fkey foreign key (wb_barcode_id) references barcodes (id) on update cascade,
+  constraint wb_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
+  constraint wb_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint wb_data_unique_barcode unique(barcode_id,wb_barcode_id)
 );
 
 create table checks (

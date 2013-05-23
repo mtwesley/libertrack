@@ -154,12 +154,12 @@ class Valid extends Kohana_Valid {
 
   public static function is_operation_type($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^(SSF|TDF|LDF|MIF|MOF|SPECS|EXP|PJ|UNKWN)$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^(SSF|TDF|LDF|MIF|MOF|SPECS|WB|EXP|PJ|UNKWN)$/', (string) $value));
   }
 
   public static function is_form_type($value)
   {
-    return (bool) (self::is_varchar($value, 5) AND preg_match('/^(SSF|TDF|LDF|MIF|MOF|SPECS|EXP)$/', (string) $value));
+    return (bool) (self::is_varchar($value, 5) AND preg_match('/^(SSF|TDF|LDF|MIF|MOF|SPECS|WB|EXP)$/', (string) $value));
   }
 
   public static function is_grade($value)
@@ -175,7 +175,7 @@ class Valid extends Kohana_Valid {
 
   public static function is_barcode_type($value)
   {
-    return (bool) (self::is_char($value) AND preg_match('/^[PTFSLR]$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^[PTFSLRHEW]$/', (string) $value));
   }
 
   public static function is_conversion_factor($value)

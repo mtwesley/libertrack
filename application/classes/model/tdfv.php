@@ -197,16 +197,17 @@ class Model_TDFV extends SGS_Form_ORM {
 
   public function formo() {
     $array = array(
-      'id'            => array('render' => FALSE),
-      'create_date'   => array('order' => 0, 'attr' => array('class' => 'dpicker')),
-      'barcode'       => array('render' => FALSE),
-      'operator'      => array('render' => FALSE),
-      'site'          => array('render' => FALSE),
-      'block'         => array('render' => FALSE),
-      'status'        => array('render' => FALSE),
-      'user'          => array('render' => FALSE),
-      'timestamp'     => array('render' => FALSE),
-      'species'       => array(
+      'id'              => array('render' => FALSE),
+      'create_date'     => array('order' => 0, 'attr' => array('class' => 'dpicker')),
+      'barcode'         => array('render' => FALSE),
+      'operator'        => array('render' => FALSE),
+      'site'            => array('render' => FALSE),
+      'block'           => array('render' => FALSE),
+      'original_volume' => array('render' => FALSE),
+      'status'          => array('render' => FALSE),
+      'user'            => array('render' => FALSE),
+      'timestamp'       => array('render' => FALSE),
+      'species'         => array(
         'orm_primary_val' => 'code',
         'label' => 'Species'
       ),
@@ -395,7 +396,7 @@ class Model_TDFV extends SGS_Form_ORM {
           $type = 'F';
           $query = DB::select('id')
             ->from($this->_table_name)
-            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field], $type, TRUE) ?: NULL);
+            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field], NULL, TRUE) ?: NULL);
 
           if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
           if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);

@@ -363,7 +363,7 @@ class Model_SSFV extends SGS_Form_ORM {
         case 'barcode':
           $query = DB::select('id')
             ->from($this->_table_name)
-            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field], 'T', TRUE) ?: NULL);
+            ->where($field.'_id', '=', SGS::lookup_barcode($values[$field], NULL, TRUE) ?: NULL);
 
           if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
           if ($site_id     = SGS::lookup_site($values['site_name'], TRUE)) $query->and_where('site_id', '=', $site_id);

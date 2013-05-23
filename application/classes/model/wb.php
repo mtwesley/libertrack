@@ -1,81 +1,40 @@
 <?php
 
-class Model_SPECS extends SGS_Form_ORM {
+class Model_WB extends SGS_Form_ORM {
 
   const PARSE_START = 12;
 
-  protected $_table_name = 'specs_data';
+  protected $_table_name = 'wb_data';
 
   protected $_belongs_to = array(
-    'operator' => array(),
+    'log_operator'  => array(
+      'model'       => 'operator',
+      'foreign_key' => 'log_operator_id'
+    ),
+    'transport_operator'  => array(
+      'model'       => 'operator',
+      'foreign_key' => 'transport_operator_id'
+    ),
     'barcode'  => array(),
-    'specs_barcode'  => array(
+    'wb_barcode'  => array(
       'model'       => 'barcode',
-      'foreign_key' => 'specs_barcode_id'),
-    'exp_barcode'  => array(
-      'model'       => 'barcode',
-      'foreign_key' => 'exp_barcode_id'),
+      'foreign_key' => 'wb_barcode_id'),
     'species'  => array(),
     'user'     => array(),
   );
 
-  protected $_ignored_columns = array(
-    'diameter',
-    'specs',
-    'specs_document',
-    'specs_number',
-    'exp',
-    'exp_document',
-    'exp_number'
-  );
+  protected $_ignored_columns = array();
 
   protected function _initialize()
   {
     parent::_initialize();
-    $this->_object_plural = 'specs';
+    $this->_object_plural = 'wb';
   }
 
   public function __get($column) {
     switch ($column) {
-      case 'diameter':
-        return (($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
-
       case 'volume':
         return SGS::volumify(($this->diameter / 100), $this->length);
-
-      case 'specs':
-      case 'specs_document':
-        return ORM::factory('document', DB::select('documents.id')
-          ->from('documents')
-          ->join('document_data')
-          ->on('documents.id', '=', 'document_data.document_id')
-          ->where('documents.type', '=', 'SPECS')
-          ->and_where('document_data.form_type', '=', 'SPECS')
-          ->and_where('document_data.form_data_id', '=', $this->id)
-          ->execute()
-          ->get('id'));
-
-      case 'specs_number':
-        $specs = $this->specs;
-        if ($specs->loaded()) return $specs->number ? 'SPEC '.$specs->number : 'DRAFT';
-        break;
-
-      case 'exp':
-      case 'exp_document':
-        return ORM::factory('document', DB::select('documents.number')
-          ->from('documents')
-          ->join('document_data')
-          ->on('documents.id', '=', 'document_data.document_id')
-          ->where('documents.type', '=', 'SPECS')
-          ->and_where('document_data.form_type', '=', 'EXP')
-          ->and_where('document_data.form_data_id', '=', $this->id)
-          ->execute()
-          ->get('id'));
-
-      case 'exp_number':
-        $exp = $this->exp;
-        if ($exp->loaded()) return $exp->number ? 'EP '.$exp->number : 'DRAFT';
-        break;
 
       default:
         return parent::__get($column);
@@ -109,32 +68,29 @@ class Model_SPECS extends SGS_Form_ORM {
     parent::save($validation);
   }
 
-  public static $type      = 'SPECS';
-  public static $data_type = 'SPECS';
+  public static $type      = 'WB';
+  public static $data_type = 'WB';
   public static $verification_type = 'LDFV';
 
   public static $fields = array(
-    'create_date'     => 'Date',
-    'operator_tin'    => 'Operator TIN',
-    'specs_number'    => 'Shipment Specification Number',
-    'exp_number'      => 'Export Permit Number',
-//    'contract_number' => 'Contract Summary Number',
-    'loading_date'    => 'Expected Loading Date',
-    'buyer'           => 'Buyer',
-    'submitted_by'    => 'Submitted By',
-    'origin'          => 'Port of Origin',
-    'destination'     => 'Port of Destination',
-    'specs_barcode'   => 'Shipment Specification Barcode',
-    'exp_barcode'     => 'Export Permit Barcode',
-    'barcode'         => 'Log Barcode',
-    'species_code'    => 'Species Code',
-    'bottom_max'      => 'Butt Max',
-    'bottom_min'      => 'Butt Min',
-    'top_max'         => 'Top Max',
-    'top_min'         => 'Top Min',
-    'length'          => 'Length',
-    'grade'           => 'Grade',
-    'volume'          => 'Volume',
+    'create_date'      => 'Date',
+    'log_operator_tin' => 'Log Owner TIN',
+    'transport_operator_tin' => 'Transportation Company TIN',
+    'origin'           => 'Port of Origin',
+    'destination'      => 'Port of Destination',
+    'origin_date'      => 'Leaving Date',
+    'destination_date' => 'Arrival Date',
+    'loading_supervised_by' => 'Loading Supervisor',
+    'receiving_supervised_by' => 'Receiving Supervisor',
+    'driver'           => 'Driver',
+    'truck_number'     => 'Truck License Number',
+    'entered_by'       => 'Entered By',
+    'wb_barcode'       => 'Waybill Barcode',
+    'barcode'          => 'Log Barcode',
+    'species_code'     => 'Species Code',
+    'diameter'         => 'Average Diameter',
+    'length'           => 'Length',
+    'volume'           => 'Volume',
   );
 
  public static $checks = array(
@@ -147,26 +103,20 @@ class Model_SPECS extends SGS_Form_ORM {
           'error'   => 'Log barcode assignment is invalid',
           'warning' => 'Log barcode is not yet assigned',
          ),
-        'is_valid_specs_barcode' => array(
-          'name'    => 'Shipment Specification Barcode Assignment',
-          'title'   => 'Shipment specification barcode assignment is valid',
-          'error'   => 'Shipment specification barcode assignment is invalid',
-          'warning' => 'Shipment specification barcode is not yet assigned',
+        'is_valid_wb_barcode' => array(
+          'name'    => 'Waybill Barcode Assignment',
+          'title'   => 'Waybill barcode assignment is valid',
+          'error'   => 'Waybill barcode assignment is invalid',
+          'warning' => 'Waybill barcode is not yet assigned',
          ),
-        'is_valid_exp_barcode' => array(
-          'name'    => 'Export Permit Barcode Assignment',
-          'title'   => 'Export permit barcode assignment is valid',
-          'error'   => 'Export permit barcode assignment is invalid',
-          'warning' => 'Export permit barcode is not yet assigned',
-         )
     )),
     'reliability' => array(
       'title'  => 'Data Reliability',
       'checks' => array(
         'is_consistent_operator' => array(
-          'name'    => 'Operator Assignments',
-          'title'   => 'Operator assignments are consistent',
-          'warning' => 'Operator assignments are inconsistent'
+          'name'    => 'Log Operator Assignments',
+          'title'   => 'Log operator assignments are consistent',
+          'warning' => 'Log operator assignments are inconsistent'
         )
     )),
     'traceability' => array(
@@ -211,21 +161,12 @@ class Model_SPECS extends SGS_Form_ORM {
           'warning' => 'Volume matches LDF record data, but is inaccurate'
         ),
         'is_matching_operator' => array(
-          'name'    => 'Operator',
-          'title'   => 'Operator matches LDF record data',
-          'error'   => 'Operator does not match LDF record data',
-          'warning' => 'Operator does not match LDF record data',
+          'name'    => 'Log Operator',
+          'title'   => 'Log operator matches LDF record data',
+          'error'   => 'Log operator does not match LDF record data',
+          'warning' => 'Log operator does not match LDF record data',
         ),
     )),
-    'payment' => array(
-      'title'  => 'Payment',
-      'checks' => array(
-        'is_invoiced_st' => array(
-          'name'    => 'Stumpage Fee Invoiced',
-          'title'   => 'Stumpage fee invoiced and paid',
-          'error'   => 'Stumpage fee has not been invoiced or paid',
-        ),
-      )),
   );
 
   public static function fields()
@@ -235,19 +176,19 @@ class Model_SPECS extends SGS_Form_ORM {
 
   public function formo() {
     $array = array(
-      'id'              => array('render' => FALSE),
-      'create_date'     => array('order' => 0, 'attr' => array('class' => 'dpicker')),
-      'loading_date'    => array('attr' => array('class' => 'dpicker')),
-      'barcode'         => array('render' => FALSE),
-      'contract_number' => array('render' => FALSE),
-      'specs_barcode'   => array('render' => FALSE),
-      'exp_barcode'     => array('render' => FALSE),
-      'operator'        => array('render' => FALSE),
-      'original_volume' => array('render' => FALSE),
-      'status'          => array('render' => FALSE),
-      'user'            => array('render' => FALSE),
-      'timestamp'       => array('render' => FALSE),
-      'species'         => array(
+      'id'                 => array('render' => FALSE),
+      'create_date'        => array('order' => 0, 'attr' => array('class' => 'dpicker')),
+      'origin_date'        => array('attr' => array('class' => 'dpicker')),
+      'destination_date'   => array('attr' => array('class' => 'dpicker')),
+      'wb_barcode'         => array('render' => FALSE),
+      'barcode'            => array('render' => FALSE),
+      'log_operator'       => array('render' => FALSE),
+      'transport_operator' => array('render' => FALSE),
+      'original_volume'    => array('render' => FALSE),
+      'status'             => array('render' => FALSE),
+      'user'               => array('render' => FALSE),
+      'timestamp'          => array('render' => FALSE),
+      'species'            => array(
         'orm_primary_val' => 'code',
         'label' => 'Species'
       ),
@@ -264,9 +205,6 @@ class Model_SPECS extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
-    extract(SGS::parse_grade(trim($row[J])));
-    extract(SGS::parse_specs_number(trim($csv[2][I] ?: $csv[2][J] ?: $csv[2][K])));
-    extract(SGS::parse_exp_number(trim($csv[3][I] ?: $csv[3][J] ?: $csv[3][K])));
     $data = array(
       'barcode'         => SGS::barcodify(trim($row[B] ?: $row[C])),
       'species_code'    => trim($row[D]),
@@ -286,11 +224,9 @@ class Model_SPECS extends SGS_Form_ORM {
       'loading_date'    => SGS::date(trim($csv[5][I] ?: $csv[5][J] ?: $csv[5][K]), SGS::US_DATE_FORMAT, TRUE, TRUE),
       'buyer'           => trim($csv[6][I] ?: $csv[6][J] ?: $csv[6][K]),
       'submitted_by'    => trim($csv[7][C] ?: $csv[7][D]),
-      'specs_number'    => $specs_number,
-      'exp_number'      => $exp_number,
       'origin'          => trim($csv[5][C] ?: $csv[5][D]),
       'destination'     => trim($csv[6][C] ?: $csv[6][D]),
-      'specs_barcode'   => SGS::barcodify(trim($csv[2][C] ?: $csv[2][D])),
+      'wb_barcode'   => SGS::barcodify(trim($csv[2][C] ?: $csv[2][D])),
       'exp_barcode'     => SGS::barcodify(trim($csv[3][C] ?: $csv[3][D])),
     ) + $data);
   }
@@ -302,8 +238,7 @@ class Model_SPECS extends SGS_Form_ORM {
         $this->operator = SGS::lookup_operator($value); break;
 
       case 'barcode':
-      case 'specs_barcode':
-      case 'exp_barcode':
+      case 'wb_barcode':
         $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
 
       case 'species_code':
@@ -386,10 +321,10 @@ class Model_SPECS extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('K9', 'Volume');
     }
 
-    $excel->getActiveSheet()->SetCellValue('C2', $this->specs_barcode->barcode);
+    $excel->getActiveSheet()->SetCellValue('C2', $this->wb_barcode->barcode);
     $excel->getActiveSheet()->SetCellValue('C3', $this->exp_barcode->barcode);
 //    $excel->getActiveSheet()->SetCellValue('I3', $this->contract_number);
-    $excel->getActiveSheet()->SetCellValue('I2', $this->specs_number);
+    $excel->getActiveSheet()->SetCellValue('I2', $this->wb_number);
     $excel->getActiveSheet()->SetCellValue('I3', $this->exp_number);
     $excel->getActiveSheet()->SetCellValue('C4', $this->operator->tin);
     $excel->getActiveSheet()->SetCellValue('I4', $this->operator->name);
@@ -462,10 +397,10 @@ class Model_SPECS extends SGS_Form_ORM {
       $excel->getActiveSheet()->SetCellValue('K9', 'Volume');
     }
 
-    $excel->getActiveSheet()->SetCellValue('C2', $values['specs_barcode']);
+    $excel->getActiveSheet()->SetCellValue('C2', $values['wb_barcode']);
     $excel->getActiveSheet()->SetCellValue('C3', $values['barcode']);
 //    $excel->getActiveSheet()->SetCellValue('I3', $values['contract_number']);
-    $excel->getActiveSheet()->SetCellValue('I2', $values['specs_number']);
+    $excel->getActiveSheet()->SetCellValue('I2', $values['wb_number']);
     $excel->getActiveSheet()->SetCellValue('I3', $values['exp_number']);
     $excel->getActiveSheet()->SetCellValue('C4', $values['operator_tin']);
     $excel->getActiveSheet()->SetCellValue('I4', SGS::lookup_operator($values['operator_tin'])->name);
@@ -489,21 +424,15 @@ class Model_SPECS extends SGS_Form_ORM {
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.3, $max_distance ?: 3, $limit ?: 5, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
           break;
-        case 'specs_barcode':
+        case 'wb_barcode':
           $args = array(
-            'barcodes.type' => array('H', 'P'),
+            'barcodes.type' => array('W', 'P'),
             'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.3, $max_distance ?: 3, $limit ?: 5, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
           break;
-        case 'exp_barcode':
-          $args = array(
-            'barcodes.type' => array('E', 'P'),
-            'operators.id' => SGS::suggest_operator($values['operator_tin'], array(), 'id')
-          );
-          $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.3, $max_distance ?: 3, $limit ?: 5, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
-          break;
-        case 'operator_tin':
+        case 'log_operator_tin':
+        case 'transport_operator_tin':
           $suggest = SGS::suggest_operator($values[$field], $args, 'tin', TRUE, $min_length ?: 5, $min_similarity ?: 0.3, $max_distance ?: 3, $limit ?: 10, $offset ?: 0, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
           break;
         case 'species_code':
@@ -526,7 +455,7 @@ class Model_SPECS extends SGS_Form_ORM {
           $query = DB::select('id')
             ->from($this->_table_name)
             ->where($field.'_id', '=', ($val = SGS::lookup_barcode($values['barcode'], NULL, TRUE)) ? $val : NULL)
-            ->and_where('specs_barcode_id', '=', ($val = SGS::lookup_barcode($values['specs_barcode'], NULL, TRUE)) ? $val : NULL);
+            ->and_where('wb_barcode_id', '=', ($val = SGS::lookup_barcode($values['wb_barcode'], NULL, TRUE)) ? $val : NULL);
 
           if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
 
@@ -538,15 +467,13 @@ class Model_SPECS extends SGS_Form_ORM {
     // everything else
     $query = DB::select('id')
       ->from($this->_table_name)
-      ->where('bottom_min', 'BETWEEN', SGS::variance_range(SGS::floatify($values['bottom_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('bottom_max', 'BETWEEN', SGS::variance_range(SGS::floatify($values['bottom_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('top_min', 'BETWEEN', SGS::variance_range(SGS::floatify($values['top_min']), SGS::accuracy(self::$type, 'is_matching_diameter')))
-      ->and_where('top_max', 'BETWEEN', SGS::variance_range(SGS::floatify($values['top_max']), SGS::accuracy(self::$type, 'is_matching_diameter')))
+      ->where('diameter', 'BETWEEN', SGS::variance_range(SGS::floatify($values['diameter']), SGS::accuracy(self::$type, 'is_matching_diameter')))
       ->and_where('length', 'BETWEEN', SGS::variance_range(SGS::floatify($values['length'], 1), SGS::accuracy(self::$type, 'is_matching_length')))
       ->and_where('volume', 'BETWEEN', SGS::variance_range(SGS::quantitify($values['volume']), SGS::accuracy(self::$type, 'is_matching_volume')));
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
-    if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
+    if ($log_operator_id = SGS::lookup_operator($values['log_operator_tin'], TRUE)) $query->and_where('log_operator_id', '=', $log_operator_id);
+    if ($transport_operator_id = SGS::lookup_operator($values['transport_operator_tin'], TRUE)) $query->and_where('transport_operator_id', '=', $transport_operator_id);
 
     if ($results = $query->execute()->as_array(NULL, 'id')) foreach (array_filter(array_unique($results)) as $duplicate) $duplicates[] = $duplicate;
     return $duplicates;
@@ -560,10 +487,12 @@ class Model_SPECS extends SGS_Form_ORM {
     $successes = array();
 
     // reliability
-    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->barcode->printjob->site->operator->tin);
-    if (!($this->operator_id == $this->specs_barcode->printjob->site->operator_id)) $warnings['specs_barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->specs_barcode->printjob->site->operator->tin);
-    if (!($this->operator_id == $this->exp_barcode->printjob->site->operator_id)) $warnings['exp_barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->exp_barcode->printjob->site->operator->tin);
-    if (!(in_array('is_consistent_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->operator->tin);
+    if (!($this->log_operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id']['is_consistent_operator'] = array('value' => $this->log_operator->tin, 'comparison' => $this->barcode->printjob->site->operator->tin);
+    if (!($this->transport_operator_id == $this->wb_barcode->printjob->site->operator_id)) $warnings['wb_barcode_id']['is_consistent_operator'] = array('value' => $this->transport_operator->tin, 'comparison' => $this->wb_barcode->printjob->site->operator->tin);
+    if (!(in_array('is_consistent_operator', SGS::flattenify($errors + $warnings)))) {
+      $successes['log_operator_id']['is_consistent_operator'] = array('value' => $this->log_operator->tin, 'comparison' => $this->operator->tin);
+      $successes['transport_operator_id']['is_consistent_operator'] = array('value' => $this->transport_operator->tin, 'comparison' => $this->operator->tin);
+    }
 
     // consistency
     switch ($this->barcode->type) {
@@ -571,14 +500,9 @@ class Model_SPECS extends SGS_Form_ORM {
       default:  $warnings['barcode_id']['is_valid_barcode'] = array('value' => SGS::$barcode_type[$this->barcode->type], 'comparison' => SGS::$barcode_type['L']); break;
     }
 
-    switch ($this->specs_barcode->type) {
-      case 'H': $successes['specs_barcode_id']['is_valid_specs_barcode'] = array('value' => SGS::$barcode_type[$this->specs_barcode->type], 'comparison' => SGS::$barcode_type['H']); break;
-      default:  $warnings['specs_barcode_id']['is_valid_specs_barcode'] = array('value' => SGS::$barcode_type[$this->specs_barcode->type], 'comparison' => SGS::$barcode_type['H']); break;
-    }
-
-    switch ($this->exp_barcode->type) {
-      case 'E': $successes['exp_barcode_id']['is_valid_exp_barcode'] = array('value' => SGS::$barcode_type[$this->exp_barcode->type], 'comparison' => SGS::$barcode_type['E']); break;
-      default:  $warnings['exp_barcode_id']['is_valid_exp_barcode'] = array('value' => SGS::$barcode_type[$this->exp_barcode->type], 'comparison' => SGS::$barcode_type['E']); break;
+    switch ($this->wb_barcode->type) {
+      case 'W': $successes['wb_barcode_id']['is_valid_wb_barcode'] = array('value' => SGS::$barcode_type[$this->wb_barcode->type], 'comparison' => SGS::$barcode_type['W']); break;
+      default:  $warnings['wb_barcode_id']['is_valid_wb_barcode'] = array('value' => SGS::$barcode_type[$this->wb_barcode->type], 'comparison' => SGS::$barcode_type['W']); break;
     }
 
     $ldf = ORM::factory('LDF')
@@ -592,7 +516,7 @@ class Model_SPECS extends SGS_Form_ORM {
 
       if (!(ord($this->species->class) <= ord($ldf->species->class))) $errors['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $ldf->species->class);
       if (!($this->species->code == $ldf->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $ldf->species->code);
-      if (!($this->operator_id == $ldf->operator_id)) $warnings['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $ldf->operator->tin);
+      if (!($this->log_operator_id == $ldf->operator_id)) $warnings['operator_id']['is_matching_operator'] = array('value' => $this->log_operator->tin, 'comparison' => $ldf->operator->tin);
 
       if (!Valid::is_accurate($this->volume, $ldf->volume, SGS::tolerance('SPECS', 'is_matching_volume'), FALSE)) $errors['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $ldf->volume);
       else if (!Valid::is_accurate($this->volume, $ldf->volume, SGS::accuracy('SPECS', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $ldf->volume);
@@ -600,34 +524,15 @@ class Model_SPECS extends SGS_Form_ORM {
       if (!Valid::is_accurate($this->length, $ldf->length, SGS::tolerance('SPECS', 'is_matching_length'), FALSE)) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $ldf->length);
       else if (!Valid::is_accurate($this->length, $ldf->length, SGS::accuracy('SPECS', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $ldf->length);
 
-      if (!Valid::is_accurate($this->diameter, $ldf->diameter, SGS::tolerance('SPECS', 'is_matching_diameter'))) {
-        $errors['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-        $errors['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-        $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-        $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-      }
-      else if (!Valid::is_accurate($this->diameter, $ldf->diameter, SGS::accuracy('SPECS', 'is_matching_diameter'))) {
-        $warnings['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-        $warnings['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-        $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-        $warnings['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-      }
+      if (!Valid::is_accurate($this->diameter, $ldf->diameter, SGS::tolerance('SPECS', 'is_matching_diameter'))) $errors['diameter']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
+      else if (!Valid::is_accurate($this->diameter, $ldf->diameter, SGS::accuracy('SPECS', 'is_matching_diameter'))) $warnings['diameter']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
+
       $successes['barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Found');
     }
     else {
       $errors['barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Not Found');
       $errors['barcode_id']['is_valid_parent'] = array('value' => 'Found', 'comparison' => 'Not Found');
     }
-
-    // payment
-    $ldf_parent = $ldf->parent(array('LDF', 'TDF'));
-    if ($ldf_parent and $ldf_parent->loaded()) {
-      if ($ldf_parent::$type == 'TDF') {
-        if ($ldf->is_invoiced('ST', TRUE)) $successes['barcode_id']['is_invoiced_st'] = array('value' => 'Invoiced', 'comparison' => 'N/A');
-        else $errors['barcode_id']['is_invoiced_st'] = array('value' => 'Not Invoiced', 'comparison' => 'N/A');
-      }
-      else $successes['barcode_id']['is_invoiced_st'] = array('value' => 'N/A', 'comparison' => 'N/A');
-    } else $errors['barcode_id']['is_invoiced_st'] = array('value' => 'Not Found', 'comparison' => 'N/A');
 
     /*** all tolerance checks fail if any traceability checks fail
     foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
@@ -636,17 +541,11 @@ class Model_SPECS extends SGS_Form_ORM {
     } ***/
 
     if (is_object($ldf) and $ldf->loaded()) {
-      if (!(in_array('is_matching_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $ldf->operator->tin);
+      if (!(in_array('is_matching_operator', SGS::flattenify($errors + $warnings)))) $successes['log_operator_id']['is_matching_operator'] = array('value' => $this->log_operator->tin, 'comparison' => $ldf->operator->tin);
       if (!(in_array('is_matching_species', SGS::flattenify($errors + $warnings)))) $successes['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $ldf->species->code);
       if (!(in_array('is_matching_length', SGS::flattenify($errors + $warnings)))) $successes['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $ldf->length);
       if (!(in_array('is_matching_volume', SGS::flattenify($errors + $warnings)))) $successes['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $ldf->volume);
-
-      if (!(in_array('is_matching_diameter', SGS::flattenify($errors + $warnings)))) {
-        $successes['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-        $successes['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-        $successes['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-        $successes['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
-      }
+      if (!(in_array('is_matching_diameter', SGS::flattenify($errors + $warnings)))) $successes['diameter']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
     }
 
     if ($successes) foreach ($successes as $field => $array) {
@@ -671,12 +570,31 @@ class Model_SPECS extends SGS_Form_ORM {
 
   public function rules()
   {
+//    'create_date'      => 'Date',
+//    'log_operator_tin' => 'Log Owner TIN',
+//    'transport_operator_tin' => 'Transportation Company TIN',
+//    'origin'           => 'Port of Origin',
+//    'destination'      => 'Port of Destination',
+//    'origin_date'      => 'Leaving Date',
+//    'destination_date' => 'Arrival Date',
+//    'loading_supervised_by' => 'Loading Supervisor',
+//    'receiving_supervised_by' => 'Receiving Supervisor',
+//    'driver'           => 'Driver',
+//    'truck_number'     => 'Truck License Number',
+//    'entered_by'       => 'Entered By',
+//    'wb_barcode'       => 'Waybill Barcode',
+//    'barcode'          => 'Log Barcode',
+//    'species_code'     => 'Species Code',
+//    'diameter'         => 'Average Diameter',
+//    'length'           => 'Length',
+//    'volume'           => 'Volume',
+
     return array(
       'operator_id'        => array(array('not_empty')),
       'species_id'         => array(array('not_empty')),
       'barcode_id'         => array(array('not_empty'),
-                                    array('is_unique_fields', array($this->_table_name, array('barcode_id', 'specs_barcode_id'), array('barcode_id' => $this->barcode->id, 'specs_barcode_id' => $this->specs_barcode->id), $this->id))),
-      'specs_barcode_id'   => array(array('not_empty')),
+                                    array('is_unique_fields', array($this->_table_name, array('barcode_id', 'wb_barcode_id'), array('barcode_id' => $this->barcode->id, 'wb_barcode_id' => $this->wb_barcode->id), $this->id))),
+      'wb_barcode_id'   => array(array('not_empty')),
       'exp_barcode_id'     => array(array('not_empty')),
       'top_min'            => array(array('not_empty'),
                                     array('is_measurement_int')),
@@ -710,7 +628,7 @@ class Model_SPECS extends SGS_Form_ORM {
       'barcode'        => array(array('not_empty'),
                                 array('is_barcode', array(':value', TRUE)),
                                 array('is_existing_barcode')),
-      'specs_barcode'  => array(array('is_barcode', array(':value', TRUE)),
+      'wb_barcode'  => array(array('is_barcode', array(':value', TRUE)),
                                 array('is_existing_barcode')),
       'exp_barcode'    => array(array('is_barcode', array(':value', TRUE)),
                                 array('is_existing_barcode')),
@@ -727,7 +645,7 @@ class Model_SPECS extends SGS_Form_ORM {
       'operator_id'      => 'Operator',
       'species_id'       => 'Species',
       'barcode_id'       => self::$fields['barcode'],
-      'specs_barcode_id' => self::$fields['specs_barcode'],
+      'wb_barcode_id' => self::$fields['wb_barcode'],
       'exp_barcode_id'   => self::$fields['exp_barcode'],
 //      'contract_number'  => self::$fields['contract_number'],
       'loading_date'     => self::$fields['loading_date'],
