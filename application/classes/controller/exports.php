@@ -1072,8 +1072,8 @@ VALIDATION: $secret";
       $quantity = str_pad($info['count'], 8, '0', STR_PAD_LEFT);
       $sta_unit = str_pad('', 2, '0', STR_PAD_LEFT);
       $fob_value = str_pad(number_format($info['fob_price'], 2, ',', ''), 15, '0', STR_PAD_LEFT);
-      $freight_value = str_pad(number_format('', 2, ',', ''), 15, '0', STR_PAD_LEFT);
-      $unit_price = str_pad(number_format('', 2, ',', ''), 15, '0', STR_PAD_LEFT);
+      $freight_value = str_pad(number_format(0, 2, ',', ''), 15, '0', STR_PAD_LEFT);
+      $unit_price = str_pad(number_format(0, 2, ',', ''), 15, '0', STR_PAD_LEFT);
       $cty_origine_code = 'LR'; // SAMPLE
       $tax_rat = str_pad('', 3, '0', STR_PAD_LEFT);
       $species_class = $info['species_class'];
