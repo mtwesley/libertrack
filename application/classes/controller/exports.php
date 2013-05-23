@@ -1031,7 +1031,7 @@ VALIDATION: $secret";
 
     // general info
 
-    $format   = '%3.3s%17.17s%10.10s%10.10s%9.9s%20.20s%3.3s%1.1s%2.2s%3.3s';
+    $format   = '%3.3s%17.17s%10.10s%10.10s%9.9s%20.20s%3.3s %1.1s%2.2s%3.3s';
 
     $flag_sgs = 'EB1';
     $num_sgs  = 'LRBUC110079760011'; // TODO: what is this number?
