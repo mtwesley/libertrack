@@ -45,6 +45,7 @@ class Controller_Analysis extends Controller {
       ->set('block', $block)
       ->set('specs_info', $specs_info)
       ->set('exp_info', $exp_info)
+      ->set('wb_info', $wb_info)
       ->set('options', array(
         'info'     => TRUE,
         'summary'  => TRUE,
@@ -248,6 +249,7 @@ class Controller_Analysis extends Controller {
       ->set('block', $block)
       ->set('specs_info', $specs_info)
       ->set('exp_info', $exp_info)
+      ->set('wb_info', $wb_info)
       ->set('options', array(
         'info'     => TRUE,
         'summary'  => TRUE,
@@ -266,6 +268,7 @@ class Controller_Analysis extends Controller {
       ->set('block', $block)
       ->set('specs_info', $specs_info)
       ->set('exp_info', $exp_info)
+      ->set('wb_info', $wb_info)
       ->set('options', array(
         'info'     => TRUE,
         'summary'  => TRUE,
@@ -438,6 +441,7 @@ class Controller_Analysis extends Controller {
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
     $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
 //    $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_wb_info = (bool) (in_array($form_type, array('WB')));
 
     if ($id) {
       Session::instance()->delete('pagination.data');
@@ -468,12 +472,13 @@ class Controller_Analysis extends Controller {
 
       $form = Formo::form();
       if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
-      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')) : array()));
+      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')) : array(), $has_wb_info ? array('attr' => array('class' => 'wb_operatoropts wb_barcode')) : array()));
       if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
       if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
 //      if ($has_exp_info) $form = $form->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')));
+      if ($has_wb_info) $form = $form->add_group('wb_barcode', 'select', array(), NULL, array('label' => 'Waybill', 'attr' => array('class' => 'wbopts')));
 
-      if (!$has_specs_info and !$has_exp_info) {
+      if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
         $form->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')));
         $form->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
       }
@@ -488,8 +493,9 @@ class Controller_Analysis extends Controller {
         if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
         if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
 //        if ($has_exp_info) $exp_barcode = $form->exp_barcode->val();
+        if ($has_wb_info) $wb_barcode = $form->wb_barcode->val();
 
-        if (!$has_specs_info and !$has_exp_info) {
+        if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
           $from = $form->from->val();
           $to   = $form->to->val();
         }
@@ -520,7 +526,8 @@ class Controller_Analysis extends Controller {
 
         if (Valid::is_barcode($specs_barcode)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
 //        if (Valid::is_barcode($exp_barcode))   $data->and_where('exp_barcode_id', '=', SGS::lookup_barcode($exp_barcode, NULL, TRUE));
-        if (!$has_specs_info and !$has_exp_info) $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
+        if (Valid::is_barcode($wb_barcode)) $data->and_where('wb_barcode_id', '=', SGS::lookup_barcode($wb_barcode, NULL, TRUE));
+        if (!$has_specs_info and !$has_exp_info and !$has_wb_info) $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
         Session::instance()->set('pagination.data', array(
           'site_id'       => $site_id,
@@ -529,6 +536,7 @@ class Controller_Analysis extends Controller {
           'specs_barcode' => $specs_barcode,
 //          'exp_barcode'   => $exp_barcode,
           'status'        => $status,
+          'wb_barcode'    => $wb_barcode,
           'errors'        => $errors,
           'from'          => $from,
           'to'            => $to
@@ -541,8 +549,9 @@ class Controller_Analysis extends Controller {
           if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
           if ($has_specs_info) $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
 //          if ($has_exp_info) $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
+          if ($has_wb_info) $form->wb_barcode->val($wb_barcode = $settings['wb_barcode']);
 
-          if (!$has_specs_info and !$has_exp_info) {
+          if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
             $form->from->val($from = $settings['from']);
             $form->to->val($to = $settings['to']);
           }
@@ -574,7 +583,7 @@ class Controller_Analysis extends Controller {
 
         if (Valid::is_barcode($specs_barcode)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
 //        if (Valid::is_barcode($exp_barcode)) $data->and_where('exp_barcode_id', '=', SGS::lookup_barcode($exp_barcode, NULL, TRUE));
-        if (!$has_specs_info and !$has_exp_info) $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
+        if (!$has_specs_info and !$has_exp_info and !$has_wb_info) $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
       }
 
       if ($data) {
@@ -610,6 +619,12 @@ class Controller_Analysis extends Controller {
           'barcode' => $sample->specs_barcode->barcode
         );
       }
+      if ($form_type == 'WB' and $wb_barcode) {
+        $sample = reset($data);
+        $info['wb'] = array(
+          'barcode' => $sample->wb_barcode->barcode
+        );
+      }
 
       $table = View::factory('data')
         ->set('classes', array('has-pagination'))
@@ -620,6 +635,7 @@ class Controller_Analysis extends Controller {
         ->set('block', $block->loaded() ? $block : NULL)
         ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('wb_info', $info ? array_filter((array) $info['wb']) : NULL)
         ->render();
     }
 
@@ -645,6 +661,7 @@ class Controller_Analysis extends Controller {
       ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
       ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
       ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+      ->set('wb_info', $info ? array_filter((array) $info['wb']) : NULL)
       ->set('options', array('header' => TRUE))
       ->render();
 
@@ -706,7 +723,8 @@ class Controller_Analysis extends Controller {
       ->set('block', (isset($item->block) and $item->block->loaded()) ? $item->block : NULL)
       ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
       ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-        ->set('options', array('header' => TRUE, 'hide_header_info' => TRUE))
+      ->set('wb_info', $info ? array_filter((array) $info['wb']) : NULL)
+      ->set('options', array('header' => TRUE, 'hide_header_info' => TRUE))
       ->render();
 
     if ($revisions) $table .= View::factory('data')
@@ -763,6 +781,12 @@ class Controller_Analysis extends Controller {
         'barcode' => $item->specs_barcode->barcode
       );
     }
+    if ($form_type == 'WB' and $wb_barcode) {
+      $sample = reset($data);
+      $info['wb'] = array(
+        'barcode' => $sample->wb_barcode->barcode
+      );
+    }
 
     $table = View::factory('data')
       ->set('classes', array('has-pagination'))
@@ -772,6 +796,7 @@ class Controller_Analysis extends Controller {
       ->set('block', isset($item->block) ? $item->block : NULL)
       ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
       ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+      ->set('wb_info', $info ? array_filter((array) $info['wb']) : NULL)
       ->render();
 
     if ($form) $content .= $form->render();
@@ -858,8 +883,6 @@ class Controller_Analysis extends Controller {
 
     $has_block_id   = (bool) (in_array($form_verification_type, array('SSFV', 'TDFV')));
     $has_site_id    = (bool) (in_array($form_verification_type, array('SSFV', 'TDFV', 'LDFV')));
-//    $has_specs_info = (bool) (in_array($form_verification_type, array('SPECSV')));
-//    $has_exp_info   = (bool) (in_array($form_verification_type, array('SPECSV')));
 
     if ($has_site_id) $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -874,20 +897,15 @@ class Controller_Analysis extends Controller {
 
     $form = Formo::form();
     if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('required' => TRUE, 'label' => 'Site', 'attr' => array('class' => 'siteopts')));
-    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('required' => TRUE, 'label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode')) : array()));
+    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL);
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
-//    if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
-
-//    if (!$has_specs_info and !$has_exp_info) {
-      $form = $form
-        ->add('from', 'input', array('label' => 'Declared From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
-        ->add('to', 'input', array('label' => 'Declared To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
-//    }
 
     $form = $form
-      ->add_group('status', 'checkboxes', SGS::$data_status, array('A'), array('label' => 'Declared Status'))
+      ->add('from', 'input', array('label' => 'Declared From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+      ->add('to', 'input', array('label' => 'Declared To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
       ->add('inspected_from', 'input', array('label' => 'Inspected From', 'attr' => array('class' => 'dpicker', 'id' => 'inspeced-from-dpicker')))
       ->add('inspected_to', 'input', array('label' => 'Inspected To', 'attr' => array('class' => 'dpicker', 'id' => 'inspected-to-dpicker')))
+      ->add_group('status', 'checkboxes', SGS::$verification_status, array('R', 'P'), array('label' => 'Status'))
       ->add_group('checks', 'checkboxes', $check_options, array_diff(array_keys($check_options), array('consistency', 'reliability')), array('label' => 'Check'))
       ->add_group('format', 'radios', array('R' => 'Verify', 'D' => 'Download Report', 'RD' => 'Verify and Download Report'), 'R', array('label' => 'Action'))
       ->add('submit', 'submit', 'Go');
@@ -898,19 +916,16 @@ class Controller_Analysis extends Controller {
       if ($has_site_id) $site_id = $form->site_id->val();
       else $operator_id = $form->operator_id->val();
       if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
-      if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
 
-      if (!$has_specs_info and !$has_exp_info) {
-        $from = $form->from->val();
-        $to   = $form->to->val();
-      }
+      $from = $form->from->val();
+      $to   = $form->to->val();
 
       $inspected_from = $form->inspected_from->val();
       $inspected_to   = $form->inspected_to->val();
 
-      $status  = $form->status->val();
-      $checks  = $form->checks->val();
-      $format  = $form->format->val();
+      $status = $form->status->val();
+      $checks = $form->checks->val();
+      $format = $form->format->val();
 
       $run      = strpos($format, 'R') !== FALSE;
       $download = strpos($format, 'D') !== FALSE;
@@ -926,23 +941,22 @@ class Controller_Analysis extends Controller {
       if ($operator_id) $record_ids->where('operator_id', 'IN', (array) $operator_id);
       if ($site_id)     $record_ids->where('site_id', 'IN', (array) $site_id);
       if ($block_id)    $record_ids->where('block_id', 'IN', (array) $block_id);
-      if (Valid::is_barcode($specs_barcode)) $record_ids->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
 
       $declared_record_ids  = clone($record_ids);
       $inspected_record_ids = clone($record_ids);
 
-      if ($status) $declared_record_ids->where('status', 'IN', (array) $status);
-      if (!$has_specs_info and !$has_exp_info) $declared_record_ids->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
       $declared_record_ids = $declared_record_ids
         ->select($model_data->table_name().'.id', 'barcode')
         ->distinct(TRUE)
         ->from($model_data->table_name())
         ->join('barcodes')
         ->on('barcodes.id', '=', 'barcode_id')
+        ->where('create_date', 'BETWEEN', SGS::db_range($from, $to))
         ->order_by('barcode')
         ->execute()
         ->as_array(NULL, 'id');
 
+      if ($status) $inspected_record_ids->where('status', 'IN', (array) $status);
       $inspected_record_ids = $inspected_record_ids
         ->select($model->table_name().'.id', 'barcode')
         ->distinct(TRUE)
@@ -1065,20 +1079,9 @@ class Controller_Analysis extends Controller {
       }
 
       if ($download) {
-        unset($info);
-        if ($specs_barcode) {
-          $sample = ORM::factory($form_verification_type, reset($inspected_record_ids));
-          $info['specs'] = array(
-            'number'  => $sample->specs_number,
-            'barcode' => $sample->specs_barcode->barcode
-          );
-        }
-
         foreach ($model::$checks as $type => $info) if (in_array($type, $checks)) $_checks[$type] = $info;
 
         self::download_verify_report($form_verification_type, $inspected_record_ids, array(
-          'specs_barcode' => $info ? array_filter((array) $info['specs']) : NULL,
-          'exp_info'      => $info ? array_filter((array) $info['exp']) : NULL,
           'operator'      => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
           'site'          => $site_id ? ORM::factory('site', $site_id) : NULL,
           'block'         => $block_id ? ORM::factory('block', $block_id) : NULL,
@@ -1089,7 +1092,7 @@ class Controller_Analysis extends Controller {
         ));
       }
 
-      if ($unable)     Notify::msg('Sorry, unable to very '.$unable.' records. Please try again.', 'error', TRUE);
+      if ($unable)     Notify::msg('Sorry, unable to verify '.$unable.' records. Please try again.', 'error', TRUE);
       if ($accurate)   Notify::msg($accurate.' records are verified and accurate.', 'success', TRUE);
       if ($inaccurate) Notify::msg($inaccurate.' records are verified and inaccurate.', 'error', TRUE);
       if ($unverified) Notify::msg($unverified.' records could not be verified.', 'warning', TRUE);
@@ -1099,7 +1102,6 @@ class Controller_Analysis extends Controller {
         'operator_id'    => $operator_id,
         'site_id'        => $site_id,
         'block_id'       => $block_id,
-        'specs_barcode'  => $specs_barcode,
         'status'         => $status,
         'format'         => $format,
         'checks'         => $checks,
@@ -1109,40 +1111,37 @@ class Controller_Analysis extends Controller {
         'inspected_from' => $from,
         'inspected_to'   => $to,
         'data'           => $data,
-        'record_ids'     => $declared_record_ids
+        'declared_record_ids' => $declared_record_ids,
+        'inspected_record_ids' => $inspected_record_ids
       ));
     }
     else if ($settings = Session::instance()->get('pagination.checks')) {
       if ($has_site_id) $form->site_id->val($site_id = $settings['site_id']);
       else $form->operator_id->val($operator_id = $settings['operator_id']);
       if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
-      if ($has_specs_info) $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
 
       $form->status->val($status = $settings['status']);
       $form->format->val($format = $settings['format']);
       $form->checks->val($checks = $settings['checks']);
 
-      if (!$has_specs_info and !$has_exp_info) {
-        $form->from->val($from = $settings['from']);
-        $form->to->val($to = $settings['to']);
-      }
+      $form->from->val($from = $settings['from']);
+      $form->to->val($to = $settings['to']);
 
       $data = $settings['data'];
-      $declared_record_ids  = $settings['record_ids'];
+      $declared_record_ids  = $settings['declared_record_ids'];
+      $inspected_record_ids = $settings['inspected_record_ids'];
     }
 
     if ($data) {
       foreach ($model::$checks as $type => $info) if (in_array($type, $checks)) $_checks[$type] = $info;
 
       $records = ORM::factory($form_verification_type)
-        ->where('id', 'IN', (array) $inspected_record_ids);
+        ->where('id', 'IN', (array) $inspected_record_ids)
+        ->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       if ($has_site_id and $site_id) $records = $records->where('site_id', 'IN', (array) $site_id);
       else if ($operator_id) $records = $records->where('operator_id', 'IN', (array) $operator_id);
       if ($has_site_id and $has_block_id and $block_id) $records = $records->where('block_id', 'IN', (array) $block_id);
-
-      if (Valid::is_barcode($specs_barcode))   $records = $records->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
-      if (!$has_specs_info and !$has_exp_info) $records = $records->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       $clone = clone($records);
       $pagination = Pagination::factory(array(
@@ -1157,15 +1156,6 @@ class Controller_Analysis extends Controller {
         ->find_all()
         ->as_array();
 
-      unset($info);
-      if ($specs_barcode) {
-        $sample = reset($records);
-        $info['specs'] = array(
-          'number'  => $sample->specs_number,
-          'barcode' => $sample->specs_barcode->barcode
-        );
-      }
-
       $operator = ORM::factory('operator', $operator_id ?: NULL);
       $site     = ORM::factory('site', $site_id ?: NULL);
       $block    = ORM::factory('block', $block_id ?: NULL);
@@ -1176,8 +1166,6 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array(
           'table'   => FALSE,
           'rows'    => FALSE,
@@ -1201,8 +1189,6 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-        ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array(
           'hide_header_info' => TRUE,
           'header'  => FALSE,
@@ -1233,6 +1219,7 @@ class Controller_Analysis extends Controller {
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
     $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
     $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_wb_info    = (bool) (in_array($form_type, array('WB')));
 
     if ($has_site_id) $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -1247,11 +1234,12 @@ class Controller_Analysis extends Controller {
 
     $form = Formo::form();
     if ($has_site_id)  $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('required' => TRUE, 'label' => 'Site', 'attr' => array('class' => 'siteopts')));
-    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('required' => TRUE, 'label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode')) : array()));
+    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('required' => TRUE, 'label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode')) : array(), $has_wb_info ? array('attr' => array('class' => 'wb_operatoropts wb_barcode')) : array()));
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
     if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+    if ($has_wb_info) $form = $form->add_group('wb_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Waybill', 'attr' => array('class' => 'wbopts')));
 
-    if (!$has_specs_info and !$has_exp_info) {
+    if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
       $form = $form
         ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
         ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
@@ -1277,8 +1265,9 @@ class Controller_Analysis extends Controller {
       else $operator_id = $form->operator_id->val();
       if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
       if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
+      if ($has_wb_info) $wb_barcode = $form->wb_barcode->val();
 
-      if (!$has_specs_info and !$has_exp_info) {
+      if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
         $from = $form->from->val();
         $to   = $form->to->val();
       }
@@ -1305,7 +1294,8 @@ class Controller_Analysis extends Controller {
       if ($status)      $record_ids->where('status', 'IN', (array) $status);
 
       if (Valid::is_barcode($specs_barcode)) $record_ids->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
-      if (!$has_specs_info and !$has_exp_info) $record_ids->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
+      if (Valid::is_barcode($wb_barcode)) $record_ids->where('wb_barcode_id', '=', SGS::lookup_barcode($wb_barcode, NULL, TRUE));
+      if (!$has_specs_info and !$has_exp_info and !$has_wb_info) $record_ids->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       if ($limit) $record_ids->limit($limit);
 
@@ -1406,12 +1396,19 @@ class Controller_Analysis extends Controller {
             'barcode' => $sample->specs_barcode->barcode
           );
         }
+        if ($wb_barcode) {
+          $sample = reset($data);
+          $info['wb'] = array(
+            'barcode' => $sample->wb_barcode->barcode
+          );
+        }
 
         foreach ($model::$checks as $typ => $inf) if (in_array($typ, $checks)) $_checks[$typ] = $inf;
 
         self::download_checks_report($form_type, $record_ids, array(
           'specs_info' => $info ? array_filter((array) $info['specs']) : NULL,
           'exp_info'   => $info ? array_filter((array) $info['exp']) : NULL,
+          'wb_info'    => $info ? array_filter((array) $info['wb']) : NULL,
           'operator'   => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
           'site'       => $site_id ? ORM::factory('site', $site_id) : NULL,
           'block'      => $block_id ? ORM::factory('block', $block_id) : NULL,
@@ -1433,6 +1430,7 @@ class Controller_Analysis extends Controller {
         'site_id'       => $site_id,
         'block_id'      => $block_id,
         'specs_barcode' => $specs_barcode,
+        'wb_barcode'    => $wb_barcode,
         'status'        => $status,
         'format'        => $format,
         'checks'        => $checks,
@@ -1449,12 +1447,13 @@ class Controller_Analysis extends Controller {
       else $form->operator_id->val($operator_id = $settings['operator_id']);
       if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
       if ($has_specs_info) $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
+      if ($has_wb_info) $form->wb_barcode->val($wb_barcode = $settings['wb_barcode']);
 
       $form->status->val($status = $settings['status']);
       $form->format->val($format = $settings['format']);
       $form->checks->val($checks = $settings['checks']);
 
-      if (!$has_specs_info and !$has_exp_info) {
+      if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
         $form->from->val($from = $settings['from']);
         $form->to->val($to = $settings['to']);
       }
@@ -1481,7 +1480,8 @@ class Controller_Analysis extends Controller {
       if ($has_site_id and $has_block_id and $block_id) $records = $records->where('block_id', 'IN', (array) $block_id);
 
       if (Valid::is_barcode($specs_barcode))   $records = $records->where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
-      if (!$has_specs_info and !$has_exp_info) $records = $records->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
+      if (Valid::is_barcode($wb_barcode))   $records = $records->where('wb_barcode_id', '=', SGS::lookup_barcode($wb_barcode, NULL, TRUE));
+      if (!$has_specs_info and !$has_exp_info and !$has_wb_info) $records = $records->where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       $clone = clone($records);
       $pagination = Pagination::factory(array(
@@ -1504,6 +1504,12 @@ class Controller_Analysis extends Controller {
           'barcode' => $sample->specs_barcode->barcode
         );
       }
+      if ($wb_barcode) {
+        $sample = reset($records);
+        $info['wb'] = array(
+          'barcode' => $sample->wb_barcode->barcode
+        );
+      }
 
       $operator = ORM::factory('operator', $operator_id ?: NULL);
       $site     = ORM::factory('site', $site_id ?: NULL);
@@ -1517,6 +1523,7 @@ class Controller_Analysis extends Controller {
         ->set('block', $block->loaded() ? $block : NULL)
         ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('wb_info', $info ? array_filter((array) $info['wb']) : NULL)
         ->set('options', array(
           'table'   => FALSE,
           'rows'    => FALSE,
@@ -1544,6 +1551,7 @@ class Controller_Analysis extends Controller {
         ->set('block', $block->loaded() ? $block : NULL)
         ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+        ->set('wb_info', $info ? array_filter((array) $info['wb']) : NULL)
         ->set('options', array(
           'hide_header_info' => TRUE,
           'header'  => FALSE,
@@ -1619,6 +1627,7 @@ class Controller_Analysis extends Controller {
       case 'LDF':
       case 'SPECS':
       case 'EPR':
+      case 'WB':
         break;
 
       default:
@@ -1635,6 +1644,7 @@ class Controller_Analysis extends Controller {
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
     $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
     $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_wb_info    = (bool) (in_array($form_type, array('WB')));
 
     if ($has_site_id) $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -1658,11 +1668,12 @@ class Controller_Analysis extends Controller {
 
     $form = Formo::form();
     if ($has_site_id) $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
-    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode')) : array()));
+    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode')) : array(), $has_wb_info ? array('attr' => array('class' => 'wb_operatoropts wb_barcode')) : array()));
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
     if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
+    if ($has_wb_info) $form = $form->add_group('wb_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Waybill', 'attr' => array('class' => 'wbopts')));
 
-    if (!$has_specs_info and !$has_exp_info) {
+    if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
       $form = $form
         ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
         ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
@@ -1686,8 +1697,9 @@ class Controller_Analysis extends Controller {
       else $operator_id = $form->operator_id->val();
       if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
       if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
+      if ($has_wb_info) $wb_barcode = $form->wb_barcode->val();
 
-      if (!$has_specs_info and !$has_exp_info) {
+      if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
         $from = $form->from->val();
         $to   = $form->to->val();
       }
@@ -1703,6 +1715,7 @@ class Controller_Analysis extends Controller {
       if ($has_site_id and $has_block_id and $block_id) $data_ids->where('block_id', 'IN', (array) $block_id);
 
       if ($has_specs_info and $specs_barcode) $data_ids->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
+      else if ($has_wb_info and $wb_barcode) $data_ids->and_where('wb_barcode_id', '=', SGS::lookup_barcode($wb_barcode, NULL, TRUE));
       else $data_ids->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
       if ($errors) {
@@ -1833,6 +1846,19 @@ class Controller_Analysis extends Controller {
                 throw new Exception();
               }
               $newname = SGS::wordify('SPECS_'.$operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+              break;
+
+            case 'WB':
+              $newdir = implode(DIRECTORY_SEPARATOR, array(
+                'downloads',
+                'wb',
+                $operator->tin
+              ));
+              if (!($operator->name)) {
+                Notify::msg('Sorry, cannot identify required properties to create a file.', 'error');
+                throw new Exception();
+              }
+              $newname = SGS::wordify('WB_'.$operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
               break;
           }
 

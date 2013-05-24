@@ -490,6 +490,35 @@ class Controller_Ajax extends Controller {
     }
   }
 
+  public function action_wbopts() {
+    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+
+    $operator_id = $this->request->post('operator_id');
+    $wb_barcode  = $this->request->post('wb_barcode');
+
+    if ($operator_id) {
+      $output = '<optgroup label=""><option value=""></option>';
+
+      if ($wb_barcode) {
+        $sql = "SELECT distinct barcode
+                FROM barcodes
+                JOIN wb_data ON wb_data.wb_barcode_id = barcodes.id
+                WHERE wb_data.transport_operator_id = $operator_id
+                ORDER BY barcode";
+
+        if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
+          ->execute()
+          ->as_array(NULL, 'barcode'))) {
+          $output .= '<optgroup label="Waybill Barcode">';
+          foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'</option>';
+          $output .= '</optgroup>';
+        }
+      }
+
+      $this->response->body($output);
+    }
+  }
+
   public function action_autocompletebarcode() {
     $term = trim($this->request->post('term') ?: $this->request->query('term'));
 

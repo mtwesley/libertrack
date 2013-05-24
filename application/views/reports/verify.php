@@ -320,12 +320,14 @@ $num = $cntr;
           <?php
             if ($site) echo 'Site:';
             else if ($specs_info) echo 'Shipment Specification Barcode:';
+            else if ($wb_info) echo 'Waybill Barcode:';
           ?>
         </td>
         <td>
           <?php
             if ($site) echo $site->name;
             else if ($specs_info) echo $specs_info['barcode'];
+            else if ($wb_info) echo $wb_info['barcode'];
           ?>
         </td>
       </tr>

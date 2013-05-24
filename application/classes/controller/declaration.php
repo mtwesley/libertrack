@@ -504,6 +504,7 @@ class Controller_Declaration extends Controller {
     $has_site_id    = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF')));
     $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
     $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
+    $has_wb_info    = (bool) (in_array($form_type, array('WB')));
 
     if ($id) {
       Session::instance()->delete('pagination.csv');
@@ -537,10 +538,11 @@ class Controller_Declaration extends Controller {
 
       $form = Formo::form();
       if ($has_site_id) $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
-      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')) : array()));
+      else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')) : array(), $has_wb_info ? array('attr' => array('class' => 'wb_operatoropts wb_barcode')) : array()));
       if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
       if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
-      if ($has_exp_info) $form->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')));
+//      if ($has_exp_info) $form->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')));
+      if ($has_wb_info) $form = $form->add_group('wb_barcode', 'select', array(), NULL, array('label' => 'Waybill', 'attr' => array('class' => 'wbopts')));
       $form = $form
         ->add_group('status', 'checkboxes', SGS::$csv_status, NULL, array('label' => 'Status'))
         ->add('format', 'radios', 'filter', array(
@@ -570,6 +572,7 @@ class Controller_Declaration extends Controller {
         if ($has_site_id and $has_block_id) $block_id = $form->block_id->val();
         if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
         if ($has_exp_info) $exp_barcode = $form->exp_barcode->val();
+        if ($has_wb_info) $wb_barcode = $form->wb_barcode->val();
 
         $status = $form->status->val();
         $format = $form->format->val();
@@ -581,6 +584,7 @@ class Controller_Declaration extends Controller {
 
         if (Valid::is_barcode($specs_barcode)) $csvs->and_where('values', 'LIKE', '%"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"%');
         if (Valid::is_barcode($exp_barcode))   $csvs->and_where('values', 'LIKE', '%"exp_barcode";s:'.strlen($exp_barcode).':"'.$exp_barcode.'"%');
+        if (Valid::is_barcode($wb_barcode))    $csvs->and_where('values', 'LIKE', '%"wb_barcode";s:'.strlen($wb_barcode).':"'.$wb_barcode.'"%');
 
         if (in_array($format, array('csv', 'xls'))) {
           $csvs = $csvs->find_all()->as_array();
@@ -648,6 +652,7 @@ class Controller_Declaration extends Controller {
           'block_id'      => $block_id,
           'specs_barcode' => $specs_barcode,
           'exp_barcode'   => $exp_barcode,
+          'wb_barcode'    => $wb_barcode,
           'status'        => $status,
         ));
 
@@ -657,6 +662,7 @@ class Controller_Declaration extends Controller {
         else $form->operator_id->val($operator_id = $settings['operator_id']);
         if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
         if ($has_specs_info) $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
+        if ($has_wb_info) $form->wb_barcode->val($wb_barcode = $settings['wb_barcode']);
         if ($has_exp_info) $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
         $form->status->val($status = $settings['status']);
 
@@ -667,6 +673,7 @@ class Controller_Declaration extends Controller {
 
         if (Valid::is_barcode($specs_barcode)) $csvs->and_where('data', 'LIKE', '"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"');
         if (Valid::is_barcode($exp_barcode))   $csvs->and_where('data', 'LIKE', '"exp_barcode";s:'.strlen($exp_barcode).':"'.$exp_barcode.'"');
+        if (Valid::is_barcode($wb_barcode))   $csvs->and_where('data', 'LIKE', '"wb_barcode";s:'.strlen($wb_barcode).':"'.$wb_barcode.'"');
       }
 
       if ($csvs) {
@@ -870,6 +877,7 @@ class Controller_Declaration extends Controller {
           elseif (strpos(strtoupper($excel[1][C]), 'TREE DATA FORM')    !== FALSE) $form_type = 'TDF';
           elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA FORM')     !== FALSE) $form_type = 'LDF';
           elseif (strpos(strtoupper($excel[1][A]), 'EXPORT SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECS';
+          elseif (strpos(strtoupper($excel[1][A]), 'LOG WAYBILL') !== FALSE) $form_type = 'WB';
           else   Notify::msg('Sorry, the form type cannot be determined from the uploaded file. Please check the form title for errors and try again.', 'error', TRUE);
 
           if ($form_type) {
@@ -969,6 +977,18 @@ class Controller_Declaration extends Controller {
                     throw new Exception();
                   }
                   $newname = SGS::wordify('SPECS_'.$file->operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
+                  break;
+
+                case 'WB':
+                  $newdir = implode(DIRECTORY_SEPARATOR, array(
+                    'wb',
+                    $file->operator->tin
+                  ));
+                  if (!($file->operator->name and $file->operation_type)) {
+                    Notify::msg('Sorry, cannot identify required properties of the file '.$file->name.'.', 'error', TRUE);
+                    throw new Exception();
+                  }
+                  $newname = SGS::wordify('WB_'.$file->operator->name.'_'.SGS::date($create_date, 'm_d_Y')).'.'.$ext;
                   break;
               }
 

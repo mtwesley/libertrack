@@ -9,7 +9,7 @@ $options = (array) $options + array(
   'links'    => TRUE,
   'actions'  => FALSE,
   'dropdown' => TRUE,
-  'header'   => ($site or $operator or $specs_info or $exp_info) ? TRUE : FALSE,
+  'header'   => ($site or $operator or $specs_info or $exp_info or $wb_info) ? TRUE : FALSE,
   'hide_hidden_info' => TRUE,
   'hide_header_info' => FALSE,
   'hide_upload_info' => TRUE,
@@ -36,12 +36,14 @@ $classes[] = 'data';
       <?php
         if ($site) echo 'Site:';
         else if ($specs_info) echo 'Shipment Specification Barcode:';
+        else if ($wb_info) echo 'Waybill Barcode:';
       ?>
     </td>
     <td>
       <?php
         if ($site) echo $site->name;
         else if ($specs_info) echo $specs_info['barcode'];
+        else if ($wb_info) echo $wb_info['barcode'];
       ?>
     </td>
   </tr>
