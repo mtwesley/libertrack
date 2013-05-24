@@ -1176,7 +1176,7 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_barcode', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array(
           'table'   => FALSE,
@@ -1201,7 +1201,7 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_barcode', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array(
           'hide_header_info' => TRUE,
@@ -1410,15 +1410,15 @@ class Controller_Analysis extends Controller {
         foreach ($model::$checks as $type => $info) if (in_array($type, $checks)) $_checks[$type] = $info;
 
         self::download_checks_report($form_type, $record_ids, array(
-          'specs_barcode' => $info ? array_filter((array) $info['specs']) : NULL,
-          'exp_info'      => $info ? array_filter((array) $info['exp']) : NULL,
-          'operator'      => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
-          'site'          => $site_id ? ORM::factory('site', $site_id) : NULL,
-          'block'         => $block_id ? ORM::factory('block', $block_id) : NULL,
-          'from'          => $from,
-          'to'            => $to,
-          'checks'        => $_checks,
-          'report'        => $data,
+          'specs_info' => $info ? array_filter((array) $info['specs']) : NULL,
+          'exp_info'   => $info ? array_filter((array) $info['exp']) : NULL,
+          'operator'   => $operator_id ? ORM::factory('operator', $operator_id) : NULL,
+          'site'       => $site_id ? ORM::factory('site', $site_id) : NULL,
+          'block'      => $block_id ? ORM::factory('block', $block_id) : NULL,
+          'from'       => $from,
+          'to'         => $to,
+          'checks'     => $_checks,
+          'report'     => $data,
         ));
       }
 
@@ -1515,7 +1515,7 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_barcode', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array(
           'table'   => FALSE,
@@ -1542,7 +1542,7 @@ class Controller_Analysis extends Controller {
         ->set('operator', $operator->loaded() ? $operator : NULL)
         ->set('site', $site->loaded() ? $site : NULL)
         ->set('block', $block->loaded() ? $block : NULL)
-        ->set('specs_barcode', $info ? array_filter((array) $info['specs']) : NULL)
+        ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
         ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
         ->set('options', array(
           'hide_header_info' => TRUE,
