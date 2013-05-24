@@ -266,8 +266,8 @@ VALIDATION: $secret";
     $cntr   = 0;
     $styles = TRUE;
     while ($cntr < count($data_ids)) {
-      $last = count($data_ids) > ($cntr + $max);
       $max  = $page_max;
+      $last = count($data_ids) > ($cntr + $max);
 
       $set  = array_slice($records, $cntr, $max);
       $html .= View::factory('documents/specs')
