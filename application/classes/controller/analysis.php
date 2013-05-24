@@ -1407,7 +1407,7 @@ class Controller_Analysis extends Controller {
           );
         }
 
-        foreach ($model::$checks as $type => $info) if (in_array($type, $checks)) $_checks[$type] = $info;
+        foreach ($model::$checks as $typ => $inf) if (in_array($typ, $checks)) $_checks[$type] = $inf;
 
         self::download_checks_report($form_type, $record_ids, array(
           'specs_info' => $info ? array_filter((array) $info['specs']) : NULL,
