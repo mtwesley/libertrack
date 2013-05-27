@@ -954,7 +954,7 @@ class SGS {
 
   public static function utmify($easting, $northing, $zone = SGS::UTM_ZONE_DEFAULT)
   {
-    list($easting, $northing) = preg_replace('/\D/', '', array($easting, $northing));
+    list($easting, $northing) = preg_replace('/[\D]/', '', array((int) $easting, (int) $northing));
     if ($zone and $easting and ($northing !== FALSE)) return trim($zone.' '.$easting.'E '.$northing.'N');
   }
 

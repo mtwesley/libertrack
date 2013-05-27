@@ -226,7 +226,7 @@ class Model_SSFV extends SGS_Form_ORM {
       case 'utm_east':
       case 'utm_north_south':
       case 'utm_west':
-        $this->$key = $value ?: NULL; break;
+        $this->$key = Valid::is_utm($value) ? $value : NULL; break;
 
       default:
         try { $this->$key = $value; } catch (Exception $e) {} break;
