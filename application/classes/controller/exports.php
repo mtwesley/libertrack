@@ -1037,7 +1037,7 @@ VALIDATION: $secret";
     $num_sgs  = 'LRBUC110079760011'; // TODO: what is this number?
     $date_sgs = SGS::date($document->created_date, SGS::US_DATE_CORRECT_FORMAT);
     $dec_cod  = '';
-    $exp_cod  = '400065004'; // SAMPLE
+    $exp_cod  = $document->operator->tin;
     $bol_number   = ''; // SAMPLE
     $cod_currency = 'USD';
     $mot_cod  = 'S';
@@ -1071,11 +1071,11 @@ VALIDATION: $secret";
       $hs_code = '70511000000'; // SAMPLE
       $quantity = str_pad($info['count'], 8, '0', STR_PAD_LEFT);
       $sta_unit = str_pad('', 2, '0', STR_PAD_LEFT);
-      $fob_value = str_pad(number_format($info['fob_price'], 2, ',', ''), 15, '0', STR_PAD_LEFT);
+      $fob_value = str_pad(number_format(($info['fob_price'] * $info['volume']), 2, ',', ''), 15, '0', STR_PAD_LEFT);
       $freight_value = str_pad(number_format(0, 2, ',', ''), 15, '0', STR_PAD_LEFT);
       $unit_price = str_pad(number_format(0, 2, ',', ''), 15, '0', STR_PAD_LEFT);
       $cty_origine_code = 'LR'; // SAMPLE
-      $tax_rat = str_pad('', 4, '0', STR_PAD_LEFT);
+      $tax_rat = str_pad((SGS::$species_fee_rate[$info['species_class']] * 100), 4, '0', STR_PAD_LEFT);
       $species_class = $info['species_class'];
       $supplementary_unit_value = str_pad(number_format($info['volume'], 3, ',', ''), 12, '0', STR_PAD_LEFT);
 
