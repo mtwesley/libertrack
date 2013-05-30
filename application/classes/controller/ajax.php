@@ -34,7 +34,6 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_data() {
-    return $this->response->status(401);
     if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
 
     $vars    = explode('-', $this->request->post('id'));
@@ -503,7 +502,7 @@ class Controller_Ajax extends Controller {
         $sql = "SELECT distinct barcode
                 FROM barcodes
                 JOIN wb_data ON wb_data.wb_barcode_id = barcodes.id
-                WHERE wb_data.transport_operator_id = $operator_id
+                WHERE wb_data.operator_id = $operator_id
                 ORDER BY barcode";
 
         if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)

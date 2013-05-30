@@ -744,8 +744,6 @@ class Controller_Analysis extends Controller {
   }
 
   private function handle_data_edit($form_type, $id) {
-    return $this->response->status(401);
-
     $item = ORM::factory($form_type, $id);
 
     $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
@@ -1667,8 +1665,8 @@ class Controller_Analysis extends Controller {
     foreach ($model::$checks as $type => $info) $check_options[$type] = $info['title'];
 
     $form = Formo::form();
-    if ($has_site_id) $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')));
-    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode')) : array(), $has_wb_info ? array('attr' => array('class' => 'wb_operatoropts wb_barcode')) : array()));
+    if ($has_site_id) $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('required' => TRUE, 'label' => 'Site', 'attr' => array('class' => 'siteopts')));
+    else $form = $form->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('required' => TRUE, 'label' => 'Operator'), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_barcode')) : array(), $has_wb_info ? array('attr' => array('class' => 'wb_operatoropts wb_barcode')) : array()));
     if ($has_site_id and $has_block_id) $form = $form->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')));
     if ($has_specs_info) $form = $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
     if ($has_wb_info) $form = $form->add_group('wb_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Waybill', 'attr' => array('class' => 'wbopts')));

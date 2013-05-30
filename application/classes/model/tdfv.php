@@ -277,6 +277,9 @@ class Model_TDFV extends SGS_Form_ORM {
       case 'length':
         $this->$key = SGS::floatify($value, 1); break;
 
+      case 'volume':
+        $this->$key = SGS::quantitify($value); break;
+
       default:
         try { $this->$key = $value; } catch (Exception $e) {} break;
     }

@@ -7,11 +7,8 @@ class Model_WB extends SGS_Form_ORM {
   protected $_table_name = 'wb_data';
 
   protected $_belongs_to = array(
-    'log_operator'  => array(
-      'model'       => 'operator',
-      'foreign_key' => 'log_operator_id'
-    ),
-    'transport_operator'  => array(
+    'operator'  => array(),
+    'transport_operator' => array(
       'model'       => 'operator',
       'foreign_key' => 'transport_operator_id'
     ),
@@ -74,12 +71,13 @@ class Model_WB extends SGS_Form_ORM {
 
   public static $fields = array(
     'create_date'      => 'Date',
-    'log_operator_tin' => 'Log Owner TIN',
-    'transport_operator_tin' => 'Transportation Company TIN',
+    'operator_tin'     => 'Operator TIN',
+    'transport_operator_tin' => 'Transportor TIN',
     'origin'           => 'Port of Origin',
     'destination'      => 'Port of Destination',
     'origin_date'      => 'Leaving Date',
     'destination_date' => 'Arrival Date',
+    'unloading_date'   => 'Unloading Date',
     'loading_supervised_by' => 'Loading Supervisor',
     'receiving_supervised_by' => 'Receiving Supervisor',
     'driver'           => 'Driver',
@@ -90,7 +88,9 @@ class Model_WB extends SGS_Form_ORM {
     'species_code'     => 'Species Code',
     'diameter'         => 'Average Diameter',
     'length'           => 'Length',
+    'grade'            => 'Grade',
     'volume'           => 'Volume',
+    'comment'          => 'Comment',
   );
 
  public static $checks = array(
@@ -180,9 +180,10 @@ class Model_WB extends SGS_Form_ORM {
       'create_date'        => array('order' => 0, 'attr' => array('class' => 'dpicker')),
       'origin_date'        => array('attr' => array('class' => 'dpicker')),
       'destination_date'   => array('attr' => array('class' => 'dpicker')),
+      'unloading_date'     => array('attr' => array('class' => 'dpicker')),
       'wb_barcode'         => array('render' => FALSE),
       'barcode'            => array('render' => FALSE),
-      'log_operator'       => array('render' => FALSE),
+      'operator'           => array('render' => FALSE),
       'transport_operator' => array('render' => FALSE),
       'original_volume'    => array('render' => FALSE),
       'status'             => array('render' => FALSE),
@@ -205,29 +206,33 @@ class Model_WB extends SGS_Form_ORM {
 
   public function parse_csv($row, &$csv)
   {
+    extract(SGS::parse_grade(trim($row[F])));
     $data = array(
-      'barcode'         => SGS::barcodify(trim($row[B] ?: $row[C])),
-      'species_code'    => trim($row[D]),
-      'bottom_max'      => trim($row[E]),
-      'bottom_min'      => trim($row[F]),
-      'top_max'         => trim($row[G]),
-      'top_min'         => trim($row[H]),
-      'length'          => trim($row[I]),
+      'barcode'         => SGS::barcodify(trim($row[B])),
+      'species_code'    => trim($row[C]),
+      'diameter'        => trim($row[D]),
+      'length'          => trim($row[E]),
       'grade'           => $grade,
-      'volume'          => trim($row[K]),
+      'volume'          => trim($row[G]),
     );
 
     if (array_filter($data)) return SGS::cleanify(array(
-      'create_date'     => SGS::date(trim($csv[7][I] ?: $csv[7][J] ?: $csv[7][K]), SGS::US_DATE_FORMAT, TRUE, TRUE),
-      'operator_tin'    => trim($csv[4][C] ?: $csv[4][D]),
-      'loading_date'    => SGS::date(trim($csv[5][I] ?: $csv[5][J] ?: $csv[5][K]), SGS::US_DATE_FORMAT, TRUE, TRUE),
-      'buyer'           => trim($csv[6][I] ?: $csv[6][J] ?: $csv[6][K]),
-      'submitted_by'    => trim($csv[7][C] ?: $csv[7][D]),
-      'origin'          => trim($csv[5][C] ?: $csv[5][D]),
-      'destination'     => trim($csv[6][C] ?: $csv[6][D]),
-      'wb_barcode'   => SGS::barcodify(trim($csv[2][C] ?: $csv[2][D])),
+      'create_date'     => SGS::date(trim($csv[8][C] ?: $csv[8][D]), SGS::US_DATE_FORMAT, TRUE, TRUE),
+      'operator_tin'    => trim($csv[2][G] ?: $csv[2][H]),
+      'origin'          => trim($csv[3][C] ?: $csv[3][D]),
+      'destination'     => trim($csv[4][C] ?: $csv[4][D]),
+      'transport_operator_tin'  => trim($csv[3][G] ?: $csv[3][H]),
+      'origin_date'      => SGS::date(trim($csv[4][G] ?: $csv[4][H]), SGS::US_DATE_FORMAT, TRUE, TRUE),
+      'destination_date' => SGS::date(trim($csv[5][G] ?: $csv[5][H]), SGS::US_DATE_FORMAT, TRUE, TRUE),
+      'unloading_date'   => SGS::date(trim($csv[6][G] ?: $csv[6][H]), SGS::US_DATE_FORMAT, TRUE, TRUE),
+      'loading_supervised_by'   => trim($csv[5][C] ?: $csv[5][D]),
+      'receiving_supervised_by' => trim($csv[6][C] ?: $csv[6][D]),
+      'entered_by'      => trim($csv[8][G] ?: $csv[8][H]),
+      'wb_barcode'      => SGS::barcodify(trim($csv[2][C] ?: $csv[2][D])),
       'exp_barcode'     => SGS::barcodify(trim($csv[3][C] ?: $csv[3][D])),
-    ) + $data);
+    ) + $data + array(
+      'comment'         => trim($row[G]),
+    ));
   }
 
   public function parse_data($data)
@@ -235,6 +240,9 @@ class Model_WB extends SGS_Form_ORM {
     foreach ($data as $key => $value) switch ($key) {
       case 'operator_tin':
         $this->operator = SGS::lookup_operator($value); break;
+
+      case 'transport_operator_tin':
+        $this->transport_operator = SGS::lookup_operator($value); break;
 
       case 'barcode':
       case 'wb_barcode':
@@ -246,20 +254,14 @@ class Model_WB extends SGS_Form_ORM {
       case 'create_date':
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
-      case 'bottom_min':
-        $this->$key = SGS::floatify(min(array($data['bottom_min'],$data['bottom_max']))); break;
-
-      case 'bottom_max':
-        $this->$key = SGS::floatify(max(array($data['bottom_min'],$data['bottom_max']))); break;
-
-      case 'top_min':
-        $this->$key = SGS::floatify(min(array($data['top_min'],$data['top_max']))); break;
-
-      case 'top_max':
-        $this->$key = SGS::floatify(max(array($data['top_min'],$data['top_max']))); break;
+      case 'diameter':
+        $this->$key = SGS::floatify($data['diameter']); break;
 
       case 'length':
         $this->$key = SGS::floatify($value, 1); break;
+
+      case 'volume':
+        $this->$key = SGS::quantitify($value); break;
 
       default:
         try { $this->$key = $value; } catch (Exception $e) {} break;
@@ -286,57 +288,61 @@ class Model_WB extends SGS_Form_ORM {
     }
 
     $excel->getActiveSheet()->SetCellValue('B'.$row, $this->barcode->barcode);
-    $excel->getActiveSheet()->SetCellValue('D'.$row, $this->species->code);
-    $excel->getActiveSheet()->SetCellValue('E'.$row, $this->bottom_max);
-    $excel->getActiveSheet()->SetCellValue('F'.$row, $this->bottom_min);
-    $excel->getActiveSheet()->SetCellValue('G'.$row, $this->top_max);
-    $excel->getActiveSheet()->SetCellValue('H'.$row, $this->top_min);
-    $excel->getActiveSheet()->SetCellValue('I'.$row, $this->length);
-    $excel->getActiveSheet()->SetCellValue('J'.$row, $grade);
-    $excel->getActiveSheet()->SetCellValue('K'.$row, $this->volume);
+    $excel->getActiveSheet()->SetCellValue('C'.$row, $this->species->code);
+    $excel->getActiveSheet()->SetCellValue('D'.$row, $this->diameter);
+    $excel->getActiveSheet()->SetCellValue('E'.$row, $this->length);
+    $excel->getActiveSheet()->SetCellValue('F'.$row, $grade);
+    $excel->getActiveSheet()->SetCellValue('G'.$row, $this->volume);
+    $excel->getActiveSheet()->SetCellValue('H'.$row, $this->comment);
   }
 
   public function export_headers($excel, $args, $headers = TRUE) {
     if ($headers) {
-      $excel->getActiveSheet()->SetCellValue('A1', 'Export Shipment Specification Form - Logs');
-      $excel->getActiveSheet()->SetCellValue('I1', 'SF19C-1'); // don't know what this is for
-      $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number');
-      $excel->getActiveSheet()->SetCellValue('A3', 'Export Permit Number');
-      $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number');
-      $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN');
-      $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name');
-      $excel->getActiveSheet()->SetCellValue('A5', 'Port of origin');
-      $excel->getActiveSheet()->SetCellValue('E5', 'Expecting loading date:');
-      $excel->getActiveSheet()->SetCellValue('A6', 'Port of Destination');
-      $excel->getActiveSheet()->SetCellValue('E6', 'Buyer');
-      $excel->getActiveSheet()->SetCellValue('A7', 'Submitted by');
-      $excel->getActiveSheet()->SetCellValue('E7', 'Date');
-      $excel->getActiveSheet()->SetCellValue('A8', 'PRODUCT SPECIFICATION - LOGS');
-      $excel->getActiveSheet()->SetCellValue('B9', 'Log Barcode');
-      $excel->getActiveSheet()->SetCellValue('D9', 'Species Code');
-      $excel->getActiveSheet()->SetCellValue('E9', 'Diameter (underbark to nearest cm)');
-      $excel->getActiveSheet()->SetCellValue('I9', 'Length (m) to nearest 0.1m');
-      $excel->getActiveSheet()->SetCellValue('J9', 'ATIBT Grade');
-      $excel->getActiveSheet()->SetCellValue('K9', 'Volume');
+      $excel->getActiveSheet()->SetCellValue('A1', 'LOG WAYBILL FORM');
+      $excel->getActiveSheet()->SetCellValue('A2', 'Waybill Barcode:');
+      $excel->getActiveSheet()->SetCellValue('E2', 'Log Owner TIN:');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Location of Origin:');
+      $excel->getActiveSheet()->SetCellValue('E3', 'Transportation Company TIN:');
+      $excel->getActiveSheet()->SetCellValue('A4', 'Location of Destination:');
+      $excel->getActiveSheet()->SetCellValue('E4', 'Date Leaving Origin:');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Loading Supervisor Name:');
+      $excel->getActiveSheet()->SetCellValue('E5', 'Intended Arrival Date at Destination:');
+      $excel->getActiveSheet()->SetCellValue('A6', 'Receiving Supervisor Name:');
+      $excel->getActiveSheet()->SetCellValue('E6', 'Date Unloaded:');
+      $excel->getActiveSheet()->SetCellValue('A7', 'Truck License No.:');
+      $excel->getActiveSheet()->SetCellValue('E7', 'Driver:');
+      $excel->getActiveSheet()->SetCellValue('A8', 'Date Entered:');
+      $excel->getActiveSheet()->SetCellValue('A1', 'LOG WAYBILL FORM');
+      $excel->getActiveSheet()->SetCellValue('E8', 'Entered By:');
+      $excel->getActiveSheet()->SetCellValue('A9', 'LOGS INCLUDED IN THE LOAD');
+      $excel->getActiveSheet()->SetCellValue('A10', 'No.');
+      $excel->getActiveSheet()->SetCellValue('B10', 'Log Barcode');
+      $excel->getActiveSheet()->SetCellValue('C10', 'Species Code');
+      $excel->getActiveSheet()->SetCellValue('D10', 'Average Diameter');
+      $excel->getActiveSheet()->SetCellValue('E10', 'Length (m)');
+      $excel->getActiveSheet()->SetCellValue('F10', 'ATIBT Grade');
+      $excel->getActiveSheet()->SetCellValue('G10', 'Volume');
+      $excel->getActiveSheet()->SetCellValue('H10', 'Comments');
     }
 
     $excel->getActiveSheet()->SetCellValue('C2', $this->wb_barcode->barcode);
-    $excel->getActiveSheet()->SetCellValue('C3', $this->exp_barcode->barcode);
-//    $excel->getActiveSheet()->SetCellValue('I3', $this->contract_number);
-    $excel->getActiveSheet()->SetCellValue('I2', $this->wb_number);
-    $excel->getActiveSheet()->SetCellValue('I3', $this->exp_number);
-    $excel->getActiveSheet()->SetCellValue('C4', $this->operator->tin);
-    $excel->getActiveSheet()->SetCellValue('I4', $this->operator->name);
-    $excel->getActiveSheet()->SetCellValue('C5', $this->origin);
-    $excel->getActiveSheet()->SetCellValue('I5', $this->loading_date);
-    $excel->getActiveSheet()->SetCellValue('C6', $this->destination);
-    $excel->getActiveSheet()->SetCellValue('I6', $this->buyer);
-    $excel->getActiveSheet()->SetCellValue('C7', $this->submitted_by);
-    $excel->getActiveSheet()->SetCellValue('I7', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G2', $this->operator->tin);
+    $excel->getActiveSheet()->SetCellValue('C3', $this->origin);
+    $excel->getActiveSheet()->SetCellValue('G3', $this->transport_operator_tin);
+    $excel->getActiveSheet()->SetCellValue('C4', $this->destination);
+    $excel->getActiveSheet()->SetCellValue('G4', SGS::date($this->origin_date, SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('C5', $this->loading_supervised_by);
+    $excel->getActiveSheet()->SetCellValue('G5', SGS::date($this->destination_date, SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('C6', $this->receiving_supervised_by);
+    $excel->getActiveSheet()->SetCellValue('G6', SGS::date($this->unloading_date, SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('C7', $this->truck_number);
+    $excel->getActiveSheet()->SetCellValue('G7', $this->driver);
+    $excel->getActiveSheet()->SetCellValue('C8', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G8', $this->entered_by);
   }
 
   public function download_data($values, $errors, $excel, $row) {
-    switch ($values['grade']) {
+    switch ($this->grade) {
       case 'LM':
       case 'A':
       case 'AB':
@@ -344,71 +350,68 @@ class Model_WB extends SGS_Form_ORM {
       case 'BC':
       case 'C':
       case 'D':
-        $grade = 'Logs/'.$values['grade']; break;
+        $grade = 'Logs/'.$this->grade; break;
 
       case '1':
       case '2':
       case '3':
       case 'FAS':
       case 'CG':
-        $grade = 'Sawnwood/'.$values['grade']; break;
+        $grade = 'Sawnwood/'.$this->grade; break;
     }
 
     $excel->getActiveSheet()->SetCellValue('B'.$row, $values['barcode']);
-    $excel->getActiveSheet()->SetCellValue('D'.$row, $values['species_code']);
-    $excel->getActiveSheet()->SetCellValue('E'.$row, $values['bottom_max']);
-    $excel->getActiveSheet()->SetCellValue('F'.$row, $values['bottom_min']);
-    $excel->getActiveSheet()->SetCellValue('G'.$row, $values['top_max']);
-    $excel->getActiveSheet()->SetCellValue('H'.$row, $values['top_min']);
-    $excel->getActiveSheet()->SetCellValue('I'.$row, $values['length']);
-    $excel->getActiveSheet()->SetCellValue('J'.$row, $grade);
-    $excel->getActiveSheet()->SetCellValue('K'.$row, $values['volume']);
-
-    if ($errors) {
-      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $fields[$field]));
-      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $errors));
-      $excel->getActiveSheet()->getStyle('L'.$row)->getAlignment()->setWrapText(true);
-    }
-
+    $excel->getActiveSheet()->SetCellValue('C'.$row, $values['species_code']);
+    $excel->getActiveSheet()->SetCellValue('D'.$row, $values['diameter']);
+    $excel->getActiveSheet()->SetCellValue('E'.$row, $values['length']);
+    $excel->getActiveSheet()->SetCellValue('F'.$row, $values['grade']);
+    $excel->getActiveSheet()->SetCellValue('G'.$row, $values['volume']);
+    $excel->getActiveSheet()->SetCellValue('H'.$row, $values['comment']);
   }
 
   public function download_headers($values, $excel, $args, $headers = TRUE) {
     if ($headers) {
-      $excel->getActiveSheet()->SetCellValue('A1', 'Export Shipment Specification Form - Logs');
-      $excel->getActiveSheet()->SetCellValue('I1', 'SF19C-1'); // don't know what this is for
-      $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number');
-      $excel->getActiveSheet()->SetCellValue('A3', 'Export Permit Number');
-      $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number');
-      $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN');
-      $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name');
-      $excel->getActiveSheet()->SetCellValue('A5', 'Port of origin');
-      $excel->getActiveSheet()->SetCellValue('E5', 'Expecting loading date:');
-      $excel->getActiveSheet()->SetCellValue('A6', 'Port of Destination');
-      $excel->getActiveSheet()->SetCellValue('E6', 'Buyer');
-      $excel->getActiveSheet()->SetCellValue('A7', 'Submitted by');
-      $excel->getActiveSheet()->SetCellValue('E7', 'Date');
-      $excel->getActiveSheet()->SetCellValue('A8', 'PRODUCT SPECIFICATION - LOGS');
-      $excel->getActiveSheet()->SetCellValue('B9', 'Log Barcode');
-      $excel->getActiveSheet()->SetCellValue('D9', 'Species Code');
-      $excel->getActiveSheet()->SetCellValue('E9', 'Diameter (underbark to nearest cm)');
-      $excel->getActiveSheet()->SetCellValue('I9', 'Length (m) to nearest 0.1m');
-      $excel->getActiveSheet()->SetCellValue('J9', 'ATIBT Grade');
-      $excel->getActiveSheet()->SetCellValue('K9', 'Volume');
+      $excel->getActiveSheet()->SetCellValue('A1', 'LOG WAYBILL FORM');
+      $excel->getActiveSheet()->SetCellValue('A2', 'Waybill Barcode:');
+      $excel->getActiveSheet()->SetCellValue('E2', 'Log Owner TIN:');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Location of Origin:');
+      $excel->getActiveSheet()->SetCellValue('E3', 'Transportation Company TIN:');
+      $excel->getActiveSheet()->SetCellValue('A4', 'Location of Destination:');
+      $excel->getActiveSheet()->SetCellValue('E4', 'Date Leaving Origin:');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Loading Supervisor Name:');
+      $excel->getActiveSheet()->SetCellValue('E5', 'Intended Arrival Date at Destination:');
+      $excel->getActiveSheet()->SetCellValue('A6', 'Receiving Supervisor Name:');
+      $excel->getActiveSheet()->SetCellValue('E6', 'Date Unloaded:');
+      $excel->getActiveSheet()->SetCellValue('A7', 'Truck License No.:');
+      $excel->getActiveSheet()->SetCellValue('E7', 'Driver:');
+      $excel->getActiveSheet()->SetCellValue('A8', 'Date Entered:');
+      $excel->getActiveSheet()->SetCellValue('A1', 'LOG WAYBILL FORM');
+      $excel->getActiveSheet()->SetCellValue('E8', 'Entered By:');
+      $excel->getActiveSheet()->SetCellValue('A9', 'LOGS INCLUDED IN THE LOAD');
+      $excel->getActiveSheet()->SetCellValue('A10', 'No.');
+      $excel->getActiveSheet()->SetCellValue('B10', 'Log Barcode');
+      $excel->getActiveSheet()->SetCellValue('C10', 'Species Code');
+      $excel->getActiveSheet()->SetCellValue('D10', 'Average Diameter');
+      $excel->getActiveSheet()->SetCellValue('E10', 'Length (m)');
+      $excel->getActiveSheet()->SetCellValue('F10', 'ATIBT Grade');
+      $excel->getActiveSheet()->SetCellValue('G10', 'Volume');
+      $excel->getActiveSheet()->SetCellValue('H10', 'Comments');
     }
 
     $excel->getActiveSheet()->SetCellValue('C2', $values['wb_barcode']);
-    $excel->getActiveSheet()->SetCellValue('C3', $values['barcode']);
-//    $excel->getActiveSheet()->SetCellValue('I3', $values['contract_number']);
-    $excel->getActiveSheet()->SetCellValue('I2', $values['wb_number']);
-    $excel->getActiveSheet()->SetCellValue('I3', $values['exp_number']);
-    $excel->getActiveSheet()->SetCellValue('C4', $values['operator_tin']);
-    $excel->getActiveSheet()->SetCellValue('I4', SGS::lookup_operator($values['operator_tin'])->name);
-    $excel->getActiveSheet()->SetCellValue('C5', $values['origin']);
-    $excel->getActiveSheet()->SetCellValue('I5', ''); // expected loading date
-    $excel->getActiveSheet()->SetCellValue('C6', $values['destination']);
-    $excel->getActiveSheet()->SetCellValue('I6', ''); // buyer
-    $excel->getActiveSheet()->SetCellValue('C7', ''); // submitted by
-    $excel->getActiveSheet()->SetCellValue('I7', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G2', $values['operator_tin']);
+    $excel->getActiveSheet()->SetCellValue('C3', $values['origin']);
+    $excel->getActiveSheet()->SetCellValue('G3', $values['transport_operator_tin']);
+    $excel->getActiveSheet()->SetCellValue('C4', $values['destination']);
+    $excel->getActiveSheet()->SetCellValue('G4', SGS::date($values['origin_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('C5', $values['loading_supervised_by']);
+    $excel->getActiveSheet()->SetCellValue('G5', SGS::date($values['destination_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('C6', $values['receiving_supervised_by']);
+    $excel->getActiveSheet()->SetCellValue('G6', SGS::date($values['unloading_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('C7', $values['truck_number']);
+    $excel->getActiveSheet()->SetCellValue('G7', $values['driver']);
+    $excel->getActiveSheet()->SetCellValue('C8', SGS::date($args['create_date'], SGS::US_DATE_FORMAT));
+    $excel->getActiveSheet()->SetCellValue('G8', $values['entered_by']);
   }
 
   public function make_suggestions($values, $errors) {
@@ -430,7 +433,7 @@ class Model_WB extends SGS_Form_ORM {
           );
           $suggest = SGS::suggest_barcode($values[$field], $args, 'barcode', TRUE, $min_length ?: 5, $min_similarity ?: 0.3, $max_distance ?: 3, $limit ?: 5, $offset ?: 0, $min_length ?: 2, $limit ?: 20, $offset ?: 0);
           break;
-        case 'log_operator_tin':
+        case 'operator_tin':
         case 'transport_operator_tin':
           $suggest = SGS::suggest_operator($values[$field], $args, 'tin', TRUE, $min_length ?: 5, $min_similarity ?: 0.3, $max_distance ?: 3, $limit ?: 10, $offset ?: 0, $min_length ?: 5, $limit ?: 10, $offset ?: 0);
           break;
@@ -471,7 +474,7 @@ class Model_WB extends SGS_Form_ORM {
       ->and_where('volume', 'BETWEEN', SGS::variance_range(SGS::quantitify($values['volume']), SGS::accuracy(self::$type, 'is_matching_volume')));
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
-    if ($log_operator_id = SGS::lookup_operator($values['log_operator_tin'], TRUE)) $query->and_where('log_operator_id', '=', $log_operator_id);
+    if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
     if ($transport_operator_id = SGS::lookup_operator($values['transport_operator_tin'], TRUE)) $query->and_where('transport_operator_id', '=', $transport_operator_id);
 
     if ($results = $query->execute()->as_array(NULL, 'id')) foreach (array_filter(array_unique($results)) as $duplicate) $duplicates[] = $duplicate;
@@ -486,12 +489,9 @@ class Model_WB extends SGS_Form_ORM {
     $successes = array();
 
     // reliability
-    if (!($this->log_operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id']['is_consistent_operator'] = array('value' => $this->log_operator->tin, 'comparison' => $this->barcode->printjob->site->operator->tin);
-    if (!($this->transport_operator_id == $this->wb_barcode->printjob->site->operator_id)) $warnings['wb_barcode_id']['is_consistent_operator'] = array('value' => $this->transport_operator->tin, 'comparison' => $this->wb_barcode->printjob->site->operator->tin);
-    if (!(in_array('is_consistent_operator', SGS::flattenify($errors + $warnings)))) {
-      $successes['log_operator_id']['is_consistent_operator'] = array('value' => $this->log_operator->tin, 'comparison' => $this->operator->tin);
-      $successes['transport_operator_id']['is_consistent_operator'] = array('value' => $this->transport_operator->tin, 'comparison' => $this->operator->tin);
-    }
+    if (!($this->operator_id == $this->barcode->printjob->site->operator_id)) $warnings['barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->barcode->printjob->site->operator->tin);
+    if (!($this->operator_id == $this->wb_barcode->printjob->site->operator_id)) $warnings['wb_barcode_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->wb_barcode->printjob->site->operator->tin);
+    if (!(in_array('is_consistent_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_consistent_operator'] = array('value' => $this->operator->tin, 'comparison' => $this->operator->tin);
 
     // consistency
     switch ($this->barcode->type) {
@@ -515,7 +515,7 @@ class Model_WB extends SGS_Form_ORM {
 
       if (!(ord($this->species->class) <= ord($ldf->species->class))) $errors['species_id']['is_matching_species'] = array('value' => $this->species->class, 'comparison' => $ldf->species->class);
       if (!($this->species->code == $ldf->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $ldf->species->code);
-      if (!($this->log_operator_id == $ldf->operator_id)) $warnings['operator_id']['is_matching_operator'] = array('value' => $this->log_operator->tin, 'comparison' => $ldf->operator->tin);
+      if (!($this->operator_id == $ldf->operator_id)) $warnings['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $ldf->operator->tin);
 
       if (!Valid::is_accurate($this->volume, $ldf->volume, SGS::tolerance('SPECS', 'is_matching_volume'), FALSE)) $errors['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $ldf->volume);
       else if (!Valid::is_accurate($this->volume, $ldf->volume, SGS::accuracy('SPECS', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $ldf->volume);
@@ -540,7 +540,7 @@ class Model_WB extends SGS_Form_ORM {
     } ***/
 
     if (is_object($ldf) and $ldf->loaded()) {
-      if (!(in_array('is_matching_operator', SGS::flattenify($errors + $warnings)))) $successes['log_operator_id']['is_matching_operator'] = array('value' => $this->log_operator->tin, 'comparison' => $ldf->operator->tin);
+      if (!(in_array('is_matching_operator', SGS::flattenify($errors + $warnings)))) $successes['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $ldf->operator->tin);
       if (!(in_array('is_matching_species', SGS::flattenify($errors + $warnings)))) $successes['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $ldf->species->code);
       if (!(in_array('is_matching_length', SGS::flattenify($errors + $warnings)))) $successes['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $ldf->length);
       if (!(in_array('is_matching_volume', SGS::flattenify($errors + $warnings)))) $successes['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $ldf->volume);
@@ -570,7 +570,7 @@ class Model_WB extends SGS_Form_ORM {
   public function rules()
   {
     return array(
-      'log_operator_id'       => array(array('not_empty')),
+      'operator_id'           => array(array('not_empty')),
       'transport_operator_id' => array(array('not_empty')),
       'species_id'            => array(array('not_empty')),
       'barcode_id'            => array(array('not_empty'),
@@ -580,6 +580,8 @@ class Model_WB extends SGS_Form_ORM {
                                        array('is_measurement_int')),
       'length'                => array(array('not_empty'),
                                        array('is_measurement_float')),
+      'grade'                 => array(array('not_empty'),
+                                       array('is_grade')),
       'volume'                => array(array('not_empty'),
                                        array('is_measurement_float')),
       'origin'                => array('not_empty'),
@@ -590,6 +592,8 @@ class Model_WB extends SGS_Form_ORM {
                                        array('is_date')),
       'destination_date'      => array(array('not_empty'),
                                        array('is_date')),
+      'unloading_date'        => array(),
+      'comment'               => array(),
       'user_id'               => array(),
       'timestamp'             => array()
     );
@@ -598,7 +602,7 @@ class Model_WB extends SGS_Form_ORM {
   public function other_rules()
   {
     return array(
-      'log_operator_tin'       => array(array('not_empty'),
+      'operator_tin'           => array(array('not_empty'),
                                         array('is_operator_tin'),
                                         array('is_existing_operator')),
       'transport_operator_tin' => array(array('not_empty'),
@@ -620,23 +624,24 @@ class Model_WB extends SGS_Form_ORM {
     return array(
       'create_date'      => self::$fields['create_date'],
       'operator_id'      => 'Operator',
-      'species_id'       => 'Species',
-      'barcode_id'       => self::$fields['barcode'],
-      'wb_barcode_id' => self::$fields['wb_barcode'],
-      'exp_barcode_id'   => self::$fields['exp_barcode'],
-//      'contract_number'  => self::$fields['contract_number'],
-      'loading_date'     => self::$fields['loading_date'],
-      'buyer'            => self::$fields['buyer'],
-      'submitted_by'     => self::$fields['submitted_by'],
+      'transport_operator_id' => 'Transporter',
       'origin'           => self::$fields['origin'],
       'destination'      => self::$fields['destination'],
-      'bottom_max'       => self::$fields['bottom_max'],
-      'bottom_min'       => self::$fields['bottom_min'],
-      'top_max'          => self::$fields['top_max'],
-      'top_min'          => self::$fields['top_min'],
+      'origin_date'      => self::$fields['origin_date'],
+      'destination_date' => self::$fields['destination_date'],
+      'loading_supervised_by' => self::$fields['loading_supervised_by'],
+      'receiving_supervised_by' => self::$fields['receiving_supervised_by'],
+      'driver'           => self::$fields['driver'],
+      'truck_number'     => self::$fields['truck_number'],
+      'entered_by'       => self::$fields['entered_by'],
+      'wb_barcode_id'    => self::$fields['wb_barcode'],
+      'barcode_id'       => self::$fields['barcode'],
+      'species_id'       => 'Species',
+      'diameter'         => self::$fields['diameter'],
       'length'           => self::$fields['length'],
       'grade'            => self::$fields['grade'],
       'volume'           => self::$fields['volume'],
+      'comment'          => self::$fields['comment'],
 //      'user_id'          => self::$fields['user_id'],
 //      'timestamp'        => self::$fields['timestamp'],
     );

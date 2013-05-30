@@ -327,6 +327,9 @@ class Model_SPECS extends SGS_Form_ORM {
       case 'length':
         $this->$key = SGS::floatify($value, 1); break;
 
+      case 'volume':
+        $this->$key = SGS::quantitify($value); break;
+
       default:
         try { $this->$key = $value; } catch (Exception $e) {} break;
     }
@@ -351,6 +354,7 @@ class Model_SPECS extends SGS_Form_ORM {
         $grade = 'Sawnwood/'.$this->grade; break;
     }
 
+    $excel->getActiveSheet()->SetCellValue('A'.$row, (($row - self::PARSE_START) + 1));
     $excel->getActiveSheet()->SetCellValue('B'.$row, $this->barcode->barcode);
     $excel->getActiveSheet()->SetCellValue('D'.$row, $this->species->code);
     $excel->getActiveSheet()->SetCellValue('E'.$row, $this->bottom_max);
@@ -364,20 +368,21 @@ class Model_SPECS extends SGS_Form_ORM {
 
   public function export_headers($excel, $args, $headers = TRUE) {
     if ($headers) {
-      $excel->getActiveSheet()->SetCellValue('A1', 'Export Shipment Specification Form - Logs');
+      $excel->getActiveSheet()->SetCellValue('A1', 'EXPORT SHIPMENT SPECIFICATION FORM - LOGS');
       $excel->getActiveSheet()->SetCellValue('I1', 'SF19C-1'); // don't know what this is for
-      $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number');
-      $excel->getActiveSheet()->SetCellValue('A3', 'Export Permit Number');
-      $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number');
-      $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN');
-      $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name');
-      $excel->getActiveSheet()->SetCellValue('A5', 'Port of origin');
+      $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number:');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Export Permit Number:');
+      $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number:');
+      $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN:');
+      $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name:');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Port of origin:');
       $excel->getActiveSheet()->SetCellValue('E5', 'Expecting loading date:');
-      $excel->getActiveSheet()->SetCellValue('A6', 'Port of Destination');
-      $excel->getActiveSheet()->SetCellValue('E6', 'Buyer');
-      $excel->getActiveSheet()->SetCellValue('A7', 'Submitted by');
-      $excel->getActiveSheet()->SetCellValue('E7', 'Date');
+      $excel->getActiveSheet()->SetCellValue('A6', 'Port of Destination:');
+      $excel->getActiveSheet()->SetCellValue('E6', 'Buyer:');
+      $excel->getActiveSheet()->SetCellValue('A7', 'Submitted by:');
+      $excel->getActiveSheet()->SetCellValue('E7', 'Date:');
       $excel->getActiveSheet()->SetCellValue('A8', 'PRODUCT SPECIFICATION - LOGS');
+      $excel->getActiveSheet()->SetCellValue('A9', 'No.');
       $excel->getActiveSheet()->SetCellValue('B9', 'Log Barcode');
       $excel->getActiveSheet()->SetCellValue('D9', 'Species Code');
       $excel->getActiveSheet()->SetCellValue('E9', 'Diameter (underbark to nearest cm)');
@@ -394,7 +399,7 @@ class Model_SPECS extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('C4', $this->operator->tin);
     $excel->getActiveSheet()->SetCellValue('I4', $this->operator->name);
     $excel->getActiveSheet()->SetCellValue('C5', $this->origin);
-    $excel->getActiveSheet()->SetCellValue('I5', $this->loading_date);
+    $excel->getActiveSheet()->SetCellValue('I5', SGS::date($this->loading_date, SGS::US_DATE_FORMAT));
     $excel->getActiveSheet()->SetCellValue('C6', $this->destination);
     $excel->getActiveSheet()->SetCellValue('I6', $this->buyer);
     $excel->getActiveSheet()->SetCellValue('C7', $this->submitted_by);
@@ -420,6 +425,7 @@ class Model_SPECS extends SGS_Form_ORM {
         $grade = 'Sawnwood/'.$values['grade']; break;
     }
 
+    $excel->getActiveSheet()->SetCellValue('A'.$row, (($row - self::PARSE_START) + 1));
     $excel->getActiveSheet()->SetCellValue('B'.$row, $values['barcode']);
     $excel->getActiveSheet()->SetCellValue('D'.$row, $values['species_code']);
     $excel->getActiveSheet()->SetCellValue('E'.$row, $values['bottom_max']);
@@ -429,31 +435,25 @@ class Model_SPECS extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('I'.$row, $values['length']);
     $excel->getActiveSheet()->SetCellValue('J'.$row, $grade);
     $excel->getActiveSheet()->SetCellValue('K'.$row, $values['volume']);
-
-    if ($errors) {
-      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $fields[$field]));
-      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $errors));
-      $excel->getActiveSheet()->getStyle('L'.$row)->getAlignment()->setWrapText(true);
-    }
-
   }
 
   public function download_headers($values, $excel, $args, $headers = TRUE) {
     if ($headers) {
-      $excel->getActiveSheet()->SetCellValue('A1', 'Export Shipment Specification Form - Logs');
+      $excel->getActiveSheet()->SetCellValue('A1', 'EXPORT SHIPMENT SPECIFICATION FORM - LOGS');
       $excel->getActiveSheet()->SetCellValue('I1', 'SF19C-1'); // don't know what this is for
-      $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number');
-      $excel->getActiveSheet()->SetCellValue('A3', 'Export Permit Number');
-      $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number');
-      $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN');
-      $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name');
-      $excel->getActiveSheet()->SetCellValue('A5', 'Port of origin');
+      $excel->getActiveSheet()->SetCellValue('A2', 'Shipment Specification Number:');
+      $excel->getActiveSheet()->SetCellValue('A3', 'Export Permit Number:');
+      $excel->getActiveSheet()->SetCellValue('E3', 'Contract Number:');
+      $excel->getActiveSheet()->SetCellValue('A4', 'Exporter TIN:');
+      $excel->getActiveSheet()->SetCellValue('E4', 'Exporter Company Name:');
+      $excel->getActiveSheet()->SetCellValue('A5', 'Port of origin:');
       $excel->getActiveSheet()->SetCellValue('E5', 'Expecting loading date:');
-      $excel->getActiveSheet()->SetCellValue('A6', 'Port of Destination');
-      $excel->getActiveSheet()->SetCellValue('E6', 'Buyer');
-      $excel->getActiveSheet()->SetCellValue('A7', 'Submitted by');
-      $excel->getActiveSheet()->SetCellValue('E7', 'Date');
+      $excel->getActiveSheet()->SetCellValue('A6', 'Port of Destination:');
+      $excel->getActiveSheet()->SetCellValue('E6', 'Buyer:');
+      $excel->getActiveSheet()->SetCellValue('A7', 'Submitted by:');
+      $excel->getActiveSheet()->SetCellValue('E7', 'Date:');
       $excel->getActiveSheet()->SetCellValue('A8', 'PRODUCT SPECIFICATION - LOGS');
+      $excel->getActiveSheet()->SetCellValue('A9', 'No.');
       $excel->getActiveSheet()->SetCellValue('B9', 'Log Barcode');
       $excel->getActiveSheet()->SetCellValue('D9', 'Species Code');
       $excel->getActiveSheet()->SetCellValue('E9', 'Diameter (underbark to nearest cm)');
