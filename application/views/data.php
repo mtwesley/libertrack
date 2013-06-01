@@ -80,6 +80,8 @@ $classes[] = 'data';
       if ($options['header'] or $options['hide_header_info']) switch ($field):
         case 'operator_tin':
         case 'operator_id':
+        case 'transport_operator_tin':
+        case 'transport_operator_id':
         case 'site_name':
         case 'site_id':
         case 'block_name':
@@ -98,15 +100,22 @@ $classes[] = 'data';
       if ($options['hide_hidden_info']) switch ($field):
         case 'enumerator':
         case 'buyer':
+        case 'driver':
+        case 'origin_date':
+        case 'destination_date':
+        case 'unloading_date':
         case 'entered_date':
         case 'checked_date':
         case 'loading_date':
+        case 'loading_supervised_by':
+        case 'receiving_supervised_by':
         case 'measured_by':
         case 'entered_by':
         case 'checked_by':
         case 'signed_by':
         case 'submitted_by':
         case 'contract_number':
+        case 'truck_number':
         case 'form_number':
         case 'is_requested':
         case 'is_fda_approved':
@@ -154,6 +163,8 @@ $classes[] = 'data';
       if ($options['header'] or $options['hide_header_info']) switch ($field):
         case 'operator_tin':
         case 'operator_id':
+        case 'transport_operator_tin':
+        case 'transport_operator_id':
         case 'site_name':
         case 'site_id':
         case 'block_name':
@@ -171,15 +182,22 @@ $classes[] = 'data';
       if ($options['hide_hidden_info']) switch ($field):
         case 'enumerator':
         case 'buyer':
+        case 'driver':
+        case 'origin_date':
+        case 'destination_date':
+        case 'unloading_date':
         case 'entered_date':
         case 'checked_date':
         case 'loading_date':
+        case 'loading_supervised_by':
+        case 'receiving_supervised_by':
         case 'measured_by':
         case 'entered_by':
         case 'checked_by':
         case 'signed_by':
         case 'submitted_by':
         case 'contract_number':
+        case 'truck_number':
         case 'form_number':
         case 'is_requested':
         case 'is_fda_approved':

@@ -594,6 +594,7 @@ create table tdf_data (
   bottom_min d_diameter not null,
   bottom_max d_diameter not null,
   length d_length not null,
+  volume d_volume not null,
   action d_text_long,
   comment d_text_long,
   create_date d_date not null,
@@ -1047,6 +1048,7 @@ create index ssf_verification_status on ssf_verification (id,status);
 
 create index tdf_data_diameter on tdf_data (id,top_min,top_max,bottom_min,bottom_max);
 create index tdf_data_length on tdf_data (id,length);
+create index tdf_data_volume on tdf_data (id,volume);
 create index tdf_data_create_date on tdf_data (id,create_date);
 create index tdf_data_status on tdf_data (id,status);
 

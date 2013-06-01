@@ -226,6 +226,16 @@ class Model_SPECS extends SGS_Form_ORM {
           'error'   => 'Stumpage fee has not been invoiced or paid',
         ),
       )),
+    'consignment' => array(
+      'title'  => 'Consignment',
+      'checks' => array(
+        'has_valid_waybill' => array(
+          'name'    => 'Waybill Status',
+          'title'   => 'Waybill exists',
+          'warning' => 'Waybill does not exist',
+          'error'   => 'Waybill does not exist',
+        ),
+      )),
   );
 
   public static function fields()
@@ -628,6 +638,13 @@ class Model_SPECS extends SGS_Form_ORM {
       }
       else $successes['barcode_id']['is_invoiced_st'] = array('value' => 'N/A', 'comparison' => 'N/A');
     } else $errors['barcode_id']['is_invoiced_st'] = array('value' => 'Not Found', 'comparison' => 'N/A');
+
+    // waybills
+    $waybill = ORM::factory('WB')
+      ->where('barcode_id', '=', $this->barcode->id)
+      ->find();
+    if ($waybill and $waybill->loaded()) $successes['barcode_id']['has_valid_waybill'] = array('value' => 'Found', 'comparison' => 'N/A');
+    else $warnings['barcode_id']['has_valid_waybill'] = array('value' => 'Not Found', 'comparison' => 'N/A');
 
     /*** all tolerance checks fail if any traceability checks fail
     foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
