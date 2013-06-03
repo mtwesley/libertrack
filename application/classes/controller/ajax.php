@@ -10,7 +10,6 @@ class Controller_Ajax extends Controller {
     $id      = $vars[1];
     $key     = trim($vars[2]);
     $value   = trim($this->request->post('data'));
-    $process = $this->request->post('process');
 
     $csv = ORM::factory('CSV', $id);
     if (!$csv->loaded()) return $this->response->status(403);
@@ -28,8 +27,6 @@ class Controller_Ajax extends Controller {
       return;
     }
 
-    if ($process) $csv->process();
-
     $this->response->body($value);
   }
 
@@ -41,7 +38,6 @@ class Controller_Ajax extends Controller {
     $id      = $vars[1];
     $key     = trim($vars[2]);
     $value   = trim($this->request->post('data'));
-    $process = $this->request->post('process');
 
     $data = ORM::factory($model, $id);
     if (!$data->loaded()) return $this->response->status(403);
@@ -63,8 +59,6 @@ class Controller_Ajax extends Controller {
     } catch (Exception $e) {
       return;
     }
-
-    if ($process) $data->process();
 
     $this->response->body($value);
   }
@@ -119,7 +113,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_updatedata() {
-    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('manage')) return $this->response->status(401);
 
     $id        = $this->request->post('id');
     $form_type = $this->request->post('type');
@@ -144,6 +138,58 @@ class Controller_Ajax extends Controller {
         'hide_upload_info' => $hide_upload_info ? TRUE : FALSE,
       ))
       ->render());
+  }
+
+  public function action_status() {
+    if (!Auth::instance()->logged_in('manage')) return $this->response->status(401);
+
+    $vars    = explode('-', $this->request->post('id'));
+    $model   = $vars[0];
+    $id      = $vars[1];
+    $status  = trim($this->request->post('status'));
+    $comment = trim($this->request->post('comment'));
+
+    $data = ORM::factory($model, $id);
+    if (!$data->loaded()) return $this->response->status(403);
+
+    $_status = $data->status;
+    try {
+      switch ($status) {
+        case 'A':
+        case 'R':
+          $data->status = $status;
+      }
+      if (DB::insert('status_activity', array('form_type', 'form_data_id', 'old_status', 'new_status', 'comment', 'user_id'))
+        ->values(array($data->form_type, $data->id, $_status, $status, $comment, Auth::instance()->get_user()->id ?: 1))
+        ->execute() !== FALSE) $data->save();
+    } catch (Exception $e) {
+      return;
+    }
+  }
+
+  public function action_activity() {
+    if (!Auth::instance()->logged_in('manage')) return $this->response->status(401);
+
+    $vars     = explode('-', $this->request->post('id'));
+    $model    = $vars[0];
+    $id       = $vars[1];
+    $activity = trim($this->request->post('activity'));
+    $comment = trim($this->request->post('comment'));
+
+    $data = ORM::factory($model, $id);
+    if (!$data->loaded()) return $this->response->status(403);
+
+    $barcode = ORM::factory('barcode', $data->barcode->id);
+    if (!$barcode->loaded()) return $this->response->status(403);
+
+    try {
+      switch ($activity) {
+        case 'S': $barcode->unset_activity('E'); break;
+      }
+      $barcode->set_activity($activity, $comment, 'admin');
+    } catch (Exception $e) {
+      return;
+    }
   }
 
   public function action_tips() {

@@ -556,7 +556,7 @@ class Model_LDF extends SGS_Form_ORM {
         else if (count($siblngs) > 1) {
           usort($siblngs, function($a, $b) { return $a->bottom_diameter < $b->bottom_diameter ? 1 : -1; });
           for ($s = 1; $s < count($siblngs); $s++)
-          if (!Valid::is_accurate($siblngs[$s-1]->top_diameter, $siblngs[$s]->bottom_diameter, 10))
+          if (!Valid::is_accurate($siblngs[$s-1]->top_diameter, $siblngs[$s]->bottom_diameter, 10, TRUE, FALSE))
             if ($siblngs[$s-1]->id == $this->id) {
               $errors['top_min']['is_matching_diameter'] = array('value' => $siblngs[$s-1]->top_diameter, 'comparison' => $siblngs[$s]->bottom_diameter);
               $errors['top_max']['is_matching_diameter'] = array('value' => $siblngs[$s-1]->top_diameter, 'comparison' => $siblngs[$s]->bottom_diameter);

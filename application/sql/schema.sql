@@ -1446,7 +1446,7 @@ end
 $$ language 'plpgsql';
 
 
-create function verification_update_barcodes()
+create or replace function verification_update_barcodes()
   returns trigger as
 $$
 begin
@@ -1893,17 +1893,17 @@ create trigger t_ssf_verification_update_barcodes
   execute procedure verification_update_barcodes();
 
 create trigger t_tdf_verification_update_barcodes
-  after insert or update or delete on ssf_verification
+  after insert or update or delete on tdf_verification
   for each row
   execute procedure verification_update_barcodes();
 
 create trigger t_ldf_verification_update_barcodes
-  after insert or update or delete on ssf_verification
+  after insert or update or delete on ldf_verification
   for each row
   execute procedure verification_update_barcodes();
 
 create trigger t_mif_verification_update_barcodes
-  after insert or update or delete on ssf_verification
+  after insert or update or delete on mif_verification
   for each row
   execute procedure verification_update_barcodes();
 

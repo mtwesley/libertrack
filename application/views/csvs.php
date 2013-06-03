@@ -139,7 +139,7 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
   <?php foreach ($csvs as $csv): ?>
   <?php if ($options['rows']): ?>
   <?php $errors = $csv->get_errors(); ?>
-  <tr id="csv-<?php echo $csv->id; ?>" class="csv-<?php echo $csv->id; ?> <?php print SGS::odd_even($odd); ?>">
+  <tr id="csv-<?php echo $csv->id; ?>" class="csv-row csv-<?php echo $csv->id; ?> <?php print SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
     <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $csv->id; ?>" /></td>
     <?php endif; ?>
@@ -230,9 +230,9 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
           <?php endif; ?>
           <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/revisions', 'Revisions', array('class' => 'link')); ?>
           <?php endif; // links ?>
-          <?php if ($options['details'] and $errors = $csv->get_errors()): ?>
+          <?php /* if ($options['details'] and $errors = $csv->get_errors()): ?>
           <span id="csv-<?php echo $csv->id; ?>-details" class="link toggle-details">Details</span>
-          <?php endif; ?>
+          <?php endif; */ ?>
         </div>
       </div>
     </td>

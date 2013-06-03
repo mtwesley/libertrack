@@ -138,7 +138,7 @@ $classes[] = 'data';
 <?php endif; // table ?>
   <?php foreach ($data as $record): ?>
   <?php if ($options['rows']): ?>
-  <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="<?php echo $record::$type.'-'.$record->id; ?> <?php echo SGS::odd_even($odd); ?>">
+  <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="data-row <?php echo $record::$type.'-'.$record->id; ?> <?php echo SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
     <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $record->id; ?>" /></td>
     <?php endif; ?>
@@ -288,9 +288,9 @@ $classes[] = 'data';
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/revisions', 'Revisions', array('class' => 'link')); ?>
           <?php endif; // verification ?>
           <?php endif; // links ?>
-          <?php if ($options['details']): ?>
+          <?php /* if ($options['details']): ?>
           <span class="link toggle-details">Details</span>
-          <?php endif; // details-links ?>
+          <?php endif; */ // details-links ?>
         </div>
       </div>
     </td>

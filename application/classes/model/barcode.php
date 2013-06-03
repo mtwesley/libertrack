@@ -71,15 +71,15 @@ class Model_Barcode extends ORM {
     return $current ? $query->get('activity') : $query->as_array(NULL, 'activity');
   }
 
-  public function set_activity($activity, $trigger = NULL) {
+  public function set_activity($activity, $comment, $trigger = NULL) {
     if (!$trigger) {
       $caller  = array_shift(debug_backtrace());
       $trigger = $caller['function'];
     }
 
     if (in_array($activity, SGS::$barcode_activity))
-      DB::insert('barcode_activity', array('barcode_id', 'activity', 'user_id'))
-        ->values(array($this->id, $activity, Auth::instance()->get_user()->id ?: 1,))
+      DB::insert('barcode_activity', array('barcode_id', 'activity', 'comment', 'user_id'))
+        ->values(array($this->id, $activity, $comment, Auth::instance()->get_user()->id ?: 1,))
         ->execute();
   }
 
