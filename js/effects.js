@@ -38,13 +38,13 @@ $(function() {
     $(this).parent().parent().parent().parent("tr").next("tr.details").toggle();
   });
 
-  $(".csv-row").live('click', function() {
-    $(this).next("tr.details").toggle();
-  });
-
-  $(".data-row").live('click', function() {
-    $(this).next("tr.details").toggle();
-  });
+//  $(".csv-row").live('click', function() {
+//    $(this).next("tr.details").toggle();
+//  });
+//
+//  $(".data-row").live('click', function() {
+//    $(this).next("tr.details").toggle();
+//  });
 
   $(".details-tips-link").live('click', function() {
     $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
