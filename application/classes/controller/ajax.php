@@ -113,7 +113,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_updatedata() {
-    if (!Auth::instance()->logged_in('manage')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
 
     $id        = $this->request->post('id');
     $form_type = $this->request->post('type');
