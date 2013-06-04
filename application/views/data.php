@@ -138,7 +138,7 @@ $classes[] = 'data';
 <?php endif; // table ?>
   <?php foreach ($data as $record): ?>
   <?php if ($options['rows']): ?>
-  <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="data-row<?php echo $record::$type.'-'.$record->id; ?> <?php echo SGS::odd_even($odd); ?>">
+  <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="data-row <?php echo $record::$type.'-'.$record->id; ?> <?php echo SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
     <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $record->id; ?>" /></td>
     <?php endif; ?>
