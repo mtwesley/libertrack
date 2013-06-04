@@ -1730,8 +1730,8 @@ class Controller_Analysis extends Controller {
           ->and_where_close();
       }
 
+      if ($status) $data_ids->and_where('status', 'IN', (array) $status);
       $data_ids = $data_ids
-        ->and_where('status', 'IN', (array) $status)
         ->execute()
         ->as_array(NULL, 'id');
 
