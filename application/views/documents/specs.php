@@ -262,7 +262,7 @@ $num = $cntr;
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="specs-title">Export Shipment Specification - Logs</div>
+    <div class="specs-title"><?php if ($document->is_draft) echo 'Draft '; ?>Export Shipment Specification - Logs</div>
   </div>
   <?php endif; ?>
 

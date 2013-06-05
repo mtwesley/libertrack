@@ -248,8 +248,8 @@ $options = (array) $options + array(
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="invoice-title">Proforma Stumpage Invoice</div>
-    <div class="invoice-subtitle">Request for Payment to the Government of Liberia</div>
+    <div class="invoice-title"><?php if ($invoice->is_draft) echo 'Draft '; ?>Proforma Stumpage Invoice</div>
+    <div class="invoice-subtitle"><?php if (!$invoice->is_draft): ?>Request for Payment to the Government of Liberia<?php endif; ?></div>
   </div>
   <?php endif; ?>
 

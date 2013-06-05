@@ -312,7 +312,7 @@ $options = (array) $options + array(
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="exp-title">Wood Products Export Permit</div>
+    <div class="exp-title"><?php if ($document->is_draft) echo 'Draft '; ?>Wood Products Export Permit</div>
   </div>
   <?php endif; ?>
 

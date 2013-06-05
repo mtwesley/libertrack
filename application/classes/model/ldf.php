@@ -547,7 +547,7 @@ class Model_LDF extends SGS_Form_ORM {
         if (!Valid::is_accurate($siblings['length'], $parent->length, SGS::tolerance('LDF', 'is_matching_length'), FALSE)) $errors['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
         else if (!Valid::is_accurate($siblings['length'], $parent->length, SGS::accuracy('LDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $siblings['length'], 'comparison' => $parent->length);
 
-        if (!Valid::is_accurate($siblings['diameter'], $parent->diameter, SGS::tolerance('LDF', 'is_matching_diameter'))) {
+        if (!Valid::is_accurate($siblings['diameter'], $parent->diameter, SGS::tolerance('LDF', 'is_matching_diameter'), FALSE)) {
           $errors['top_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $errors['top_max']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
           $errors['bottom_min']['is_matching_diameter'] = array('value' => $siblings['diameter'], 'comparison' => $parent->diameter);
