@@ -82,3 +82,32 @@ $$ language 'plpgsql';
 -- barcode locks
 
 alter table barcode_locks add column comment d_text_long;
+
+
+-- barcode activity
+
+create or replace function barcode_activity_update_barcodes()
+  returns trigger as
+$$
+  declare x_locked d_bool;
+begin
+  select exists(select lock from barcode_locks where barcode_id = new.barcode_id) into x_locked;
+
+  case new.activity
+    when 'S' then delete from barcode_activity where activity = 'E';
+    else null;
+  end case;
+
+  if (x_locked != true) and (new.activity in ('H','T','X','E','S','Y','A','L','Z')) then
+    insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (new.barcode_id,'BRCODE',new.barcode_id,new.user_id);
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+create trigger t_barcode_activity_update_barcodes
+  after insert or update on barcode_activity
+  for each row
+  execute procedure barcode_activity_update_barcodes();
+

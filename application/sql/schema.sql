@@ -73,7 +73,7 @@ create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHEW]$');
 
 create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDNESYALZC]$');
 
-create domain d_barcode_lock as character varying(6) check (value ~ E'([A|INV|DOC|BRCODE|VERIFY)');
+create domain d_barcode_lock as character varying(6) check (value ~ E'(ADMIN|INV|DOC|BRCODE|VERIFY)');
 
 create domain d_qrcode as character(64);
 
@@ -1472,7 +1472,7 @@ $$
   declare x_id d_id;
 begin
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
-    delete from barcode_locks where lock = 'BRCODE' and lock_id = new.barcode_id;
+    delete from barcode_locks where lock = 'BRCODE' and lock_id = new.barcode_id and barcode_id <> new.barcode_id;
     for x_id in select barcode_id from barcode_hops where parent_id = new.barcode_id loop
       insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_id,'BRCODE',new.barcode_id,new.user_id);
     end loop;
@@ -1488,47 +1488,18 @@ $$ language 'plpgsql';
 
 create function barcode_activity_update_barcodes()
   returns trigger as
+$$
   declare x_locked d_bool;
 begin
-  select true from
+  select exists(select lock from barcode_locks where barcode_id = new.barcode_id) into x_locked;
 
   case new.activity
-    when 'S' then
-      delete from barcode_activity where activity = 'E';
-
-    when 'TDF'   then select barcode_id,user_id from tdf_data where id = x_form_data_id into x_data;
-    when 'LDF'   then select barcode_id,user_id from ldf_data where id = x_form_data_id into x_data;
-    when 'MIF'   then select barcode_id,user_id from mif_data where id = x_form_data_id into x_data;
-    when 'MOF'   then select barcode_id,user_id from mof_data where id = x_form_data_id into x_data;
-    when 'SPECS' then select barcode_id,user_id from specs_data where id = x_form_data_id into x_data;
+    when 'S' then delete from barcode_activity where activity = 'E';
     else null;
   end case;
 
-  if x_data is null then
-    return null;
-  end if;
-
-  if (tg_op = 'DELETE') then
-    select type,number,is_draft from invoices where id = old.invoice_id into x_invoice;
-    case x_invoice.type
-      when 'ST'  then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('T') and trigger = 'invoice_data' limit 1);
-      when 'EXF' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('X') and trigger = 'invoice_data' limit 1);
-      else null;
-    end case;
-    delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'INV' and lock_id = old.invoice_id;
-  else
-    if (tg_op = 'INSERT') then
-      insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'INV',new.invoice_id,x_data.user_id);
-    end if;
-
-    select type,number,is_draft from invoices where id = new.invoice_id into x_invoice;
-    if (x_invoice.is_draft = false) then
-      case x_invoice.type
-        when 'ST'  then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'T','invoice_data');
-        when 'EXF' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'X','invoice_data');
-        else null;
-      end case;
-    end if;
+  if (x_locked != true) and (new.activity in ('H','T','X','E','S','Y','A','L','Z')) then
+    insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (new.barcode_id,'BRCODE',new.barcode_id,new.user_id);
   end if;
 
   return null;
@@ -2012,6 +1983,11 @@ create trigger t_barcode_locks_update_locks
   after insert or update or delete on barcode_locks
   for each row
   execute procedure barcode_locks_update_locks();
+
+create trigger t_barcode_activity_update_barcodes
+  after insert or update on barcode_activity
+  for each row
+  execute procedure barcode_activity_update_barcodes();
 
 create trigger t_invoices_update_data
   after update on invoices

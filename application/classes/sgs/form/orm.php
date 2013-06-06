@@ -68,6 +68,11 @@ class SGS_Form_ORM extends ORM {
       $parent = $this->parent();
       if ($parent and $parent->loaded()) $invoice_id = $parent->is_invoiced($type, $is_paid);
     }
+    if (!$invoice_id and isset($this->barcode) and $this->barcode->id) switch ($type) {
+      case 'ST':  return $this->barcode->get_activity('T');
+      case 'EXF': return $this->barcode->get_activity('X');
+      default:    return $this->barcode->get_activity(array('T', 'X'));
+    }
     return $invoice_id;
   }
 
