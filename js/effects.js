@@ -66,6 +66,7 @@ $(function() {
   });
 
   $(".data-activity-update-link").live('click', function() {
+    var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
     $("#popup .popup-text").load('/ajax/activity', {id: $(this).attr('id')}, function() {
       $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
