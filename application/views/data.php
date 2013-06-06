@@ -138,11 +138,11 @@ $classes[] = 'data';
 <?php endif; // table ?>
   <?php foreach ($data as $record): ?>
   <?php if ($options['rows']): ?>
-  <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="data-row <?php echo $record::$type.'-'.$record->id; ?> <?php echo SGS::odd_even($odd); ?>">
+  <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="<?php echo $record::$type.'-'.$record->id; ?> <?php echo SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
     <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $record->id; ?>" /></td>
     <?php endif; ?>
-    <td class="type"><span class="data-type"><?php echo $form_type; ?></span></td>
+    <td class="data-row-details type"><span class="data-type"><?php echo $form_type; ?></span></td>
     <td class="status">
       <?php
         if (!$record->is_verification()) switch ($record->status):
@@ -275,18 +275,20 @@ $classes[] = 'data';
         <div class="links-links">
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id, 'View', array('class' => 'link')); ?>
           <?php if ($options['links']): ?>
-          <?php if ($record->csv()->loaded()) echo HTML::anchor($record->csv()->data_type.'/data/'.$record->csv()->id, 'View CSV', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php if (Auth::instance()->logged_in('data')) if ($record->csv()->loaded()) echo HTML::anchor($record->csv()->data_type.'/data/'.$record->csv()->id, 'View CSV', array('class' => 'link')); ?>
+          <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/edit', 'Edit', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php if ($record->is_verification()): ?>
           <?php $record_data = $record->data(); if ($record_data->loaded()) echo HTML::anchor('analysis/review/'.strtolower($record_data::$type).'/'.$record->data()->id, 'View Data', array('class' => 'link')); ?>
           <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Verify</span>
           <?php else: ?>
           <span id="<?php echo $record::$type; ?>-<?php echo $record->id; ?>-check" class="link data-check">Check</span>
-          <?php echo HTML::anchor('manage/barcodes/'.$record->barcode->id, 'Barcode', array('class' => 'link')); ?>
+          <?php if (Auth::instance()->logged_in('barcodes')) echo HTML::anchor('manage/barcodes/'.$record->barcode->id, 'Barcode', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/hierarchy', 'Hierarchy', array('class' => 'link')); ?>
           <?php echo HTML::anchor('analysis/review/'.strtolower($record::$type).'/'.$record->id.'/revisions', 'Revisions', array('class' => 'link')); ?>
           <?php endif; // verification ?>
+          <?php if (Auth::instance()->logged_in('management')): ?><span id="<?php echo implode('-', array($record::$type, $record->id, 'status-update')); ?>" class="link data-status-update-link">Status</span><?php endif; ?>
+          <?php if (Auth::instance()->logged_in('management')): ?><span id="<?php echo implode('-', array($record::$type, $record->id, 'activity-update')); ?>" class="link data-activity-update-link">Activity</span><?php endif; ?>
           <?php endif; // links ?>
           <?php if ($options['details']): ?>
           <span class="link toggle-details">Details</span>

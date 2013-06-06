@@ -95,6 +95,13 @@
 #content form p.input {}
 #content form p.password {}
 
+#content form p.radios span.radio {
+  margin-right: 5px;
+}
+#content form p.radios input {
+  margin-left: 0;
+}
+
 #content form p.input input,
 #content form p.textarea textarea,
 #content form p.password input {
@@ -210,6 +217,13 @@
 
 #content form.search p.input {}
 #content form.search p.password {}
+
+#content form.search p.radios span.radio {
+  margin-right: 5px;
+}
+#content form.search p.radios input {
+  margin-left: 0;
+}
 
 #content form.search p.input input,
 #content form.search p.textarea textarea,

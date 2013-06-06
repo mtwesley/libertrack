@@ -744,6 +744,8 @@ class Controller_Analysis extends Controller {
   }
 
   private function handle_data_edit($form_type, $id) {
+    if (!Auth::instance()->logged_in('management')) $this->request->redirect('analysis/review/'.strtolower($form_type).'/'.$id);
+
     $item = ORM::factory($form_type, $id);
 
     $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
@@ -821,6 +823,8 @@ class Controller_Analysis extends Controller {
   }
 
   private function handle_data_delete($form_type, $id) {
+    if (!Auth::instance()->logged_in('management')) $this->request->redirect('analysis/review/'.strtolower($form_type).'/'.$id);
+
     $item  = ORM::factory($form_type, $id);
 
     if (!$item->loaded()) {

@@ -9,7 +9,7 @@ class Controller_Settings extends Controller {
       Notify::msg('Please login.', NULL, TRUE);
       $this->request->redirect('login?destination='.$this->request->uri());
     }
-    elseif (!Auth::instance()->logged_in('admin')) {
+    elseif (!Auth::instance()->logged_in('management')) {
       Notify::msg('Access denied. You must have '.SGS::$roles['admin'].' privileges.', 'locked', TRUE);
       $this->request->redirect();
     }

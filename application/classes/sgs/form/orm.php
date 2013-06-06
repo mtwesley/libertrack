@@ -216,6 +216,19 @@ class SGS_Form_ORM extends ORM {
       ->execute();
   }
 
+  public function status($status, $comment) {
+    if ($this->is_verification())
+      if (!in_array($status, array_keys(SGS::$verification_status))) return;
+      else if (!in_array($status, array_keys(SGS::$data_status))) return;
+
+    $_status = $this->status;
+    $this->status = $status;
+
+    DB::insert('status_activity', array('form_type', 'form_data_id', 'old_status', 'new_status', 'comment', 'user_id'))
+      ->values(array(static::$type, $this->id, $_status, $status, $comment, Auth::instance()->get_user()->id ?: 1))
+      ->execute();
+  }
+
   public function parent($types = array()) {
     return reset($this->parents(1, $types)) ?: NULL;
   }

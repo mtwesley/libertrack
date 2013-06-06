@@ -26,7 +26,7 @@
 .popup {
   display: none;
   padding: 37px 6px 6px;
-  width: 700px;
+  width: 850px;
   background-color: #fff;
   border: none;
   position: relative;
@@ -53,6 +53,161 @@
   background-image: url("/images/loading_gray_large.gif");
   background-position: center center;
   background-repeat: no-repeat;
+}
+
+#popup form {
+  margin: 0;
+  padding: 5px 10px;
+  border-top: 4px solid #cddda0;
+  background-color: #eaeedf;
+  clear: both;
+  font-size: 14px;
+}
+
+#popup form span.label {
+  margin: 5px 0;
+  padding: 0;
+  display: block;
+  font-weight: bold;
+  text-align: left;
+  font-size: 14px;
+}
+
+#popup form span.field {}
+
+#popup form p {
+  margin: 0 -10px 10px;
+  padding: 0 10px 15px;
+  clear: none;
+  border-bottom: 2px dotted #fff;
+  position: relative;
+}
+
+#popup form p.input input,
+#popup form p.password input,
+#popup form p.submit input,
+#popup form p.textarea textarea,
+#popup form p.forceselect select,
+#popup form p.select select {
+  font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
+  font-size: 14px;
+  color: #333;
+}
+
+#popup form p.input {}
+#popup form p.password {}
+
+#popup form p.radios span.radio {
+  margin-right: 5px;
+}
+#popup form p.radios input {
+  margin-left: 0;
+}
+
+#popup form p.input input,
+#popup form p.textarea textarea,
+#popup form p.password input {
+  padding: 7px;
+  border: none;
+  width: 98%;
+  background-color: #f6f8f0;
+}
+
+#popup form p.submit {
+  margin-bottom: -10px;
+  text-align: left;
+  border: none;
+}
+#popup form p.submit input {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+#popup form p.forceselect {}
+#popup form p.select {}
+
+#popup form p.forceselect select,
+#popup form p.select select {
+  width: 100%;
+}
+
+#popup form p.textarea textarea {
+  height: 50px;
+}
+
+#popup form p.checkboxes {}
+
+#popup form p.checkboxes span.field {
+/*
+  margin-left: 165px;
+  margin-top: -20px;
+  display: inline-block;
+  clear: left;
+*/
+}
+
+#popup form p.checkboxes span.checkbox {
+  white-space: nowrap;
+}
+
+#popup form p span.error-message {
+  margin-left: 0;
+  padding: 3px 8px;
+  display: block;
+  position: absolute;
+  top: -5px;
+  left: 100px;
+  color: #fafafa;
+  background-color: #323232;
+  font-size: 13px;
+}
+
+#popup form p span.arrow {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  left: -16px;
+  top: 1px;
+  background-image: url('/images/err_msg_arrow.gif');
+  background-repeat: no-repeat;
+}
+
+#popup form .ui-autocomplete,
+#popup form .ui-autocomplete.ui-menu {
+  margin: 0;
+  padding: 20px 0 0 0;
+  width: 400px;
+  position: absolute !important;
+  top: 8px !important;
+  list-style: none;
+  background-image: url('/images/search_autocomplete_arrow.png');
+  background-position: center 2px;
+  background-repeat: no-repeat;
+}
+
+#popup form .ui-autocomplete.ui-menu .ui-menu-item a {
+  padding: 4px;
+  border-top: 1px dotted #dde9f6;
+  border-left: 1px solid #c7d9ee;
+  border-right: 1px solid #c7d9ee;
+  background-color: #f8fafb;
+  color: #3c7fcb;
+  cursor: pointer;
+  display: block;
+}
+
+#popup form .ui-autocomplete.ui-menu .ui-menu-item:first-child a {
+  border-top: 2px solid #c7d9ee;
+}
+
+#popup form .ui-autocomplete.ui-menu .ui-menu-item:last-child a {
+  border-bottom: 1px solid #c7d9ee;
+}
+
+#popup form .ui-autocomplete.ui-menu .ui-menu-item a:hover,
+#popup form .ui-autocomplete.ui-menu .ui-menu-item a.ui-state-hover {
+  background-color: #f1f6fb;
+  color: #1764bd;
 }
 
 .loading-small {
@@ -193,4 +348,9 @@
 	border: 1px solid #ffe2Ce;
 	color: #e6bc9e;
 	cursor: default;
+}
+
+.csv-row-details,
+.data-row-details {
+  cursor: pointer;
 }

@@ -73,7 +73,7 @@ create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHEW]$');
 
 create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDNESYALZC]$');
 
-create domain d_barcode_lock as character varying(6) check (value ~ E'(ADMIN|INV|DOC|BRCODE|VERIFY)');
+create domain d_barcode_lock as character varying(6) check (value ~ E'([A|INV|DOC|BRCODE|VERIFY)');
 
 create domain d_qrcode as character(64);
 
@@ -301,6 +301,7 @@ create table barcode_locks (
   barcode_id d_id not null,
   lock d_barcode_lock not null,
   lock_id d_id not null,
+  comment d_text_long,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -1478,6 +1479,56 @@ begin
 
   elseif (tg_op = 'DELETE') then
     delete from barcode_locks where lock = 'BRCODE' and lock_id = old.barcode_id;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create function barcode_activity_update_barcodes()
+  returns trigger as
+  declare x_locked d_bool;
+begin
+  select true from
+
+  case new.activity
+    when 'S' then
+      delete from barcode_activity where activity = 'E';
+
+    when 'TDF'   then select barcode_id,user_id from tdf_data where id = x_form_data_id into x_data;
+    when 'LDF'   then select barcode_id,user_id from ldf_data where id = x_form_data_id into x_data;
+    when 'MIF'   then select barcode_id,user_id from mif_data where id = x_form_data_id into x_data;
+    when 'MOF'   then select barcode_id,user_id from mof_data where id = x_form_data_id into x_data;
+    when 'SPECS' then select barcode_id,user_id from specs_data where id = x_form_data_id into x_data;
+    else null;
+  end case;
+
+  if x_data is null then
+    return null;
+  end if;
+
+  if (tg_op = 'DELETE') then
+    select type,number,is_draft from invoices where id = old.invoice_id into x_invoice;
+    case x_invoice.type
+      when 'ST'  then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('T') and trigger = 'invoice_data' limit 1);
+      when 'EXF' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('X') and trigger = 'invoice_data' limit 1);
+      else null;
+    end case;
+    delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'INV' and lock_id = old.invoice_id;
+  else
+    if (tg_op = 'INSERT') then
+      insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (x_data.barcode_id,'INV',new.invoice_id,x_data.user_id);
+    end if;
+
+    select type,number,is_draft from invoices where id = new.invoice_id into x_invoice;
+    if (x_invoice.is_draft = false) then
+      case x_invoice.type
+        when 'ST'  then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'T','invoice_data');
+        when 'EXF' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'X','invoice_data');
+        else null;
+      end case;
+    end if;
   end if;
 
   return null;

@@ -432,6 +432,14 @@ class SGS {
     'C' => 'Commented'
   );
 
+  public static $barcode_locks = array(
+    'ADMIN'  => 'Administrative',
+    'INV'    => 'Invoice',
+    'DOC'    => 'Document',
+    'BRCODE' => 'Barcode',
+    'VERIFY' => 'Verification'
+  );
+
   public static $access_level = array(
     'A' => 'Administrator',
     'M' => 'Manager',

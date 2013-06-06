@@ -3,7 +3,7 @@
 class Controller_Ajax extends Controller {
 
   public function action_csv() {
-    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('management')) return $this->response->status(401);
 
     $vars    = explode('-', $this->request->post('id'));
     $model   = $vars[0];
@@ -31,7 +31,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_data() {
-    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('management')) return $this->response->status(401);
 
     $vars    = explode('-', $this->request->post('id'));
     $model   = $vars[0];
@@ -141,55 +141,92 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_status() {
-    if (!Auth::instance()->logged_in('manage')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('management')) return $this->response->status(401);
 
-    $vars    = explode('-', $this->request->post('id'));
+    $vars    = explode('-', $_REQUEST['id']);
     $model   = $vars[0];
     $id      = $vars[1];
-    $status  = trim($this->request->post('status'));
-    $comment = trim($this->request->post('comment'));
 
     $data = ORM::factory($model, $id);
     if (!$data->loaded()) return $this->response->status(403);
 
-    $_status = $data->status;
-    try {
-      switch ($status) {
-        case 'A':
-        case 'R':
-          $data->status = $status;
+    $form = Formo::form(array('attr' => array('class' => 'ajax-form', 'action' => '/ajax/status?id='.$_REQUEST['id'])))
+      ->add_group('status', 'radios', SGS::$data_status, NULL, array('required' => TRUE, 'label' => 'Status'))
+      ->add('comment', 'textarea', array('required' => TRUE, 'label' => 'Comment'))
+      ->add('update', 'submit', 'Update');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $status  = trim($form->status->val());
+      $comment = trim($form->comment->val());
+
+      try {
+        switch ($status) {
+          case 'A':
+          case 'R':
+            $data->status = $status;
+        }
+        $data->status($status, $comment);
+        $data->save();
+        return $this->response->status(200);
+      } catch (Exception $e) {
+        return $this->response->status(403);
       }
-      if (DB::insert('status_activity', array('form_type', 'form_data_id', 'old_status', 'new_status', 'comment', 'user_id'))
-        ->values(array($data->form_type, $data->id, $_status, $status, $comment, Auth::instance()->get_user()->id ?: 1))
-        ->execute() !== FALSE) $data->save();
-    } catch (Exception $e) {
-      return;
     }
+
+    $content = $form->render();
+    return $this->response->body($content);
   }
 
   public function action_activity() {
-    if (!Auth::instance()->logged_in('manage')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('management')) return $this->response->status(401);
 
-    $vars     = explode('-', $this->request->post('id'));
-    $model    = $vars[0];
-    $id       = $vars[1];
-    $activity = trim($this->request->post('activity'));
-    $comment = trim($this->request->post('comment'));
+    $vars    = explode('-', $_REQUEST['id']);
+    $model   = $vars[0];
+    $id      = $vars[1];
 
     $data = ORM::factory($model, $id);
     if (!$data->loaded()) return $this->response->status(403);
 
-    $barcode = ORM::factory('barcode', $data->barcode->id);
-    if (!$barcode->loaded()) return $this->response->status(403);
+    $barcode_activity = array(
+//      'P' => 'Pending',
+//      'I' => 'In Progress',
+      'H' => 'On Hold / Investigation',
+//      'T' => 'Stumpage Invoiced',
+//      'X' => 'Export Fee Invoiced',
+//      'D' => 'Declared for Export',
+//      'N' => 'Inspected',
+//      'E' => 'Exported',
+      'S' => 'Short-Shipped',
+      'Y' => 'Sold Locally',
+      'A' => 'Abandoned',
+      'L' => 'Lost',
+      'Z' => 'Seized',
+      'C' => 'Commented'
+    );
 
-    try {
-      switch ($activity) {
-        case 'S': $barcode->unset_activity('E'); break;
+    $form = Formo::form(array('attr' => array('class' => 'ajax-form', 'action' => '/ajax/activity?id='.$_REQUEST['id'])))
+      ->add_group('activity', 'select', $barcode_activity, NULL, array('required' => TRUE, 'label' => 'Activity'))
+      ->add('comment', 'textarea', array('required' => TRUE, 'label' => 'Comment'))
+      ->add('update', 'submit', 'Update');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $activity = trim($form->activity->val());
+      $comment  = trim($form->comment->val());
+
+      $barcode = ORM::factory('barcode', $data->barcode->id);
+      if (!$barcode->loaded()) return $this->response->status(403);
+
+      try {
+        $barcode->set_activity($activity, $comment, 'admin');
+        $barcode->save();
+        return $this->response->status(200);
+      } catch (Exception $e) {
+        return $this->response->status(403);
       }
-      $barcode->set_activity($activity, $comment, 'admin');
-    } catch (Exception $e) {
-      return;
     }
+
+    $content = $form->render();
+    return $this->response->body($content);
   }
 
   public function action_tips() {
@@ -359,7 +396,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_specsarray() {
-    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('exports')) return $this->response->status(401);
 
     $type  = $this->request->post('type');
     $value = $this->request->post('value');
@@ -446,7 +483,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_specsopts() {
-    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
 
     $operator_id   = $this->request->post('operator_id');
     $specs_number  = $this->request->post('specs_number');
@@ -491,7 +528,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_expopts() {
-    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
 
     $operator_id = $this->request->post('operator_id');
     $exp_number  = $this->request->post('exp_number');
@@ -536,7 +573,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_wbopts() {
-    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
 
     $operator_id = $this->request->post('operator_id');
     $wb_barcode  = $this->request->post('wb_barcode');
@@ -566,7 +603,6 @@ class Controller_Ajax extends Controller {
 
   public function action_autocompletebarcode() {
     $term = trim($this->request->post('term') ?: $this->request->query('term'));
-
     print json_encode(array_filter(array_unique(array_values(SGS::suggest_barcode(strtoupper($term), array(), 'barcode', FALSE, 2, 0, 6, 5, 0)))));
   }
 

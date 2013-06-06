@@ -71,7 +71,7 @@ $classes[] = 'data';
         <div class="links-links">
           <?php if ($options['links']): ?>
           <?php echo HTML::anchor($file->data_type.'/files/'.$file->id, 'View', array('class' => 'link')); ?>
-          <?php echo HTML::anchor($file->data_type.'/files/'.$file->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor($file->data_type.'/files/'.$file->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php echo HTML::anchor($file->data_type.'/files/'.$file->id.'/process', 'Process', array('class' => 'link')); ?>
           <?php echo HTML::anchor($file->data_type.'/files/'.$file->id.'/review', 'Review', array('class' => 'link')); ?>
           <span class="link toggle-download-form">Download</span>

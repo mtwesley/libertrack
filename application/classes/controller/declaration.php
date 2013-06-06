@@ -126,6 +126,8 @@ class Controller_Declaration extends Controller {
   }
 
   private function handle_file_delete($id) {
+    if (!Auth::instance()->logged_in('management')) $this->request->redirect('declaration/files/'.$id);
+
     $file = ORM::factory('file', $id);
     if (!$file->loaded()) {
       Notify::msg('No file found.', 'warning', TRUE);
@@ -386,6 +388,8 @@ class Controller_Declaration extends Controller {
   }
 
   private function handle_csv_edit($id) {
+    if (!Auth::instance()->logged_in('management')) $this->request->redirect('declaration/data/'.$id);
+
     $id = $this->request->param('id');
 
     $csv = ORM::factory('csv', $id);
@@ -455,6 +459,8 @@ class Controller_Declaration extends Controller {
   }
 
   private function handle_csv_delete($id) {
+    if (!Auth::instance()->logged_in('management')) $this->request->redirect('declaration/data/'.$id);
+
     $id = $this->request->param('id');
     $csv = ORM::factory('csv', $id);
     if (!$csv->loaded()) {

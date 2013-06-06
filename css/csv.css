@@ -64,7 +64,7 @@
 .details-no-tips,
 .details-no-resolutions {
   margin: 0;
-  padding: 4px;
+  padding: 5px 10px;
 }
 
 .details-no-suggestions {
@@ -149,7 +149,7 @@ table.details-resolution {
 .details-tips-title,
 .details-suggestions-title,
 .details-resolutions-title {
-  padding: 4px;
+  padding: 5px 10px;
   color: #fff;
   font-weight: bold;
   font-size: 16px;

@@ -48,6 +48,7 @@ $scripts[] = 'jquery-ui-1.8.23.min';
 $scripts[] = 'jquery-jeditable.min';
 $scripts[] = 'jquery-bpopup.min';
 $scripts[] = 'jquery-gldatepicker.min';
+$scripts[] = 'jquery-form.min';
 $scripts[] = 'effects';
 
 foreach (array_filter(explode('/', $path)) as $item) {

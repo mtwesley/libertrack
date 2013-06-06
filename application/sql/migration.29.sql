@@ -78,3 +78,7 @@ begin
 end
 $$ language 'plpgsql';
 
+
+-- barcode locks
+
+alter table barcode_locks add column comment d_text_long;

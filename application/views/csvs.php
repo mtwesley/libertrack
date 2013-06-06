@@ -139,11 +139,11 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
   <?php foreach ($csvs as $csv): ?>
   <?php if ($options['rows']): ?>
   <?php $errors = $csv->get_errors(); ?>
-  <tr id="csv-<?php echo $csv->id; ?>" class="csv-row csv-<?php echo $csv->id; ?> <?php print SGS::odd_even($odd); ?>">
+  <tr id="csv-<?php echo $csv->id; ?>" class="csv-<?php echo $csv->id; ?> <?php print SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
     <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $csv->id; ?>" /></td>
     <?php endif; ?>
-    <td class="type"><span class="data-type"><?php echo $csv->form_type; ?></span></td>
+    <td class="csv-row-details type"><span class="data-type"><?php echo $csv->form_type; ?></span></td>
     <td class="status">
       <?php
         switch ($csv->status):
@@ -219,12 +219,10 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
         <div class="links-links">
           <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id, 'View', array('class' => 'link')); ?>
           <?php if ($options['links']): ?>
-          <?php if ($csv->form_data_id) echo HTML::anchor('analysis/review/'.strtolower($csv->form_type).'/'.$csv->form_data_id, 'View '.$csv->form_type, array('class' => 'link')); ?>
+          <?php if (Auth::instance()->logged_in('analysis') and $csv->form_data_id) echo HTML::anchor('analysis/review/'.strtolower($csv->form_type).'/'.$csv->form_data_id, 'View '.$csv->form_type, array('class' => 'link')); ?>
           <?php echo HTML::anchor($csv->data_type.'/files/'.$csv->file->id, 'View File', array('class' => 'link')); ?>
-          <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
-          <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
-          <?php endif; ?>
-          <?php echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
+          <?php if (Auth::instance()->logged_in('management') and in_array($csv->status, array('P', 'R', 'U'))) echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor($csv->data_type.'/data/'.$csv->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>
           <span id="csv-<?php echo $csv->id; ?>-process" class="link csv-process">Process</span>
           <?php endif; ?>
