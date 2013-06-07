@@ -82,6 +82,7 @@ $$ language 'plpgsql';
 -- barcode locks
 
 alter table barcode_locks add column comment d_text_long;
+alter table barcode_activity add column comment d_text_long;
 
 
 -- barcode activity
