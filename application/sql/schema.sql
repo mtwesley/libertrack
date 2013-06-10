@@ -1818,7 +1818,7 @@ begin
   end if;
 
   if (tg_op = 'DELETE') then
-    select type,number,is_draft from documents where id = new.document_id into x_document;
+    select type,number,is_draft from documents where id = old.document_id into x_document;
     case x_document.type
       when 'EXP' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('E') and trigger = 'document_data' limit 1);
       else null;
