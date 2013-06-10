@@ -128,8 +128,10 @@ class Controller_Invoices extends Controller {
             ->on('tdf_invoices.type', '=', DB::expr("'ST'"))
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('ldf_data.barcode_id', '=', 'barcode_activity.barcode_id')
+            ->on('barcode_activity.activity', '=', DB::expr("'T'"))
             ->join(DB::expr('"barcode_activity" as "tdf_barcode_activity"'), 'LEFT OUTER')
             ->on('tdf_data.barcode_id', '=', 'tdf_barcode_activity.barcode_id')
+            ->on('tdf_barcode_activity.activity', '=', DB::expr("'T'"))
             ->where('ldf_data.site_id', '=', $site_id)
             ->and_where('ldf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
             /*** STUMPAGE ON LOGS NOT YET PASSED **********
