@@ -511,7 +511,7 @@ VALIDATION: $secret";
             ->on('documents.type', '=', DB::expr("'EXP'"))
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', 'IN', DB::expr("('E', 'H', 'Y', 'A', 'L', 'S')"))
+            ->on('barcode_activity.activity', 'IN', DB::expr("('X', 'E', 'H', 'Y', 'A', 'L', 'S')"))
             ->join('invoice_data', 'LEFT OUTER')
             ->on('specs_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
