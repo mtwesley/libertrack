@@ -33,7 +33,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_data() {
-    if (!Auth::instance()->logged_in('management')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
 
     $vars    = explode('-', $this->request->post('id'));
     $model   = $vars[0];
@@ -43,6 +43,8 @@ class Controller_Ajax extends Controller {
 
     $data = ORM::factory($model, $id);
     if (!$data->loaded()) return $this->response->status(403);
+
+    if (!strpos($key, 'barcode') and !Auth::instance()->logged_in('data')) return $this->response->status(401);
 
     try {
       switch ($key) {
