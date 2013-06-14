@@ -399,7 +399,7 @@ class Controller_Ajax extends Controller {
     $this->response->body($output);
   }
 
-  public function action_specsarray() {
+  public function action_docarray() {
     if (!Auth::instance()->logged_in('exports')) return $this->response->status(401);
 
     $type  = $this->request->post('type');
@@ -409,26 +409,21 @@ class Controller_Ajax extends Controller {
 
     $query = DB::select()
       ->from('specs_data')
-      ->join('document_data', 'LEFT OUTER')
-      ->on('specs_data.id', '=', 'document_data.form_data_id')
-      ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
-      ->join('documents', 'LEFT OUTER')
-      ->on('document_data.document_id', '=', 'documents.id')
       ->join('barcode_activity', 'LEFT OUTER')
       ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
       ->where('specs_data.status', '=', 'A')
       ->and_where_open()
         ->where('barcode_activity.activity', 'NOT IN', array('E', 'H', 'Y', 'A', 'L', 'S'))
         ->or_where('barcode_activity.activity', '=', NULL)
-      ->and_where_close()
-      ->and_where_open()
-        ->where('documents.type', '<>', 'EXP')
-        ->or_where('documents.id', '=', NULL)
       ->and_where_close();
 
     switch ($type) {
       case 'specs_barcode':
-        $query = $query->where('specs_barcode_id', '=', SGS::lookup_barcode($value, NULL, TRUE));
+        $query = $query
+          ->join('document_data', 'LEFT OUTER')
+          ->on('specs_data.id', '=', 'document_data.form_data_id')
+          ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+          ->where('specs_barcode_id', '=', SGS::lookup_barcode($value, NULL, TRUE));
         break;
 
       case 'specs_number':
@@ -441,7 +436,11 @@ class Controller_Ajax extends Controller {
         break;
 
       case 'exp_barcode':
-        $query = $query->where('specs_barcode_id', '=', SGS::lookup_barcode($value, NULL, TRUE));
+        $query = $query
+          ->join('document_data', 'LEFT OUTER')
+          ->on('specs_data.id', '=', 'document_data.form_data_id')
+          ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+          ->where('specs_barcode_id', '=', SGS::lookup_barcode($value, NULL, TRUE));
         break;
 
       case 'exp_number':

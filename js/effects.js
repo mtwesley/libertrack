@@ -271,7 +271,7 @@ $(function() {
 
   $("select.specs_specsbarcodeinputs").change(function() {
     $.post(
-      '/ajax/specsarray',
+      '/ajax/docarray',
       {
         type: 'specs_barcode',
         value: $(this).val()
@@ -285,7 +285,7 @@ $(function() {
 
   $("select.specs_specsnumberinputs").change(function() {
     $.post(
-      '/ajax/specsarray',
+      '/ajax/docarray',
       {
         type: 'specs_number',
         value: $(this).val()
@@ -299,7 +299,7 @@ $(function() {
 
   $("select.exp_specsinputs").change(function() {
     $.post(
-      '/ajax/specsarray',
+      '/ajax/docarray',
       {
         type: 'exp_number',
         value: $(this).val()
