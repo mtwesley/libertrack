@@ -418,6 +418,7 @@ VALIDATION: $secret";
           $specs_number = $form->specs_number->val();
           $values = array(
             'specs_number'    => $specs_number,
+            'specs_barcode'   => SGS::lookup_document('SPECS', $specs_number)->values['specs_barcode'],
             'origin'          => $form->origin->val(),
             'destination'     => $form->destination->val(),
             'product_type'    => $form->product_type->val(),
