@@ -481,7 +481,7 @@ class Controller_Manage extends Controller {
         $invoices = $invoices
           ->or_where_open()
           ->where('invoice_data.form_type', '=', $type)
-          ->and_where('invoice_data.form_data_id', '=', $id)
+          ->and_where('invoice_data.form_data_id', 'IN', (array) $id)
           ->or_where_close();
       }
       $invoices = $invoices->find_all()->as_array();
@@ -500,7 +500,7 @@ class Controller_Manage extends Controller {
         $documents = $documents
           ->or_where_open()
           ->where('document_data.form_type', '=', $type)
-          ->and_where('document_data.form_data_id', '=', $id)
+          ->and_where('document_data.form_data_id', 'IN', (array) $id)
           ->or_where_close();
       }
       $documents = $documents->find_all()->as_array();

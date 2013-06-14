@@ -112,3 +112,30 @@ create trigger t_barcode_activity_update_barcodes
   for each row
   execute procedure barcode_activity_update_barcodes();
 
+
+-- site name update
+
+create or replace function sites_parse_type()
+  returns trigger as
+$$
+  declare x_site text[];
+begin
+  if new.name is not null then
+    select regexp_matches(new.name::text, E'^(TSC|PUP|FMC|CFMA)([\\s_-]*[A-Z0-9]{1,10})?$') into x_site;
+    new.type = x_site[1];
+  end if;
+
+  return new;
+end
+$$ language 'plpgsql';
+
+
+alter table sites alter column type type character varying(4);
+drop domain d_site_type;
+
+create domain d_site_type as character varying(4) check (value ~ E'^(TSC|PUP|FMC|CFMA)$');
+alter table sites alter column type type d_site_type;
+
+alter domain d_site_name drop constraint d_site_name_check;
+alter domain d_site_name add check (value ~ E'^(TSC|PUP|FMC|CFMA)[\\s_-]*[A-Z0-9]{1,9}$');
+

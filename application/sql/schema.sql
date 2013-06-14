@@ -49,9 +49,9 @@ create domain d_species_code as character varying(5) check (value ~ E'^[A-Z]{3,5
 
 create domain d_species_class as character(1) check (value ~ E'^[ABC]$');
 
-create domain d_site_type as character(3) check (value ~ E'^[A-Z]{3}$');
+create domain d_site_type as character(3) check (value ~ E'^(TSC|PUP|FMC|CFMA)$');
 
-create domain d_site_name as character varying(10) check (value ~ E'^[A-Z]{3}[\\s_-]*[A-Z0-9]{1,10}$');
+create domain d_site_name as character varying(10) check (value ~ E'^(TSC|PUP|FMC|CFMA)[\\s_-]*[A-Z0-9]{1,10}$');
 
 create domain d_operator_tin as bigint check (value > 0);
 
@@ -1306,7 +1306,7 @@ $$
   declare x_site text[];
 begin
   if new.name is not null then
-    select regexp_matches(new.name::text, E'^([A-Z]{3})([\\s_-]*[A-Z0-9]{1,10})?$') into x_site;
+    select regexp_matches(new.name::text, E'^(TSC|PUP|FMC|CFMA)([\\s_-]*[A-Z0-9]{1,10})?$') into x_site;
     new.type = x_site[1];
   end if;
 

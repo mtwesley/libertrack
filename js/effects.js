@@ -269,11 +269,25 @@ $(function() {
     }
   );
 
-  $("select.specs_specsinputs").change(function() {
+  $("select.specs_specsbarcodeinputs").change(function() {
     $.post(
       '/ajax/specsarray',
       {
         type: 'specs_barcode',
+        value: $(this).val()
+      },
+      function(data) {
+        var values = $.parseJSON(data);
+        for (var key in values) if ($('.'+key+'input').val() === '') $('.'+key+'input').val(values[key]);
+      }
+    );
+  });
+
+  $("select.specs_specsnumberinputs").change(function() {
+    $.post(
+      '/ajax/specsarray',
+      {
+        type: 'specs_number',
         value: $(this).val()
       },
       function(data) {

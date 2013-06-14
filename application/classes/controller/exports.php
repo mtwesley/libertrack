@@ -362,11 +362,11 @@ VALIDATION: $secret";
       ->as_array('id', 'name');
 
     $form = Formo::form()
-      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts')));
+      ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_number exp_operatoropts')));
 
     switch ($document_type) {
       case 'EXP':
-        $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_specsinputs')));
+        $form->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_number specs_specsnumberinputs')));
         $form->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'attr' => array('class' => 'origininput')));
         $form->add('destination', 'input', NULL, array('required' => TRUE, 'label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
         $form->add('product_type', 'input', NULL, array('required' => TRUE, 'label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
@@ -385,7 +385,7 @@ VALIDATION: $secret";
         break;
 
       case 'SPECS':
-        $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_specsinputs')));
+        $form->add_group('specs_barcode', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_barcode specs_specsbarcodeinputs')));
         $form->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'attr' => array('class' => 'origininput')));
         $form->add('destination', 'input', NULL, array('required' => TRUE, 'label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
         $form->add('buyer', 'input', NULL, array('required' => TRUE, 'label' => 'Buyer', 'attr' => array('class' => 'buyerinput')));
@@ -415,9 +415,9 @@ VALIDATION: $secret";
 
       switch ($document_type) {
         case 'EXP':
-          $specs_barcode = $form->specs_barcode->val();
+          $specs_number = $form->specs_number->val();
           $values = array(
-            'specs_barcode'   => $specs_barcode,
+            'specs_number'    => $specs_number,
             'origin'          => $form->origin->val(),
             'destination'     => $form->destination->val(),
             'product_type'    => $form->product_type->val(),
@@ -453,6 +453,7 @@ VALIDATION: $secret";
       Session::instance()->set('pagination.exports.document.data', array(
         'operator_id'   => $operator_id,
         'specs_barcode' => $specs_barcode,
+        'specs_number'  => $specs_number,
         // 'exp_number'    => $exp_number,
         'format'        => $format,
         'created'       => $created,
@@ -463,7 +464,7 @@ VALIDATION: $secret";
       $form->operator_id->val($operator_id = $settings['operator_id']);
       switch ($document_type) {
         case 'EXP':
-          $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
+          $form->specs_number->val($specs_number = $settings['specs_number']);
           $form->origin->val($values['origin'] = $settings['values']['origin']);
           $form->destination->val($values['destination'] = $settings['values']['destination']);
           $form->product_type->val($values['product_type'] = $settings['values']['product_type']);
@@ -503,12 +504,15 @@ VALIDATION: $secret";
           $ids = DB::select('specs_data.id','barcodes.barcode')
             ->distinct(TRUE)
             ->from('specs_data')
-            ->join('document_data', 'LEFT OUTER')
+            ->join('document_data')
             ->on('specs_data.id', '=', 'document_data.form_data_id')
             ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
-            ->join('documents', 'LEFT OUTER')
+            ->join('documents')
             ->on('document_data.document_id', '=', 'documents.id')
-            ->on('documents.type', '=', DB::expr("'EXP'"))
+            ->on('documents.type', '=', DB::expr("'SPECS'"))
+            ->join(DB::expr('"documents" as "exp_documents"'), 'LEFT OUTER')
+            ->on('document_data.document_id', '=', 'exp_documents.id')
+            ->on('exp_documents.type', '=', DB::expr("'EXP'"))
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
             ->on('barcode_activity.activity', 'IN', DB::expr("('X', 'E', 'H', 'Y', 'A', 'L', 'S')"))
@@ -521,14 +525,14 @@ VALIDATION: $secret";
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
-            ->and_where('specs_data.specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
             ->and_where_open()
               ->where('barcode_activity.activity', 'NOT IN', array('E', 'H', 'Y', 'A', 'L', 'S'))
               ->or_where('barcode_activity.activity', '=', NULL)
             ->and_where_close()
+            ->and_where('documents.number', '=', $specs_number)
             ->and_where_open()
-              ->where('documents.type', '<>', 'EXP')
-              ->or_where('documents.id', '=', NULL)
+              ->where('exp_documents.type', '<>', 'EXP')
+              ->or_where('exp_documents.id', '=', NULL)
             ->and_where_close()
             ->and_where_open()
               ->or_where_open()
