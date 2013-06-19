@@ -327,7 +327,7 @@ $options = (array) $options + array(
         </td>
       </tr>
       <tr class="info-bar">
-        <td class="label">SPECS Barcode:</td>
+        <td class="label">SPEC Barcode:</td>
         <td colspan="2"><?php echo $document->values['specs_barcode']; ?></td>
       </tr>
       <tr class="info-bar">
