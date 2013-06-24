@@ -107,8 +107,8 @@ class Model_CSV extends ORM {
 
       $params = array_filter($params);
       $table  = $params[0];
-      $fields = $params[1];
-      $values = $params[2];
+      $fields = (array) $params[1];
+      $values = (array) $params[2];
 
       foreach (array_keys($params) as $key) if (is_object($params[$key])) unset($params[$key]);
 
