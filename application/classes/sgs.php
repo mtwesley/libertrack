@@ -283,7 +283,7 @@ class SGS {
     'data'       => 'Data Entry',
     'analysis'   => 'Data Analysis',
     'reports'    => 'Reporting',
-    'management' => 'Project Management',
+//    'management' => 'Project Management',
     'admin'      => 'Site and Operator Configuration',
     'users'      => 'User Management',
     'barcodes'   => 'Barcode Management',

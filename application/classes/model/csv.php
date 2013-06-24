@@ -106,18 +106,26 @@ class Model_CSV extends ORM {
       list($error, $params) = $array;
 
       $params = array_filter($params);
+      $table  = $params[0];
+      $fields = $params[1];
+      $values = $params[2];
+
       foreach (array_keys($params) as $key) if (is_object($params[$key])) unset($params[$key]);
 
-      if ($error == 'is_unique') {
-        $duplicates[$field] = DB::select('csv.id')
-          ->from('csv')
-          ->join($params[0])
-          ->on('form_data_id', '=', $params[0].'.id')
-          ->where($params[0].'.'.$params[1], '=', $params[2])
-          ->and_where('form_type', '=', $this->form_type)
-          ->and_where('csv.id', '!=', $this->id)
-          ->execute()
-          ->get('id');
+      if (strpos($error, 'is_unique') !== FALSE) {
+        foreach ((array) $field as $_field) {
+          $query = DB::select('csv.id')
+            ->from('csv')
+            ->join($table)
+            ->on('form_data_id', '=', $table.'.id');
+          if (($count = count($fields)) == count($values))
+            for ($i = 0; $i < $count; $i++) $query->where($table.'.'.$fields[$i], '=', $values[$i]);
+          $duplicates[$_field] = $query
+            ->and_where('form_type', '=', $this->form_type)
+            ->and_where('csv.id', '!=', $this->id)
+            ->execute()
+            ->get('id');
+        }
       }
 
       $this->set_error($field, $error);
