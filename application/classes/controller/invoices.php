@@ -368,6 +368,55 @@ class Controller_Invoices extends Controller {
     $this->response->body($view);
   }
 
+  private function handle_invoice_refinalize($id) {
+    $invoice = ORM::factory('invoice', $id);
+
+    if (!$invoice->loaded()) {
+      Notify::msg('No invoice found.', 'warning', TRUE);
+      $this->request->redirect('invoices');
+    }
+
+    if ($invoice->is_draft) {
+      Notify::msg('Invoice not yet finalized.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
+    if ($invoice->is_paid) {
+      Notify::msg('Invoice already paid.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
+    $form = Formo::form()
+      ->add('confirm', 'text', 'Re-finalizing an invoice may change its information. Are you sure you want to re-finalize this invoice?')
+      ->add('delete', 'submit', 'Re-finalize');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $invoice->is_draft = FALSE;
+
+      switch ($invoice->type) {
+        case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, $invoice->get_data()); break;
+        case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice, $invoice->get_data()); break;
+      }
+
+      if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
+      else Notify::msg('Sorry, invoice file failed to be generated. Please try again.', 'error', TRUE);
+
+      try {
+        $invoice->save();
+        Notify::msg('Invoice re-finalized.', 'success', TRUE);
+        $this->request->redirect('invoices/'.$invoice->id);
+      } catch (Exception $e) {
+        Notify::msg('Sorry, unable to re-finalize invoice. Please try again.', 'error', TRUE);
+        $this->request->redirect('invoices/'.$invoice->id);
+      }
+    }
+
+    $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
   private function handle_invoice_payment($id) {
     $invoice  = ORM::factory('invoice', $id);
     $payments = $invoice->payments->find_all()->as_array();
@@ -409,6 +458,47 @@ class Controller_Invoices extends Controller {
 
     $content .= SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_invoice_clearpayment($id) {
+    $invoice = ORM::factory('invoice', $id);
+
+    if (!$invoice->loaded()) {
+      Notify::msg('No invoice found.', 'warning', TRUE);
+      $this->request->redirect('invoices');
+    }
+
+    if ($invoice->is_draft) {
+      Notify::msg('Invoice not finalized.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
+    if (!$payments = $invoice->payments->find_all()->as_array()) {
+      Notify::msg('No payments found.', 'warning', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
+    $form = Formo::form()
+      ->add('confirm', 'text', 'Clearing invoice payments will make it unpaid. Are you sure you want to clear these invoice payments?')
+      ->add('delete', 'submit', 'Clear');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      try {
+        foreach ($payments as $payment) $payment->delete();
+        $invoice->is_paid = FALSE;
+        $invoice->save();
+        Notify::msg('Invoice payments cleared.', 'success', TRUE);
+        $this->request->redirect('invoices/'.$invoice->id);
+      } catch (Exception $e) {
+        Notify::msg('Sorry, unable to clear invoice payments. Please try again.', 'error', TRUE);
+        $this->request->redirect('invoices/'.$invoice->id);
+      }
+    }
+
+    $content .= $form->render();
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -714,9 +804,11 @@ class Controller_Invoices extends Controller {
     switch ($command) {
       case 'download': return self::handle_invoice_download($id);
       case 'finalize': return self::handle_invoice_finalize($id);
+      case 'refinalize': return self::handle_invoice_refinalize($id);
       case 'check': return self::handle_invoice_check($id);
       case 'delete': return self::handle_invoice_delete($id);
       case 'payment': return self::handle_invoice_payment($id);
+      case 'clearpayment': return self::handle_invoice_clearpayment($id);
       case 'list': default: return self::handle_invoice_list($id);
     }
   }

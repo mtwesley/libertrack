@@ -32,17 +32,18 @@
         <span class="link link-title">+</span>
         <div class="links-links">
           <?php echo HTML::anchor('invoices/'.$invoice->id, 'View', array('class' => 'link')); ?>
-
           <?php if ($invoice->is_draft): ?>
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
           <?php else: ?>
           <?php if (!$invoice->is_paid): ?>
+          <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor('invoices/'.$invoice->id.'/refinalize', 'Re-finalize', array('class' => 'link')); ?>
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/payment', 'Payments', array('class' => 'link')); ?>
-          <?php echo HTML::anchor('invoices/'.$invoice->id.'/check', 'Check', array('class' => 'link')); ?>
+          <?php if (Auth::instance()->logged_in('management') and $invoice->payments->find_all()->as_array()) echo HTML::anchor('invoices/'.$invoice->id.'/clearpayment', 'Clear Payments', array('class' => 'link')); ?>
+          <?php if ($invoice->payments->find_all()->as_array()) echo HTML::anchor('invoices/'.$invoice->id.'/check', 'Check Payments', array('class' => 'link')); ?>
+          <?php if (Auth::instance()->logged_in('management')): ?><span id="invoice-<?php echo $invoice->id; ?>-paid-update" class="link invoice-paid-update-link">Status</span><?php endif; ?>
           <?php endif; // is paid ?>
           <?php endif; ?>
-
           <?php echo HTML::anchor($invoice->file->path, 'Download', array('class' => 'link')); ?>
         </div>
       </div>

@@ -34,10 +34,12 @@ $classes[] = 'data';
           <?php if ($document->is_draft): ?>
           <?php echo HTML::anchor($mode.'documents/'.$document->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php echo HTML::anchor($mode.'documents/'.$document->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
+          <?php else: ?>
+          <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor('documents/'.$document->id.'/refinalize', 'Re-finalize', array('class' => 'link')); ?>
           <?php endif; ?>
 
           <?php echo HTML::anchor($document->file->path, 'Download', array('class' => 'link')); ?>
-          <?php if (!$document->is_draft and $document->type == 'EXP') echo HTML::anchor($mode.'documents/'.$document->id.'/asycuda', 'Download ASYCUDA', array('class' => 'link')); ?>
+          <?php if (!$document->is_draft and $document->type == 'EXP') echo HTML::anchor($mode.'documents/'.$document->id.'/asycuda', 'ASYCUDA', array('class' => 'link')); ?>
         </div>
       </div>
     </td>

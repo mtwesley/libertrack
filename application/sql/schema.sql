@@ -93,6 +93,8 @@ create domain d_csv_status as character(1) check (value ~ E'^[PARDU]$');
 
 create domain d_data_status as character(1) check (value ~ E'^[PARD]$');
 
+create domain d_block_status as character(1) check (value ~ E'^[PAR]$');
+
 create domain d_username as character varying(24) check (value ~ E'^[0-9A-Za-z_]{3,24}$');
 
 create domain d_ip_address as inet;
@@ -217,6 +219,7 @@ create table blocks (
   utm_east d_utm,
   utm_north_south d_utm,
   utm_west d_utm,
+  status d_block_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 

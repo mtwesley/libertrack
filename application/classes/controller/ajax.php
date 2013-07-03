@@ -11,7 +11,7 @@ class Controller_Ajax extends Controller {
     $key     = trim($vars[2]);
     $value   = trim($this->request->post('data'));
 
-    if (strpos($key, 'barcode') and !Auth::instance()->logged_in('management')) return $this->response->status(401);
+    if (!strpos($key, 'barcode') and !Auth::instance()->logged_in('management')) return $this->response->status(401);
 
     $csv = ORM::factory('CSV', $id);
     if (!$csv->loaded()) return $this->response->status(403);
@@ -142,6 +142,36 @@ class Controller_Ajax extends Controller {
         'hide_upload_info' => $hide_upload_info ? TRUE : FALSE,
       ))
       ->render());
+  }
+
+  public function action_paid() {
+    if (!Auth::instance()->logged_in('management')) return $this->response->status(401);
+
+    $vars    = explode('-', $_REQUEST['id']);
+    $model   = $vars[0];
+    $id      = $vars[1];
+
+    $invoice = ORM::factory('invoice', $id);
+    if (!$invoice->loaded()) return $this->response->status(403);
+
+    $form = Formo::form(array('attr' => array('class' => 'ajax-form', 'action' => '/ajax/paid?id='.$_REQUEST['id'])))
+      ->add_group('paid', 'forceselect', array('NO', 'YES'), NULL, array('required' => TRUE, 'label' => 'Paid'))
+      ->add('update', 'submit', 'Update');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $paid = trim($form->paid->val());
+
+      try {
+        $invoice->is_paid = SGS::booleanify($paid);
+        $invoice->save();
+        return $this->response->status(200);
+      } catch (Exception $e) {
+        return $this->response->status(403);
+      }
+    }
+
+    $content = $form->render();
+    return $this->response->body($content);
   }
 
   public function action_status() {

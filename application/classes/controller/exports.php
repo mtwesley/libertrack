@@ -1178,7 +1178,51 @@ VALIDATION: $secret";
         Notify::msg('Document finalized.', 'success', TRUE);
         $this->request->redirect('exports/documents/'.$document->id);
       } catch (Exception $e) {
-        Notify::msg('Sorry, unable to create document. Please try again.', 'error', TRUE);
+        Notify::msg('Sorry, unable to finalize document. Please try again.', 'error', TRUE);
+        $this->request->redirect('exports/documents/'.$document->id);
+      }
+    }
+
+    $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  private function handle_document_refinalize($id) {
+    $document = ORM::factory('document', $id);
+
+    if (!$document->loaded()) {
+      Notify::msg('No document found.', 'warning', TRUE);
+      $this->request->redirect('documents');
+    }
+
+    if ($document->is_draft) {
+      Notify::msg('Document not yet finalized.', 'warning', TRUE);
+      $this->request->redirect('documents/'.$id);
+    }
+
+    $form = Formo::form()
+      ->add('confirm', 'text', 'Re-finalizing a document may change its information. Are you sure you want to re-finalize this draft document?')
+      ->add('delete', 'submit', 'Re-finalize');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $document->is_draft = FALSE;
+
+      switch ($document->type) {
+        case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
+        case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
+      }
+
+      if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);
+      else Notify::msg('Sorry, document file failed to be generated. Please try again.', 'error', TRUE);
+
+      try {
+        $document->save();
+        Notify::msg('Document re-finalized.', 'success', TRUE);
+        $this->request->redirect('exports/documents/'.$document->id);
+      } catch (Exception $e) {
+        Notify::msg('Sorry, unable to re-finalize document. Please try again.', 'error', TRUE);
         $this->request->redirect('exports/documents/'.$document->id);
       }
     }
