@@ -26,16 +26,13 @@ class Model_User extends Model_ACL_User {
   );
 
   public function formo() {
+//    die(Debug::vars(Auth::instance()->get_user()->roles->find_all()->as_array('id', 'description')));
     return array(
       'id'             => array('render' => FALSE),
       'last_timestamp' => array('render' => FALSE),
       'logins'         => array('render' => FALSE),
       'user_tokens'    => array('render' => FALSE),
-      'roles'          => array(
-        'orm_primary_val' => 'description',
-        'label'           => 'Privileges',
-        'attr'            => array('class' => 'listed')
-      ),
+      'roles'          => array('render' => FALSE),
       'username' => array('label' => 'Username'),
       'password' => array(
         'driver' => 'password',

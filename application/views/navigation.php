@@ -14,7 +14,13 @@ if (!$command && !is_numeric($id)) {
 ?>
 <div id="navigation">
   <ul class="nav primary">
+    <?php $user = Auth::instance()->get_user(); ?>
     <?php if (Auth::instance()->logged_in()): ?>
+    <?php if ($user->name): ?>
+    <li class="right">
+      <span>(<?php echo $user->name; ?>)</span>
+    </li>
+    <?php endif; ?>
     <li class="<?php if ($secondary == 'logout')  echo 'active'; ?> right"><?php echo HTML::anchor('logout', SGS::title('logout')); ?></li>
     <li class="<?php if ($primary == 'index')     echo 'active'; ?>"><?php echo HTML::anchor('', SGS::title('index')); ?></li>
 
@@ -45,15 +51,17 @@ if (!$command && !is_numeric($id)) {
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('admin')): ?>
+    <li class="<?php if ($primary == 'manage')     echo 'active'; ?>"><?php echo HTML::anchor('manage', SGS::title('manage')); ?></li>
+    <?php endif; ?>
+
+    <?php if (Auth::instance()->logged_in('admin')): ?>
     <li class="<?php if ($primary == 'settings')     echo 'active'; ?>"><?php echo HTML::anchor('settings', SGS::title('settings')); ?></li>
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('users')): ?>
     <li class="<?php if ($primary == 'users')     echo 'active'; ?> right"><?php echo HTML::anchor('users', SGS::title('users')); ?></li>
-    <?php endif; ?>
-
-    <?php if (Auth::instance()->logged_in('admin')): ?>
-    <li class="<?php if ($primary == 'manage')     echo 'active'; ?> right"><?php echo HTML::anchor('manage', SGS::title('manage')); ?></li>
+    <?php elseif ($user->id): ?>
+    <li class="<?php if ($primary == 'account')   echo 'active'; ?> right"><?php echo HTML::anchor('users/'.$user->id, 'Account'); ?></li>
     <?php endif; ?>
 
     <?php else: ?>
