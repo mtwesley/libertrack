@@ -106,11 +106,11 @@ class Controller_Users extends Controller {
             'password',
           ));
 
-          if (isset($form->user_roles)) {
+          try {
             $roles = $form->user_roles->val();
             $user->remove('roles');
             $user->add('roles', $roles);
-          }
+          } catch (Exception $e) {}
 
           $user->save();
 
