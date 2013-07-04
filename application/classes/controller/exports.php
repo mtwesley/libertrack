@@ -1241,22 +1241,22 @@ VALIDATION: $secret";
       $this->request->redirect('exports/documents');
     }
 
-    if (!$document->is_draft) {
+    if (!Auth::instance()->logged_in('management') and !$document->is_draft) {
       Notify::msg('Sorry, cannot delete final documents.', 'warning', TRUE);
       $this->request->redirect('exports/documents/'.$document->id);
     }
 
     $form = Formo::form()
-      ->add('confirm', 'text', 'Are you sure you want to delete this draft document?')
+      ->add('confirm', 'text', 'Are you sure you want to delete this '.($document->is_draft ? 'draft ' : '').'document?')
       ->add('delete', 'submit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
         $document->delete();
         if ($document->loaded()) throw new Exception();
-        Notify::msg('Draft document successfully deleted.', 'success', TRUE);
+        Notify::msg(($document->is_draft ? 'Draft document' : 'Document').' successfully deleted.', 'success', TRUE);
       } catch (Exception $e) {
-        Notify::msg('Draft document failed to be deleted.', 'error', TRUE);
+        Notify::msg(($document->is_draft ? 'Draft document' : 'Document').' document failed to be deleted.', 'error', TRUE);
       }
 
       $this->request->redirect('exports/documents');

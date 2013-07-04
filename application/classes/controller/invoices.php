@@ -369,6 +369,11 @@ class Controller_Invoices extends Controller {
   }
 
   private function handle_invoice_refinalize($id) {
+    if (!Auth::instance()->logged_in('management')) {
+      Notify::msg('Access denied. You must have '.SGS::$roles['management'].' privileges.', 'locked', TRUE);
+      $this->request->redirect();
+    }
+
     $invoice = ORM::factory('invoice', $id);
 
     if (!$invoice->loaded()) {
@@ -464,6 +469,11 @@ class Controller_Invoices extends Controller {
   }
 
   private function handle_invoice_clearpayment($id) {
+    if (!Auth::instance()->logged_in('management')) {
+      Notify::msg('Access denied. You must have '.SGS::$roles['management'].' privileges.', 'locked', TRUE);
+      $this->request->redirect();
+    }
+
     $invoice = ORM::factory('invoice', $id);
 
     if (!$invoice->loaded()) {
@@ -770,22 +780,22 @@ class Controller_Invoices extends Controller {
       $this->request->redirect('invoices');
     }
 
-    if (!$invoice->is_draft) {
+    if (!Auth::instance()->logged_in('management') and !$invoice->is_draft) {
       Notify::msg('Sorry, cannot delete final invoices.', 'warning', TRUE);
       $this->request->redirect('invoices/'.$invoice->id);
     }
 
     $form = Formo::form()
-      ->add('confirm', 'text', 'Are you sure you want to delete this draft invoice?')
+      ->add('confirm', 'text', 'Are you sure you want to delete this '.($invoice->is_draft ? 'draft ' : '').'invoice?')
       ->add('delete', 'submit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
         $invoice->delete();
         if ($invoice->loaded()) throw new Exception();
-        Notify::msg('Draft invoice successfully deleted.', 'success', TRUE);
+        Notify::msg(($document->is_draft ? 'Draft invoice' : 'Invoice').' successfully deleted.', 'success', TRUE);
       } catch (Exception $e) {
-        Notify::msg('Draft invoice failed to be deleted.', 'error', TRUE);
+        Notify::msg(($document->is_draft ? 'Draft invoice' : 'Invoice').' invoice failed to be deleted.', 'error', TRUE);
       }
 
       $this->request->redirect('invoices');
