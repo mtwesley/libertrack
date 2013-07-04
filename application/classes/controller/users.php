@@ -147,7 +147,7 @@ class Controller_Users extends Controller {
     elseif ($pagination->total_items) Notify::msg($pagination->total_items.' users found');
     else Notify::msg('No users found');
 
-    if ($form and in_array($command, array('edit', 'password'))) $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    if ($form) $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
     $content .= $table;
     $content .= $pagination;
 
