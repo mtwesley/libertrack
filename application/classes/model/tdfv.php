@@ -465,16 +465,16 @@ class Model_TDFV extends SGS_Form_ORM {
       if (!($this->site_id == $data->site_id)) $errors['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $data->site->name);
       if (!($this->block_id == $data->block_id)) $warnings['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $data->block->name);
 
-      if (!Valid::is_accurate($this->length, $data->height, SGS::tolerance('TDF', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->height);
-      else if (!Valid::is_accurate($this->length, $data->height, SGS::accuracy('TDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->height);
+      if (!Valid::is_accurate($this->length, $data->height, SGS::tolerance('TDFV', 'is_matching_length'))) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->height);
+      else if (!Valid::is_accurate($this->length, $data->height, SGS::accuracy('TDFV', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->height);
 
-      if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::tolerance('TDF', 'is_matching_diameter'))) {
+      if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::tolerance('TDFV', 'is_matching_diameter'))) {
         $errors['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $errors['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
       }
-      else if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::accuracy('TDF', 'is_matching_diameter'))) {
+      else if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::accuracy('TDFV', 'is_matching_diameter'))) {
         $warnings['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $warnings['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);

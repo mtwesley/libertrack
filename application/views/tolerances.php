@@ -37,7 +37,7 @@ $tolerances = DB::select()
     <?php foreach ($tolerances as $tolerance): ?>
     <?php $model = ORM::factory($tolerance['form_type']); ?>
     <tr class="<?php print SGS::odd_even($odd); ?>">
-      <td class="form-type"><?php echo SGS::$form_data_type[$tolerance['form_type']]; ?></td>
+      <td class="form-type"><?php echo SGS::$operation_type[$tolerance['form_type']]; ?></td>
       <td><?php echo $model::$checks['tolerance']['checks'][$tolerance['check']]['title']; ?></td>
       <td class="measurement"><input name="<?php echo "{$tolerance['form_type']}-{$tolerance['check']}-accuracy_range"; ?>" type="text" value="<?php echo $tolerance['accuracy_range']; ?>" /></td>
       <td class="measurement"><input name="<?php echo "{$tolerance['form_type']}-{$tolerance['check']}-tolerance_range"; ?>" type="text" value="<?php echo $tolerance['tolerance_range']; ?>" /></td>

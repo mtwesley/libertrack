@@ -456,19 +456,19 @@ class Model_LDFV extends SGS_Form_ORM {
       if (!($this->operator_id == $data->operator_id)) $warnings['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $data->operator->tin);
       if (!($this->site_id == $data->site_id)) $errors['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $data->site->name);
 
-      if (!Valid::is_accurate($this->volume, $data->volume, SGS::tolerance('LDF', 'is_matching_volume'), FALSE)) $errors['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $data->volume);
-      else if (!Valid::is_accurate($this->volume, $data->volume, SGS::accuracy('LDF', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $data->volume);
+      if (!Valid::is_accurate($this->volume, $data->volume, SGS::tolerance('LDFV', 'is_matching_volume'), FALSE)) $errors['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $data->volume);
+      else if (!Valid::is_accurate($this->volume, $data->volume, SGS::accuracy('LDFV', 'is_matching_volume'))) $warnings['volume']['is_matching_volume'] = array('value' => $this->volume, 'comparison' => $data->volume);
 
-      if (!Valid::is_accurate($this->length, $data->length, SGS::tolerance('LDF', 'is_matching_length'), FALSE)) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->length);
-      else if (!Valid::is_accurate($this->length, $data->length, SGS::accuracy('LDF', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->length);
+      if (!Valid::is_accurate($this->length, $data->length, SGS::tolerance('LDFV', 'is_matching_length'), FALSE)) $errors['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->length);
+      else if (!Valid::is_accurate($this->length, $data->length, SGS::accuracy('LDFV', 'is_matching_length'))) $warnings['length']['is_matching_length'] = array('value' => $this->length, 'comparison' => $data->length);
 
-      if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::tolerance('LDF', 'is_matching_diameter'))) {
+      if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::tolerance('LDFV', 'is_matching_diameter'))) {
         $errors['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $errors['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
       }
-      else if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::accuracy('LDF', 'is_matching_diameter'))) {
+      else if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::accuracy('LDFV', 'is_matching_diameter'))) {
         $warnings['top_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $warnings['top_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);

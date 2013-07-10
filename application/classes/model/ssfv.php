@@ -92,6 +92,12 @@ class Model_SSFV extends SGS_Form_ORM {
     'tolerance' => array(
       'title'  => 'Tolerance',
       'checks' => array(
+        'is_matching_survey_line' => array(
+          'name'    => 'Survey Line',
+          'title'   => 'Survey line matches SSF record data',
+          'error'   => 'Survey line does not match SSF record data',
+          'warning' => 'Survey line matches SSF record data, but is inaccurate'
+        ),
         'is_matching_diameter' => array(
           'name'    => 'Diameter',
           'title'   => 'Diameter matches SSF record data',
@@ -379,8 +385,8 @@ class Model_SSFV extends SGS_Form_ORM {
       ->from($this->_table_name)
       ->where('survey_line', '=', (int) $values['survey_line'])
       ->and_where('cell_number', '=', (int) $values['cell_number'])
-      ->and_where('diameter', 'BETWEEN', SGS::variance_range(SGS::floatify($values['diameter']), SGS::accuracy('TDF', 'is_matching_diameter')))
-      ->and_where('height', 'BETWEEN', SGS::variance_range(SGS::floatify($values['height'], 1), SGS::accuracy('TDF', 'is_matching_length')));
+      ->and_where('diameter', 'BETWEEN', SGS::variance_range(SGS::floatify($values['diameter']), SGS::accuracy('SSFV', 'is_matching_diameter')))
+      ->and_where('height', 'BETWEEN', SGS::variance_range(SGS::floatify($values['height'], 1), SGS::accuracy('SSFV', 'is_matching_length')));
 
     if ($species_id  = SGS::lookup_species($values['species_code'], TRUE)) $query->and_where('species_id', '=', $species_id);
     if ($operator_id = SGS::lookup_operator($values['operator_tin'], TRUE)) $query->and_where('operator_id', '=', $operator_id);
@@ -428,17 +434,17 @@ class Model_SSFV extends SGS_Form_ORM {
       if (!($this->site_id == $data->site_id)) $errors['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $data->site->name);
       if (!($this->block_id == $data->block_id)) $warnings['block_id']['is_matching_block'] = array('value' => $this->block->name, 'comparison' => $data->block->name);
 
-      if (!Valid::is_accurate($this->survey_line, $data->survey_line, SGS::tolerance('TDF', 'is_matching_survey_line'))) $errors['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $data->survey_line);
-      else if (!Valid::is_accurate($this->survey_line, $data->survey_line, SGS::accuracy('TDF', 'is_matching_survey_line'))) $warnings['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $data->survey_line);
+      if (!Valid::is_accurate($this->survey_line, $data->survey_line, SGS::tolerance('SSFV', 'is_matching_survey_line'))) $errors['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $data->survey_line);
+      else if (!Valid::is_accurate($this->survey_line, $data->survey_line, SGS::accuracy('SSFV', 'is_matching_survey_line'))) $warnings['survey_line']['is_matching_survey_line'] = array('value' => $this->survey_line, 'comparison' => $data->survey_line);
 
-      if (!Valid::is_accurate($this->height, $data->height, SGS::tolerance('TDF', 'is_matching_length'))) $errors['height']['is_matching_height'] = array('value' => $this->height, 'comparison' => $data->height);
-      else if (!Valid::is_accurate($this->height, $data->height, SGS::accuracy('TDF', 'is_matching_length'))) $warnings['height']['is_matching_height'] = array('value' => $this->height, 'comparison' => $data->height);
+      if (!Valid::is_accurate($this->height, $data->height, SGS::tolerance('SSFV', 'is_matching_height'))) $errors['height']['is_matching_height'] = array('value' => $this->height, 'comparison' => $data->height);
+      else if (!Valid::is_accurate($this->height, $data->height, SGS::accuracy('SSFV', 'is_matching_height'))) $warnings['height']['is_matching_height'] = array('value' => $this->height, 'comparison' => $data->height);
 
-      if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::tolerance('TDF', 'is_matching_diameter'))) {
+      if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::tolerance('SSFV', 'is_matching_diameter'))) {
         $errors['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $errors['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
       }
-      else if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::accuracy('TDF', 'is_matching_diameter'))) {
+      else if (!Valid::is_accurate($this->diameter, $data->diameter, SGS::accuracy('SSFV', 'is_matching_diameter'))) {
         $warnings['bottom_min']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
         $warnings['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $data->diameter);
       }

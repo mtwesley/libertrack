@@ -520,7 +520,13 @@ class Model_LDF extends SGS_Form_ORM {
       else if (!($this->species->code == $parent->species->code)) $warnings['species_id']['is_matching_species'] = array('value' => $this->species->code, 'comparison' => $parent->species->code);
 
       if (!($this->operator_id == $parent->operator_id)) $warnings['operator_id']['is_matching_operator'] = array('value' => $this->operator->tin, 'comparison' => $parent->operator->tin);
-      if (!($this->site_id == $parent->site_id)) $errors['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $parent->site->name);
+      if (!($this->site_id == $parent->site_id)) $warnings['site_id']['is_matching_site'] = array('value' => $this->site->name, 'comparison' => $parent->site->name);
+      if ($warnings['operator_id']['is_matching_operator'] and $warnings['site_id']['is_matching_site']) {
+        $errors['site_id']['is_matching_site'] = $warnings['site_id']['is_matching_site'];
+        $errors['operator_id']['is_matching_operator'] = $warnings['operator_id']['is_matching_operator'];
+        unset($warnings['site_id']['is_matching_site']);
+        unset($warnings['operator_id']['is_matching_operator']);
+      }
 
       $siblings = array(
         'length'   => 0,
