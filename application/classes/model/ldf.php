@@ -191,9 +191,10 @@ class Model_LDF extends SGS_Form_ORM {
           'warning' => 'Operator does not match parent log data',
         ),
         'is_matching_site' => array(
-          'name'  => 'Site',
-          'title' => 'Site matches parent log data',
-          'error' => 'Site does not match parent log data',
+          'name'    => 'Site',
+          'title'   => 'Site matches parent log data',
+          'error'   => 'Site does not match parent log data',
+          'warning' => 'Site does not match SSF record data',
         )
     )),
   );

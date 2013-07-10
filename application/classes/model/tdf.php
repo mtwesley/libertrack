@@ -188,9 +188,10 @@ class Model_TDF extends SGS_Form_ORM {
           'warning' => 'Operator does not match SSF record data',
         ),
         'is_matching_site' => array(
-          'name'  => 'Site',
-          'title' => 'Site matches SSF record data',
-          'error' => 'Site does not match SSF record data',
+          'name'    => 'Site',
+          'title'   => 'Site matches SSF record data',
+          'error'   => 'Site does not match SSF record data',
+          'warning' => 'Site does not match SSF record data',
         ),
         'is_matching_block' => array(
           'name'    => 'Block',
