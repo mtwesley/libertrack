@@ -715,6 +715,11 @@ create table mif_data (
   barcode_id d_id unique not null,
   species_id d_id not null,
   batch_number d_positive_int not null,
+  batch_start_date d_date,
+  batch_end_date d_date,
+  production_order_number d_text_short,
+  production_line d_text_short,
+  product_type d_text_short,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -723,6 +728,8 @@ create table mif_data (
   original_volume d_volume not null,
   volume d_volume not null,
   status d_data_status default 'P' not null,
+  recorded_by d_text_short,
+  submitted_by d_text_short,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -740,6 +747,11 @@ create table mif_verification (
   barcode_id d_id unique not null,
   species_id d_id not null,
   batch_number d_positive_int not null,
+  batch_start_date d_date,
+  batch_end_date d_date,
+  production_order_number d_text_short,
+  production_line d_text_short,
+  product_type d_text_short,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -752,6 +764,8 @@ create table mif_verification (
   inspection_label d_text_short not null,
   create_date d_date not null,
   status d_data_status default 'P' not null,
+  recorded_by d_text_short,
+  submitted_by d_text_short,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -769,6 +783,11 @@ create table mof_data (
   barcode_id d_id unique not null,
   species_id d_id not null,
   batch_number d_positive_int not null,
+  batch_start_date d_date,
+  batch_end_date d_date,
+  production_order_number d_text_short,
+  production_line d_text_short,
+  product_type d_text_short,
   width d_measurement_float not null,
   height d_measurement_float not null,
   length d_length not null,
@@ -776,6 +795,8 @@ create table mof_data (
   original_volume d_volume not null,
   volume d_volume not null,
   status d_data_status default 'P' not null,
+  recorded_by d_text_short,
+  submitted_by d_text_short,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -793,6 +814,11 @@ create table mof_verification (
   barcode_id d_id unique not null,
   species_id d_id not null,
   batch_number d_positive_int not null,
+  batch_start_date d_date,
+  batch_end_date d_date,
+  production_order_number d_text_short,
+  production_line d_text_short,
+  product_type d_text_short,
   width d_measurement_float not null,
   height d_measurement_float not null,
   length d_length not null,
@@ -804,6 +830,8 @@ create table mof_verification (
   inspection_label d_text_short not null,
   create_date d_date not null,
   status d_data_status default 'P' not null,
+  recorded_by d_text_short,
+  submitted_by d_text_short,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -1497,7 +1525,7 @@ begin
   select exists(select lock from barcode_locks where barcode_id = new.barcode_id) into x_locked;
 
   case new.activity
-    when 'S' then delete from barcode_activity where activity = 'E';
+    when 'S' then delete from barcode_activity where activity = 'E' and barcode_id = new.barcode_id;
     else null;
   end case;
 
