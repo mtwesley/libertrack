@@ -11,7 +11,7 @@ class Controller_Ajax extends Controller {
     $key     = trim($vars[2]);
     $value   = trim($this->request->post('data'));
 
-    if (!strpos($key, 'barcode') and !Auth::instance()->logged_in('management')) return $this->response->status(401);
+    if ((strpos($key, 'barcode') !== FALSE) and !Auth::instance()->logged_in('management')) return $this->response->status(401);
 
     $csv = ORM::factory('CSV', $id);
     if (!$csv->loaded()) return $this->response->status(403);
