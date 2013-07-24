@@ -246,6 +246,9 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
     <td colspan="<?php echo (count($fields) + $additional_columns - $header_columns); ?>">
       <div class="details-errors">
         <ul>
+          <?php if ($duplicates = $csv->get_duplicates() and $duplicates['all']): ?>
+          <li>Data is an exact duplicate of <?php echo count($duplicates['all']); ?> other data, but must be unique</li>
+          <?php endif; ?>
           <?php foreach ($errors as $field => $array): ?>
           <?php foreach ((array) $array as $error): ?>
           <li>

@@ -534,6 +534,11 @@
   top: 1px;
 }
 
+#content table.data td.duplicate {
+  color: #2a6aeb;
+  font-weight: bold;
+}
+
 #content table.data td.warning {
   color: #a5890b;
   font-weight: bold;
@@ -541,11 +546,6 @@
 
 #content table.data td.error {
   color: #ae3636;
-  font-weight: bold;
-}
-
-#content table.data td.duplicate {
-  color: #2a6aeb;
   font-weight: bold;
 }
 
