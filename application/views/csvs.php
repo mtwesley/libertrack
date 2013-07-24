@@ -210,7 +210,7 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
       endswitch;
     ?>
     <td class="<?php echo $hidden_column ? 'hide' : ''; ?> <?php if ($errors[$field] or $errors[SGS::fieldify($field)]): ?>error<?php endif; ?> <?php if ($duplicates[$field] or $duplicates[SGS::fieldify($field)]): ?>duplicate<?php endif; ?>">
-      <div id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>" class="<?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"><?php echo trim($csv->values[$field]); ?></div>
+      <div id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>" class="<?php if (Auth::instance()->logged_in('management') and in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"><?php echo trim($csv->values[$field]); ?></div>
     </td>
     <?php endforeach; ?>
     <td class="<?php echo $options['hide_upload_info'] ? 'hide' : ''; ?>"><?php echo ORM::factory('user', $csv->user_id)->name; ?></td>

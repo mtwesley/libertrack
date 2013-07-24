@@ -214,7 +214,7 @@ $classes[] = 'data';
       $warnings = $record->get_warnings();
     ?>
     <td class="<?php echo $hidden_column ? 'hide' : ''; ?> <?php if ($errors[$field]) print 'error'; else if ($warnings[$field]) print 'warning'; ?>">
-      <div id="<?php echo implode('-', array($record::$type, $record->id, $field)); ?>" class="<?php if (!(strpos($field, '_id'))): ?>data-eip eip<?php endif; ?>"><?php
+      <div id="<?php echo implode('-', array($record::$type, $record->id, $field)); ?>" class="<?php if (Auth::instance()->logged_in('management') and !strpos($field, '_id')): ?>data-eip eip<?php endif; ?>"><?php
         switch ($field):
           case 'operator_id':
             if ($record->operator) echo $record->operator->name; break;
