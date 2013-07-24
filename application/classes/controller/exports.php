@@ -792,6 +792,8 @@ VALIDATION: $secret";
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')))
         ->add_group('specs_barcode', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')))
         // ->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')))
+        ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
         ->add('submit', 'submit', 'Filter');
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -800,16 +802,21 @@ VALIDATION: $secret";
         $operator_id   = $form->operator_id->val();
         $specs_barcode = $form->specs_barcode->val();
         // $exp_barcode   = $form->exp_barcode->val();
+        $from          = $form->from->val();
+        $to            = $form->to->val();
 
         Session::instance()->set('pagination.exports.documents.list', array(
           'type'          => $type,
           'operator_id'   => $operator_id,
           'specs_barcode' => $specs_barcode,
-          // 'exp_barcode'   => $exp_barcode
+          // 'exp_barcode'   => $exp_barcode,
+          'from'          => $from,
+          'to'            => $to
         ));
 
         if ($type)        $documents->and_where('type', 'IN', (array) $type);
         if ($operator_id) $documents->and_where('operator_id', 'IN', (array) $operator_id);
+        if ($from or $to) $documents->and_where('created_date', 'BETWEEN', SGS::db_range($from, $to));
 
         if (Valid::is_barcode($specs_barcode)) $documents->and_where('values', 'LIKE', '%"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"%');
         // if (Valid::numeric($exp_number)) $documents->and_where('values', 'LIKE', '%"exp_number";s:'.strlen($exp_number).':"'.$exp_number.'"%');
@@ -819,9 +826,12 @@ VALIDATION: $secret";
         $form->operator_id->val($operator_id = $settings['operator_id']);
         $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
         // $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
+        $form->from->val($from = $settings['from']);
+        $to->from->val($to = $settings['to']);
 
-        if ($type)    $documents->and_where('type', 'IN', (array) $type);
-        if ($site_id) $documents->and_where('site_id', 'IN', (array) $site_id);
+        if ($type)        $documents->and_where('type', 'IN', (array) $type);
+        if ($site_id)     $documents->and_where('site_id', 'IN', (array) $site_id);
+        if ($from or $to) $documents->and_where('created_date', 'BETWEEN', SGS::db_range($from, $to));
 
         if (Valid::is_barcode($specs_barcode)) $documents->and_where('values', 'LIKE', '%"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"%');
         // if (Valid::numeric($exp_number)) $documents->and_where('values', 'LIKE', '%"exp_number";s:'.strlen($exp_number).':"'.$exp_number.'"%');

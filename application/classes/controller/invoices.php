@@ -695,6 +695,8 @@ class Controller_Invoices extends Controller {
         ->add_group('type', 'checkboxes', SGS::$invoice_type, NULL, array('label' => 'Type'))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'site_operatoropts')))
         ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
+        ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
         ->add('search', 'submit', 'Filter');
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -703,17 +705,22 @@ class Controller_Invoices extends Controller {
         $type        = $form->type->val();
         $operator_id = $form->operator_id->val();
         $site_id     = $form->site_id->val();
+        $from        = $form->from->val();
+        $to          = $form->to->val();
 
         $invoices = ORM::factory('invoice');
 
         if ($type)        $invoices->and_where('type', 'IN', (array) $type);
         if ($operator_id) $invoices->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)     $invoices->and_where('site_id', 'IN', (array) $site_id);
+        if ($from or $to) $invoices->and_where('created_date', 'BETWEEN', SGS::db_range($from, $to));
 
         Session::instance()->set('pagination.invoice.list', array(
           'type'        => $type,
           'operator_id' => $operator_id,
           'site_id'     => $site_id,
+          'from'        => $from,
+          'to'          => $to
         ));
       }
       else {
@@ -721,6 +728,8 @@ class Controller_Invoices extends Controller {
           $form->type->val($type = $settings['type']);
           $form->operator_id->val($operator_id = $settings['operator_id']);
           $form->site_id->val($site_id = $settings['site_id']);
+          $form->from->val($from = $settings['from']);
+          $to->from->val($to = $settings['to']);
         }
 
         $invoices = ORM::factory('invoice');
@@ -728,6 +737,7 @@ class Controller_Invoices extends Controller {
         if ($type)        $invoices->and_where('type', 'IN', (array) $type);
         if ($operator_id) $invoices->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)     $invoices->and_where('site_id', 'IN', (array) $site_id);
+        if ($from or $to) $invoices->and_where('created_date', 'BETWEEN', SGS::db_range($from, $to));
       }
 
       if ($invoices) {
