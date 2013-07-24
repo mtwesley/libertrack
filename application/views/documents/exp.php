@@ -321,14 +321,14 @@ $options = (array) $options + array(
     <table class="exp-info-table">
       <tr class="info-bar">
         <td class="label">EP Number:</td>
-        <td colspan="2"><?php echo $document->number ? 'EP ' . $document->number : 'DRAFT'; ?></td>
+        <td colspan="2"><?php echo $document->number ? 'EP ' . SGS::numberify($document->number) : 'DRAFT'; ?></td>
         <td class="qr_image" rowspan="3">
           <div class="qr_image"><img src="<?php echo $qr_image; ?>" /></div>
         </td>
       </tr>
       <tr class="info-bar">
         <td class="label">SPEC Number:</td>
-        <td colspan="2"><?php echo $document->values['specs_number']; ?></td>
+        <td colspan="2"><?php echo 'SPEC ' . SGS::numberify($document->values['specs_number']); ?></td>
       </tr>
       <tr class="info-bar">
         <td class="label">Date of Issue:</td>
