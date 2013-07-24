@@ -1783,6 +1783,13 @@ class Controller_Analysis extends Controller {
         $tempname = tempnam(sys_get_temp_dir(), strtolower($form_type).'_').'.'.$type;
         $writer->save($tempname);
 
+        // send existing file if possible
+        $content_md5 = md5_file($tempname);
+        $file = ORM::factory('file')
+          ->where('content_md5', '=', $content_md5)
+          ->find();
+        if ($file->loaded()) $this->response->send_file(preg_replace('/\/$/', '', DOCROOT).$file->path, $file->name, array('mime_type' => $mime_type));
+
         // info
         if ($operator_id) $operator = ORM::factory('operator', $operator_id);
         if ($site_id) {

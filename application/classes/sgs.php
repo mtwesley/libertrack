@@ -866,6 +866,18 @@ class SGS {
     return preg_replace('/[^\w'.preg_quote(implode('', $allowed_characters)).']+/', '_', $string);
   }
 
+  public static function fieldify($string)
+  {
+    if (strpos($string, 'barcode') !== FALSE) return self::unfieldify($string).'_id';
+    else return $string;
+  }
+
+  public static function unfieldify($string)
+  {
+    if ($pos = strrpos($string, '_id')) return substr($string, 0, $pos);
+    else return $string;
+  }
+
   public static function errorify($string)
   {
     $string = preg_replace('/('.preg_quote(strtolower(implode('|', array_keys(self::$form_data_type)))).'_data)/', 'form', $string);

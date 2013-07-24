@@ -138,7 +138,10 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
 <?php endif; // table ?>
   <?php foreach ($csvs as $csv): ?>
   <?php if ($options['rows']): ?>
-  <?php $errors = $csv->get_errors(); ?>
+  <?php
+    $errors = $csv->get_errors();
+    $duplicates = $csv->get_duplicates();
+  ?>
   <tr id="csv-<?php echo $csv->id; ?>" class="csv-<?php echo $csv->id; ?> <?php print SGS::odd_even($odd); ?>">
     <?php if ($options['actions']): ?>
     <td class="checkbox"><input type="checkbox" name="action" value="<?php echo $csv->id; ?>" /></td>
@@ -206,7 +209,7 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
           $hidden_column = FALSE; break;
       endswitch;
     ?>
-    <td  class="<?php echo $hidden_column ? 'hide' : ''; ?> <?php if ($errors[$field]): ?>error<?php endif; ?>">
+    <td class="<?php echo $hidden_column ? 'hide' : ''; ?> <?php if ($errors[$field] or $errors[SGS::fieldify($field)]): ?>error<?php endif; ?> <?php if ($duplicates[$field] or $duplicates[SGS::fieldify($field)]): ?>duplicate<?php endif; ?>">
       <div id="<?php echo implode('-', array('csv', $csv->id, $field)); ?>" class="<?php if (in_array($csv->status, array('P', 'R', 'U'))): ?>csv-eip eip<?php endif; ?>"><?php echo trim($csv->values[$field]); ?></div>
     </td>
     <?php endforeach; ?>

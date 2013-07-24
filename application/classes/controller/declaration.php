@@ -341,6 +341,7 @@ class Controller_Declaration extends Controller {
     $accepted   = 0;
     $rejected   = 0;
     $duplicated = 0;
+    $deleted    = 0;
     $failure    = 0;
 
     foreach ($csv_ids as $csv_id) {
@@ -350,6 +351,7 @@ class Controller_Declaration extends Controller {
         case 'A': $accepted++; break;
         case 'R': $rejected++; break;
         case 'U': $duplicated++; break;
+        case 'D': $deleted++; break;
         default:  $failure++;
       }
       unset($csv);
@@ -358,6 +360,7 @@ class Controller_Declaration extends Controller {
     if ($accepted) Notify::msg($accepted.' records accepted as form data.', 'success', TRUE);
     if ($rejected) Notify::msg($rejected.' records rejected as form data.', 'error', TRUE);
     if ($duplicated) Notify::msg($duplicated.' records marked as duplicates of form data.', 'warning', TRUE);
+    if ($deleted)  Notify::msg($deleted.' records marked as deleted.', 'error', TRUE);
     if ($failure)  Notify::msg($failure.' records failed to be processed.', 'error', TRUE);
 
     $this->request->redirect('declaration/files/'.$id.'/review');
@@ -381,6 +384,7 @@ class Controller_Declaration extends Controller {
       case 'A': Notify::msg('Updated data accepted as form data.', 'success', TRUE); break;
       case 'R': Notify::msg('Updated data rejected as form data.', 'error', TRUE); break;
       case 'U': Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE); break;
+      case 'D': Notify::msg('Updated data deleted.', 'error', TRUE); break;
       default:  Notify::msg('Updated data failed to be processed.', 'error', TRUE);
     }
 

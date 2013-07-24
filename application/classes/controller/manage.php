@@ -623,7 +623,7 @@ class Controller_Manage extends Controller {
       if ($operator_id) $args['operators.id'] = $operator_id;
 
       switch ($similarity) {
-        case 'exact': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', TRUE, 2, 0.8, 1, 25, 0); break;
+        case 'exact': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', TRUE, 8, 1, 0, 25, 0); break;
         case 'high': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.5, 5, 25, 0); break;
         case 'low': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.1, 10, 25, 0); break;
 

@@ -136,7 +136,10 @@ class Model_CSV extends ORM {
       ->where('content_md5', '=', $this->content_md5)
       ->and_where('content_md5', 'IS NOT', NULL)
       ->and_where('id', '!=', $this->id)
-      ->execute() as $dup) $duplicates[] = $dup['id'];
+      ->execute() as $dup) {
+        $duplicate = TRUE;
+        $duplicates[] = $dup['id'];
+      }
 
     // FIXME: handle issues with NO duplicate CSV id found !!!
     // $duplicates = array_filter($duplicates);
@@ -145,7 +148,8 @@ class Model_CSV extends ORM {
       $this->set_duplicate($duplicate_csv_id, is_int($field) ? NULL : $field);
     }
 
-    if ($duplicates)  $this->status = 'U';
+    if ($duplicate) $this->status = 'D';
+    else if ($duplicates)  $this->status = 'U';
     else if ($errors) $this->status = 'R';
     else $this->status = 'A';
 

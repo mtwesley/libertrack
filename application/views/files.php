@@ -17,7 +17,7 @@ $classes[] = 'data';
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'operator_id')), 'Operator'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'site_id')), 'Site'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'block_id')), 'Block'); ?></th>
-    <th colspan="4">Statistics</th>
+    <th colspan="5">Statistics</th>
     <th class="links"></th>
   </tr>
   <?php foreach ($files as $file): ?>
@@ -53,18 +53,21 @@ $classes[] = 'data';
       $_a = (int) DB::select('count("id")')->from('csv')->where('file_id', '=', $file->id)->and_where('status', '=', 'A')->execute()->get('count');
       $_r = (int) DB::select('count("id")')->from('csv')->where('file_id', '=', $file->id)->and_where('status', '=', 'R')->execute()->get('count');
       $_u = (int) DB::select('count("id")')->from('csv')->where('file_id', '=', $file->id)->and_where('status', '=', 'U')->execute()->get('count');
+      $_d = (int) DB::select('count("id")')->from('csv')->where('file_id', '=', $file->id)->and_where('status', '=', 'D')->execute()->get('count');
 
-      $_total = $_p + $_a + $_r + $_u;
+      $_total = $_p + $_a + $_r + $_u + $_d;
 
       $_pp = $_total ? floor($_p * 100 / $_total) : 0;
       $_ap = $_total ? floor($_a * 100 / $_total) : 0;
       $_rp = $_total ? floor($_r * 100 / $_total) : 0;
       $_up = $_total ? floor($_u * 100 / $_total) : 0;
+      $_dp = $_total ? floor($_d * 100 / $_total) : 0;
     ?>
     <td><span class="pending"><?php echo $_p; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=P', 'Pending'); ?> (<?php echo $_pp; ?>%)</span></td>
     <td><span class="accepted"><?php echo $_a; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=A', 'Accepted'); ?> (<?php echo $_ap; ?>%)</span></td>
     <td><span class="rejected"><?php echo $_r; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=R', 'Rejected'); ?> (<?php echo $_rp; ?>%)</span></td>
     <td><span class="duplicated"><?php echo $_u; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=U', 'Duplicated'); ?> (<?php echo $_up; ?>%)</span></td>
+    <td><span class="deleted"><?php echo $_d; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=D', 'Deleted'); ?> (<?php echo $_dp; ?>%)</span></td>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>
