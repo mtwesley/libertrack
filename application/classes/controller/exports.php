@@ -1294,6 +1294,7 @@ VALIDATION: $secret";
     switch ($command) {
       case 'create': return self::handle_create();
       case 'validate': return self::handle_document_validate();
+      case 'refinalize': return self::handle_document_refinalize($id);
       case 'finalize': return self::handle_document_finalize($id);
       case 'asycuda': return self::handle_document_asycuda($id);
       case 'delete': return self::handle_document_delete($id);
