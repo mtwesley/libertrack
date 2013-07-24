@@ -797,7 +797,7 @@ class Controller_Verification extends Controller {
         ->and_where('form_type', 'IN', array_keys(SGS::$form_verification_type))
         ->order_by('timestamp', 'DESC');
 
-      foreach ($search as $keyword) $csvs->and_where('values', 'LIKE', '%'.$keyword.'%');
+      foreach ($search as $keyword) $csvs->and_where('values', 'ILIKE', '%'.trim($keyword).'%');
 
       if ($form_type)   $csvs->and_where('form_type', 'IN', (array) $form_type);
       if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
