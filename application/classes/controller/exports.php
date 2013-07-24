@@ -1034,12 +1034,12 @@ VALIDATION: $secret";
 
     if ($document->type !== 'EXP') {
       Notify::msg('Document must be of correct type before creating ASYCUDA text file.', 'warning', TRUE);
-      $this->request->redirect('documents/'.$id);
+      $this->request->redirect('exports/documents/'.$id);
     }
 
     if ($document->is_draft) {
       Notify::msg('Document must be finalized before creating ASYCUDA text file.', 'warning', TRUE);
-      $this->request->redirect('documents/'.$id);
+      $this->request->redirect('exports/documents/'.$id);
     }
 
     $text = '';
@@ -1154,7 +1154,7 @@ VALIDATION: $secret";
 
     if (!$document->is_draft) {
       Notify::msg('Document already finalized.', 'warning', TRUE);
-      $this->request->redirect('documents/'.$id);
+      $this->request->redirect('exports/documents/'.$id);
     }
 
     $form = Formo::form()
@@ -1199,7 +1199,7 @@ VALIDATION: $secret";
 
     if ($document->is_draft) {
       Notify::msg('Document not yet finalized.', 'warning', TRUE);
-      $this->request->redirect('documents/'.$id);
+      $this->request->redirect('exports/documents/'.$id);
     }
 
     $form = Formo::form()
