@@ -247,7 +247,7 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
       <div class="details-errors">
         <ul>
           <?php if ($duplicates = $csv->get_duplicates() and $duplicates['all']): ?>
-          <li>Data is an exact duplicate of <?php echo count($duplicates['all']); ?> other data, but must be unique</li>
+          <li>Imported data must be unique, but is an exact duplicate of <?php echo count($duplicates['all']); ?> already accepted form data</li>
           <?php endif; ?>
           <?php foreach ($errors as $field => $array): ?>
           <?php foreach ((array) $array as $error): ?>

@@ -68,7 +68,7 @@ class Controller_Exports extends Controller {
 
     $qr_array = array(
       'EP NUMBER'    => $document->number,
-      'SPEC BARCODE' => $document->values['specs_barcode'],
+      'SPEC NUMBER ' => $document->values['specs_number'],
       'EXPORTER'     => $document->operator->name,
       'BUYER'        => $document->values['buyer'],
       'ORIGIN'       => $document->values['origin'],
@@ -419,7 +419,6 @@ VALIDATION: $secret";
           $specs_number = $form->specs_number->val();
           $values = array(
             'specs_number'    => $specs_number,
-            'specs_barcode'   => SGS::lookup_document('SPECS', $specs_number)->values['specs_barcode'],
             'origin'          => $form->origin->val(),
             'destination'     => $form->destination->val(),
             'product_type'    => $form->product_type->val(),

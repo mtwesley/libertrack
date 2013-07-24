@@ -327,8 +327,8 @@ $options = (array) $options + array(
         </td>
       </tr>
       <tr class="info-bar">
-        <td class="label">SPEC Barcode:</td>
-        <td colspan="2"><?php echo $document->values['specs_barcode']; ?></td>
+        <td class="label">SPEC Number:</td>
+        <td colspan="2"><?php echo $document->values['specs_number']; ?></td>
       </tr>
       <tr class="info-bar">
         <td class="label">Date of Issue:</td>
