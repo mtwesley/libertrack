@@ -1460,18 +1460,20 @@ $$
 begin
   select true from barcode_locks where barcode_id = old.barcode_id limit 1 into x_is_locked;
 
-  if (tg_op = 'UPDATE') and (x_is_locked = true) and (old.status = 'A') then
-    raise notice 'barcode id(' || old.barcode_id || ') is locked and connot be updated';
-    return null;
-  else
-    return new;
-  end if;
-
-  if (tg_op = 'DELETE') and (x_is_locked = true) then
-    raise notice 'barcode id(' || old.barcode_id || ') is locked and connot be deleted';
-    return null;
-  else
-    return old;
+  if (tg_op = 'UPDATE') then
+    if (x_is_locked = true) and (old.status = 'A') then
+      raise notice 'barcode id(%) is locked and cannot be updated', old.barcode_id;
+      return null;
+    else
+      return new;
+    end if;
+  elseif (tg_op = 'DELETE') then
+    if (x_is_locked = true) then
+      raise notice 'barcode id(%) is locked and cannot be deleted', old.barcode_id;
+      return null;
+    else
+      return old;
+    end if;
   end if;
 
 end
@@ -1623,7 +1625,7 @@ end
 $$ language 'plpgsql';
 
 
-create function ldf_data_update_barcodes()
+create or replace function ldf_data_update_barcodes()
   returns trigger as
 $$
 begin
