@@ -49,7 +49,7 @@ create domain d_species_code as character varying(5) check (value ~ E'^[A-Z]{3,5
 
 create domain d_species_class as character(1) check (value ~ E'^[ABC]$');
 
-create domain d_site_type as character(3) check (value ~ E'^(TSC|PUP|FMC|CFMA)$');
+create domain d_site_type as character varying(4) check (value ~ E'^(TSC|PUP|FMC|CFMA)$');
 
 create domain d_site_name as character varying(10) check (value ~ E'^(TSC|PUP|FMC|CFMA)[\\s_-]*[A-Z0-9]{1,10}$');
 

@@ -15,6 +15,11 @@ class Model_Block extends ORM {
       ),
       'id'         => array('render' => FALSE),
       'is_deleted' => array('render' => FALSE),
+      'utm_origin' => array('render' => FALSE),
+      'utm_east'   => array('render' => FALSE),
+      'utm_north_south' => array('render' => FALSE),
+      'utm_west'   => array('render' => FALSE),
+      'status'     => array('render' => FALSE),
     );
     foreach (self::fields() as $field => $label) {
       $array[$field]['label'] = $label;

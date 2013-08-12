@@ -16,8 +16,10 @@
       <?php $col = 0; foreach ($duplicates as $duplicate): ?>
       <td class="details-resolution-select">
         <?php echo HTML::anchor($csv->data_type.'/data/'.$duplicate->id, 'View'); ?>
-        <?php echo HTML::anchor($csv->data_type.'/data/'.$duplicate->id.'/edit', 'Edit'); ?>
+        <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor($csv->data_type.'/data/'.$duplicate->id.'/edit', 'Edit'); ?>
+        <?php if (Auth::instance()->logged_in('management')): ?>
         <span id="csv-<?php echo $csv->id.'-duplicate-'.$duplicate->id.'-resolve'; ?>">Resolve</span>
+        <?php endif; ?>
       </td>
       <?php $col++; ?>
       <?php endforeach; ?>
