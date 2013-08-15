@@ -505,6 +505,39 @@ class Controller_Analysis extends Controller {
 
         $data = ORM::factory($form_type);
 
+        Session::instance()->set('pagination.data', array(
+          'site_id'       => $site_id,
+          'operator_id'   => $operator_id,
+          'block_id'      => $block_id,
+          'specs_barcode' => $specs_barcode,
+//          'exp_barcode'   => $exp_barcode,
+          'status'        => $status,
+          'wb_barcode'    => $wb_barcode,
+          'errors'        => $errors,
+          'from'          => $from,
+          'to'            => $to
+        ));
+      }
+      else if ($settings = Session::instance()->get('pagination.data')) {
+        if ($has_site_id) $form->site_id->val($site_id = $settings['site_id']);
+        else $form->operator_id->val($operator_id = $settings['operator_id']);
+        if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
+        if ($has_specs_info) $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
+//          if ($has_exp_info) $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
+        if ($has_wb_info) $form->wb_barcode->val($wb_barcode = $settings['wb_barcode']);
+
+        if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
+          $form->from->val($from = $settings['from']);
+          $form->to->val($to = $settings['to']);
+        }
+
+        $form->status->val($status = $settings['status']);
+        $form->errors->val($errors = $settings['errors']);
+
+        $data = ORM::factory($form_type);
+      }
+
+      if ($data) {
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
         if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
         if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
@@ -529,64 +562,6 @@ class Controller_Analysis extends Controller {
         if (Valid::is_barcode($wb_barcode)) $data->and_where('wb_barcode_id', '=', SGS::lookup_barcode($wb_barcode, NULL, TRUE));
         if (!$has_specs_info and !$has_exp_info and !$has_wb_info) $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
 
-        Session::instance()->set('pagination.data', array(
-          'site_id'       => $site_id,
-          'operator_id'   => $operator_id,
-          'block_id'      => $block_id,
-          'specs_barcode' => $specs_barcode,
-//          'exp_barcode'   => $exp_barcode,
-          'status'        => $status,
-          'wb_barcode'    => $wb_barcode,
-          'errors'        => $errors,
-          'from'          => $from,
-          'to'            => $to
-        ));
-      }
-      else {
-        if ($settings = Session::instance()->get('pagination.data')) {
-          if ($has_site_id) $form->site_id->val($site_id = $settings['site_id']);
-          else $form->operator_id->val($operator_id = $settings['operator_id']);
-          if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
-          if ($has_specs_info) $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
-//          if ($has_exp_info) $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
-          if ($has_wb_info) $form->wb_barcode->val($wb_barcode = $settings['wb_barcode']);
-
-          if (!$has_specs_info and !$has_exp_info and !$has_wb_info) {
-            $form->from->val($from = $settings['from']);
-            $form->to->val($to = $settings['to']);
-          }
-
-          $form->status->val($status = $settings['status']);
-          $form->errors->val($errors = $settings['errors']);
-        }
-
-        $data = ORM::factory($form_type);
-
-        if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
-        if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
-        if ($block_id)    $data->and_where('block_id', 'IN', (array) $block_id);
-        if ($status)      $data->and_where('status', 'IN', (array) $status);
-
-        if ($errors) {
-          foreach ($model::$checks as $type => $info) if (in_array($type, $errors))
-            foreach ($info['checks'] as $check => $array) $checks[] = $check;
-
-          if ($checks) $data->join('checks')
-            ->distinct(TRUE)
-            ->on(strtolower($form_type).'.id', '=', 'checks.form_data_id')
-            ->on('checks.form_type', '=', DB::expr("'".$form_type."'"))
-            ->and_where_open()
-              ->and_where('checks.check', 'IN', (array) $checks)
-              ->and_where('checks.type', '=', 'E')
-            ->and_where_close();
-        }
-
-        if (Valid::is_barcode($specs_barcode)) $data->and_where('specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE));
-//        if (Valid::is_barcode($exp_barcode)) $data->and_where('exp_barcode_id', '=', SGS::lookup_barcode($exp_barcode, NULL, TRUE));
-        if (!$has_specs_info and !$has_exp_info and !$has_wb_info) $data->and_where('create_date', 'BETWEEN', SGS::db_range($from, $to));
-      }
-
-      if ($data) {
         $clone = clone($data);
         $pagination = Pagination::factory(array(
           'items_per_page' => 50,

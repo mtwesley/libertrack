@@ -29,8 +29,8 @@ class Model_Block extends ORM {
 
   public static function fields() {
     return array(
-      'site_id'     => 'Site',
-      'name' => 'Name'
+      'site_id' => 'Site',
+      'name'    => 'Name'
     );
   }
 

@@ -332,11 +332,12 @@ class Controller_Ajax extends Controller {
     $model  = ORM::factory($csv->form_type, $csv->form_data_id);
     $fields = SGS_Form_ORM::get_fields($csv->form_type) + $model->labels();
 
-    $duplicates = array_merge(array($csv), ORM::factory('CSV')
+    $csv_duplicates = SGS::flattenify($csv->get_duplicates());
+    $duplicates = array_merge(array($csv), $csv_duplicates ? ORM::factory('CSV')
       ->where('form_type', '=', $csv->form_type)
-      ->and_where('id', 'IN', SGS::flattenify($csv->get_duplicates()))
+      ->and_where('id', 'IN', $csv_duplicates)
       ->find_all()
-      ->as_array());
+      ->as_array() : array());
 
     $content .= View::factory('resolutions')
       ->set('duplicates', $duplicates)
