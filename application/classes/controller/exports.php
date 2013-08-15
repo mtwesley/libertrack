@@ -573,14 +573,14 @@ VALIDATION: $secret";
             ->join(DB::expr('"specs_data" as "children_specs_data"'), 'LEFT OUTER')
             ->on('children_barcodes.barcode_id', '=', 'children_specs_data.barcode_id')
 
-            ->join(DB::expr('"parent_document_data" as "document_data"'), 'LEFT OUTER')
+            ->join(DB::expr('"document_data" as "parent_document_data"'), 'LEFT OUTER')
             ->on('parent_specs_data.id', '=', 'parent_document_data.form_data_id')
             ->on('parent_document_data.form_type', '=', DB::expr("'SPECS'"))
             ->join(DB::expr('"documents" as "parent_documents"'), 'LEFT OUTER')
             ->on('parent_document_data.document_id', '=', 'parent_documents.id')
             ->on('parent_documents.type', '=', DB::expr("'SPECS'"))
 
-            ->join(DB::expr('"children_document_data" as "document_data"'), 'LEFT OUTER')
+            ->join(DB::expr('"document_data" as "children_document_data"'), 'LEFT OUTER')
             ->on('children_specs_data.id', '=', 'children_document_data.form_data_id')
             ->on('children_document_data.form_type', '=', DB::expr("'SPECS'"))
             ->join(DB::expr('"documents" as "children_documents"'), 'LEFT OUTER')
