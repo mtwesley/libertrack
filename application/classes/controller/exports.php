@@ -564,9 +564,9 @@ VALIDATION: $secret";
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
 
-            ->join(DB::expr('"barcode_hops_cached" as "parent_barcodes"'), 'LEFT OUTER')
+            ->join(DB::expr('"barcode_hops" as "parent_barcodes"'), 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'parent_barcodes.barcode_id')
-            ->join(DB::expr('"barcode_hops_cached" as "children_barcodes"'), 'LEFT OUTER')
+            ->join(DB::expr('"barcode_hops" as "children_barcodes"'), 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'children_barcodes.parent_id')
             ->join(DB::expr('"specs_data" as "parent_specs_data"'), 'LEFT OUTER')
             ->on('parent_barcodes.parent_id', '=', 'parent_specs_data.barcode_id')
