@@ -36,6 +36,7 @@
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/delete', 'Delete', array('class' => 'link')); ?>
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
           <?php else: ?>
+          <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor('invoices/'.$invoice->id.'/delete', 'Force Delete', array('class' => 'link')); ?>
           <?php if (!$invoice->is_paid): ?>
           <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor('invoices/'.$invoice->id.'/refinalize', 'Re-finalize', array('class' => 'link')); ?>
           <?php echo HTML::anchor('invoices/'.$invoice->id.'/payment', 'Payments', array('class' => 'link')); ?>

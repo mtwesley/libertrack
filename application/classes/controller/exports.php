@@ -516,7 +516,7 @@ VALIDATION: $secret";
             ->on('exp_documents.type', '=', DB::expr("'EXP'"))
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', 'IN', DB::expr("('X', 'E', 'H', 'Y', 'A', 'L', 'S')"))
+            ->on('barcode_activity.activity', 'IN', DB::expr("('X','E','H','Y','A','L','S','Z')"))
             ->join('invoice_data', 'LEFT OUTER')
             ->on('specs_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
@@ -527,7 +527,7 @@ VALIDATION: $secret";
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
             ->and_where_open()
-              ->where('barcode_activity.activity', 'NOT IN', array('E', 'H', 'Y', 'A', 'L'))
+              ->where('barcode_activity.activity', 'NOT IN', array('E', 'H', 'Y', 'A', 'L', 'Z'))
               ->or_where('barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where('documents.number', '=', $specs_number)
@@ -560,7 +560,7 @@ VALIDATION: $secret";
             ->on('documents.type', '=', DB::expr("'SPECS'"))
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', 'IN', DB::expr("('E','H','Y','A','L','S')"))
+            ->on('barcode_activity.activity', 'IN', DB::expr("('E','H','Y','A','L','S','Z')"))
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
 
@@ -589,11 +589,11 @@ VALIDATION: $secret";
 
             ->join(DB::expr('"barcode_activity" as "parent_barcode_activity"'), 'LEFT OUTER')
             ->on('parent_specs_data.barcode_id', '=', 'parent_barcode_activity.barcode_id')
-            ->on('parent_barcode_activity.activity', 'IN', DB::expr("('D','E','H','Y','A','L','S')"))
+            ->on('parent_barcode_activity.activity', 'IN', DB::expr("('D','E','H','Y','A','L','S','Z')"))
 
             ->join(DB::expr('"barcode_activity" as "children_barcode_activity"'), 'LEFT OUTER')
             ->on('children_specs_data.barcode_id', '=', 'children_barcode_activity.barcode_id')
-            ->on('children_barcode_activity.activity', 'IN', DB::expr("('D','E','H','Y','A','L','S')"))
+            ->on('children_barcode_activity.activity', 'IN', DB::expr("('D','E','H','Y','A','L','S','Z')"))
 
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
@@ -608,7 +608,7 @@ VALIDATION: $secret";
             ->and_where_close()
 
             ->and_where_open()
-              ->where('parent_barcode_activity.activity', 'NOT IN', array('D', 'E', 'H', 'Y', 'A', 'L','S'))
+              ->where('parent_barcode_activity.activity', 'NOT IN', array('D', 'E', 'H', 'Y', 'A', 'L', 'S', 'Z'))
               ->or_where('parent_barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where_open()
@@ -617,7 +617,7 @@ VALIDATION: $secret";
             ->and_where_close()
 
             ->and_where_open()
-              ->where('children_barcode_activity.activity', 'NOT IN', array('D', 'E', 'H', 'Y', 'A', 'L','S'))
+              ->where('children_barcode_activity.activity', 'NOT IN', array('D', 'E', 'H', 'Y', 'A', 'L', 'S', 'Z'))
               ->or_where('children_barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where_open()

@@ -145,6 +145,7 @@ $classes[] = 'data';
     <td class="data-row-details type"><span class="data-type"><?php echo $form_type; ?></span></td>
     <td class="status">
       <?php
+        if ($record->has_problem()) echo HTML::image('images/bullet_exclamation.png', array('class' => 'status problem', 'title' => 'Problems'));
         if (!$record->is_verification()) switch ($record->status):
           case 'P': echo HTML::image('images/bullet_yellow.png', array('class' => 'status pending', 'title' => 'Unchecked')); break;
           case 'A': echo HTML::image('images/bullet_green.png', array('class' => 'status accepted', 'title' => 'Passed')); break;

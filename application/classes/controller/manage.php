@@ -506,6 +506,7 @@ class Controller_Manage extends Controller {
       $documents = $documents->find_all()->as_array();
 
       if ($documents) $data_table .= View::factory('documents')
+        ->set('mode', 'exports')
         ->set('classes', array('has-section'))
         ->set('documents', $documents)
         ->render();
