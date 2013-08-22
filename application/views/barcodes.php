@@ -14,7 +14,7 @@
   </tr>
   <?php foreach ($barcodes as $barcode): ?>
   <tr class="<?php print SGS::odd_even($odd); ?>">
-    <td class="type"><span class="data-type">BRCODE</span></td>
+    <td class="type"><span class="data-type">BARCODE</span></td>
     <td class="status"><?php echo HTML::image('images/barcode.png', array('class' => 'barcode', 'title' => 'Barcode')); ?></td>
     <td><?php echo $barcode->barcode; ?></td>
     <td><?php echo $barcode->printjob->site->operator->name; ?></td>
