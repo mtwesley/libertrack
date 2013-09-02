@@ -41,7 +41,7 @@ class Model_WB extends SGS_Form_ORM {
   public function set($column, $value) {
     switch ($column) {
       case 'volume':
-        $this->original_volume = $value;
+        if ($this->original_volume == NULL) $this->original_volume = $value;
         parent::set($column, $this->volume);
 
       default:

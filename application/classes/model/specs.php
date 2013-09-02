@@ -38,7 +38,7 @@ class Model_SPECS extends SGS_Form_ORM {
   public function __get($column) {
     switch ($column) {
       case 'diameter':
-        return (($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
+        return SGS::floatify(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
       case 'volume':
         return SGS::volumify(($this->diameter / 100), $this->length);
@@ -85,7 +85,7 @@ class Model_SPECS extends SGS_Form_ORM {
   public function set($column, $value) {
     switch ($column) {
       case 'volume':
-        $this->original_volume = $value;
+        if ($this->original_volume == NULL) $this->original_volume = $value;
         parent::set($column, $this->volume);
 
       default:
