@@ -20,7 +20,8 @@ class Model_SPECS extends SGS_Form_ORM {
   );
 
   protected $_ignored_columns = array(
-    'diameter',
+    'top_diameter',
+    'bottom_diameter',
     'specs',
     'specs_document',
     'specs_number',
@@ -37,6 +38,12 @@ class Model_SPECS extends SGS_Form_ORM {
 
   public function __get($column) {
     switch ($column) {
+      case 'top_diameter':
+        return SGS::floatify(($this->top_min + $this->top_max) / 2);
+
+      case 'bottom_diameter':
+        return SGS::floatify(($this->bottom_min + $this->bottom_max) / 2);
+
       case 'diameter':
         return SGS::floatify(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
@@ -84,12 +91,15 @@ class Model_SPECS extends SGS_Form_ORM {
 
   public function set($column, $value) {
     switch ($column) {
+      case 'diameter':
+        return parent::set($column, $this->diameter);
+
       case 'volume':
         if ($this->original_volume == NULL) $this->original_volume = $value;
-        parent::set($column, $this->volume);
+        return parent::set($column, $this->volume);
 
       default:
-        parent::set($column, $value);
+        return parent::set($column, $value);
     }
   }
 

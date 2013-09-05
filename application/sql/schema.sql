@@ -109,6 +109,10 @@ create domain d_document_type as character varying(5) check (value ~ E'(SPECS|EX
 
 create domain d_document_number as numeric(6) check (value > 0);
 
+create domain d_report_type as character varying(7) check (value ~ E'(CSV|DATA|SUMMARY)');
+
+create domain d_report_number as numeric(6) check (value > 0);
+
 
 -- tables
 
@@ -432,6 +436,7 @@ create table documents (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint documents_pkey primary key (id),
+  constraint documents_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
   constraint documents_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null))),
   constraint documents_check check (not((operator_id is null) and (site_id is null)))
@@ -447,6 +452,33 @@ create table document_data (
   constraint document_data_document_id foreign key (document_id) references documents (id) on update cascade on delete cascade,
 
   constraint document_data_unique unique(form_type,form_data_id,document_id)
+);
+
+create table reports (
+  id bigserial not null,
+  type d_report_type not null,
+  name d_text_short not null unique,
+  description d_text_long,
+  number d_report_number,
+  created_date d_date not null,
+  tables d_text_long,
+  fields d_text_long,
+  filters d_text_long,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint reports_pkey primary key (id),
+  constraint reports_user_id_fkey foreign key (user_id) references users (id) on update cascade
+);
+
+create table report_files (
+  id bigserial not null,
+  report_id d_id not null,
+  file_id d_id unique not null,
+
+  constraint report_files_pkey primary key (id),
+  constraint report_files_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint report_files_report_id_fkey foreign key (report_id) references reports (id) on update cascade
 );
 
 create table csv (
@@ -593,6 +625,7 @@ create table tdf_data (
   signed_by d_text_short,
   survey_line d_survey_line not null,
   cell_number d_positive_int not null,
+  diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -624,6 +657,7 @@ create table tdf_verification (
   block_id d_id not null,
   barcode_id d_id unique not null,
   species_id d_id not null,
+  diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -656,6 +690,7 @@ create table ldf_data (
   measured_by d_text_short,
   entered_by d_text_short,
   form_number d_text_short,
+  diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -685,6 +720,7 @@ create table ldf_verification (
   operator_id d_id not null,
   barcode_id d_id unique not null,
   species_id d_id not null,
+  diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -720,6 +756,7 @@ create table mif_data (
   production_order_number d_text_short,
   production_line d_text_short,
   product_type d_text_short,
+  diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -752,6 +789,7 @@ create table mif_verification (
   production_order_number d_text_short,
   production_line d_text_short,
   product_type d_text_short,
+  diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -853,6 +891,7 @@ create table specs_data (
   loading_date d_date,
   buyer d_text_short,
   submitted_by d_text_short,
+  diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -1006,6 +1045,9 @@ create sequence s_invoices_st_number minvalue 100100;
 create sequence s_invoices_exf_number minvalue 100100;
 create sequence s_documents_specs_number minvalue 1;
 create sequence s_documents_exp_number minvalue 1;
+create sequence s_report_csv_number minvalue 1;
+create sequence s_report_data_number minvalue 1;
+create sequence s_report_summary_number minvalue 1;
 
 
 -- indexes

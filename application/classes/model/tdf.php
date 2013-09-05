@@ -22,7 +22,6 @@ class Model_TDF extends SGS_Form_ORM {
   );
 
   protected $_ignored_columns = array(
-    'diameter',
     'top_diameter',
     'bottom_diameter',
     'volume'
@@ -50,6 +49,17 @@ class Model_TDF extends SGS_Form_ORM {
 
       default:
         return parent::__get($column);
+    }
+  }
+
+  public function set($column, $value) {
+    switch ($column) {
+      case 'diameter':
+      case 'volume':
+        return parent::set($column, $this->$column);
+
+      default:
+        return parent::set($column, $value);
     }
   }
 

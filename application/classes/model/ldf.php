@@ -18,7 +18,6 @@ class Model_LDF extends SGS_Form_ORM {
   );
 
   protected $_ignored_columns = array(
-    'diameter',
     'top_diameter',
     'bottom_diameter'
   );
@@ -49,12 +48,15 @@ class Model_LDF extends SGS_Form_ORM {
 
   public function set($column, $value) {
     switch ($column) {
+      case 'diameter':
+        return parent::set($column, $this->diameter);
+
       case 'volume':
         if ($this->original_volume == NULL) $this->original_volume = $value;
-        parent::set($column, $this->volume);
+        return parent::set($column, $this->volume);
 
       default:
-        parent::set($column, $value);
+        return parent::set($column, $value);
     }
   }
 
