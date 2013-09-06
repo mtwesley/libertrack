@@ -98,7 +98,7 @@ class SGS_Form_ORM extends ORM {
     $valid = FALSE;
     $validation = new Validation($data);
 
-    foreach ($this->other_rules() as $field => $set) $validation->rules($field, $set);
+    foreach ($this->csv_rules() as $field => $set) $validation->rules($field, $set);
 
     try { $valid = $validation->check(); }
     catch (Validation_Exception $e) { return FALSE; }
@@ -112,7 +112,7 @@ class SGS_Form_ORM extends ORM {
       foreach ($data as $key => $value) $_data[static::$fields[$key]] = $value;
       $_validation = new Validation($_data);
 
-      foreach ($this->other_rules() as $field => $set) $_validation->rules(static::$fields[$field], $set);
+      foreach ($this->csv_rules() as $field => $set) $_validation->rules(static::$fields[$field], $set);
 
       try { $valid = $_validation->check(); }
       catch (Validation_Exception $e) { return FALSE; }

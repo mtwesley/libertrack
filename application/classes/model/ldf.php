@@ -647,8 +647,10 @@ class Model_LDF extends SGS_Form_ORM {
       'operator_id'        => array(array('not_empty')),
       'species_id'         => array(array('not_empty')),
       'barcode_id'         => array(array('not_empty'),
+                                    array('is_barcode_type', array($this->barcode->type, array('L', 'P'))),
                                     array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
-      'parent_barcode_id'  => array(array('not_empty')),
+      'parent_barcode_id'  => array(array('not_empty'),
+                                    array('is_barcode_type', array($this->parent_barcode->type, array('F', 'L', 'P')))),
       'top_min'            => array(array('not_empty'),
                                     array('is_measurement_int')),
       'top_max'            => array(array('not_empty'),
@@ -670,7 +672,7 @@ class Model_LDF extends SGS_Form_ORM {
     );
   }
 
-  public function other_rules()
+  public function csv_rules()
   {
     return array(
       'operator_tin'      => array(array('not_empty'),

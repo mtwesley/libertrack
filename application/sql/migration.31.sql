@@ -46,14 +46,14 @@ alter table mif_verification alter column diameter set not null;
 alter table tdf_data add column volume d_volume;
 alter table tdf_verification add column volume d_volume;
 
-update tdf_data set volume = (pi() * power(((diameter / 2) / 100), 2) * length);
-update ldf_data set volume = (pi() * power(((diameter / 2) / 100), 2) * length);
-update mif_data set volume = (pi() * power(((diameter / 2) / 100), 2) * length);
-update specs_data set volume = (pi() * power(((diameter / 2) / 100), 2) * length);
+update tdf_data set volume = (pi() * power(((diameter::numeric / 2) / 100), 2) * length);
+update ldf_data set volume = (pi() * power(((diameter::numeric / 2) / 100), 2) * length);
+update mif_data set volume = (pi() * power(((diameter::numeric / 2) / 100), 2) * length);
+update specs_data set volume = (pi() * power(((diameter::numeric / 2) / 100), 2) * length);
 
-update tdf_verification set volume = (pi() * power(((diameter / 2) / 100), 2) * length);
-update ldf_verification set volume = (pi() * power(((diameter / 2) / 100), 2) * length);
-update mif_verification set volume = (pi() * power(((diameter / 2) / 100), 2) * length);
+update tdf_verification set volume = (pi() * power(((diameter::numeric / 2) / 100), 2) * length);
+update ldf_verification set volume = (pi() * power(((diameter::numeric / 2) / 100), 2) * length);
+update mif_verification set volume = (pi() * power(((diameter::numeric / 2) / 100), 2) * length);
 
 alter table tdf_data alter column volume set not null;
 alter table ldf_data alter column volume set not null;
@@ -122,3 +122,213 @@ create sequence s_report_summary_number minvalue 1;
 -- some house cleaning
 
 alter table documents add constraint documents_user_id_fkey foreign key (user_id) references users (id) on update cascade;
+
+
+-- fixing barcodes
+
+create or replace function ssf_data_update_barcodes()
+  returns trigger as
+$$
+  declare x_barcode_type d_barcode_type;
+begin
+  if tg_op = 'DELETE' then
+    select type from barcodes where id = old.barcode_id into x_barcode_type;
+
+    if (old.barcode_id is not null) and (x_barcode_type = 'T') then
+      update barcodes set type = 'P', parent_id = null where id = old.barcode_id;
+    end if;
+  end if;
+
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
+    if new.barcode_id is not null then
+      update barcodes set type = 'T' where id = new.barcode_id;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create or replace function tdf_data_update_barcodes()
+  returns trigger as
+$$
+  declare x_barcode_type d_barcode_type;
+  declare x_stump_barcode_type d_barcode_type;
+begin
+  if (tg_op <> 'DELETE') then
+    if (new.barcode_id = new.stump_barcode_id) or (new.barcode_id = new.tree_barcode_id) or (new.tree_barcode_id = new.stump_barcode_id) then
+      return null;
+    end if;
+  end if;
+
+  if tg_op = 'DELETE' then
+    select type from barcodes where id = old.barcode_id into x_barcode_type;
+    select type from barcodes where id = old.stump_barcode_id into x_stump_barcode_type;
+
+    if (old.barcode_id is not null) and (x_barcode_type = 'F') then
+      update barcodes set type = 'P', parent_id = null where id = old.barcode_id;
+    end if;
+    if (old.stump_barcode_id is not null) and (x_stump_barcode_type = 'S') then
+      update barcodes set type = 'P', parent_id = null where id = old.stump_barcode_id;
+    end if;
+  end if;
+
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
+    if new.barcode_id is not null then
+      update barcodes set type = 'F' where id = new.barcode_id;
+
+      if new.tree_barcode_id is not null then
+        update barcodes set parent_id = new.tree_barcode_id where id = new.barcode_id;
+
+        if new.stump_barcode_id is not null then
+          update barcodes set parent_id = new.tree_barcode_id where id = new.stump_barcode_id;
+        end if;
+      end if;
+    end if;
+
+    if new.stump_barcode_id is not null then
+      update barcodes set type = 'S' where id = new.stump_barcode_id;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create or replace function ldf_data_update_barcodes()
+  returns trigger as
+$$
+  declare x_barcode_type d_barcode_type;
+begin
+  if (tg_op <> 'DELETE') then
+    if (new.barcode_id = new.parent_barcode_id) then
+      return null;
+    end if;
+  end if;
+
+  if tg_op = 'DELETE' then
+    select type from barcodes where id = old.barcode_id into x_barcode_type;
+
+    if (old.barcode_id is not null) and (x_barcode_type = 'L') then
+      update barcodes set type = 'P', parent_id = null where id = old.barcode_id;
+    end if;
+  end if;
+
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
+    if new.barcode_id is not null then
+      update barcodes set type = 'L' where id = new.barcode_id;
+
+      if new.parent_barcode_id is not null then
+        update barcodes set parent_id = new.parent_barcode_id where id = new.barcode_id;
+      end if;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create or replace function mif_data_update_barcodes()
+  returns trigger as
+$$
+begin
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create or replace function mof_data_update_barcodes()
+  returns trigger as
+$$
+  declare x_barcode_type d_barcode_type;
+begin
+  if tg_op = 'DELETE' then
+    select type from barcodes where id = old.barcode_id into x_barcode_type;
+
+    if (old.barcode_id is not null) and (x_barcode_type = 'B') then
+      update barcodes set type = 'P', parent_id = null where id = old.barcode_id;
+    end if;
+  end if;
+
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
+    if new.barcode_id is not null then
+      update barcodes set type = 'B' where id = new.barcode_id;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create or replace function specs_data_update_barcodes()
+  returns trigger as
+$$
+  declare x_specs_barcode_type d_barcode_type;
+  declare x_exp_barcode_type d_barcode_type;
+begin
+  if (tg_op <> 'DELETE') then
+    if (new.barcode_id = new.specs_barcode_id) or (new.barcode_id = new.exp_barcode_id) or (new.exp_barcode_id = new.specs_barcode_id) then
+      return null;
+    end if;
+  end if;
+
+  if tg_op = 'DELETE' then
+    select type from barcodes where id = old.specs_barcode_id into x_specs_barcode_type;
+    select type from barcodes where id = old.exp_barcode_id into x_exp_barcode_type;
+
+    if (old.specs_barcode_id is not null) and (x_specs_barcode_type = 'H') then
+      update barcodes set type = 'P', parent_id = null where id = old.specs_barcode_id;
+    end if;
+    if (old.exp_barcode_id is not null) and (x_exp_barcode_type = 'E') then
+      update barcodes set type = 'P', parent_id = null where id = old.exp_barcode_id;
+    end if;
+  end if;
+
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
+    if new.specs_barcode_id is not null then
+      update barcodes set type = 'H' where id = new.specs_barcode_id;
+    end if;
+
+    if new.exp_barcode_id is not null then
+      update barcodes set type = 'E' where id = new.exp_barcode_id;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+
+
+create or replace function wb_data_update_barcodes()
+  returns trigger as
+$$
+  declare x_wb_barcode_type d_barcode_type;
+begin
+  if (tg_op <> 'DELETE') then
+    if (new.barcode_id = new.wb_barcode_id) then
+      return null;
+    end if;
+  end if;
+
+  if tg_op = 'DELETE' then
+    select type from barcodes where id = old.wb_barcode_id into x_wb_barcode_type;
+
+    if (old.wb_barcode_id is not null) and (x_wb_barcode_type = 'W') then
+      update barcodes set type = 'P', parent_id = null where id = old.wb_barcode_id;
+    end if;
+  end if;
+
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
+    if new.wb_barcode_id is not null then
+      update barcodes set type = 'W' where id = new.wb_barcode_id;
+    end if;
+  end if;
+
+  return null;
+end
+$$ language 'plpgsql';
+

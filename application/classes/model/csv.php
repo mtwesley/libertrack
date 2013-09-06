@@ -88,7 +88,7 @@ class Model_CSV extends ORM {
     $model->parse_data($this->values);
 
     $validation = new Validation($this->values);
-    foreach ($model->other_rules() as $field => $set) $validation->rules($field, $set);
+    foreach ($model->csv_rules() as $field => $set) $validation->rules($field, $set);
 
     $validation->check();
     if (!$errors = $validation->errors()) {

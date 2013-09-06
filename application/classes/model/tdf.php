@@ -662,9 +662,12 @@ class Model_TDF extends SGS_Form_ORM {
       'block_id'         => array(array('not_empty')),
       'species_id'       => array(array('not_empty')),
       'barcode_id'       => array(array('not_empty'),
+                                  array('is_barcode_type', array($this->barcode->type, array('F', 'P'))),
                                   array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
-      'tree_barcode_id'  => array(array('not_empty')),
+      'tree_barcode_id'  => array(array('not_empty'),
+                                  array('is_barcode_type', array($this->tree_barcode->type, array('T', 'P')))),
       'stump_barcode_id' => array(array('not_empty'),
+                                  array('is_barcode_type', array($this->stump_barcode->type, array('S', 'P'))),
                                   array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'survey_line'      => array(array('not_empty'),
                                   array('is_survey_line')),
@@ -689,7 +692,7 @@ class Model_TDF extends SGS_Form_ORM {
     );
   }
 
-  public function other_rules()
+  public function csv_rules()
   {
     return array(
       'operator_tin'   => array(array('not_empty'),

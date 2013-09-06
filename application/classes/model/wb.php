@@ -574,8 +574,10 @@ class Model_WB extends SGS_Form_ORM {
       'transport_operator_id' => array(array('not_empty')),
       'species_id'            => array(array('not_empty')),
       'barcode_id'            => array(array('not_empty'),
+                                       array('is_barcode_type', array($this->barcode->type, array('L', 'P'))),
                                        array('is_unique_fields', array($this->_table_name, array('barcode_id', 'wb_barcode_id'), array('barcode_id' => $this->barcode->id, 'wb_barcode_id' => $this->wb_barcode->id), $this->id))),
-      'wb_barcode_id'         => array(array('not_empty')),
+      'wb_barcode_id'         => array(array('not_empty'),
+                                       array('is_barcode_type', array($this->wb_barcode->type, array('W', 'P')))),
       'diameter'              => array(array('not_empty'),
                                        array('is_measurement_int')),
       'length'                => array(array('not_empty'),
@@ -599,7 +601,7 @@ class Model_WB extends SGS_Form_ORM {
     );
   }
 
-  public function other_rules()
+  public function csv_rules()
   {
     return array(
       'operator_tin'           => array(array('not_empty'),

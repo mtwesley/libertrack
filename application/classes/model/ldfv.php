@@ -540,6 +540,7 @@ class Model_LDFV extends SGS_Form_ORM {
       'operator_id'        => array(array('not_empty')),
       'species_id'         => array(array('not_empty')),
       'barcode_id'         => array(array('not_empty'),
+                                    array('is_barcode_type', array($this->barcode->type, array('L', 'P'))),
                                     array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'top_min'            => array(array('not_empty'),
                                     array('is_measurement_int')),
@@ -561,7 +562,7 @@ class Model_LDFV extends SGS_Form_ORM {
     );
   }
 
-  public function other_rules()
+  public function csv_rules()
   {
     return array(
       'operator_tin'      => array(array('not_empty'),

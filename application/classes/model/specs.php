@@ -702,9 +702,12 @@ class Model_SPECS extends SGS_Form_ORM {
       'operator_id'        => array(array('not_empty')),
       'species_id'         => array(array('not_empty')),
       'barcode_id'         => array(array('not_empty'),
+                                    array('is_barcode_type', array($this->barcode->type, array('L', 'P'))),
                                     array('is_unique_fields', array($this->_table_name, array('barcode_id', 'specs_barcode_id'), array('barcode_id' => $this->barcode->id, 'specs_barcode_id' => $this->specs_barcode->id), $this->id))),
-      'specs_barcode_id'   => array(array('not_empty')),
-      'exp_barcode_id'     => array(array('not_empty')),
+      'specs_barcode_id'   => array(array('not_empty'),
+                                    array('is_barcode_type', array($this->specs_barcode->type, array('H', 'P')))),
+      'exp_barcode_id'     => array(array('not_empty'),
+                                    array('is_barcode_type', array($this->exp_barcode->type, array('E', 'P')))),
       'top_min'            => array(array('not_empty'),
                                     array('is_measurement_int')),
       'top_max'            => array(array('not_empty'),
@@ -728,7 +731,7 @@ class Model_SPECS extends SGS_Form_ORM {
     );
   }
 
-  public function other_rules()
+  public function csv_rules()
   {
     return array(
       'operator_tin'   => array(array('not_empty'),
