@@ -130,7 +130,7 @@ class Valid extends Kohana_Valid {
   public static function is_species_class($value, $class = array())
   {
     if ($class) $class = (array) $class;
-    return (bool) (self::is_char($value) AND preg_match('/^['.preg_quote($class ? implode('', $class) : 'ABC').']$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^['.($class ? implode('', $class) : 'ABC').']$/', (string) $value));
   }
 
   public static function is_site_name($value)
@@ -156,19 +156,19 @@ class Valid extends Kohana_Valid {
   public static function is_operation_type($value, $type = array())
   {
     if ($type) $type = (array) $type;
-    return (bool) (self::is_char($value) AND preg_match('/^('.preg_quote($type ? implode('|', $type) : 'SSF|TDF|LDF|MIF|MOF|SPECS|WB|EXP|PJ|UNKWN').'$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^('.($type ? implode('|', $type) : 'SSF|TDF|LDF|MIF|MOF|SPECS|WB|EXP|PJ|UNKWN').'$/', (string) $value));
   }
 
   public static function is_form_type($value, $type = array())
   {
     if ($type) $type = (array) $type;
-    return (bool) (self::is_varchar($value, 5) AND preg_match('/^('.preg_quote($type ? implode('|', $type) : 'SSF|TDF|LDF|MIF|MOF|SPECS|WB|EXP').')$/', (string) $value));
+    return (bool) (self::is_varchar($value, 5) AND preg_match('/^('.($type ? implode('|', $type) : 'SSF|TDF|LDF|MIF|MOF|SPECS|WB|EXP').')$/', (string) $value));
   }
 
   public static function is_grade($value, $grade = array())
   {
     if ($grade) $grade = (array) $grade;
-    return (bool) (self::is_varchar($value, 3) AND preg_match('/^('.preg_quote($grade ? implode('|', $grade) : 'LM|A|AB|B|BC|C|D|FAS|CG|1|2|3').')$/', (string) $value));
+    return (bool) (self::is_varchar($value, 3) AND preg_match('/^('.($grade ? implode('|', $grade) : 'LM|A|AB|B|BC|C|D|FAS|CG|1|2|3').')$/', (string) $value));
   }
 
   public static function is_barcode($value, $barcodify = FALSE)
@@ -180,7 +180,7 @@ class Valid extends Kohana_Valid {
   public static function is_barcode_type($value, $type = array())
   {
     if ($type) $type = (array) $type;
-    return (bool) (self::is_char($value) AND preg_match('/^['.preg_quote($type ? implode('', $type) : 'PTFSLRHEW').']$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^['.($type ? implode('', $type) : 'PTFSLRHEW').']$/', (string) $value));
   }
 
   public static function is_conversion_factor($value)
@@ -196,13 +196,13 @@ class Valid extends Kohana_Valid {
   public static function is_status($value, $status = array())
   {
     if ($status) $status = (array) $status;
-    return (bool) (self::is_char($value) AND preg_match('/^['.preg_quote($status ? implode('', $status) : 'PARDU').']$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^['.($status ? implode('', $status) : 'PARDU').']$/', (string) $value));
   }
 
   public static function is_barcode_activity($value, $activity)
   {
     if ($activity) $activity = (array) $activity;
-    return (bool) (self::is_char($value) AND preg_match('/^['.preg_quote($activity ? implode('', $activity) : 'PIHTXDNESYALZC').']$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^['.($activity ? implode('', $activity) : 'PIHTXDNESYALZC').']$/', (string) $value));
   }
 
   public static function is_username($value)

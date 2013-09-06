@@ -62,6 +62,11 @@ class Model_WB extends SGS_Form_ORM {
       }
     }
 
+    foreach ($this->_object as $field => $value) switch ($field) {
+      case 'volume':
+        if ($value == NULL) $this->$field = $this->$field;
+    }
+
     parent::save($validation);
   }
 

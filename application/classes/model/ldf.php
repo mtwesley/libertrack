@@ -87,6 +87,12 @@ class Model_LDF extends SGS_Form_ORM {
 
     if (($this->barcode->barcode != $this->parent_barcode->barcode) and ($this->parent_barcode->type == 'F') and ($parent_barcode = SGS::lookup_barcode($this->parent_barcode->barcode, 'L') and $parent_barcode->loaded())) $this->parent_barcode = $parent_barcode;
 
+    foreach ($this->_object as $field => $value) switch ($field) {
+      case 'diameter':
+      case 'volume':
+        if ($value == NULL) $this->$field = $this->$field;
+    }
+
     parent::save($validation);
   }
 
