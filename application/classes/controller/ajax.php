@@ -11,12 +11,14 @@ class Controller_Ajax extends Controller {
     $key     = trim($vars[2]);
     $value   = trim($this->request->post('data'));
 
-    if ((strpos($key, 'barcode') === FALSE) and
+    $csv = ORM::factory('CSV', $id);
+
+    if ((!($csv->form_type == 'SSF') and (Auth::instance()->get_user()->id == 10)) and // FIXME: give better permissions for albert to edit SSF
+        (strpos($key, 'barcode') === FALSE) and
         (strpos($key, 'species') === FALSE) and
         (strpos($key, 'operator') === FALSE) and
         (strpos($key, 'site') === FALSE) and !Auth::instance()->logged_in('management')) return $this->response->status(401);
 
-    $csv = ORM::factory('CSV', $id);
     if (!$csv->loaded()) return $this->response->status(403);
 
     try {
@@ -36,7 +38,7 @@ class Controller_Ajax extends Controller {
   }
 
   public function action_data() {
-    if (!Auth::instance()->logged_in('data')) return $this->response->status(401);
+    if (!Auth::instance()->logged_in('management')) return $this->response->status(401);
 
     $vars    = explode('-', $this->request->post('id'));
     $model   = $vars[0];
@@ -46,8 +48,6 @@ class Controller_Ajax extends Controller {
 
     $data = ORM::factory($model, $id);
     if (!$data->loaded()) return $this->response->status(403);
-
-    if (!strpos($key, 'barcode') and !Auth::instance()->logged_in('data')) return $this->response->status(401);
 
     try {
       switch ($key) {
