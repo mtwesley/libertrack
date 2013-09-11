@@ -13,7 +13,7 @@ class Controller_Ajax extends Controller {
 
     $csv = ORM::factory('CSV', $id);
 
-    if ((!($csv->form_type == 'SSF') and (Auth::instance()->get_user()->id == 10)) and // FIXME: give better permissions for albert to edit SSF
+    if ((!(in_array($csv->form_type, array('SSF', 'SSFV')) and Auth::instance()->get_user()->id == 10)) and // FIXME: give better permissions for albert to edit SSF
         (strpos($key, 'barcode') === FALSE) and
         (strpos($key, 'species') === FALSE) and
         (strpos($key, 'operator') === FALSE) and
