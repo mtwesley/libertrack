@@ -4,7 +4,7 @@ $classes[] = 'form';
 <style>
   div.submit {
     padding: 6px 0 5px;
-    text-align: right;
+    text-align: center;
   }
 </style>
 <form method="post" class="has-section">
