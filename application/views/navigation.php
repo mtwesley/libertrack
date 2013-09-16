@@ -43,7 +43,7 @@ if (!$command && !is_numeric($id)) {
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('reports')): ?>
-    <!-- <li class="<?php if ($primary == 'reports')   echo 'active'; ?>"><?php echo HTML::anchor('reports', SGS::title('reports')); ?></li> -->
+    <li class="<?php if ($primary == 'reports')   echo 'active'; ?>"><?php echo HTML::anchor('reports', SGS::title('reports')); ?></li>
     <?php endif; ?>
 
     <?php if (Auth::instance()->logged_in('admin')): ?>
@@ -191,6 +191,18 @@ if (!$command && !is_numeric($id)) {
       <?php endif; ?>
     </li>
     <li class="<?php if ($secondary == 'documents' and $command == 'validate') echo 'active'; ?>"><?php echo HTML::anchor('exports/documents/validate', SGS::title('exports/documents/validate')); ?></li>
+
+    <?php elseif ($primary == 'reports'): ?>
+    <li class="<?php if ($secondary == 'list')   echo 'active'; ?>"><?php echo HTML::anchor('reports/list', SGS::title('reports/list')); ?></li>
+    <li class="<?php if ($secondary == 'create') echo 'active'; ?>"><?php echo HTML::anchor('reports/create', SGS::title('reports/create')); ?>
+      <?php if ($secondary == 'create'): ?>
+      <ul class="nav commands">
+        <li class="<?php if ($command == 'summary') echo 'active'; ?>"><?php echo HTML::anchor('reports/create/summary', SGS::title('reports/create/summary')); ?></li>
+        <!-- <li class="<?php if ($command == 'csv')     echo 'active'; ?>"><?php echo HTML::anchor('reports/create/csv', SGS::title('reports/create/csv')); ?></li> -->
+        <li class="<?php if ($command == 'data')    echo 'active'; ?>"><?php echo HTML::anchor('reports/create/data', SGS::title('reports/create/data')); ?></li>
+      </ul>
+      <?php endif; ?>
+    </li>
 
     <?php elseif ($primary == 'users'): ?>
     <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('users/list', SGS::title('users/list')); ?></li>

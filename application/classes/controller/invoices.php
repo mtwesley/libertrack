@@ -178,12 +178,12 @@ class Controller_Invoices extends Controller {
             ->on('invoices.type', '=', DB::expr("'EXF'"))
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', 'IN', DB::expr("('S','E','H','Y','A','L','X','Z')"))
+            ->on('barcode_activity.activity', 'IN', DB::expr("('S','E','O','H','Y','A','L','T','X','Z')"))
             ->where('specs_data.status', '=', 'A')
             ->and_where('document_data.document_id', '=', SGS::lookup_document('SPECS', $specs_number, TRUE))
             ->and_where('invoice_data.form_data_id', '=', NULL)
             ->and_where_open()
-              ->where('barcode_activity.activity', 'NOT IN', array('S', 'E', 'H', 'Y', 'A', 'L', 'X', 'Z'))
+              ->where('barcode_activity.activity', 'NOT IN', array('S', 'E', 'O', 'H', 'Y', 'A', 'L', 'X', 'Z'))
               ->or_where('barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where_open()
@@ -850,7 +850,6 @@ class Controller_Invoices extends Controller {
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
   }
-
 
   private function generate_st_preview($invoice, $data_ids) {
     $table = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-09')) ? 'tdf_data' : 'ldf_data';

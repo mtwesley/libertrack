@@ -202,7 +202,7 @@ class Valid extends Kohana_Valid {
   public static function is_barcode_activity($value, $activity)
   {
     if ($activity) $activity = (array) $activity;
-    return (bool) (self::is_char($value) AND preg_match('/^['.($activity ? implode('', $activity) : 'PIHTXDNESYALZC').']$/', (string) $value));
+    return (bool) (self::is_char($value) AND preg_match('/^['.($activity ? implode('', $activity) : 'PIHTXDNEOSYALZC').']$/', (string) $value));
   }
 
   public static function is_username($value)

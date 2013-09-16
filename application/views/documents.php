@@ -23,7 +23,7 @@ $classes[] = 'data';
     ?></td>
     <td><?php echo $document->is_draft ? 'DRAFT' : $type.' '.$document->number; ?></td>
     <td><?php echo $document->operator->name; ?></td>
-    <td><?php echo $document->site->name; ?></td>
+    <td><?php echo $document->site->loaded() ? $document->site->name : 'N/A'; ?></td>
     <td><?php echo SGS::date($document->created_date); ?></td>
     <td class="links">
       <div class="links-container">
@@ -37,6 +37,7 @@ $classes[] = 'data';
           <?php else: ?>
           <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor($mode.'documents/'.$document->id.'/delete', 'Force Delete', array('class' => 'link')); ?>
           <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor($mode.'documents/'.$document->id.'/refinalize', 'Re-finalize', array('class' => 'link')); ?>
+          <?php if ($document->type == 'SPECS') echo HTML::anchor($mode.'documents/'.$document->id.'/loading', 'Loading', array('class' => 'link')); ?>
           <?php endif; ?>
 
           <?php echo HTML::anchor($document->file->path, 'Download', array('class' => 'link')); ?>

@@ -36,7 +36,7 @@ class Controller_Settings extends Controller {
             ->and_where('check', '=', $check)
             ->execute();
         } catch (Database_Exception $e) {
-          Notify::msg('Sorry, tolerance failed to be saved due to input. Please try again.', 'error');
+          Notify::msg('Sorry, tolerance failed to be updated due to input. Please try again.', 'error');
         } catch (Exception $e) {
           Notify::msg('Sorry, tolerance failed to be updated. Please try again.', 'error');
         }

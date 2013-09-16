@@ -71,7 +71,7 @@ create domain d_barcode as character varying(13) check (value ~ E'^[0123456789AC
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHEW]$');
 
-create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDNESYALZC]$');
+create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDNEOSYALZC]$');
 
 create domain d_barcode_lock as character varying(6) check (value ~ E'(ADMIN|INV|DOC|BRCODE|VERIFY)');
 
@@ -80,6 +80,8 @@ create domain d_qrcode as character(64);
 create domain d_qrcode_type as character(1) check (value ~ E'^[P]$');
 
 create domain d_location_type as character(1) check (value ~ E'^[P]$');
+
+create domain d_schedule_type as character(1) check (value ~ E'^[ODWMQY]$');
 
 create domain d_check_type as character(1) check (value ~ E'^[EWSU]$');
 
@@ -459,15 +461,43 @@ create table reports (
   type d_report_type not null,
   name d_text_short not null unique,
   description d_text_long,
+  is_draft d_bool default true not null,
   number d_report_number,
   created_date d_date not null,
+  model d_text_short not null,
   tables d_text_long,
   fields d_text_long,
   filters d_text_long,
+  offset d_positive_int,
+  limit d_positive_int,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
   constraint reports_pkey primary key (id),
+  constraint reports_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint documents_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
+);
+
+create table report_schedule (
+  id bigserial not null,
+  report_id d_id not null,
+  type d_schedule_type not null,
+  minute d_measurement_int[],
+  hour d_measurement_int[],
+  day d_positive_int[],
+  week d_positive_int[],
+  month d_positive_int[],
+  quarter d_positive_int[],
+  year d_positive_int[],
+  created_date d_date not null,
+  start_date d_date not null,
+  end_date d_date,
+  last_timestamp d_timestamp not null,
+  user_id d_id not null,
+
+  constraint reports_pkey primary key (id),
+  constraint reports_report_id_fkey foreign key (report_id) references reports (id) on update cascade,
   constraint reports_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
@@ -483,7 +513,6 @@ create table report_files (
 
 create table csv (
   id bigserial not null,
-  type d_csv_type not null,
   file_id d_id not null,
   operation d_operation not null,
   form_type d_operation_type not null,
@@ -1569,11 +1598,11 @@ begin
   select exists(select lock from barcode_locks where barcode_id = new.barcode_id) into x_locked;
 
   case new.activity
-    when 'S' then delete from barcode_activity where activity = 'E' and barcode_id = new.barcode_id;
+    when 'S' then delete from barcode_activity where activity in ('E','O') and barcode_id = new.barcode_id;
     else null;
   end case;
 
-  if (x_locked != true) and (new.activity in ('H','T','X','E','S','Y','A','L','Z')) then
+  if (x_locked = false) and (new.activity in ('H','T','X','E','S','Y','A','L','Z')) then
     insert into barcode_locks (barcode_id,lock,lock_id,user_id) values (new.barcode_id,'BRCODE',new.barcode_id,new.user_id);
   end if;
 

@@ -9,7 +9,7 @@
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'printjob_is')), 'Print Job'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'type')), 'Type'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'is_locked')), 'Locked'); ?></th>
-    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'coc_status')), 'Status'); ?></th>
+    <th>Status</th>
     <th class="links"></th>
   </tr>
   <?php foreach ($barcodes as $barcode): ?>

@@ -117,25 +117,27 @@ class SGS {
     'analysis/download/ldf'   => 'Log Data',
     'analysis/download/specs' => 'Shipment Specification',
 
-    'invoices'            => 'Invoicing',
+    'invoices'            => 'Invoices',
     'invoices/list'       => 'List Invoices',
     'invoices/create'     => 'Create Invoice',
     'invoices/create/st'  => 'Stumpage Invoice',
     'invoices/create/exf' => 'Export Fee Invoice',
 
-    'exports'                    => 'Exporting',
+    'exports'                    => 'Exports',
     'exports/documents'          => 'List Documents',
     'exports/documents/validate' => 'Validate Documents',
-    'exports/documents/create'   => 'Create Documents',
+    'exports/documents/create'   => 'Create Document',
 
     'exports/documents/create/specs' => 'Shipment Specification',
     'exports/documents/create/exp'   => 'Export Permit',
 
     'reports'         => 'Reports',
-    'reports/ssf'     => 'Stock Survey Reports',
-    'reports/tdf'     => 'Tree Data Reports',
-    'reports/ldf'     => 'Log Data Reports',
-    'reports/specs'   => 'Shipment Specification Reports',
+    'reports/list'    => 'List Reports',
+    'reports/create'  => 'Create Report',
+
+    'reports/create/csv'     => 'Declaration and Verification Report',
+    'reports/create/data'    => 'Data Analysis Report',
+    'reports/create/summary' => 'Summary Report',
   );
 
   public static $tips = array(
@@ -377,6 +379,15 @@ class SGS {
     'W' => 'Warning'
   );
 
+  public static $schedule_type = array(
+    'O' => 'Once',
+    'D' => 'Daily',
+    'W' => 'Weekly',
+    'M' => 'Monthly',
+    'Q' => 'Quarterly',
+    'Y' => 'Yearly'
+  );
+
   public static $csv_status = array(
     'A' => 'Accepted',
     'R' => 'Rejected',
@@ -414,6 +425,7 @@ class SGS {
     'D' => 'Declared for Export',
     'N' => 'Inspected',
     'E' => 'Exported',
+    'O' => 'Loaded on Vessel',
     'S' => 'Short-Shipped',
     'Y' => 'Sold Locally',
     'A' => 'Abandoned',

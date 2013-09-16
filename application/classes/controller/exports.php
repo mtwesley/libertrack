@@ -516,7 +516,7 @@ VALIDATION: $secret";
             ->on('exp_documents.type', '=', DB::expr("'EXP'"))
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', 'IN', DB::expr("('X','E','H','Y','A','L','S','Z')"))
+            ->on('barcode_activity.activity', 'IN', DB::expr("('X','E','O','H','Y','A','L','S','Z')"))
             ->join('invoice_data', 'LEFT OUTER')
             ->on('specs_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
@@ -527,7 +527,7 @@ VALIDATION: $secret";
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
             ->and_where_open()
-              ->where('barcode_activity.activity', 'NOT IN', array('E', 'H', 'Y', 'A', 'L', 'Z'))
+              ->where('barcode_activity.activity', 'NOT IN', array('E', 'O', 'H', 'Y', 'A', 'L', 'Z'))
               ->or_where('barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where('documents.number', '=', $specs_number)
@@ -560,7 +560,7 @@ VALIDATION: $secret";
             ->on('documents.type', '=', DB::expr("'SPECS'"))
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', 'IN', DB::expr("('E','H','Y','A','L','S','Z')"))
+            ->on('barcode_activity.activity', 'IN', DB::expr("('T','E','O','H','Y','A','L','S','Z')"))
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
 
@@ -589,17 +589,17 @@ VALIDATION: $secret";
 
             ->join(DB::expr('"barcode_activity" as "parent_barcode_activity"'), 'LEFT OUTER')
             ->on('parent_specs_data.barcode_id', '=', 'parent_barcode_activity.barcode_id')
-            ->on('parent_barcode_activity.activity', 'IN', DB::expr("('D','E','H','Y','A','L','S','Z')"))
+            ->on('parent_barcode_activity.activity', 'IN', DB::expr("('D','E','O','H','Y','A','L','S','Z')"))
 
             ->join(DB::expr('"barcode_activity" as "children_barcode_activity"'), 'LEFT OUTER')
             ->on('children_specs_data.barcode_id', '=', 'children_barcode_activity.barcode_id')
-            ->on('children_barcode_activity.activity', 'IN', DB::expr("('D','E','H','Y','A','L','S','Z')"))
+            ->on('children_barcode_activity.activity', 'IN', DB::expr("('D','E','O','H','Y','A','L','S','Z')"))
 
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
             ->and_where('specs_data.specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
             ->and_where_open()
-              ->where('barcode_activity.activity', 'NOT IN', array('E', 'H', 'Y', 'A', 'L'))
+              ->where('barcode_activity.activity', 'NOT IN', array('E', 'O', 'H', 'Y', 'A', 'L', 'Z'))
               ->or_where('barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where_open()
@@ -608,7 +608,7 @@ VALIDATION: $secret";
             ->and_where_close()
 
             ->and_where_open()
-              ->where('parent_barcode_activity.activity', 'NOT IN', array('D', 'E', 'H', 'Y', 'A', 'L', 'S', 'Z'))
+              ->where('parent_barcode_activity.activity', 'NOT IN', array('D', 'E', 'O', 'H', 'Y', 'A', 'L', 'S', 'Z'))
               ->or_where('parent_barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where_open()
@@ -617,7 +617,7 @@ VALIDATION: $secret";
             ->and_where_close()
 
             ->and_where_open()
-              ->where('children_barcode_activity.activity', 'NOT IN', array('D', 'E', 'H', 'Y', 'A', 'L', 'S', 'Z'))
+              ->where('children_barcode_activity.activity', 'NOT IN', array('D', 'E', 'O', 'H', 'Y', 'A', 'L', 'S', 'Z'))
               ->or_where('children_barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where_open()
@@ -1328,6 +1328,91 @@ VALIDATION: $secret";
     $this->response->body($view);
   }
 
+  public function handle_document_loading($id) {
+    $document  = ORM::factory('document', $id);
+    if (!$document->loaded() or $document->type != 'SPECS') return $this->request->redirect('exports/documents');
+
+    $form_type = 'SPECS';
+    $ids       = $document->get_data();
+
+    $data = ORM::factory('SPECS')
+      ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
+      ->join('barcodes')
+      ->on('barcode_id', '=', 'barcodes.id')
+      ->order_by('barcode', 'ASC')
+      ->find_all()
+      ->as_array('id');
+
+    if ($values = $this->request->post()) {
+      foreach ($values as $key => $value) {
+        list($form_type, $id) = explode('-', $key);
+        try {
+          $barcode  = $data[$id]->barcode;
+          $activity = $value;
+          switch ($activity) {
+            case 'O': if (!$barcode->get_activity('O')) $barcode->set_activity($activity, NULL, 'loading'); break;
+            case 'S': if ($barcode->get_activity(array('E', 'S')) != 'S') $barcode->set_activity($activity, NULL, 'loading');
+          }
+
+          die(Debug::vars(array($id, $data[$id]->id)));
+        } catch (Database_Exception $e) {
+          Notify::msg('Sorry, loading status failed to be updated due to input. Please try again.', 'error');
+        } catch (Exception $e) {
+          Notify::msg('Sorry, loading status failed to be updated. Please try again.', 'error');
+        }
+      }
+
+      Notify::msg($success.'Tolerances updated.', 'success');
+    }
+
+    unset($info);
+    $sample = reset($data);
+    $info['specs'] = array(
+      'number'  => $sample->specs_number,
+      'barcode' => $sample->specs_barcode->barcode
+    );
+
+    $header = View::factory('data')
+      ->set('form_type', $form_type)
+      ->set('data', $data)
+      ->set('operator', $document->operator->loaded() ? $document->operator : NULL)
+      ->set('site', $document->site->loaded() ? $document->site : NULL)
+      ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+      ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+      ->set('options', array(
+        'table'   => FALSE,
+        'rows'    => FALSE,
+        'actions' => FALSE,
+        'header'  => TRUE,
+        'details' => FALSE,
+        'links'   => FALSE
+      ))
+      ->render();
+
+    $table = View::factory('documents')
+      ->set('mode', 'exports')
+      ->set('documents', array($document))
+      ->render();
+
+    $loading .= View::factory('loading')
+      ->set('classes', array('has-pagination'))
+      ->set('form_type', $form_type)
+      ->set('data', $data)
+      ->set('operator', $document->operator->loaded() ? $document->operator : NULL)
+      ->set('site', $document->site->loaded() ? $document->site : NULL)
+      ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+      ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+      ->set('options', array())
+      ->render();
+
+    $content .= $header;
+    $content .= $table;
+    $content .= $loading;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
   public function action_index() {
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -1343,12 +1428,13 @@ VALIDATION: $secret";
     }
 
     switch ($command) {
-      case 'create': return self::handle_create();
+      case 'create': return self::handle_document_create();
       case 'validate': return self::handle_document_validate();
       case 'refinalize': return self::handle_document_refinalize($id);
       case 'finalize': return self::handle_document_finalize($id);
       case 'asycuda': return self::handle_document_asycuda($id);
       case 'delete': return self::handle_document_delete($id);
+      case 'loading': return self::handle_document_loading($id);
       case 'list':
       default: return self::handle_document_list($id);
     }
