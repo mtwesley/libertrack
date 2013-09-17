@@ -187,24 +187,15 @@ class Controller_Config extends Controller {
     }
 
     if ($form and $form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      $survey_lines = range(1, 20);
-      $cell_numbers = range(1, 20);
+      $range = range(1, 20);
+      shuffle($range);
 
-      // shuffle once
-      shuffle($survey_lines);
-      shuffle($cell_numbers);
-
-      // shuffle twice
-      shuffle($survey_lines);
-      shuffle($cell_numbers);
-
-      foreach ($survey_lines as $survey_line)
-      foreach ($cell_numbers as $cell_number) {
+      for ($t = 0; $t < pow($range, 2); $t++) {
         $additions = DB::select('id')
           ->from('ssf_data')
           ->where('block_id', '=', $block->id)
-          ->and_where('survey_line', '=', $survey_line)
-          ->and_where('cell_number', '=', $cell_number);
+          ->and_where('survey_line', '=', array_rand($range))
+          ->and_where('cell_number', '=', array_rand($range));
         if ($ids) $additions->and_where('id', 'NOT IN', $ids);
         $additions = $additions
           ->execute()
