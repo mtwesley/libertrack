@@ -50,8 +50,9 @@ $classes[] = 'form';
       <td><?php echo $record->volume; ?></td>
       <td><?php echo SGS::$barcode_activity[$record->barcode->get_activity()]; ?></td>
       <td>
-        <input name="<?php echo "SPECS-".$record->id."-loading"; ?>" type="radio" value="O" <?php if ($record->barcode->get_activity(array('S','O')) != 'S') echo 'checked="checked"' ?> /> Loaded on Vessel &nbsp; &nbsp;
-        <input name="<?php echo "SPECS-".$record->id."-loading"; ?>" type="radio" value="S" /> Short-shipped
+        <?php $short_shipped = $record->barcode->get_activity(array('E', 'S', 'O')) == 'S'; ?>
+        <input name="<?php echo "SPECS-".$record->id."-loading"; ?>" type="radio" value="O" <?php if (!$short_shipped) echo 'checked="checked"' ?> /> Loaded on Vessel &nbsp; &nbsp;
+        <input name="<?php echo "SPECS-".$record->id."-loading"; ?>" type="radio" value="S" <?php if ($short_shipped) echo 'checked="checked"' ?>/> Short-shipped
       </td>
     </tr>
     <?php endforeach; ?>
