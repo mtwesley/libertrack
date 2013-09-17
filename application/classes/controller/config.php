@@ -164,11 +164,124 @@ class Controller_Config extends Controller {
     $this->response->body($view);
   }
 
-  public function action_blocks() {
-    if (!Request::$current->query()) Session::instance()->delete('pagination.blocks.list');
+  private function handle_block_inspection($id) {
+    $block = ORM::factory('block', $id);
 
-    $id   = $this->request->param('id');
-    $form = $this->request->post('form');
+    if (!$block->loaded()) {
+      Notify::msg('No block found.', 'warning', TRUE);
+      $this->request->redirect('blocks');
+    }
+
+    $form_type = 'SSF';
+    $ids = $block->get_inspection_data();
+
+    $declaration = ORM::factory('SSF')->where('block_id', '=', $block->id)->find_all()->count();
+    $inspection  = count($ids);
+
+    $rate = $inspection / $declaration;
+    if ($rate < SGS::INSPECTION_RATE) {
+      $needed = ceil($declaration * (SGS::INSPECTION_RATE - $rate));
+      $form = Formo::form()
+        ->add('confirm', 'text', 'Increasing block inspection by at least '.$needed.' trees is necessary to achieve a rate of '.SGS::floatify(SGS::INSPECTION_RATE * 100).'%. <br />Are you sure you want to do this?')
+        ->add('update', 'centersubmit', 'Update Block Inspection');
+    }
+
+    if ($form and $form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $survey_lines = range(1, 20);
+      $cell_numbers = range(1, 20);
+
+      // shuffle once
+      shuffle($survey_lines);
+      shuffle($cell_numbers);
+
+      // shuffle twice
+      shuffle($survey_lines);
+      shuffle($cell_numbers);
+
+      foreach ($survey_lines as $survey_line)
+      foreach ($cell_numbers as $cell_number) {
+        $additions = DB::select('id')
+          ->from('ssf_data')
+          ->where('block_id', '=', $block->id)
+          ->and_where('survey_line', '=', $survey_line)
+          ->and_where('cell_number', '=', $cell_number);
+        if ($ids) $additions->and_where('id', 'NOT IN', $ids);
+        $additions = $additions
+          ->execute()
+          ->as_array(NULL, 'id');
+
+        foreach ($additions as $addition) $block->set_inspection_data('SSF', $addition);
+        $needed -= count($additions);
+        if ($needed <= 0) { $needed = FALSE; break 2; }
+      }
+
+      $ids = $block->get_inspection_data();
+      $rate = count($ids) / $declaration;
+    }
+
+    Notify::msg('Inspection rate currently at '.SGS::floatify($rate * 100).'%', $needed ? 'warning' : 'success');
+
+    if ($ids) {
+      $data = ORM::factory($form_type)
+        ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
+        ->join('barcodes')
+        ->on('barcode_id', '=', 'barcodes.id')
+        ->order_by('barcode', 'ASC');
+
+      $clone = clone($data);
+      $pagination = Pagination::factory(array(
+        'current_page' => array(
+          'source' => 'query_string',
+          'key' => 'summary_page',
+        ),
+        'items_per_page' => 50,
+        'total_items' => $total_items = $clone->find_all()->count()));
+
+      $data = $data
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page)
+        ->find_all()
+        ->as_array();
+
+      $table = View::factory('data')
+        ->set('classes', array('has-pagination'))
+        ->set('form_type', $form_type)
+        ->set('data', $data)
+        ->set('operator', $block->site->operator->loaded() ? $block->site->operator : NULL)
+        ->set('site', $block->site->loaded() ? $block->site : NULL)
+        ->set('options', array(
+          'links'  => FALSE,
+          'header' => FALSE,
+        ))
+        ->render();
+      Notify::msg($total_items.' block inspection data found.');
+    } else Notify::msg('No block inspection data found');
+
+    $block_table = View::factory('blocks')
+      ->set('blocks', array($block));
+
+    if ($needed and $form) $content .= $form;
+    $content .= $block_table;
+    $content .= $table;
+    $content .= $pagination;
+
+    $view = View::factory('main')
+      ->set('title', 'Block Inspection')
+      ->set('content', $content);
+    $this->response->body($view);
+  }
+
+  public function action_blocks() {
+    $id      = $this->request->param('id');
+    $command = $this->request->param('command');
+    $form    = $this->request->post('form');
+
+    switch ($command) {
+      case 'inspection': return self::handle_block_inspection($id);
+      default: continue;
+    }
+
+    if (!Request::$current->query()) Session::instance()->delete('pagination.blocks.list');
 
     $block = ORM::factory('block', $id);
     $add_form = Formo::form(array('attr' => array('style' => ($id or $form == 'add_form') ? '' : 'display: none;')))

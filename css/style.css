@@ -141,6 +141,11 @@
   padding: 0;
   text-align: left;
 }
+#content form p.centersubmit {
+  margin: 4px auto !important;
+  padding: 0 300px !important;
+  text-align: center !important;
+}
 #content form p.submit input {
   width: 200px;
   cursor: pointer;

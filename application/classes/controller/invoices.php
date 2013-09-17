@@ -337,7 +337,7 @@ class Controller_Invoices extends Controller {
     $form = Formo::form()
       ->add('confirm', 'text', 'Finalizing an invoice will make it permanent. Are you sure you want to finalize this draft invoice?')
       ->add('invnumber', 'input', NULL, array('required' => TRUE, 'label' => 'Invoice Number'))
-      ->add('delete', 'submit', 'Finalize');
+      ->add('delete', 'centersubmit', 'Finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $invoice->is_draft = FALSE;
@@ -393,7 +393,7 @@ class Controller_Invoices extends Controller {
 
     $form = Formo::form()
       ->add('confirm', 'text', 'Re-finalizing an invoice may change its information. Are you sure you want to re-finalize this invoice?')
-      ->add('delete', 'submit', 'Re-finalize');
+      ->add('delete', 'centersubmit', 'Re-finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $invoice->is_draft = FALSE;
@@ -493,7 +493,7 @@ class Controller_Invoices extends Controller {
 
     $form = Formo::form()
       ->add('confirm', 'text', 'Clearing invoice payments will make it unpaid. Are you sure you want to clear these invoice payments?')
-      ->add('delete', 'submit', 'Clear');
+      ->add('delete', 'centersubmit', 'Clear');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
@@ -797,7 +797,7 @@ class Controller_Invoices extends Controller {
 
     $form = Formo::form()
       ->add('confirm', 'text', 'Are you sure you want to delete this '.($invoice->is_draft ? 'draft ' : '').'invoice?')
-      ->add('delete', 'submit', 'Delete');
+      ->add('delete', 'centersubmit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {

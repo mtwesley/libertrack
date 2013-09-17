@@ -137,7 +137,7 @@ class Controller_Verification extends Controller {
     Notify::msg('Deleting this file will delete all verification data.', 'warning');
     $form = Formo::form()
       ->add('confirm', 'text', 'Are you sure you want to delete this file?')
-      ->add('delete', 'submit', 'Delete');
+      ->add('delete', 'centersubmit', 'Delete');
 
     $success = 0;
     $error   = 0;
@@ -476,7 +476,7 @@ class Controller_Verification extends Controller {
 
     $form = Formo::form()
       ->add('confirm', 'text', 'Are you sure you want to delete this data?')
-      ->add('delete', 'submit', 'Delete');
+      ->add('delete', 'centersubmit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {

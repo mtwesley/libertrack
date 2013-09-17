@@ -26,6 +26,8 @@ class SGS {
 
   const FEE_SGS_CONTRACT_RATE = 0.014;
 
+  const INSPECTION_RATE = 0.05;
+
   const CONDITION_MATCHING = 'is_matching';
   const CONDITION_EXISTING = 'is_existing';
   const CONDITION_VALID = 'is_valid';

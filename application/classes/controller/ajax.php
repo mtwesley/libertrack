@@ -177,6 +177,39 @@ class Controller_Ajax extends Controller {
     return $this->response->body($content);
   }
 
+  public function action_blockstatus() {
+    if (!Auth::instance()->logged_in('admin')) return $this->response->status(401);
+
+    $vars = explode('-', $_REQUEST['id']);
+    $id   = $vars[1];
+
+    $block = ORM::factory('block', $id);
+    if (!$block->loaded()) return $this->response->status(403);
+
+    $form = Formo::form(array('attr' => array('class' => 'ajax-form', 'action' => '/ajax/blockstatus?id='.$_REQUEST['id'])))
+      ->add_group('status', 'radios', SGS::$block_status, $block->status, array('required' => TRUE, 'label' => 'Status'))
+      ->add('update', 'submit', 'Update');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $status = trim($form->status->val());
+
+      try {
+        switch ($status) {
+          case 'A':
+          case 'R':
+            $block->status = $status;
+        }
+        $block->save();
+        return $this->response->status(200);
+      } catch (Exception $e) {
+        return $this->response->status(403);
+      }
+    }
+
+    $content = $form->render();
+    return $this->response->body($content);
+  }
+
   public function action_status() {
     if (!Auth::instance()->logged_in('management')) return $this->response->status(401);
 

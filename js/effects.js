@@ -84,6 +84,25 @@ $(function() {
     });
   });
 
+  $(".block-status-update-link").live('click', function() {
+    var match = $(this).attr('id').match(/(\w+)-(\d+)/);
+    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $("#popup .popup-text").load('/ajax/blockstatus', {id: $(this).attr('id')}, function() {
+      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+      $(".ajax-form").ajaxForm({
+        target: '#popup .popup-text',
+        type: 'post',
+        success: function(responseText) {
+          if (!responseText) {
+            $("#popup").bPopup().close();
+            location.reload();
+          }
+          return false;
+        }
+      });
+    });
+  });
+
   $(".data-activity-update-link").live('click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $("#popup").addClass("popup-loading").bPopup(bPopupOptions);

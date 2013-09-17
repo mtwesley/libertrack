@@ -1219,7 +1219,7 @@ VALIDATION: $secret";
 
     $form = Formo::form()
       ->add('confirm', 'text', 'Finalizing a document will make it permanent. Are you sure you want to finalize this draft document?')
-      ->add('delete', 'submit', 'Finalize');
+      ->add('delete', 'centersubmit', 'Finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $document->is_draft = FALSE;
@@ -1264,7 +1264,7 @@ VALIDATION: $secret";
 
     $form = Formo::form()
       ->add('confirm', 'text', 'Re-finalizing a document may change its information. Are you sure you want to re-finalize this draft document?')
-      ->add('delete', 'submit', 'Re-finalize');
+      ->add('delete', 'centersubmit', 'Re-finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $document->is_draft = FALSE;
@@ -1308,7 +1308,7 @@ VALIDATION: $secret";
 
     $form = Formo::form()
       ->add('confirm', 'text', 'Are you sure you want to delete this '.($document->is_draft ? 'draft ' : '').'document?')
-      ->add('delete', 'submit', 'Delete');
+      ->add('delete', 'centersubmit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {

@@ -809,7 +809,7 @@ class Controller_Analysis extends Controller {
 
     $form = Formo::form()
       ->add('confirm', 'text', 'Are you sure you want to delete this form data?')
-      ->add('delete', 'submit', 'Delete');
+      ->add('delete', 'centersubmit', 'Delete');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $csv = ORM::factory('CSV')

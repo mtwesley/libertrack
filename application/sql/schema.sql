@@ -81,6 +81,8 @@ create domain d_qrcode_type as character(1) check (value ~ E'^[P]$');
 
 create domain d_location_type as character(1) check (value ~ E'^[P]$');
 
+create domain d_schedule as integer[] check (0 <= all(value));
+
 create domain d_schedule_type as character(1) check (value ~ E'^[ODWMQY]$');
 
 create domain d_check_type as character(1) check (value ~ E'^[EWSU]$');
@@ -236,6 +238,18 @@ create table blocks (
   constraint blocks_unique_site_name unique(site_id,name)
 );
 
+create table block_inspection_data (
+  id bigserial not null,
+  form_type d_form_type not null,
+  form_data_id d_id not null,
+  block_id d_id not null,
+
+  -- constraint block_inspection_data_pkey primary key (id),
+  constraint block_inspection_data_block_id foreign key (block_id) references blocks (id) on update cascade on delete cascade,
+
+  constraint block_inspection_data_unique unique(form_type,form_data_id,block_id)
+);
+
 create table files (
   id bigserial not null,
   name d_text_long not null,
@@ -331,7 +345,9 @@ create table barcode_activity (
 
   -- constraint barcode_activity_pkey primary key (id),
   constraint barcode_activity_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade on delete cascade,
-  constraint barcode_activity_user_id_fkey foreign key (user_id) references users (id) on update cascade
+  constraint barcode_activity_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint barcode_activity_comment check (not((activity in ('A','L','Z','C')) and (comment is null)))
 );
 
 create table qrcodes (
@@ -479,26 +495,33 @@ create table reports (
   constraint documents_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
 );
 
-create table report_schedule (
+create table report_schedules (
   id bigserial not null,
   report_id d_id not null,
   type d_schedule_type not null,
-  minute d_measurement_int[],
-  hour d_measurement_int[],
-  day d_positive_int[],
-  week d_positive_int[],
-  month d_positive_int[],
-  quarter d_positive_int[],
-  year d_positive_int[],
+  minute d_schedule,
+  hour d_schedule,
+  day d_schedule,
+  week d_schedule,
+  month d_schedule,
+  quarter d_schedule,
+  year d_schedule,
   created_date d_date not null,
-  start_date d_date not null,
-  end_date d_date,
+  start_timestamp d_timestamp not null,
+  end_timestamp d_timestamp,
   last_timestamp d_timestamp not null,
   user_id d_id not null,
 
-  constraint reports_pkey primary key (id),
-  constraint reports_report_id_fkey foreign key (report_id) references reports (id) on update cascade,
-  constraint reports_user_id_fkey foreign key (user_id) references users (id) on update cascade
+  constraint report_schedules_pkey primary key (id),
+  constraint report_schedules_report_id_fkey foreign key (report_id) references reports (id) on update cascade,
+  constraint report_schedules_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint report_schedules_minute check ((0 <= all(minute)) and (59 >= all(minute))),
+  constraint report_schedules_hour check ((0 <= all(hour)) and (23 >= all(hour))),
+  constraint report_schedules_day check (((type in ('O', 'M', 'Y')) and (1 <= all(day)) and (31 >= all(day))) or ((type = 'W') and (1 <= all(day)) and (7 >= all(day)))),
+  constraint report_schedules_week check (((type = 'Y') and (1 <= all(week)) and (52 >= all(minute))) or ((type = 'M') and (1 <= all(week)) and (5 >= all(week)))),
+  constraint report_schedules_month check ((type in ('O', 'Y')) and (1 <= all(month)) and (12 >= all(month))),
+  constraint report_schedules_year check (type = 'Y')
 );
 
 create table report_files (
@@ -559,7 +582,7 @@ create table csv_duplicates (
   constraint csv_duplicates_unique unique(csv_id,duplicate_csv_id,field),
   constraint csv_duplicates_exist check (csv_id is not null or duplicate_csv_id is not null),
 
-  constraint csv_duplicates_check check (!((csv_id is not null and duplicate_csv_id is not null) and (csv_id > duplicate_csv_id)))
+  constraint csv_duplicates_check check (not((csv_id is not null and duplicate_csv_id is not null) and (csv_id > duplicate_csv_id)))
 );
 
 create table data (

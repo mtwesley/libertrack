@@ -31,6 +31,8 @@
         <span class="link link-title">+</span>
         <div class="links-links">
           <?php echo HTML::anchor('config/blocks/'.$block->id.'/edit', 'Edit', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('config/blocks/'.$block->id.'/inspection', 'Inspection', array('class' => 'link')); ?>
+          <span id="<?php echo implode('-', array('block', $block->id, 'block-status-update')); ?>" class="link block-status-update-link">Status</span>
         </div>
       </div>
     </td>

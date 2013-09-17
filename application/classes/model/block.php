@@ -34,6 +34,27 @@ class Model_Block extends ORM {
     );
   }
 
+  public function get_inspection_data($args = array()) {
+    $query = DB::select('form_data_id')
+      ->from('block_inspection_data')
+      ->where('block_id', '=', $this->id);
+    foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
+    return $query->execute()->as_array(NULL, 'form_data_id');
+  }
+
+  public function unset_inspection_data($args = array()) {
+    $query = DB::delete('block_inspection_data')
+      ->where('block_id', '=', $this->id);
+    foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
+    $query->execute();
+  }
+
+  public function set_inspection_data($form_type, $form_data_id) {
+    DB::insert('block_inspection_data', array('block_id', 'form_type', 'form_data_id'))
+      ->values(array($this->id, $form_type, $form_data_id))
+      ->execute();
+  }
+
   public function rules()
   {
     return array(

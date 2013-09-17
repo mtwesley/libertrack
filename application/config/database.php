@@ -24,11 +24,12 @@ return array(
 	'default' => array(
 		'type'       => 'postgresql',
 		'connection' => array(
-			'hostname'   => 'localhost',
+			'hostname'   => 'celia',
 			'username'   => 'sgs',
-			'password'   => '5gSu8z_',
+			'password'   => 'c3LiA!',
 			'persistent' => FALSE,
 			'database'   => 'sgs',
+      'port'       => 5434,
 		),
 		'primary_key'  => 'id',
 		'schema'       => '',
