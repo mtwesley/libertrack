@@ -190,7 +190,7 @@ class Controller_Config extends Controller {
       $range = range(1, 20);
       shuffle($range);
 
-      for ($t = 0; $t < pow($range, 2); $t++) {
+      for ($t = 0; $t < 100; $t++) {
         $additions = DB::select('id')
           ->from('ssf_data')
           ->where('block_id', '=', $block->id)
@@ -203,7 +203,7 @@ class Controller_Config extends Controller {
 
         foreach ($additions as $addition) $block->set_inspection_data('SSF', $addition);
         $needed -= count($additions);
-        if ($needed <= 0) { $needed = FALSE; break 2; }
+        if ($needed <= 0) { $needed = FALSE; break; }
       }
 
       $ids = $block->get_inspection_data();
