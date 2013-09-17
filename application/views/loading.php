@@ -22,9 +22,9 @@ $classes[] = 'form';
       <th>Current Status</th>
       <th>Loading Status</th>
     </tr>
-    <?php foreach ($data as $record): ?>
+    <?php $number = 0; foreach ($data as $record): $number++; ?>
     <tr id="<?php echo $record::$type.'-'.$record->id; ?>" class="<?php echo $record::$type.'-'.$record->id; ?> <?php echo SGS::odd_even($odd); ?>">
-      <td class="data-row-details type"><span class="data-type"><?php echo $form_type; ?></span></td>
+      <td class="data-row-details type"><span class="data-type"><?php echo $number; ?></span></td>
       <td class="status">
         <?php
           if (!$record->is_verification()) switch ($record->status):
