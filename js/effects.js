@@ -91,19 +91,19 @@ function update_data(type, id, new_id) {
 }
 
 $(function() {
-  $("table.data").delegete(".toggle-details", 'click', function() {
+  $("table.data").delegate(".toggle-details", 'click', function() {
     $(this).parent().parent().parent().parent("tr").next("tr.details").toggle();
   });
 
-  $("table.data").delegete(".csv-row-details", 'click', function() {
+  $("table.data").delegate(".csv-row-details", 'click', function() {
     $(this).parent("tr").next("tr.details").toggle();
   });
 
-  $("table.data").delegete(".data-row-details", 'click', function() {
+  $("table.data").delegate(".data-row-details", 'click', function() {
     $(this).parent("tr").next("tr.details").toggle();
   });
 
-  $("table.data").delegete(".invoice-paid-update-link", 'click', function() {
+  $("table.data").delegate(".invoice-paid-update-link", 'click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/paid', {id: $(this).attr('id')}, function() {
@@ -112,8 +112,8 @@ $(function() {
         $(".ajax-form").ajaxSubmit({
           target: '.popup .popup-text',
           type: 'post',
-          success: function(responseText) {
-            if (!responseText) {
+          success: function(response) {
+            if (!response) {
               $(".popup").bPopup().close();
               location.reload();
               $(".popup-text").undelegate('.ajax-form', 'submit');
@@ -125,7 +125,7 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".block-status-update-link", 'click', function() {
+  $("table.data").delegate(".block-status-update-link", 'click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/blockstatus', {id: $(this).attr('id')}, function() {
@@ -134,8 +134,8 @@ $(function() {
         $(this).ajaxSubmit({
           target: '.popup .popup-text',
           type: 'post',
-          success: function(responseText) {
-            if (!responseText) {
+          success: function(response) {
+            if (!response) {
               $(".popup").bPopup().close();
               location.reload();
               $(".popup-text").undelegate('.ajax-form', 'submit');
@@ -147,7 +147,7 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".data-status-update-link", 'click', function() {
+  $("table.data").delegate(".data-status-update-link", 'click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/status', {id: $(this).attr('id')}, function() {
@@ -156,8 +156,8 @@ $(function() {
         $(this).ajaxSubmit({
           target: '.popup .popup-text',
           type: 'post',
-          success: function(responseText) {
-            if (!responseText) {
+          success: function(response) {
+            if (!response) {
               $(".popup").bPopup().close();
               update_data(match[1], match[2]);
               $(".popup-text").undelegate('.ajax-data-form', 'submit');
@@ -179,8 +179,8 @@ $(function() {
           target: '.popup .popup-text',
           type: 'post',
           delegate: true,
-          success: function(responseText) {
-            if (!responseText) {
+          success: function(response) {
+            if (!response) {
               $(".popup").bPopup().close();
               update_data(match[1], match[2]);
               $(".popup-text").undelegate('.ajax-data-form', 'submit');
@@ -193,14 +193,14 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".details-tips-link", 'click', function() {
+  $("table.data").delegate(".details-tips-link", 'click', function() {
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/tips', {id: $(this).attr('id')}, function() {
       $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
     });
   });
 
-  $("table.data").delegete(".details-suggestions-link", 'click', function() {
+  $("table.data").delegate(".details-suggestions-link", 'click', function() {
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
       $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
@@ -218,7 +218,7 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".details-resolutions-link", 'click', function() {
+  $("table.data").delegate(".details-resolutions-link", 'click', function() {
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/resolutions', {id: $(this).attr('id')}, function() {
       $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
@@ -236,7 +236,7 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".csv-process", 'click', function() {
+  $("table.data").delegate(".csv-process", 'click', function() {
     $(this).parent().parent().parent("td").addClass("loading");
     var csv_id = $(this).attr('id').match(/csv-(\d+)/)[1];
     $.post(
@@ -249,19 +249,16 @@ $(function() {
     );
   });
 
-  $("table.data").delegete(".links-container", 'click', function() {
-    $(this).children(".links-links").show();
+  $("table.data").delegate(".links-container", 'click', function(event) {
+    $(this).children(".links-links").toggle();
+    event.stopPropagation();
   });
 
-  $("table.data").delegete(".links-links span", 'click', function() {
+  $(document).on('click', function(){
     $(".links-links").hide();
   });
 
-  $("body").click(function() {
-    $(".links-links").hide();
-  });
-
-  $("table.data").delegete(".data-check", 'click', function() {
+  $("table.data").delegate(".data-check", 'click', function() {
     $(this).parent().parent().parent("td").addClass("loading");
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $.post(
@@ -274,7 +271,7 @@ $(function() {
     );
   });
 
-  $("table.data").delegete(".toggle-download-form", 'click', function() {
+  $("table.data").delegate(".toggle-download-form", 'click', function() {
     $(this).parent().parent().parent().parent("tr").next("tr.download-form").toggle();
   });
 
