@@ -99,11 +99,11 @@ $(function() {
     $(this).parent("tr").next("tr.details").toggle();
   });
 
-  $("table.data").delegete(".data-row-details").live('click', function() {
+  $("table.data").delegete(".data-row-details", 'click', function() {
     $(this).parent("tr").next("tr.details").toggle();
   });
 
-  $("table.data").delegete(".invoice-paid-update-link").live('click', function() {
+  $("table.data").delegete(".invoice-paid-update-link", 'click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/paid', {id: $(this).attr('id')}, function() {
@@ -125,7 +125,7 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".block-status-update-link").live('click', function() {
+  $("table.data").delegete(".block-status-update-link", 'click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/blockstatus', {id: $(this).attr('id')}, function() {
@@ -147,7 +147,7 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".data-status-update-link").live('click', function() {
+  $("table.data").delegete(".data-status-update-link", 'click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/status', {id: $(this).attr('id')}, function() {
@@ -169,7 +169,7 @@ $(function() {
     });
   });
 
-  $("table.data").delegate('.data-activity-update-link', 'click', function() {
+  $("table.data").delegate(".data-activity-update-link", 'click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/activity', {id: $(this).attr('id')}, function() {
@@ -193,14 +193,14 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".details-tips-link").live('click', function() {
+  $("table.data").delegete(".details-tips-link", 'click', function() {
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/tips', {id: $(this).attr('id')}, function() {
       $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
     });
   });
 
-  $("table.data").delegete(".details-suggestions-link").live('click', function() {
+  $("table.data").delegete(".details-suggestions-link", 'click', function() {
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
       $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
@@ -218,7 +218,7 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".details-resolutions-link").live('click', function() {
+  $("table.data").delegete(".details-resolutions-link", 'click', function() {
     $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
     $(".popup .popup-text").load('/ajax/resolutions', {id: $(this).attr('id')}, function() {
       $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
@@ -236,7 +236,7 @@ $(function() {
     });
   });
 
-  $("table.data").delegete(".csv-process").live('click', function() {
+  $("table.data").delegete(".csv-process", 'click', function() {
     $(this).parent().parent().parent("td").addClass("loading");
     var csv_id = $(this).attr('id').match(/csv-(\d+)/)[1];
     $.post(
@@ -249,11 +249,11 @@ $(function() {
     );
   });
 
-  $("table.data").delegete(".links-container").live('click', function() {
+  $("table.data").delegete(".links-container", 'click', function() {
     $(this).children(".links-links").show();
   });
 
-  $("table.data").delegete(".links-links span").live('click', function() {
+  $("table.data").delegete(".links-links span", 'click', function() {
     $(".links-links").hide();
   });
 
@@ -261,7 +261,7 @@ $(function() {
     $(".links-links").hide();
   });
 
-  $("table.data").delegete(".data-check").live('click', function() {
+  $("table.data").delegete(".data-check", 'click', function() {
     $(this).parent().parent().parent("td").addClass("loading");
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $.post(
@@ -274,7 +274,7 @@ $(function() {
     );
   });
 
-  $("table.data").delegete(".toggle-download-form").live('click', function() {
+  $("table.data").delegete(".toggle-download-form", 'click', function() {
     $(this).parent().parent().parent().parent("tr").next("tr.download-form").toggle();
   });
 
