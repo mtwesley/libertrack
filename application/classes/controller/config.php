@@ -187,15 +187,28 @@ class Controller_Config extends Controller {
     }
 
     if ($form and $form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      $range = range(1, 20);
-      shuffle($range);
+      $cell_numbers = DB::select('cell_number')
+        ->distinct(TRUE)
+        ->from('ssf_data')
+        ->where('block_id', '=', $block->id)
+        ->execute()
+        ->as_array(NULL, 'cell_number');
 
-      for ($t = 0; $t < 100; $t++) {
+      $survey_lines = DB::select('survey_line')
+        ->distinct(TRUE)
+        ->from('ssf_data')
+        ->where('block_id', '=', $block->id)
+        ->execute()
+        ->as_array(NULL, 'survey_line');
+
+      $max = (count($cell_numbers) ?: 1) * (count($survey_lines) ?: 1);
+
+      for ($t = 0; $t < $max; $t++) {
         $additions = DB::select('id')
           ->from('ssf_data')
           ->where('block_id', '=', $block->id)
-          ->and_where('survey_line', '=', array_rand($range))
-          ->and_where('cell_number', '=', array_rand($range));
+          ->and_where('cell_number', '=', $cell_numbers[array_rand($cell_numbers)])
+          ->and_where('survey_line', '=', $survey_lines[array_rand($survey_lines)]);
         if ($ids) $additions->and_where('id', 'NOT IN', $ids);
         $additions = $additions
           ->execute()
@@ -208,6 +221,8 @@ class Controller_Config extends Controller {
 
       $ids = $block->get_inspection_data();
       $rate = count($ids) / $declaration;
+
+      $this->request->redirect($this->request->url());
     }
 
     Notify::msg('Inspection rate currently at '.SGS::floatify($rate * 100).'%', $needed ? 'warning' : 'success');
@@ -215,9 +230,8 @@ class Controller_Config extends Controller {
     if ($ids) {
       $data = ORM::factory($form_type)
         ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
-        ->join('barcodes')
-        ->on('barcode_id', '=', 'barcodes.id')
-        ->order_by('barcode', 'ASC');
+        ->order_by('survey_line')
+        ->order_by('cell_number');
 
       $clone = clone($data);
       $pagination = Pagination::factory(array(
@@ -245,8 +259,8 @@ class Controller_Config extends Controller {
           'header' => FALSE,
         ))
         ->render();
-      Notify::msg($total_items.' block inspection data found.');
-    } else Notify::msg('No block inspection data found');
+      Notify::msg($total_items.' block inspection data found.', 'notice');
+    } else Notify::msg('No block inspection data found', 'notice');
 
     $block_table = View::factory('blocks')
       ->set('blocks', array($block));
