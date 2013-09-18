@@ -220,7 +220,7 @@ class Controller_Ajax extends Controller {
     $data = ORM::factory($model, $id);
     if (!$data->loaded()) return $this->response->status(403);
 
-    $form = Formo::form(array('attr' => array('class' => 'ajax-form', 'action' => '/ajax/status?id='.$_REQUEST['id'])))
+    $form = Formo::form(array('attr' => array('class' => 'ajax-data-form', 'action' => '/ajax/status?id='.$_REQUEST['id'])))
       ->add_group('status', 'radios', SGS::$data_status, NULL, array('required' => TRUE, 'label' => 'Status'))
       ->add('comment', 'textarea', array('required' => TRUE, 'label' => 'Comment'))
       ->add('update', 'submit', 'Update');
@@ -274,7 +274,7 @@ class Controller_Ajax extends Controller {
       'C' => 'Commented'
     );
 
-    $form = Formo::form(array('attr' => array('class' => 'ajax-form', 'action' => '/ajax/activity?id='.$_REQUEST['id'])))
+    $form = Formo::form(array('attr' => array('class' => 'ajax-data-form', 'action' => '/ajax/activity?id='.$_REQUEST['id'])))
       ->add_group('activity', 'select', $barcode_activity, NULL, array('required' => TRUE, 'label' => 'Activity'))
       ->add('comment', 'textarea', array('required' => TRUE, 'label' => 'Comment'))
       ->add('update', 'submit', 'Update');

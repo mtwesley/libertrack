@@ -29,117 +29,188 @@ var bPopupOptions = {
   follow: [true, false],
   amsl: 150,
   onClose: function() {
-    $("#popup .popup-text").text("");
+    $(".popup .popup-text").text("");
   }
 }
 
+function update_csv(id, new_id) {
+  new_id = new_id || id;
+
+  $(".csv-"+id).addClass('loading');
+//  $(".csv-"+id).addClass('loading-small');
+  $(".csv-"+id).addClass("csv-"+id+"-deleted");
+  $(".csv-"+id).removeClass("csv-"+id);
+  $.post(
+    "/ajax/update",
+    {
+      id: new_id,
+      actions: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
+      details: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
+      header: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
+      hide_header_info: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
+      hide_upload_info: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
+    },
+    function(data) {
+      $(".csv-"+id+"-deleted").next("tr.details").remove();
+      $(".csv-"+id+"-deleted").replaceWith(data);
+      $(".csv-"+new_id+" .csv-eip").editable("/ajax/csv", csvEditableOptions);
+//      $(".csv"+new_id).next("tr.details").hide();
+//      $(".csv"+new_id).next("tr.details").children("td").text("").addClass('loading');
+    },
+    "html"
+  );
+}
+
+function update_data(type, id, new_id) {
+  new_id = new_id || id;
+
+  $("."+type+"-"+id).addClass('loading');
+//  $("."+type+"-"+id).addClass('loading-small');
+  $("."+type+"-"+id).addClass(type+"-"+id+"-deleted");
+  $("."+type+"-"+id).removeClass(type+"-"+id);
+  $.post(
+    "/ajax/updatedata",
+    {
+      id: new_id,
+      type: type,
+      actions: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
+      details: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
+      header: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
+      hide_header_info: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
+      hide_upload_info: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
+    },
+    function(data) {
+      $("."+type+"-"+id+"-deleted").next("tr.details").remove();
+      $("."+type+"-"+id+"-deleted").replaceWith(data);
+      $("."+type+"-"+new_id+" .data-eip").editable("/ajax/data", dataEditableOptions);
+//      $("."+type+"-"+new_id).next("tr.details").hide();
+//      $("."+type+"-"+new_id).next("tr.details").children("td").text("").addClass('loading');
+    },
+    "html"
+  );
+}
+
 $(function() {
-  $(".toggle-details").live('click', function() {
+  $("table.data").delegete(".toggle-details", 'click', function() {
     $(this).parent().parent().parent().parent("tr").next("tr.details").toggle();
   });
 
-  $(".csv-row-details").live('click', function() {
+  $("table.data").delegete(".csv-row-details", 'click', function() {
     $(this).parent("tr").next("tr.details").toggle();
   });
 
-  $(".data-row-details").live('click', function() {
+  $("table.data").delegete(".data-row-details").live('click', function() {
     $(this).parent("tr").next("tr.details").toggle();
   });
 
-  $(".invoice-paid-update-link").live('click', function() {
+  $("table.data").delegete(".invoice-paid-update-link").live('click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
-    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-    $("#popup .popup-text").load('/ajax/paid', {id: $(this).attr('id')}, function() {
-      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
-      $(".ajax-form").ajaxForm({
-        target: '#popup .popup-text',
-        type: 'post',
-        success: function(responseText) {
-          if (!responseText) {
-            $("#popup").bPopup().close();
-            location.reload();
+    $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $(".popup .popup-text").load('/ajax/paid', {id: $(this).attr('id')}, function() {
+      $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
+      $(".popup-text").delegate('.ajax-form', 'submit', function() {
+        $(".ajax-form").ajaxSubmit({
+          target: '.popup .popup-text',
+          type: 'post',
+          success: function(responseText) {
+            if (!responseText) {
+              $(".popup").bPopup().close();
+              location.reload();
+              $(".popup-text").undelegate('.ajax-form', 'submit');
+            }
+            return false;
           }
-          return false;
-        }
+        });
       });
     });
   });
 
-  $(".data-status-update-link").live('click', function() {
+  $("table.data").delegete(".block-status-update-link").live('click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
-    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-    $("#popup .popup-text").load('/ajax/status', {id: $(this).attr('id')}, function() {
-      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
-      $(".ajax-form").ajaxForm({
-        target: '#popup .popup-text',
-        type: 'post',
-        success: function(responseText) {
-          if (!responseText) {
-            $("#popup").bPopup().close();
-            update_data(match[1], match[2]);
+    $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $(".popup .popup-text").load('/ajax/blockstatus', {id: $(this).attr('id')}, function() {
+      $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
+      $(".popup-text").delegate('.ajax-form', 'submit', function() {
+        $(this).ajaxSubmit({
+          target: '.popup .popup-text',
+          type: 'post',
+          success: function(responseText) {
+            if (!responseText) {
+              $(".popup").bPopup().close();
+              location.reload();
+              $(".popup-text").undelegate('.ajax-form', 'submit');
+            }
+            return false;
           }
-          return false;
-        }
+        });
       });
     });
   });
 
-  $(".block-status-update-link").live('click', function() {
+  $("table.data").delegete(".data-status-update-link").live('click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
-    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-    $("#popup .popup-text").load('/ajax/blockstatus', {id: $(this).attr('id')}, function() {
-      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
-      $(".ajax-form").ajaxForm({
-        target: '#popup .popup-text',
-        type: 'post',
-        success: function(responseText) {
-          if (!responseText) {
-            $("#popup").bPopup().close();
-            location.reload();
+    $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $(".popup .popup-text").load('/ajax/status', {id: $(this).attr('id')}, function() {
+      $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
+      $(".popup-text").delegate('.ajax-data-form', 'submit', function() {
+        $(this).ajaxSubmit({
+          target: '.popup .popup-text',
+          type: 'post',
+          success: function(responseText) {
+            if (!responseText) {
+              $(".popup").bPopup().close();
+              update_data(match[1], match[2]);
+              $(".popup-text").undelegate('.ajax-data-form', 'submit');
+            }
+            return false;
           }
-          return false;
-        }
+        });
       });
     });
   });
 
-  $(".data-activity-update-link").live('click', function() {
+  $("table.data").delegate('.data-activity-update-link', 'click', function() {
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
-    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-    $("#popup .popup-text").load('/ajax/activity', {id: $(this).attr('id')}, function() {
-      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
-      $(".ajax-form").ajaxForm({
-        target: '#popup .popup-text',
-        type: 'post',
-        success: function(responseText) {
-          if (!responseText) {
-            $("#popup").bPopup().close();
-            update_data(match[1], match[2]);
+    $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $(".popup .popup-text").load('/ajax/activity', {id: $(this).attr('id')}, function() {
+      $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
+      $(".popup-text").delegate('.ajax-data-form', 'submit', function() {
+        $(this).ajaxSubmit({
+          target: '.popup .popup-text',
+          type: 'post',
+          delegate: true,
+          success: function(responseText) {
+            if (!responseText) {
+              $(".popup").bPopup().close();
+              update_data(match[1], match[2]);
+              $(".popup-text").undelegate('.ajax-data-form', 'submit');
+            }
+            return false;
           }
-          return false;
-        }
+        });
+        return false;
       });
     });
   });
 
-  $(".details-tips-link").live('click', function() {
-    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-    $("#popup .popup-text").load('/ajax/tips', {id: $(this).attr('id')}, function() {
-      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+  $("table.data").delegete(".details-tips-link").live('click', function() {
+    $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $(".popup .popup-text").load('/ajax/tips', {id: $(this).attr('id')}, function() {
+      $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
     });
   });
 
-  $(".details-suggestions-link").live('click', function() {
-    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-    $("#popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
-      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+  $("table.data").delegete(".details-suggestions-link").live('click', function() {
+    $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $(".popup .popup-text").load('/ajax/suggestions', {id: $(this).attr('id')}, function() {
+      $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
       $("ul.suggest li").click(function() {
         var csv_id = $(this).parent("ul.suggest").attr('id').match(/csv-(\d+)/)[1];
         $.post(
           '/ajax/csv',
           {id: $(this).parent("ul.suggest").attr('id'), data: $(this).text(), process: 1},
           function() {
-            $("#popup").bPopup().close();
+            $(".popup").bPopup().close();
             update_csv(csv_id);
           }
         );
@@ -147,17 +218,17 @@ $(function() {
     });
   });
 
-  $(".details-resolutions-link").live('click', function() {
-    $("#popup").addClass("popup-loading").bPopup(bPopupOptions);
-    $("#popup .popup-text").load('/ajax/resolutions', {id: $(this).attr('id')}, function() {
-      $("#popup").removeClass("popup-loading").bPopup(bPopupOptions);
+  $("table.data").delegete(".details-resolutions-link").live('click', function() {
+    $(".popup").addClass("popup-loading").bPopup(bPopupOptions);
+    $(".popup .popup-text").load('/ajax/resolutions', {id: $(this).attr('id')}, function() {
+      $(".popup").removeClass("popup-loading").bPopup(bPopupOptions);
       $(".details-resolution-select span").click(function() {
         var csv_id = $(this).attr('id').match(/csv-(\d+)/)[1];
         $.post(
           '/ajax/resolve',
           {id: $(this).attr('id')},
           function() {
-            $("#popup").bPopup().close();
+            $(".popup").bPopup().close();
             update_csv(csv_id);
           }
         );
@@ -165,7 +236,7 @@ $(function() {
     });
   });
 
-  $(".csv-process").live('click', function() {
+  $("table.data").delegete(".csv-process").live('click', function() {
     $(this).parent().parent().parent("td").addClass("loading");
     var csv_id = $(this).attr('id').match(/csv-(\d+)/)[1];
     $.post(
@@ -178,11 +249,11 @@ $(function() {
     );
   });
 
-  $(".links-container").live('click', function() {
+  $("table.data").delegete(".links-container").live('click', function() {
     $(this).children(".links-links").show();
   });
 
-  $(".links-links span").live('click', function() {
+  $("table.data").delegete(".links-links span").live('click', function() {
     $(".links-links").hide();
   });
 
@@ -190,7 +261,7 @@ $(function() {
     $(".links-links").hide();
   });
 
-  $(".data-check").live('click', function() {
+  $("table.data").delegete(".data-check").live('click', function() {
     $(this).parent().parent().parent("td").addClass("loading");
     var match = $(this).attr('id').match(/(\w+)-(\d+)/);
     $.post(
@@ -203,7 +274,7 @@ $(function() {
     );
   });
 
-  $(".toggle-download-form").live('click', function() {
+  $("table.data").delegete(".toggle-download-form").live('click', function() {
     $(this).parent().parent().parent().parent("tr").next("tr.download-form").toggle();
   });
 
@@ -363,59 +434,3 @@ $(function() {
 
 });
 
-function update_csv(id, new_id) {
-  new_id = new_id || id;
-
-  $(".csv-"+id).addClass('loading');
-//  $(".csv-"+id).addClass('loading-small');
-  $(".csv-"+id).addClass("csv-"+id+"-deleted");
-  $(".csv-"+id).removeClass("csv-"+id);
-  $.post(
-    "/ajax/update",
-    {
-      id: new_id,
-      actions: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
-      details: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
-      header: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
-      hide_header_info: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
-      hide_upload_info: $(".csv-"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
-    },
-    function(data) {
-      $(".csv-"+id+"-deleted").next("tr.details").remove();
-      $(".csv-"+id+"-deleted").replaceWith(data);
-      $(".csv-"+new_id+" .csv-eip").editable("/ajax/csv", csvEditableOptions);
-//      $(".csv"+new_id).next("tr.details").hide();
-//      $(".csv"+new_id).next("tr.details").children("td").text("").addClass('loading');
-    },
-    "html"
-  );
-}
-
-function update_data(type, id, new_id) {
-  new_id = new_id || id;
-
-  $("."+type+"-"+id).addClass('loading');
-//  $("."+type+"-"+id).addClass('loading-small');
-  $("."+type+"-"+id).addClass(type+"-"+id+"-deleted");
-  $("."+type+"-"+id).removeClass(type+"-"+id);
-  $.post(
-    "/ajax/updatedata",
-    {
-      id: new_id,
-      type: type,
-      actions: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-actions') ? 1 : 0,
-      details: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-details') ? 1 : 0,
-      header: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-header') ? 1 : 0,
-      hide_header_info: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-header') ? 1 : 0,
-      hide_upload_info: $("."+type+"-"+id+"-deleted").parents("table.data").hasClass('has-hide-upload') ? 1 : 0
-    },
-    function(data) {
-      $("."+type+"-"+id+"-deleted").next("tr.details").remove();
-      $("."+type+"-"+id+"-deleted").replaceWith(data);
-      $("."+type+"-"+new_id+" .data-eip").editable("/ajax/data", dataEditableOptions);
-//      $("."+type+"-"+new_id).next("tr.details").hide();
-//      $("."+type+"-"+new_id).next("tr.details").children("td").text("").addClass('loading');
-    },
-    "html"
-  );
-}
