@@ -12,6 +12,7 @@ class Model_User extends Model_ACL_User {
 //    'files' => array(),
 //    'csv' => array(),
 //    'invoices' => array(),
+//    'tolerances' => array(),
 		'user_tokens'  => array(
       'model' => 'user_token'
     ),
