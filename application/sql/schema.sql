@@ -227,12 +227,14 @@ create table blocks (
   utm_east d_utm,
   utm_north_south d_utm,
   utm_west d_utm,
+  block_inspection_file_id d_id,
   status d_block_status default 'P' not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
   constraint blocks_pkey primary key (id),
   constraint blocks_site_id_fkey foreign key (site_id) references sites (id) on update cascade on delete cascade,
+  constraint blocks_file_id_fkey foreign key (file_id) references files (id) on update cascade on delete cascade,
   constraint blocks_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
   constraint blocks_unique_site_name unique(site_id,name)

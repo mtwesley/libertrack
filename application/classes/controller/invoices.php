@@ -729,7 +729,7 @@ class Controller_Invoices extends Controller {
           $form->operator_id->val($operator_id = $settings['operator_id']);
           $form->site_id->val($site_id = $settings['site_id']);
           $form->from->val($from = $settings['from']);
-          $to->from->val($to = $settings['to']);
+          $form->to->val($to = $settings['to']);
         }
 
         $invoices = ORM::factory('invoice');

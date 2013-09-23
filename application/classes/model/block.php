@@ -4,7 +4,10 @@ class Model_Block extends ORM {
 
   protected $_belongs_to = array(
     'site' => array(),
-    'user' => array()
+    'user' => array(),
+    'file' => array(
+      'foreign_key' => 'inspection_file_id'
+    )
   );
 
   public function formo() {
@@ -17,8 +20,9 @@ class Model_Block extends ORM {
       'is_deleted' => array('render' => FALSE),
       'utm_origin' => array('render' => FALSE),
       'utm_east'   => array('render' => FALSE),
-      'utm_north_south' => array('render' => FALSE),
+      'utm_north_south'    => array('render' => FALSE),
       'utm_west'   => array('render' => FALSE),
+      'inspection_file_id' => array('render' => FALSE),
       'status'     => array('render' => FALSE),
     );
     foreach (self::fields() as $field => $label) {

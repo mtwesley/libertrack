@@ -24,7 +24,6 @@ class Model_TDF extends SGS_Form_ORM {
   protected $_ignored_columns = array(
     'top_diameter',
     'bottom_diameter',
-    'volume'
   );
 
   protected function _initialize()
@@ -233,7 +232,7 @@ class Model_TDF extends SGS_Form_ORM {
       'operator'        => array('render' => FALSE),
       'site'            => array('render' => FALSE),
       'block'           => array('render' => FALSE),
-      'original_volume' => array('render' => FALSE),
+      'volume'          => array('render' => FALSE),
       'status'          => array('render' => FALSE),
       'user'            => array('render' => FALSE),
       'timestamp'       => array('render' => FALSE),

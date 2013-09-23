@@ -164,6 +164,91 @@ class Controller_Config extends Controller {
     $this->response->body($view);
   }
 
+  private function generate_inspection_file($block) {
+    if (!$ids = $block->get_inspection_data()) return NULL;
+
+    $schedule = DB::select('cell_number', 'survey_line')
+      ->from('ssf_data')
+      ->where('id', 'IN', $ids)
+      ->execute()
+      ->as_array();
+
+    $html .= View::factory('schedule')
+      ->set('schedule', $schedule)
+      ->set('options', array(
+        'info'    => TRUE,
+        'summary' => TRUE,
+        'styles'  => TRUE,
+      ))
+      ->set('block', $block)
+      ->render();
+
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array(
+      'schedules',
+      $block->site->name,
+      $block->name
+    ));
+
+    $newname = SGS::wordify('SCHEDULE_'.$block->site->name.'_'.$block->name.'_'.SGS::date('now', 'Y_m_d')).'.'.$ext;
+
+    $version = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access block inspection schedule folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 22,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('schedule')
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->render()
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate block inspection schedule. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
+
+    try {
+      // prepare and save file
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'D';
+      $file->operation_type = 'DOC';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+      $file->save();
+      return $file->id;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }
+  }
+
   private function handle_block_inspection($id) {
     $block = ORM::factory('block', $id);
 
@@ -225,6 +310,23 @@ class Controller_Config extends Controller {
       $this->request->redirect($this->request->url());
     }
 
+    if (!$needed) $download_form = Formo::form()->add('download', 'centersubmit', 'Download Block Inspection Schedule');
+    if ($download_form and $download_form->sent($_REQUEST) and $download_form->load($_REQUEST)->validate()) {
+      $inspection_file = ORM::factory('file', $block->inspection_file_id);
+
+      if (!$inspection_file->loaded()) {
+        $block->inspection_file_id = self::generate_inspection_file($block);
+        try {
+          $block->save();
+        } catch (Exception $e) {
+          Notify::msg('Sorry, unable to create block inspection file. Please try again.', 'error');
+        }
+        $inspection_file = ORM::factory('file', $block->inspection_file_id);
+      }
+
+      $this->response->send_file(DOCROOT.$inspection_file->path);
+    }
+
     Notify::msg('Inspection rate currently at '.SGS::floatify($rate * 100).'%', $needed ? 'warning' : 'success');
 
     if ($ids) {
@@ -266,6 +368,7 @@ class Controller_Config extends Controller {
       ->set('blocks', array($block));
 
     if ($needed and $form) $content .= $form;
+    else if ($download_form) $content .= $download_form;
     $content .= $block_table;
     $content .= $table;
     $content .= $pagination;

@@ -444,3 +444,5 @@ create table block_inspection_data (
   constraint block_inspection_data_unique unique(form_type,form_data_id,block_id)
 );
 
+alter table blocks add column inspection_file_id d_id;
+alter table blocks add constraint blocks_inspection_file_id_fkey foreign key (inspection_file_id) references files (id) on update cascade on delete cascade;
