@@ -101,68 +101,73 @@ class Controller_Invoices extends Controller {
     if ($format) {
       switch ($invoice_type) {
         case 'ST':
-          $form_type = 'LDF';
-          $ids = DB::select('barcodes.barcode', 'ldf_data.id')
+          $form_type = 'TDF';
+          $ids = array_filter(DB::select('barcodes.barcode', 'tdf_data.id')
             ->distinct(TRUE)
-            ->from('ldf_data')
+
+            ->from('tdf_data')
             ->join('barcodes')
-            ->on('ldf_data.barcode_id', '=', 'barcodes.id')
-            ->join(DB::expr('"barcodes" as "parent_barcodes"'))
-            ->on('ldf_data.parent_barcode_id', '=', 'parent_barcodes.id')
-            ->join('barcode_hops')
-            ->on('ldf_data.barcode_id', '=', 'barcode_hops.barcode_id')
-            ->on('ldf_data.parent_barcode_id', '=', 'barcode_hops.parent_id')
-            ->join('invoice_data', 'LEFT OUTER')
-            ->on('ldf_data.id', '=', 'invoice_data.form_data_id')
-            ->on('invoice_data.form_type', '=', DB::expr("'LDF'"))
-            ->join('tdf_data', 'LEFT OUTER')
-            ->on('parent_barcodes.id', '=', 'tdf_data.barcode_id')
+            ->on('tdf_data.barcode_id', '=', 'barcodes.id')
+
+            ->join(DB::expr('"barcode_hops" as "child_barcodes"'), 'LEFT OUTER')
+            ->on('tdf_data.barcode_id', '=', 'child_barcodes.parent_id')
+
+            ->join('ldf_data', 'LEFT OUTER')
+            ->on('child_barcodes.barcode_id', '=', 'ldf_data.barcode_id')
+
             ->join(DB::expr('"invoice_data" as "tdf_invoice_data"'), 'LEFT OUTER')
             ->on('tdf_data.id', '=', 'tdf_invoice_data.form_data_id')
             ->on('tdf_invoice_data.form_type', '=', DB::expr("'TDF'"))
-            ->join('invoices', 'LEFT OUTER')
-            ->on('invoice_data.invoice_id', '=', 'invoices.id')
-            ->on('invoices.type', '=', DB::expr("'ST'"))
+
+            ->join(DB::expr('"invoice_data" as "ldf_invoice_data"'), 'LEFT OUTER')
+            ->on('ldf_data.id', '=', 'ldf_invoice_data.form_data_id')
+            ->on('ldf_invoice_data.form_type', '=', DB::expr("'LDF'"))
+
             ->join(DB::expr('"invoices" as "tdf_invoices"'), 'LEFT OUTER')
             ->on('tdf_invoice_data.invoice_id', '=', 'tdf_invoices.id')
             ->on('tdf_invoices.type', '=', DB::expr("'ST'"))
-            ->join('barcode_activity', 'LEFT OUTER')
-            ->on('ldf_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', '=', DB::expr("'T'"))
+
+            ->join(DB::expr('"invoices" as "ldf_invoices"'), 'LEFT OUTER')
+            ->on('ldf_invoice_data.invoice_id', '=', 'ldf_invoices.id')
+            ->on('ldf_invoices.type', '=', DB::expr("'ST'"))
+
             ->join(DB::expr('"barcode_activity" as "tdf_barcode_activity"'), 'LEFT OUTER')
             ->on('tdf_data.barcode_id', '=', 'tdf_barcode_activity.barcode_id')
             ->on('tdf_barcode_activity.activity', '=', DB::expr("'T'"))
-            ->where('ldf_data.site_id', '=', $site_id)
-            ->and_where('ldf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
-            /*** STUMPAGE ON LOGS NOT YET PASSED **********
-            ->and_where('ldf_data.status', '=', 'A')
-            **********************************************/
-            ->and_where('parent_barcodes.type', '=', 'F')
-            ->and_where('barcode_hops.hops', '=', '1')
+
+            ->join(DB::expr('"barcode_activity" as "ldf_barcode_activity"'), 'LEFT OUTER')
+            ->on('ldf_data.barcode_id', '=', 'ldf_barcode_activity.barcode_id')
+            ->on('ldf_barcode_activity.activity', '=', DB::expr("'T'"))
+
+            ->where('tdf_data.site_id', '=', $site_id)
+            ->and_where('tdf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
+
             ->and_where_open()
               ->where('tdf_invoices.type', '<>', 'ST')
               ->or_where('tdf_invoices.id', '=', NULL)
             ->and_where_close()
             ->and_where_open()
+              ->where('ldf_invoices.type', '<>', 'ST')
+              ->or_where('ldf_invoices.id', '=', NULL)
+            ->and_where_close()
+
+            ->and_where_open()
               ->where('tdf_barcode_activity.activity', '<>', 'T')
               ->or_where('tdf_barcode_activity.activity', '=', NULL)
             ->and_where_close()
             ->and_where_open()
-              ->where('invoices.type', '<>', 'ST')
-              ->or_where('invoices.id', '=', NULL)
+              ->where('ldf_barcode_activity.activity', '<>', 'T')
+              ->or_where('ldf_barcode_activity.activity', '=', NULL)
             ->and_where_close()
-            ->and_where_open()
-              ->where('barcode_activity.activity', '<>', 'T')
-              ->or_where('barcode_activity.activity', '=', NULL)
-            ->and_where_close()
+
             ->order_by('barcodes.barcode')
             ->execute()
-            ->as_array(NULL, 'id');
+            ->as_array(NULL, 'id'));
           break;
 
         case 'EXF':
           $form_type = 'SPECS';
-          $ids = DB::select('barcodes.barcode', 'specs_data.id')
+          $ids = array_filter(DB::select('barcodes.barcode', 'specs_data.id')
             ->distinct(TRUE)
             ->from('specs_data')
             ->join('document_data')
@@ -192,7 +197,7 @@ class Controller_Invoices extends Controller {
             ->and_where_close()
             ->order_by('barcodes.barcode')
             ->execute()
-            ->as_array(NULL, 'id');
+            ->as_array(NULL, 'id'));
           break;
       }
 
@@ -345,8 +350,8 @@ class Controller_Invoices extends Controller {
       $invoice->invnumber = trim($form->invnumber->val());
 
       switch ($invoice->type) {
-        case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, $invoice->get_data()); break;
-        case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice, $invoice->get_data()); break;
+        case 'ST': $invoice->file_id = self::generate_st_invoice($invoice); break;
+        case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice); break;
       }
 
       if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
@@ -399,8 +404,8 @@ class Controller_Invoices extends Controller {
       $invoice->is_draft = FALSE;
 
       switch ($invoice->type) {
-        case 'ST': $invoice->file_id = self::generate_st_invoice($invoice, $invoice->get_data()); break;
-        case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice, $invoice->get_data()); break;
+        case 'ST': $invoice->file_id = self::generate_st_invoice($invoice); break;
+        case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice); break;
       }
 
       if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
@@ -605,77 +610,87 @@ class Controller_Invoices extends Controller {
 
       if ($invoice->loaded()) {
         $ids  = $invoice->get_data();
-        $func = strtolower('generate_'.$invoice->type.'_preview');
-        $summary = self::$func($invoice, (array) $ids);
 
-        switch ($invoice->type) {
-          case 'ST':  $form_type = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-09')) ? 'TDF' : 'LDF'; break;
-          case 'EXF': $form_type = 'SPECS'; break;
+        if ($ids) {
+          $func = strtolower('generate_'.$invoice->type.'_preview');
+          $summary = self::$func($invoice);
+
+          switch ($invoice->type) {
+            case 'ST':
+              $form_type = DB::select('form_type')
+                ->from('invoice_data')
+                ->where('invoice_id', '=', $invoice->id)
+                ->limit(1)
+                ->execute()
+                ->get('form_type'); break;
+            case 'EXF':
+              $form_type = 'SPECS'; break;
+          }
+
+          $summary_data = ORM::factory($form_type)
+            ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
+            ->join('barcodes')
+            ->on('barcode_id', '=', 'barcodes.id')
+            ->order_by('barcode', 'ASC');
+
+          $summary_clone = clone($summary_data);
+          $summary_pagination = Pagination::factory(array(
+            'current_page' => array(
+              'source' => 'query_string',
+              'key' => 'summary_page',
+            ),
+            'items_per_page' => 50,
+            'total_items' => $summary_clone->find_all()->count()));
+
+          $summary_data = $summary_data
+            ->offset($summary_pagination->offset)
+            ->limit($summary_pagination->items_per_page)
+            ->find_all()
+            ->as_array();
+
+          unset($info);
+          if ($form_type == 'SPECS') {
+            $sample = reset($summary_data);
+            $info['specs'] = array(
+              'number'  => $sample->specs_number,
+              'barcode' => $sample->specs_barcode->barcode
+            );
+          }
+
+          $payments = $invoice->payments->find_all()->as_array();
+
+          $summary_header = View::factory('data')
+            ->set('form_type', $form_type)
+            ->set('data', $summary_data)
+            ->set('operator', $invoice->operator->loaded() ? $invoice->operator : NULL)
+            ->set('site', $invoice->site->loaded() ? $invoice->site : NULL)
+            ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+            ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+            ->set('options', array(
+              'table'   => FALSE,
+              'rows'    => FALSE,
+              'actions' => FALSE,
+              'header'  => TRUE,
+              'details' => FALSE,
+              'links'   => FALSE
+            ))
+            ->render();
+
+          $summary_table .= View::factory('data')
+            ->set('classes', array('has-pagination'))
+            ->set('form_type', $form_type)
+            ->set('data', $summary_data)
+            ->set('operator', $invoice->operator->loaded() ? $invoice->operator : NULL)
+            ->set('site', $invoice->site->loaded() ? $invoice->site : NULL)
+            ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+            ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+            ->set('options', array(
+              'links'  => FALSE,
+              'header' => FALSE,
+              'hide_header_info' => TRUE
+            ))
+            ->render();
         }
-
-        $summary_data = ORM::factory($form_type)
-          ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
-          ->join('barcodes')
-          ->on('barcode_id', '=', 'barcodes.id')
-          ->order_by('barcode', 'ASC');
-
-        $summary_clone = clone($summary_data);
-        $summary_pagination = Pagination::factory(array(
-          'current_page' => array(
-            'source' => 'query_string',
-            'key' => 'summary_page',
-          ),
-          'items_per_page' => 50,
-          'total_items' => $summary_clone->find_all()->count()));
-
-        $summary_data = $summary_data
-          ->offset($summary_pagination->offset)
-          ->limit($summary_pagination->items_per_page)
-          ->find_all()
-          ->as_array();
-
-        unset($info);
-        if ($form_type == 'SPECS') {
-          $sample = reset($summary_data);
-          $info['specs'] = array(
-            'number'  => $sample->specs_number,
-            'barcode' => $sample->specs_barcode->barcode
-          );
-        }
-
-        $payments = $invoice->payments->find_all()->as_array();
-
-        $summary_header = View::factory('data')
-          ->set('form_type', $form_type)
-          ->set('data', $summary_data)
-          ->set('operator', $invoice->operator->loaded() ? $invoice->operator : NULL)
-          ->set('site', $invoice->site->loaded() ? $invoice->site : NULL)
-          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-          ->set('options', array(
-            'table'   => FALSE,
-            'rows'    => FALSE,
-            'actions' => FALSE,
-            'header'  => TRUE,
-            'details' => FALSE,
-            'links'   => FALSE
-          ))
-          ->render();
-
-        $summary_table .= View::factory('data')
-          ->set('classes', array('has-pagination'))
-          ->set('form_type', $form_type)
-          ->set('data', $summary_data)
-          ->set('operator', $invoice->operator->loaded() ? $invoice->operator : NULL)
-          ->set('site', $invoice->site->loaded() ? $invoice->site : NULL)
-          ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-          ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-          ->set('options', array(
-            'links'  => FALSE,
-            'header' => FALSE,
-            'hide_header_info' => TRUE
-          ))
-          ->render();
       } else $this->request->redirect('invoices');
     }
     else {
@@ -851,10 +866,24 @@ class Controller_Invoices extends Controller {
     $this->response->body($view);
   }
 
-  private function generate_st_preview($invoice, $data_ids) {
-    $table = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-09')) ? 'tdf_data' : 'ldf_data';
+  private function generate_st_preview($invoice, $data_ids = array()) {
+    $data_ids = $data_ids ?: $invoice->get_data();
 
-    $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
+    switch (DB::select('form_type')
+      ->from('invoice_data')
+      ->where('invoice_id', '=', $invoice->id)
+      ->limit(1)
+      ->execute()
+      ->get('form_type')) {
+      case 'LDF':
+        $table = 'ldf_data'; break;
+
+      case 'TDF':
+      default:
+        $table = 'tdf_data'; break;
+    }
+
+    if ($data_ids) $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
       ->from($table)
       ->join('species')
       ->on('species_id', '=', 'species.id')
@@ -876,14 +905,26 @@ class Controller_Invoices extends Controller {
   }
 
   private function generate_st_invoice($invoice, $data_ids = array()) {
-    if (!($data_ids ?: $invoice->get_data())) {
+    if (!($data_ids = $data_ids ?: $invoice->get_data())) {
       Notify::msg('No data found. Unable to generate invoice.', 'warning');
       return FALSE;
     }
 
-    $table = Valid::range(strtotime($invoice->created_date), strtotime('2013-05-01'), strtotime('2013-05-09')) ? 'tdf_data' : 'ldf_data';
+    switch (DB::select('form_type')
+      ->from('invoice_data')
+      ->where('invoice_id', '=', $invoice->id)
+      ->limit(1)
+      ->execute()
+      ->get('form_type')) {
+      case 'LDF':
+        $table = 'ldf_data'; break;
 
-    $summary_data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
+      case 'TDF':
+      default:
+        $table = 'tdf_data'; break;
+    }
+
+    $summary_data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
       ->from($table)
       ->join('species')
       ->on('species_id', '=', 'species.id')
@@ -1102,7 +1143,9 @@ class Controller_Invoices extends Controller {
   }
 
   private function generate_exf_preview($invoice, $data_ids) {
-    $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
+    $data_ids = $data_ids ?: $invoice->get_data();
+
+    if ($data_ids) $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
       ->from('specs_data')
       ->join('species')
       ->on('species_id', '=', 'species.id')
@@ -1124,7 +1167,7 @@ class Controller_Invoices extends Controller {
   }
 
   private function generate_exf_invoice($invoice, $data_ids = array()) {
-    if (!($data_ids ?: $invoice->get_data())) {
+    if (!($data_ids = $data_ids ?: $invoice->get_data())) {
       Notify::msg('No data found. Unable to generate invoice.', 'warning');
       return FALSE;
     }

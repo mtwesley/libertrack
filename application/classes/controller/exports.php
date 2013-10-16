@@ -502,7 +502,7 @@ VALIDATION: $secret";
       switch ($document_type) {
         case 'EXP':
           $form_type = 'SPECS';
-          $ids = DB::select('specs_data.id','barcodes.barcode')
+          $ids = array_filter(DB::select('specs_data.id','barcodes.barcode')
             ->distinct(TRUE)
             ->from('specs_data')
             ->join('document_data')
@@ -544,12 +544,12 @@ VALIDATION: $secret";
             ->and_where_close()
             ->order_by('barcode')
             ->execute()
-            ->as_array(NULL, 'id');
+            ->as_array(NULL, 'id'));
           break;
 
         case 'SPECS':
           $form_type = 'SPECS';
-          $ids = DB::select('specs_data.id','barcodes.barcode')
+          $ids = array_filter(DB::select('specs_data.id','barcodes.barcode')
             ->distinct(TRUE)
             ->from('specs_data')
             ->join('document_data', 'LEFT OUTER')
@@ -627,7 +627,7 @@ VALIDATION: $secret";
 
             ->order_by('barcode')
             ->execute()
-            ->as_array(NULL, 'id');
+            ->as_array(NULL, 'id'));
           break;
       }
 

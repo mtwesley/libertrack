@@ -365,6 +365,32 @@ class SGS {
     'W' => 'Waybill',
   );
 
+  public static $barcode_activity = array(
+    'P' => 'Pending',
+    'I' => 'In Progress',
+    'H' => 'On Hold / Pending Investigation',
+    'T' => 'Stumpage Invoiced',
+    'X' => 'Export Fee Invoiced',
+    'D' => 'Declared for Export',
+    'N' => 'Inspected',
+    'E' => 'Exported',
+    'O' => 'Loaded on Vessel',
+    'S' => 'Short-Shipped',
+    'Y' => 'Sold Locally',
+    'A' => 'Abandoned',
+    'L' => 'Lost',
+    'Z' => 'Seized',
+    'C' => 'Commented'
+  );
+
+  public static $barcode_locks = array(
+    'ADMIN'  => 'Administrative',
+    'INV'    => 'Invoice',
+    'DOC'    => 'Document',
+    'BRCODE' => 'Barcode',
+    'VERIFY' => 'Verification'
+  );
+
   public static $invoice_type = array(
     'ST'  => 'Stumpage Invoice',
     'EXF' => 'Export Fee Invoice'
@@ -416,32 +442,6 @@ class SGS {
     'R' => 'Inaccurate',
     'P' => 'Unverified',
 //    'D' => 'Deleted',
-  );
-
-  public static $barcode_activity = array(
-    'P' => 'Pending',
-    'I' => 'In Progress',
-    'H' => 'On Hold / Investigation',
-    'T' => 'Stumpage Invoiced',
-    'X' => 'Export Fee Invoiced',
-    'D' => 'Declared for Export',
-    'N' => 'Inspected',
-    'E' => 'Exported',
-    'O' => 'Loaded on Vessel',
-    'S' => 'Short-Shipped',
-    'Y' => 'Sold Locally',
-    'A' => 'Abandoned',
-    'L' => 'Lost',
-    'Z' => 'Seized',
-    'C' => 'Commented'
-  );
-
-  public static $barcode_locks = array(
-    'ADMIN'  => 'Administrative',
-    'INV'    => 'Invoice',
-    'DOC'    => 'Document',
-    'BRCODE' => 'Barcode',
-    'VERIFY' => 'Verification'
   );
 
   public static $access_level = array(

@@ -137,9 +137,9 @@
 }
 
 #content form p.submit {
-  margin-left: 680px;
+  margin-right: 361px;
   padding: 0;
-  text-align: left;
+  text-align: right;
 }
 #content form p.centersubmit {
   margin: 4px auto !important;
@@ -147,7 +147,6 @@
   text-align: center !important;
 }
 #content form p.submit input {
-  width: 200px;
   cursor: pointer;
 }
 
@@ -399,12 +398,11 @@
 }
 
 #content table.data form p.submit {
-  margin-left: 680px;
+  margin-right: 361px;
   padding: 0;
-  text-align: left;
+  text-align: right;
 }
 #content table.data form p.submit input {
-  width: 200px;
   cursor: pointer;
 }
 

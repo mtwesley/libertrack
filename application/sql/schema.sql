@@ -295,7 +295,6 @@ create table barcodes (
   type d_barcode_type default 'P' not null,
   parent_id d_id default null,
   printjob_id d_id not null,
-  is_locked d_bool default false not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
