@@ -933,7 +933,7 @@ class Controller_Invoices extends Controller {
       ->execute()
       ->as_array();
 
-    foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), array('class', 'species_class'), array('botanic_name', 'species_botanic_name'), array(DB::expr('((top_min + top_max + bottom_min + bottom_max) / 4)'), 'diameter'), 'length', array(DB::expr('(pi() * ((((bottom_max + bottom_min + top_max + top_min)::real / 4) / 2) / 100)^2 * length)'), 'volume'))
+    foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), 'diameter', 'length', 'volume')
       ->from($table)
       ->join('barcodes')
       ->on('barcode_id', '=', 'barcodes.id')
@@ -1183,7 +1183,7 @@ class Controller_Invoices extends Controller {
       ->execute()
       ->as_array();
 
-    foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), array('class', 'species_class'), array('botanic_name', 'species_botanic_name'), array(DB::expr('((top_min + top_max + bottom_min + bottom_max) / 4)'), 'diameter'), 'length', 'volume', 'grade')
+    foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), array('class', 'species_class'), array('botanic_name', 'species_botanic_name'), 'diameter', 'length', 'volume', 'grade')
       ->from('specs_data')
       ->join('barcodes')
       ->on('barcode_id', '=', 'barcodes.id')

@@ -26,37 +26,54 @@ class Controller_Reports extends Controller {
     $step   = $this->request->param('command');
     $report = ORM::factory('report');
 
+    $model  = Session::instance()->get('reports.create.model', NULL);
+    $fields  = (array) Session::instance()->get('reports.create.fields', array());
+    $filters = (array) Session::instance()->get('reports.create.filters', array());
+    $order   = (array) Session::instance()->get('reports.create.order', array());
+    $limit   = Session::instance()->get('reports.create.limit', NULL);
+
     if (!$step) {
+      unset($model);
+      unset($fields);
+      unset($filters);
+      unset($order);
+      unset($limit);
+
       Session::instance()->delete('reports.create.model');
       Session::instance()->delete('reports.create.fields');
-
-      $report_type_models = array(
-        'CSV' => array('csv'),
-        'DATA' => array('ssf', 'tdf', 'ldf'),
-        'SUMMARY' => array('site', 'operator')
-      );
+      Session::instance()->delete('reports.create.filters');
+      Session::instance()->delete('reports.create.order');
+      Session::instance()->delete('reports.create.limit');
 
       $model_options = array();
-      foreach ($report_type_models[$report_type] as $type) $model_options[$type] = $report::$models[$type]['name'];
+      foreach ($report::$types[$report_type]['models'] as $_model)
+        $model_options[$_model] = $report::$models[$_model]['name'];
 
       $model_form = Formo::form()
-        ->add_group('model', 'select', $model_options, NULL, array('required' => TRUE, 'label' => 'Base'))
-        ->add('submit', 'submit', 'Setup Fields');
+        ->add_group('model', 'select', $model_options, NULL, array('required' => TRUE, 'label' => 'Model'))
+        ->add('submit', 'submit', 'Save');
 
       if ($model_form->sent($_REQUEST) and $model_form->load($_REQUEST)->validate()) {
         Session::instance()->set('reports.create.model', $model_form->model->val());
         $this->request->redirect('reports/create/'.strtolower($report_type).'/fields');
       }
+    } else {
+      if (!$model) $this->request->redirect('/reports/create/'.strtolower($report_type));
+      $report_header .= View::factory('reportheader')
+        ->set('step', $step)
+        ->set('report', $report)
+        ->set('report_type', $report_type)
+        ->set('model', $model)
+        ->set('fields', $fields)
+        ->render();
     }
 
     if ($step == 'fields') {
-      $model  = Session::instance()->get('reports.create.model');
-      $fields = (array) Session::instance()->get('reports.create.fields');
+      $fields_enabled = TRUE;
 
       foreach ($report::$models[$model]['fields'] as $_field => $_field_properties)
         $field_options[$report::$models[$model]['name']]["$model.$_field"] = $_field_properties['name'];
 
-      $model_fields[$model] = (array) $report::$models[$model]['fields'];
       foreach ($report::$models[$model]['models'] as $_model => $_model_properties)
         foreach ($report::$models[$_model]['fields'] as $_field => $_field_properties)
           $field_options[$report::$models[$_model]['name']]["$_model.$_field"] = $_field_properties['name'];
@@ -70,58 +87,191 @@ class Controller_Reports extends Controller {
         $_name = $fields_form->name->val();
         list($_model, $_field) = explode('.', $fields_form->field->val());
 
-        if ($model == $_model) $_values = array('value');
-        else switch ($report::$models[$model]['models'][$_model]['type']) {
-          case 'many_to_one':
-          case 'one_to_one':
-            $_values = array('value');
-            break;
-
-          case 'many_to_many':
-          case 'one_to_many':
-            $aggregates = $report::$models[$_model]['fields'][$field]['aggregates'];
-            if ($aggregates and is_array($aggregates)) $aggrs = (array) $aggregates;
-            else if ($aggregates) $aggrs = array('sum', 'min', 'max', 'avg');
-            $_values = array_merge((array) $aggrs, array('count', 'array_agg'));
-            break;
-        }
-
         $fields[] = array(
           'model'  => $_model,
           'field'  => $_field,
           'name'   => $_name,
-          'values' => $_values
+          'value'  => $report::field_values($model, $_field, $_model, TRUE)
         );
 
         Session::instance()->set('reports.create.fields', $fields);
+      }
 
-        $fields_table .= View::factory('reportfields')
-          ->set('report', $report)
-          ->set('report_type', $report_type)
-          ->set('model', $model)
-          ->set('fields', $fields)
-          ->render();
+      if ($_REQUEST['save']) foreach ($_REQUEST as $k => $v) if (strpos($k, 'field') === 0) {
+        $reorder_fields = TRUE;
+
+        list($x, $i, $m, $f, $t) = explode('-', $k);
+        if (!$x or $x != 'field') break;
+        if (!is_numeric($i)) break;
+        if (!$m or !$f or !$t) break;
+
+        $_fields[$i]['model']  = $m;
+        $_fields[$i]['field']  = $f;
+        $_fields[$i]['values'] = $report::field_values($model, $f, $m);
+        if (in_array($t, array('name', 'value', 'index'))) $_fields[$i][$t] = $v;
+      }
+
+      foreach ($_REQUEST as $k => $v) if (strpos($k, 'remove')) {
+        $reorder_fields = TRUE;
+        $vars = explode('-', $k);
+
+        $_fields = $_fields ?: $fields;
+        if (($_fields[$vars[1]]['model'] == $vars[2]) and
+            ($_fields[$vars[1]]['field'] == $vars[3])) unset($_fields[$vars[1]]);
+      }
+
+      if ($reorder_fields and is_array($_fields)) {
+        usort($_fields, function ($field1, $field2) {
+          return $field1['index'] - $field2['index'];
+        });
+        Session::instance()->set('reports.create.fields', $_fields);
+        $fields = $_fields;
+      }
+
+      if ($_REQUEST['filters']) $this->request->redirect('/reports/create/'.strtolower($report_type).'/filters');
+    }
+
+    if ($step == 'filters') {
+      $filters_enabled = TRUE;
+
+      foreach ($report::$models[$model]['fields'] as $_field => $_field_properties)
+        $field_options[$report::$models[$model]['name']]["$model.$_field"] = $_field_properties['name'];
+
+      foreach ($report::$models[$model]['models'] as $_model => $_model_properties)
+        foreach ($report::$models[$_model]['fields'] as $_field => $_field_properties)
+          $field_options[$report::$models[$_model]['name']]["$_model.$_field"] = $_field_properties['name'];
+
+      $filters_form = Formo::form()
+        ->add_group('field', 'select', $field_options, NULL, array('required' => TRUE, 'label' => 'Field'))
+        ->add_group('filter', 'select', $report::$filters, NULL, array('required' => TRUE, 'label' => 'Filter'))
+        ->add('values', 'input', array('required' => TRUE, 'label' => 'Values'))
+        ->add('submit', 'submit', 'Add Filter');
+
+      if ($filters_form->sent($_REQUEST) and $filters_form->load($_REQUEST)->validate()) {
+        list($_model, $_field) = explode('.', $filters_form->field->val());
+        $_filter = $filters_form->filter->val();
+        $_values = explode(',', $filters_form->values->val());
+
+        $filters[] = array(
+          'model'  => $_model,
+          'field'  => $_field,
+          'filter' => $_filter,
+          'values' => $_values
+        );
+
+        Session::instance()->set('reports.create.filters', $filters);
+      }
+
+      if ($_REQUEST['save']) foreach ($_REQUEST as $k => $v) if (strpos($k, 'filter') === 0) {
+        $reorder_filters = TRUE;
+
+        list($x, $i, $m, $f, $s, $t) = explode('-', $k);
+        if (!$x or $x != 'filter') break;
+        if (!is_numeric($i)) break;
+        if (!$m or !$f or !$t) break;
+
+        $_filters[$i]['model'] = $m;
+        $_filters[$i]['field'] = $f;
+        if ($t == 'filter') $_filters[$i][$t] = $v;
+        if ($t == 'values') $_filters[$i][$t] = explode(',', $v);
+      }
+
+      foreach ($_REQUEST as $k => $v) if (strpos($k, 'remove')) {
+        $reorder_filters = TRUE;
+        $vars = explode('-', $k);
+
+        $_filters = $_filters ?: $filters;
+        if (($_filters[$vars[1]]['model']  == $vars[2]) and
+            ($_filters[$vars[1]]['field']  == $vars[3]) and
+            ($_filters[$vars[1]]['filter'] == $vars[4])) unset($_filters[$vars[1]]);
+      }
+
+      if ($reorder_filters and is_array($_filters)) {
+        usort($_filters, function ($filter1, $filter2) {
+          return $filter1['index'] - $filter2['index'];
+        });
+        Session::instance()->set('reports.create.filters', $_filters);
+        $filters = $_filters;
+      }
+
+      if ($_REQUEST['preview']) $this->request->redirect('/reports/create/'.strtolower($report_type).'/preview');
+    }
+
+    if ($step == 'limits') {
+      $filters_enabled = TRUE;
+
+      $limit_options = array(
+        1     =>  1,
+        10    => 10,
+        25    => 25,
+        50    => 50,
+        100   => 100,
+        250   => 250,
+        500   => 500,
+        1000  => 1000,
+        2500  => 2500,
+        5000  => 5000,
+        10000 => 10000
+      );
+
+      foreach ($fields as $field)
+        $sort_options[$report::$models[$field['model']]['name']]["{$field['index']}.{$field['model']}.{$field['field']}"] = $field['name'];
+
+      $direction_options = array(
+        'ASC'  => 'Lowest to Highest',
+        'DESC' => 'Highest to Lowest'
+      );
+
+      $limits_form = Formo::form()
+        ->add_group('sort', 'select', $sort_options, $order['sort'], array('label' => 'Sort'))
+        ->add_group('direction', 'select', $direction_options, $order['direction'], array('label' => 'Direction'))
+        ->add_group('limit', 'select', $limit_options, $limit, array('label' => 'Limit'))
+        ->add('submit', 'submit', 'Save');
+
+      if ($limits_form->sent($_REQUEST) and $limits_form->load($_REQUEST)->validate()) {
+        if (list($i, $m, $f) = explode('.', $limits_form->sort->val())) {
+          $order = array(
+            'sort'      => $fields[$i]['name'],
+            'direction' => $limits_form->direction->val()
+          );
+        }
+
+        $limit = $limits_form->limit->val();
+
+        Session::instance()->set('reports.create.order', $order);
+        Session::instance()->set('reports.create.limit', $limit);
       }
     }
 
     if ($step == 'preview') {
-      $sql = <<<EOF
-select sites.name as site_name,
-sites.type as site_type,
-(select name from operators where operators.id = sites.operator_id) as operator_name,
-(select sum(volume) from tdf_data where tdf_data.site_id = sites.id) as tdf_volume,
-(select sum(volume) from ldf_data where ldf_data.site_id = sites.id) as ldf_volume
-from sites
-order by site_name;
-EOF;
-      $results = DB::query(Database::SELECT, $sql)->execute()->as_array();
-      $headers = array(
-        'Site Name',
-        'Site Type',
-        'Operator Name',
-        'TDF Volume',
-        'LDF Volume'
-      );
+      $field_array = array();
+      foreach ($fields as $field) $field_array[] = array($report::field_query($model, $field, $filters), $field['name']);
+
+      $query = DB::select_array($field_array)
+        ->from(array($report::$models[$model]['table'], 'model'));
+
+      foreach ($filters as $filter) if ($filter['model'] == $model) switch ($filter['filter']) {
+        case 'equals':
+          $query->where("model.".$filter['field'], 'IN', (array) $filter['values']); break;
+
+        case 'not_equals':
+          $query->where("model.".$filter['field'], 'NOT IN', (array) $filter['values']); break;
+
+        case 'between':
+          $query->where("model.".$filter['field'], 'BETWEEN', (array) $filter['values']); break;
+
+        case 'greater_than':
+          $query->where("model.".$filter['field'], '>', reset($filter['values'])); break;
+
+        case 'less_than':
+          $query->where("model.".$filter['field'], '<', reset($filter['values'])); break;
+      }
+
+      if ($order) $query->order_by($order['sort'], $order['direction'] ?: NULL);
+      if ($limit) $query->limit($limit);
+
+      $results = $query->execute()->as_array();
+      $headers = array_keys(reset($results));
 
       $results_table .= View::factory('reporttable')
         ->set('results', $results)
@@ -129,11 +279,37 @@ EOF;
         ->render();
     }
 
+    if ($fields) $fields_table .= View::factory('reportfields')
+      ->set('enabled', $fields_enabled)
+      ->set('report', $report)
+      ->set('report_type', $report_type)
+      ->set('model', $model)
+      ->set('fields', $fields)
+      ->render();
+
+    if ($filters) $filters_table .= View::factory('reportfilters')
+      ->set('enabled', $filters_enabled)
+      ->set('report', $report)
+      ->set('report_type', $report_type)
+      ->set('model', $model)
+      ->set('filters', $filters)
+      ->render();
+
     if (!$step) $content .= $model_form;
+    else if ($report_header) $content .= $report_header;
+
     if ($step == 'fields') {
-      $content .= $fields_table;
+      if ($fields_table) $content .= $fields_table;
       $content .= $fields_form;
     }
+
+    if ($step == 'filters') {
+      if ($filters_table) $content .= $filters_table;
+      $content .= $filters_form;
+    }
+
+    if ($step == 'limits') $content .= $limits_form;
+
     if ($step == 'preview') $content .= $results_table;
 
     $view = View::factory('main')->set('content', $content);

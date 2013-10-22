@@ -94,8 +94,8 @@ create table reports (
   tables d_text_long,
   fields d_text_long,
   filters d_text_long,
-  offset d_positive_int,
-  limit d_positive_int,
+  "offset" d_positive_int,
+  "limit" d_positive_int,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -446,3 +446,4 @@ create table block_inspection_data (
 
 alter table blocks add column inspection_file_id d_id;
 alter table blocks add constraint blocks_inspection_file_id_fkey foreign key (inspection_file_id) references files (id) on update cascade on delete cascade;
+

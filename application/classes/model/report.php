@@ -10,13 +10,37 @@ class Model_Report extends ORM {
     'files' => array()
   );
 
+
+  public static $types = array(
+    'SUMMARY' => array(
+      'name'   => 'Data Analysis Report',
+      'models' => array('site', 'operator')
+    ),
+    'CSV' => array(
+      'name'   => 'Data Import Report',
+      'models' => array('csv')
+    ),
+    'DATA' => array(
+      'name'   => 'Data Analysis Report',
+      'models' => array('ssf', 'tdf', 'ldf')
+    ),
+    'BARCODE' => array(
+      'name'   => 'Barcode Review Report',
+      'models' => array('site', 'ssf', 'tdf', 'ldf')
+    )
+  );
+
   public static $models = array(
     'operator' => array(
       'name'  => 'Operator',
       'table' => 'operators',
       'fields' => array(
-        'tin'  => array('name' => 'Operator TIN'),
-        'name' => array('name' => 'Operator Name')
+        'tin'  => array(
+          'name' => 'Operator TIN'
+        ),
+        'name' => array(
+          'name' => 'Operator Name'
+        )
       ),
       'models' => array(
         'site' => array(
@@ -50,8 +74,12 @@ class Model_Report extends ORM {
       'name'   => 'Site',
       'table'  => 'sites',
       'fields' => array(
-        'name' => array('name' => 'Site Name'),
-        'type' => array('name' => 'Site Type'),
+        'name' => array(
+          'name' => 'Site Name'
+        ),
+        'type' => array(
+          'name' => 'Site Type'
+        ),
       ),
       'models' => array(
         'operator' => array(
@@ -90,7 +118,9 @@ class Model_Report extends ORM {
       'name'  => 'Block',
       'table' => 'blocks',
       'fields' => array(
-        'name' => array('name' => 'Block Name')
+        'name' => array(
+          'name' => 'Block Name'
+        )
       ),
       'models' => array(
         'site' => array(
@@ -114,13 +144,35 @@ class Model_Report extends ORM {
       'name'   => 'Stock Survey',
       'table'  => 'ssf_data',
       'fields' => array(
-        'survey_line' => array('name' => 'Survey Line'),
-        'cell_number' => array('name' => 'Cell Number'),
-        'tree_map_number' => array('name' => 'Tree Map Number'),
-        'diameter' => array('name' => 'Diameter', 'aggregates' => TRUE),
-        'height' => array('name' => 'Height', 'aggregates' => TRUE),
-        'create_date' => array('name' => 'Date', 'type' => 'date'),
-        'status' => array('name' => 'Status', 'type' => 'data_status'),
+        'survey_line' => array(
+          'name' => 'Survey Line'
+        ),
+        'cell_number' => array(
+          'name' => 'Cell Number'
+        ),
+        'tree_map_number' => array(
+          'name' => 'Tree Map Number'
+        ),
+        'diameter' => array(
+          'name' => 'Diameter',
+          'aggregates' => TRUE
+        ),
+        'height' => array(
+          'name' => 'Height',
+          'aggregates' => TRUE
+        ),
+        'volume' => array(
+          'name' => 'Volume',
+          'aggregates' => TRUE
+        ),
+        'create_date' => array(
+          'name' => 'Date',
+          'type' => 'date'
+        ),
+        'status' => array(
+          'name' => 'Status',
+          'type' => 'data_status'
+        ),
         'inspected' => array(
           'name' => 'Verified',
           'type' => 'bool',
@@ -189,13 +241,32 @@ class Model_Report extends ORM {
       'name'   => 'Tree Data',
       'table'  => 'tdf_data',
       'fields' => array(
-        'survey_line' => array('name' => 'Survey Line'),
-        'cell_number' => array('name' => 'Cell Number'),
-        'diameter' => array('name' => 'Diameter', 'aggregates' => TRUE),
-        'length' => array('name' => 'Length', 'aggregates' => TRUE),
-        'volume' => array('name' => 'Volume', 'aggregates' => TRUE),
-        'create_date' => array('name' => 'Date', 'type' => 'date'),
-        'status' => array('name' => 'Status', 'type' => 'data_status'),
+        'survey_line' => array(
+          'name' => 'Survey Line'
+        ),
+        'cell_number' => array(
+          'name' => 'Cell Number'
+        ),
+        'diameter' => array(
+          'name' => 'Diameter',
+          'aggregates' => TRUE
+        ),
+        'length' => array(
+          'name' => 'Length',
+          'aggregates' => TRUE
+        ),
+        'volume' => array(
+          'name' => 'Volume',
+          'aggregates' => TRUE
+        ),
+        'create_date' => array(
+          'name' => 'Date',
+          'type' => 'date'
+        ),
+        'status' => array(
+          'name' => 'Status',
+          'type' => 'data_status'
+        ),
         'inspected' => array(
           'name' => 'Verified',
           'type' => 'bool',
@@ -539,14 +610,90 @@ class Model_Report extends ORM {
     ),
   );
 
-  public $fields = array(
-    array(
-      'model' => 'tdf',
-      'name' => 'volume',
-      'title' => 'TDF Average Volume',
-      'aggregate' => 'avg',
-    )
+  public static $aggregates = array(
+    'list'   => 'LIST',
+    'unique' => 'UNIQUE',
+    'sum'    => 'SUM',
+    'count'  => 'COUNT',
+    'min'    => 'MINIMUM',
+    'max'    => 'MAXIMUM',
+    'avg'    => 'AVERAGE',
   );
+
+  public static $filters = array(
+    'equals'       => 'EQUALS',
+    'not_equals'   => 'NOT EQUALS',
+    'between'      => 'BETWEEN',
+    'greater_than' => 'GREATER THAN',
+    'less_than'    => 'LESS THAN'
+  );
+
+  public static function field_values($model, $field, $field_model, $default = FALSE) {
+    if ($model == $field_model) return array('value');
+    else switch (self::$models[$model]['models'][$field_model]['type']) {
+      case 'many_to_one':
+      case 'one_to_one':
+        return $default ? 'value' : array('value');
+
+      case 'many_to_many':
+      case 'one_to_many':
+        $aggregates = self::$models[$field_model]['fields'][$field]['aggregates'];
+        if ($aggregates and is_array($aggregates)) return $default ? reset($aggregates) : $aggregates;
+        else if ($aggregates) return $default ? reset(array_keys(self::$aggregates)) : array_keys(self::$aggregates);
+        else return $default ? 'list' : array('count', 'list', 'unique');
+    }
+  }
+
+  public static function field_query($model, $field, $filters = array()) {
+    $field = array_merge(self::$models[$field['model']]['fields'][$field['field']], $field);
+    switch ($field['value']) {
+      case 'list':
+        $_field = DB::expr("array_to_string(array_agg({$field['field']}::text), ',')"); break;
+
+      case 'unique':
+        $_field = DB::expr("array_to_string(array_agg(distinct {$field['field']}::text), ',')"); break;
+
+      case 'sum':
+      case 'count':
+      case 'min':
+      case 'max':
+      case 'avg':
+        $_field = DB::expr("{$field['value']}({$field['field']})"); break;
+
+      case 'value':
+      default:
+        $_field = $field['field']; break;
+    }
+
+    if ($field['cast']) $_field = "($field)::{$field['cast']}";
+    if ($model == $field['model']) return $_field;
+
+    $query = DB::select($_field)
+      ->from(self::$models[$field['model']]['table'])
+      ->where("model.".self::$models[$model]['models'][$field['model']]['local_field'], '=', DB::expr('"'.self::$models[$field['model']]['table'].'"."'.self::$models[$model]['models'][$field['model']]['foreign_field'].'"'));
+
+    foreach ($filters as $filter)
+      if (($filter['model'] == $field['model']) and
+          ($filter['field'] == $field['field'])) switch ($filter['filter']) {
+
+        case 'equals':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'IN', (array) $filter['values']); break;
+
+        case 'not_equals':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'NOT IN', (array) $filter['values']); break;
+
+        case 'between':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'BETWEEN', (array) $filter['values']); break;
+
+        case 'greater_than':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], '>', reset($filter['values'])); break;
+
+        case 'less_than':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], '<', reset($filter['values'])); break;
+      }
+
+    return $query;
+  }
 
   public static function create_report_number($type) {
     return DB::query(Database::SELECT, "SELECT nextval('s_reports_{$type}_number') number")
@@ -559,6 +706,7 @@ class Model_Report extends ORM {
       case 'tables':
       case 'fields':
       case 'filters':
+      case 'order':
         if (is_array($value)) {
           // prepare for db
           $_value = $value;
@@ -581,6 +729,7 @@ class Model_Report extends ORM {
       case 'tables':
       case 'fields':
       case 'filters':
+      case 'order':
         $value = parent::__get($column);
         return is_string($value) ? unserialize($value) : $value;
 

@@ -21,6 +21,35 @@ class Model_SSFV extends SGS_Form_ORM {
     $this->_object_plural = 'ssfv';
   }
 
+  public function set($column, $value) {
+    switch ($column) {
+      case 'volume':
+        return SGS::volumify(($this->diameter / 100), $this->length);
+
+      default:
+        parent::set($column, $value);
+    }
+  }
+
+  public function __get($column) {
+    switch ($column) {
+      case 'volume':
+        return parent::set($column, $this->$column);
+
+      default:
+        return parent::__get($column);
+    }
+  }
+
+  public function save(Validation $validation = NULL) {
+    foreach ($this->_object as $field => $value) switch ($field) {
+      case 'volume':
+        if ($value == NULL) $this->$field = $this->$field;
+    }
+
+    parent::save($validation);
+  }
+
   public static $type      = 'SSFV';
   public static $data_type = 'SSF';
   public static $verification_type = 'SSFV';

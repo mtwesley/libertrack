@@ -485,6 +485,7 @@ create table reports (
   tables d_text_long,
   fields d_text_long,
   filters d_text_long,
+  order d_text_long,
   offset d_positive_int,
   limit d_positive_int,
   user_id d_id default 1 not null,
@@ -615,6 +616,7 @@ create table ssf_data (
   tree_map_number d_positive_int not null,
   diameter d_diameter not null,
   height d_length not null,
+  volume d_volume not null,
   is_requested d_bool default true not null,
   is_fda_approved d_bool default true not null,
   fda_remarks d_text_long,
@@ -647,6 +649,7 @@ create table ssf_verification (
   cell_number d_positive_int not null,
   diameter d_diameter not null,
   height d_length not null,
+  volume d_volume not null,
   inspected_by,
   inspection_date d_date not null,
   inspection_label d_text_short,
@@ -716,6 +719,7 @@ create table tdf_verification (
   bottom_min d_diameter not null,
   bottom_max d_diameter not null,
   length d_length not null,
+  volume d_volume not null,
   inspected_by d_text_short,
   inspection_date d_date not null,
   inspection_label d_text_short not null,
@@ -1165,6 +1169,7 @@ create index csv_duplicates_duplicate_csv_id_type on csv_duplicates (duplicate_c
 
 create index ssf_data_diameter on ssf_data (id,diameter);
 create index ssf_data_height on ssf_data (id,height);
+create index sdf_data_volume on sdf_data (id,volume);
 create index ssf_data_create_date on ssf_data (id,create_date);
 create index ssf_data_status on ssf_data (id,status);
 

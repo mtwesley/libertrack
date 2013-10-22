@@ -740,21 +740,21 @@
 .action-bar span.link {
   padding: 2px 4px;
   display: inline-block;
-  color: #eee8df;
+  color: #ffe5d5;
   font-size: 10px;
   font-weight: bold;
   text-decoration: none;
-  background-color: #887250;
+  background-color: #ff8035;
   cursor: pointer;
 }
 
 #content table.form a.link:hover,
 #content table.form span.link:hover,
 .action-bar span.link:hover  {
-  background-color: #564832;
+  background-color: #de6017;
 }
 
-#content table.form input {
+#content table.form input[type="text"] {
   margin-left: 0;
   padding: 3px 4px;
   background-color: #fff0e7;

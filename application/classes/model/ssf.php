@@ -21,6 +21,43 @@ class Model_SSF extends SGS_Form_ORM {
     $this->_object_plural = 'ssf';
   }
 
+  public function set($column, $value) {
+    switch ($column) {
+      case 'is_requested':
+      case 'is_fda_approved':
+        parent::set($column, SGS::booleanify($value));
+
+      case 'volume':
+        return SGS::volumify(($this->diameter / 100), $this->length);
+
+      default:
+        parent::set($column, $value);
+    }
+  }
+
+  public function __get($column) {
+    switch ($column) {
+      case 'is_requested':
+      case 'is_fda_approved':
+        return parent::__get($column) == 't' ? TRUE : FALSE;
+
+      case 'volume':
+        return parent::set($column, $this->$column);
+
+      default:
+        return parent::__get($column);
+    }
+  }
+
+  public function save(Validation $validation = NULL) {
+    foreach ($this->_object as $field => $value) switch ($field) {
+      case 'volume':
+        if ($value == NULL) $this->$field = $this->$field;
+    }
+
+    parent::save($validation);
+  }
+
   public static $type      = 'SSF';
   public static $data_type = 'SSF';
   public static $verification_type = 'SSFV';
@@ -521,26 +558,6 @@ class Model_SSF extends SGS_Form_ORM {
 //      'user_id'         => self::$fields['user_id'],
 //      'timestamp'       => self::$fields['timestamp'],
     );
-  }
-
-  public function set($column, $value) {
-    switch ($column) {
-      case 'is_requested':
-      case 'is_fda_approved':
-        parent::set($column, SGS::booleanify($value));
-      default:
-        parent::set($column, $value);
-    }
-  }
-
-  public function __get($column) {
-    switch ($column) {
-      case 'is_requested':
-      case 'is_fda_approved':
-        return parent::__get($column) == 't' ? TRUE : FALSE;
-      default:
-        return parent::__get($column);
-    }
   }
 
 }
