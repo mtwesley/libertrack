@@ -3,22 +3,22 @@ $classes[] = 'form';
 ?>
 <style>
   .subnav {
-    border: 1px solid #e6dfd4;
-    background-color: #f0ede8;
+    margin: 5px 0;
+    border: 1px solid #bcc6aa;
+    background-color: #ecefe7;
     padding: 4px 6px;
-    color: #5a5a5a;
+    color: #333;
     text-align: center;
   }
 
   .subnav a,
   .subnav a:visited {
-    color: #8a8a8a;
+    color: #333;
     text-decoration: none;
   }
 
-  .subnav a:hover,
-  .subnav a.active {
-    color: #222;
+  .subnav a:hover {
+    text-decoration: underline;
   }
 
   .subnav a.active {
@@ -43,9 +43,9 @@ $classes[] = 'form';
 <?php endif; ?>
 <?php if ($report_type and $model): ?>
 <div class="subnav">
-  <a href="<?php echo '/reports/create/'.strtolower($report_type).'/fields'; ?>" <?php if ($step == 'fields'):?>class="active"<?php endif; ?>>Fields</a> |
-  <a href="<?php echo '/reports/create/'.strtolower($report_type).'/filters'; ?>" <?php if ($step == 'filters'):?>class="active"<?php endif; ?>>Filters</a> |
-  <a href="<?php echo '/reports/create/'.strtolower($report_type).'/limits'; ?>" <?php if ($step == 'limits'):?>class="active"<?php endif; ?>>Order and Limit</a> |
-  <a href="<?php echo '/reports/create/'.strtolower($report_type).'/preview'; ?>" <?php if ($step == 'preview'):?>class="active"<?php endif; ?>>Preview</a>
+  <a href="<?php echo '/reports/create/'.strtolower($report_type).'/fields'; ?>" <?php if ($step == 'fields'):?>class="active"<?php endif; ?>>Setup Fields</a> |
+  <a href="<?php echo '/reports/create/'.strtolower($report_type).'/filters'; ?>" <?php if ($step == 'filters'):?>class="active"<?php endif; ?>>Setup Filters</a> |
+  <a href="<?php echo '/reports/create/'.strtolower($report_type).'/limits'; ?>" <?php if ($step == 'limits'):?>class="active"<?php endif; ?>>Setup Sorting Order and Row Limit</a> |
+  <a href="<?php echo '/reports/create/'.strtolower($report_type).'/preview'; ?>" <?php if ($step == 'preview'):?>class="active"<?php endif; ?>>Preview and Download</a>
 </div>
 <?php endif; ?>

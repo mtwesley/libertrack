@@ -214,8 +214,8 @@ class Controller_Reports extends Controller {
         10000 => 10000
       );
 
-      foreach ($fields as $field)
-        $sort_options[$report::$models[$field['model']]['name']]["{$field['index']}.{$field['model']}.{$field['field']}"] = $field['name'];
+      foreach ($fields as $index => $field)
+        $sort_options[$report::$models[$field['model']]['name']]["$index.{$field['model']}.{$field['field']}"] = $field['name'];
 
       $direction_options = array(
         'ASC'  => 'Lowest to Highest',
@@ -243,9 +243,12 @@ class Controller_Reports extends Controller {
       }
     }
 
-    if ($step == 'preview') {
+    if (in_array($step, array('preview', 'csv', 'xls'))) {
       $field_array = array();
-      foreach ($fields as $field) $field_array[] = array($report::field_query($model, $field, $filters), $field['name']);
+      foreach ($fields as $index => $field) {
+        if (($field['model'] == $model) and ($field['value'] != 'value')) $not_group_by_fields[$index] = $field;
+        $field_array[] = array($report::field_query($model, $field, $filters), $field['name']);
+      }
 
       $query = DB::select_array($field_array)
         ->from(array($report::$models[$model]['table'], 'model'));
@@ -257,6 +260,18 @@ class Controller_Reports extends Controller {
         case 'not_equals':
           $query->where("model.".$filter['field'], 'NOT IN', (array) $filter['values']); break;
 
+        case 'contains':
+          $query->where("model.".$filter['field'], 'ILIKE', "%".$filter['values']."%"); break;
+
+        case 'not_contains':
+          $query->where("model.".$filter['field'], 'NOT ILIKE', "%".$filter['values']."%"); break;
+
+        case 'begins':
+          $query->where("model.".$filter['field'], 'ILIKE', $filter['values']."%"); break;
+
+        case 'ends':
+          $query->where("model.".$filter['field'], 'ILIKE', "%".$filter['values']); break;
+
         case 'between':
           $query->where("model.".$filter['field'], 'BETWEEN', (array) $filter['values']); break;
 
@@ -267,16 +282,52 @@ class Controller_Reports extends Controller {
           $query->where("model.".$filter['field'], '<', reset($filter['values'])); break;
       }
 
+      $group_by_fields = array_diff_key((array) $field_array, (array) $not_group_by_fields);
+      foreach ($group_by_fields as $group_by_field) $query->group_by(is_array($group_by_field) ? $group_by_field[1] : $group_by_field['name']);
+
       if ($order) $query->order_by($order['sort'], $order['direction'] ?: NULL);
       if ($limit) $query->limit($limit);
 
-      $results = $query->execute()->as_array();
-      $headers = array_keys(reset($results));
+      try {
+        $results = $query->execute()->as_array();
+        $headers = array_keys(reset($results));
 
-      $results_table .= View::factory('reporttable')
-        ->set('results', $results)
-        ->set('headers', $headers)
-        ->render();
+        if ($step == 'preview') $results_table .= View::factory('reporttable')
+          ->set('results', $results)
+          ->set('headers', $headers)
+          ->set('report_type', $report_type)
+          ->render();
+      } catch (Database_Exception $e) {
+        Notify::msg('This query cannot be executed. Please check field and filter values and try again.', 'warning');
+      } catch (Exception $e) {
+        Notify::msg('Sorry, unable to preview report. Please try again.', 'error');
+      }
+    }
+
+    if (in_array($step, array('csv', 'xls')) and $results) {
+      $excel = new PHPExcel();
+      $excel->setActiveSheetIndex(0);
+
+      $type = $step;
+      switch ($type) {
+        case 'csv':
+          $writer = new PHPExcel_Writer_CSV($excel);
+          $mime_type = 'text/csv';
+          break;
+        case 'xls':
+          $writer = new PHPExcel_Writer_Excel5($excel);
+          $mime_type = 'application/vnd.ms-excel';
+          break;
+      }
+
+      $excel->getActiveSheet()->fromArray(array_keys(reset($results)));
+      $excel->getActiveSheet()->fromArray($results, '', 'A2');
+
+      $tempname = tempnam(sys_get_temp_dir(), 'report_').'.'.$type;
+      $fullname = strtoupper("report_$report_type.").$type;
+
+      $writer->save($tempname);
+      $this->response->send_file($tempname, $fullname, array('mime_type' => $mime_type, 'delete' => TRUE));
     }
 
     if ($fields) $fields_table .= View::factory('reportfields')
@@ -331,6 +382,7 @@ class Controller_Reports extends Controller {
   public function action_list() {
     $id = $this->request->param('id');
 
+    Notify::msg('No reports found.', 'notice');
     return self::handle_report_list($id);
   }
 

@@ -169,6 +169,10 @@ class Model_Report extends ORM {
           'name' => 'Date',
           'type' => 'date'
         ),
+        'timestamp' => array(
+          'name' => 'Uploaded',
+          'type' => 'date'
+        ),
         'status' => array(
           'name' => 'Status',
           'type' => 'data_status'
@@ -261,6 +265,10 @@ class Model_Report extends ORM {
         ),
         'create_date' => array(
           'name' => 'Date',
+          'type' => 'date'
+        ),
+        'timestamp' => array(
+          'name' => 'Uploaded',
           'type' => 'date'
         ),
         'status' => array(
@@ -356,6 +364,10 @@ class Model_Report extends ORM {
           'name' => 'Date',
           'type' => 'date'
         ),
+        'timestamp' => array(
+          'name' => 'Uploaded',
+          'type' => 'date'
+        ),
         'status' => array(
           'name' => 'Status',
           'type' => 'data_status'
@@ -442,6 +454,10 @@ class Model_Report extends ORM {
         ),
         'create_date' => array(
           'name' => 'Date',
+          'type' => 'date'
+        ),
+        'timestamp' => array(
+          'name' => 'Uploaded',
           'type' => 'date'
         ),
         'status' => array(
@@ -622,25 +638,38 @@ class Model_Report extends ORM {
 
   public static $filters = array(
     'equals'       => 'EQUALS',
-    'not_equals'   => 'NOT EQUALS',
-    'between'      => 'BETWEEN',
-    'greater_than' => 'GREATER THAN',
-    'less_than'    => 'LESS THAN'
+    'not_equals'   => 'DOES NOT EQUAL',
+    'contains'     => 'CONTAINS',
+    'not_contains' => 'DOES NOT CONTAIN',
+    'begins'       => 'BEGINS WITH',
+    'ends'         => 'ENDS WITH',
+    'between'      => 'IS BETWEEN',
+    'greater_than' => 'IS GREATER THAN',
+    'less_than'    => 'IS LESS THAN'
   );
 
   public static function field_values($model, $field, $field_model, $default = FALSE) {
-    if ($model == $field_model) return array('value');
-    else switch (self::$models[$model]['models'][$field_model]['type']) {
+    if ($model == $field_model) {
+      $type = 'default';
+      if ($default) return 'value';
+      else $array = array('value');
+    } else {
+      $type  = self::$models[$model]['models'][$field_model]['type'];
+      $array = array();
+    }
+
+    switch ($type) {
       case 'many_to_one':
       case 'one_to_one':
         return $default ? 'value' : array('value');
 
       case 'many_to_many':
       case 'one_to_many':
+      default:
         $aggregates = self::$models[$field_model]['fields'][$field]['aggregates'];
-        if ($aggregates and is_array($aggregates)) return $default ? reset($aggregates) : $aggregates;
-        else if ($aggregates) return $default ? reset(array_keys(self::$aggregates)) : array_keys(self::$aggregates);
-        else return $default ? 'list' : array('count', 'list', 'unique');
+        if ($aggregates and is_array($aggregates)) return $default ? reset($aggregates) : array_merge($aggregates, $array);
+        else if ($aggregates) return $default ? reset(array_keys(self::$aggregates)) : array_merge(array_keys(self::$aggregates), $array);
+        else return $default ? 'list' : array_merge(array('count', 'list', 'unique'), $array);
     }
   }
 
@@ -681,6 +710,18 @@ class Model_Report extends ORM {
 
         case 'not_equals':
           $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'NOT IN', (array) $filter['values']); break;
+
+        case 'contains':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'ILIKE', "%".$filter['values']."%"); break;
+
+        case 'not_contains':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'NOT ILIKE', "%".$filter['values']."%"); break;
+
+        case 'begins':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'ILIKE', $filter['values']."%"); break;
+
+        case 'ends':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'ILIKE', "%".$filter['values']); break;
 
         case 'between':
           $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'BETWEEN', (array) $filter['values']); break;
@@ -746,4 +787,45 @@ class Model_Report extends ORM {
     parent::delete();
   }
 
+  public function query() {
+    $field_array = array();
+    foreach ($fields as $field) {
+      $field_array[] = array($report::field_query($model, $field, $filters), $field['name']);
+    }
+
+    $query = DB::select_array($field_array)
+      ->from(array($report::$models[$model]['table'], 'model'));
+
+    foreach ($filters as $filter) if ($filter['model'] == $model) switch ($filter['filter']) {
+      case 'equals':
+        $query->where("model.".$filter['field'], 'IN', (array) $filter['values']); break;
+
+      case 'not_equals':
+        $query->where("model.".$filter['field'], 'NOT IN', (array) $filter['values']); break;
+
+      case 'contains':
+        $query->where("model.".$filter['field'], 'ILIKE', "%".$filter['values']."%"); break;
+
+      case 'not_contains':
+        $query->where("model.".$filter['field'], 'NOT ILIKE', "%".$filter['values']."%"); break;
+
+      case 'begins':
+        $query->where("model.".$filter['field'], 'ILIKE', $filter['values']."%"); break;
+
+      case 'ends':
+        $query->where("model.".$filter['field'], 'ILIKE', "%".$filter['values']); break;
+
+      case 'between':
+        $query->where("model.".$filter['field'], 'BETWEEN', (array) $filter['values']); break;
+
+      case 'greater_than':
+        $query->where("model.".$filter['field'], '>', reset($filter['values'])); break;
+
+      case 'less_than':
+        $query->where("model.".$filter['field'], '<', reset($filter['values'])); break;
+    }
+
+    if ($order) $query->order_by($order['sort'], $order['direction'] ?: NULL);
+    if ($limit) $query->limit($limit);
+  }
 }
