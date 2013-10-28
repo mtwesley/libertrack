@@ -294,6 +294,56 @@ class Controller_Reports extends Controller {
           $query->where("model.".$filter['field'], 'IS NOT', NULL); break;
       }
 
+      $no_field_filters = $filters;
+      foreach ($no_field_filters as $index => $filter)
+        foreach ($fields as $field)
+          if (($no_field_filters['field'] == $field['field']) and ($no_field_filters['model'] == $field['model'])) unset($no_field_filters[$index]);
+
+      foreach ($no_field_filters as $filter) {
+        $field_sql = $report::field_query($model, $filter);
+
+        switch ($filter['filter']) {
+          case 'equals':
+            $query->where($field_sql, 'IN', (array) $filter['values']); break;
+
+          case 'not_equals':
+            $query->where($field_sql, 'NOT IN', (array) $filter['values']); break;
+
+          case 'contains':
+            $query->where($field_sql, 'ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
+
+          case 'not_contains':
+            $query->where($field_sql, 'NOT ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
+
+          case 'begins':
+            $query->where($field_sql, 'ILIKE', implode(',', (array) $filter['values'])."%"); break;
+
+          case 'ends':
+            $query->where($field_sql, 'ILIKE', "%".implode(',', (array) $filter['values'])); break;
+
+          case 'between':
+            $query->where($field_sql, 'BETWEEN', (array) $filter['values']); break;
+
+          case 'greater_than':
+            $query->where($field_sql, '>', reset($filter['values'])); break;
+
+          case 'less_than':
+            $query->where($field_sql, '<', reset($filter['values'])); break;
+
+          case 'true':
+            $query->where($field_sql, '=', TRUE); break;
+
+          case 'false':
+            $query->where($field_sql, '=', FALSE); break;
+
+          case 'null':
+            $query->where($field_sql, 'IS', NULL); break;
+
+          case 'not_null':
+            $query->where($field_sql, 'IS NOT', NULL); break;
+        }
+      }
+
       $group_by_fields = array_diff_key((array) $field_array, (array) $not_group_by_fields);
       foreach ($group_by_fields as $group_by_field) $query->group_by(is_array($group_by_field) ? $group_by_field[1] : $group_by_field['name']);
 

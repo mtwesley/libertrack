@@ -22,7 +22,7 @@ class Model_Report extends ORM {
     ),
     'DATA' => array(
       'name'   => 'Data Analysis Report',
-      'models' => array('ssf', 'tdf', 'ldf')
+      'models' => array('ssf', 'tdf', 'ldf', 'specs')
     ),
     'BARCODE' => array(
       'name'   => 'Barcode Review Report',
@@ -181,13 +181,13 @@ class Model_Report extends ORM {
           'name' => 'Inspected',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from ssf_verification where ssf_verification.barcode_id = :table.barcode_id"
+          'sql'  => "exists(select id from ssf_verification where ssf_verification.barcode_id = :table.barcode_id)"
         ),
         'is_verified' => array(
           'name' => 'Verified',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from ssf_verification where ssf_verification.barcode_id = :table.barcode_id and ssf_verification.status = 'A'"
+          'sql'  => "exists(select id from ssf_verification where ssf_verification.barcode_id = :table.barcode_id and ssf_verification.status = 'A')"
         ),
         'is_checked' => array(
           'name' => 'Checked',
@@ -279,13 +279,13 @@ class Model_Report extends ORM {
           'name' => 'Inpsected',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from tdf_verification where tdf_verification.barcode_id = :table.barcode_id"
+          'sql'  => "exists(select id from tdf_verification where tdf_verification.barcode_id = :table.barcode_id)"
         ),
         'is_verified' => array(
           'name' => 'Verified',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from tdf_verification where tdf_verification.barcode_id = :table.barcode_id and tdf_verification.status = 'A'"
+          'sql'  => "exists(select id from tdf_verification where tdf_verification.barcode_id = :table.barcode_id and tdf_verification.status = 'A')"
         ),
         'is_checked' => array(
           'name' => 'Checked',
@@ -376,13 +376,13 @@ class Model_Report extends ORM {
           'name' => 'Inspected',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id"
+          'sql'  => "exists(select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id)"
         ),
         'is_verified' => array(
           'name' => 'Verified',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id and ldf_verification.status = 'A'"
+          'sql'  => "exists(select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id and ldf_verification.status = 'A')"
         ),
         'is_checked' => array(
           'name' => 'Checked',
@@ -468,13 +468,13 @@ class Model_Report extends ORM {
           'name' => 'Inpsected',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id"
+          'sql'  => "exists(select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id)"
         ),
         'is_verified' => array(
           'name' => 'Verified',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id and ldf_verification.status = 'A'"
+          'sql'  => "exists(select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id and ldf_verification.status = 'A')"
         ),
         'is_checked' => array(
           'name' => 'Checked',
@@ -534,79 +534,79 @@ class Model_Report extends ORM {
           'name' => 'Locked',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_locks where barcode_locks.barcode_id = :table.id"
+          'sql'  => "exists(select id from barcode_locks where barcode_locks.barcode_id = :table.id)"
         ),
         'is_in_progress' => array(
           'name' => 'In Progress',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'I'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'I')"
         ),
         'is_on_hold' => array(
           'name' => 'On Hold / Pending Investigation',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'H'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'H')"
         ),
         'is_st_invoiced' => array(
           'name' => 'Stumpage Fee Invoiced',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'T'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'T')"
         ),
         'is_exf_invoiced' => array(
           'name' => 'Export Fee Invoiced',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'X'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'X')"
         ),
         'is_declared_for_export' => array(
           'name' => 'Declared for Export',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'D'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'D')"
         ),
         'is_exported' => array(
           'name' => 'Exported',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'E'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'E')"
         ),
         'is_loaded_on_vessel' => array(
           'name' => 'Loaded on Vessel',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'O'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'O')"
         ),
         'is_short_shipped' => array(
           'name' => 'Short Shipped',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'S'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'S')"
         ),
         'is_sold_locally' => array(
           'name' => 'Sold Locally',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'Y'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'Y')"
         ),
         'is_abandoned' => array(
           'name' => 'Abandoned',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'A'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'A')"
         ),
         'is_lost' => array(
           'name' => 'Lost',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'L'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'L')"
         ),
         'is_seized' => array(
           'name' => 'Seized',
           'type' => 'bool',
           'cast' => 'bool',
-          'sql'  => "select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'Z'"
+          'sql'  => "exists(select id from barcode_activity where barcode_activity.barcode_id = :table.id and barcode_activity.activity = 'Z')"
         ),
       )
     ),
@@ -712,7 +712,7 @@ class Model_Report extends ORM {
         $_field = $sql; break;
     }
 
-    if ($field['cast']) $_field = "($field)::{$field['cast']}";
+    if ($field['cast']) $_field = DB::expr("($_field)::{$field['cast']}");
     if ($model == $field['model']) return $_field;
 
     $query = DB::select($_field)
