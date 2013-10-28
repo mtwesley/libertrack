@@ -229,9 +229,9 @@ class Controller_Reports extends Controller {
         ->add('submit', 'submit', 'Save');
 
       if ($limits_form->sent($_REQUEST) and $limits_form->load($_REQUEST)->validate()) {
-        if (list($i, $m, $f) = explode('.', $limits_form->sort->val())) {
+        if ($limits_form->sort->val()) {
           $order = array(
-            'sort'      => $fields[$i]['name'],
+            'sort'      => $limits_form->sort->val(),
             'direction' => $limits_form->direction->val()
           );
         }
@@ -297,7 +297,10 @@ class Controller_Reports extends Controller {
       $group_by_fields = array_diff_key((array) $field_array, (array) $not_group_by_fields);
       foreach ($group_by_fields as $group_by_field) $query->group_by(is_array($group_by_field) ? $group_by_field[1] : $group_by_field['name']);
 
-      if ($order) $query->order_by($order['sort'], $order['direction'] ?: NULL);
+      if ($order) {
+        list($i, $m, $f) = explode('.', $order['sort']);
+        $query->order_by($fields[$i]['name'], $order['direction'] ?: NULL);
+      }
       if ($limit) $query->limit($limit);
 
       try {
