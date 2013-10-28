@@ -14,7 +14,7 @@ class Model_Report extends ORM {
   public static $types = array(
     'SUMMARY' => array(
       'name'   => 'Data Analysis Report',
-      'models' => array('site', 'operator')
+      'models' => array('site', 'operator', 'species')
     ),
     'CSV' => array(
       'name'   => 'Data Import Report',
@@ -178,7 +178,7 @@ class Model_Report extends ORM {
           'type' => 'data_status'
         ),
         'inspected' => array(
-          'name' => 'Verified',
+          'name' => 'Inspected',
           'type' => 'bool',
           'cast' => 'bool',
           'sql'  => "select id from ssf_verification where ssf_verification.barcode_id = :table.barcode_id"
@@ -276,7 +276,7 @@ class Model_Report extends ORM {
           'type' => 'data_status'
         ),
         'inspected' => array(
-          'name' => 'Verified',
+          'name' => 'Inpsected',
           'type' => 'bool',
           'cast' => 'bool',
           'sql'  => "select id from tdf_verification where tdf_verification.barcode_id = :table.barcode_id"
@@ -373,7 +373,7 @@ class Model_Report extends ORM {
           'type' => 'data_status'
         ),
         'inspected' => array(
-          'name' => 'Verified',
+          'name' => 'Inspected',
           'type' => 'bool',
           'cast' => 'bool',
           'sql'  => "select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id"
@@ -465,7 +465,7 @@ class Model_Report extends ORM {
           'type' => 'data_status'
         ),
         'inspected' => array(
-          'name' => 'Verified',
+          'name' => 'Inpsected',
           'type' => 'bool',
           'cast' => 'bool',
           'sql'  => "select id from ldf_verification where ldf_verification.barcode_id = :table.barcode_id"
@@ -536,7 +536,7 @@ class Model_Report extends ORM {
           'cast' => 'bool',
           'sql'  => "select id from barcode_locks where barcode_locks.barcode_id = :table.id"
         ),
-        'is_inprogress' => array(
+        'is_in_progress' => array(
           'name' => 'In Progress',
           'type' => 'bool',
           'cast' => 'bool',
@@ -618,10 +618,23 @@ class Model_Report extends ORM {
         'class' => array('name' => 'Species Class'),
         'botanic_name' => array('name' => 'Botanic Name'),
         'trade_name' => array('name' => 'Trade Name'),
-        'printjob' => array(
-          'name' => 'Print Job',
-          'sql'  => 'select number from printjobs where printjobs.id = :table.printjob_id'
-        )
+      ),
+      'models' => array(
+        'ssf' => array(
+          'type' => 'one_to_many',
+          'local_field'   => 'id',
+          'foreign_field' => 'species_id',
+        ),
+        'tdf' => array(
+          'type' => 'one_to_many',
+          'local_field'   => 'id',
+          'foreign_field' => 'species_id'
+        ),
+        'ldf' => array(
+          'type' => 'one_to_many',
+          'local_field'   => 'id',
+          'foreign_field' => 'species_id'
+        ),
       )
     ),
   );
@@ -645,7 +658,11 @@ class Model_Report extends ORM {
     'ends'         => 'ENDS WITH',
     'between'      => 'IS BETWEEN',
     'greater_than' => 'IS GREATER THAN',
-    'less_than'    => 'IS LESS THAN'
+    'less_than'    => 'IS LESS THAN',
+    'true'         => 'TRUE',
+    'false'        => 'FALSE',
+    'null'         => 'EMPTY',
+    'not_null'     => 'NOT EMPTY',
   );
 
   public static function field_values($model, $field, $field_model, $default = FALSE) {
@@ -675,23 +692,24 @@ class Model_Report extends ORM {
 
   public static function field_query($model, $field, $filters = array()) {
     $field = array_merge(self::$models[$field['model']]['fields'][$field['field']], $field);
+    $sql = $field['sql'] ? '('.str_replace(':table', self::$models[$field['model']]['table'], $field['sql']).')' : $field['field'];
     switch ($field['value']) {
       case 'list':
-        $_field = DB::expr("array_to_string(array_agg({$field['field']}::text), ',')"); break;
+        $_field = DB::expr("array_to_string(array_agg($sql::text), ',')"); break;
 
       case 'unique':
-        $_field = DB::expr("array_to_string(array_agg(distinct {$field['field']}::text), ',')"); break;
+        $_field = DB::expr("array_to_string(array_agg(distinct $sql::text), ',')"); break;
 
-      case 'sum':
       case 'count':
+      case 'sum':
       case 'min':
       case 'max':
       case 'avg':
-        $_field = DB::expr("{$field['value']}({$field['field']})"); break;
+        $_field = DB::expr("{$field['value']}($sql)"); break;
 
       case 'value':
       default:
-        $_field = $field['field']; break;
+        $_field = $sql; break;
     }
 
     if ($field['cast']) $_field = "($field)::{$field['cast']}";
@@ -712,16 +730,16 @@ class Model_Report extends ORM {
           $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'NOT IN', (array) $filter['values']); break;
 
         case 'contains':
-          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'ILIKE', "%".$filter['values']."%"); break;
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
 
         case 'not_contains':
-          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'NOT ILIKE', "%".$filter['values']."%"); break;
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'NOT ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
 
         case 'begins':
-          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'ILIKE', $filter['values']."%"); break;
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'ILIKE', implode(',', (array) $filter['values'])."%"); break;
 
         case 'ends':
-          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'ILIKE', "%".$filter['values']); break;
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'ILIKE', "%".implode(',', (array) $filter['values'])); break;
 
         case 'between':
           $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'BETWEEN', (array) $filter['values']); break;
@@ -731,6 +749,18 @@ class Model_Report extends ORM {
 
         case 'less_than':
           $query->where(self::$models[$field['model']]['table'].".".$filter['field'], '<', reset($filter['values'])); break;
+
+        case 'true':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], '=', TRUE); break;
+
+        case 'false':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], '=', FALSE); break;
+
+        case 'null':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'IS', NULL); break;
+
+        case 'not_null':
+          $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'IS NOT', NULL); break;
       }
 
     return $query;

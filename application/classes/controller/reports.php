@@ -261,16 +261,16 @@ class Controller_Reports extends Controller {
           $query->where("model.".$filter['field'], 'NOT IN', (array) $filter['values']); break;
 
         case 'contains':
-          $query->where("model.".$filter['field'], 'ILIKE', "%".$filter['values']."%"); break;
+          $query->where("model.".$filter['field'], 'ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
 
         case 'not_contains':
-          $query->where("model.".$filter['field'], 'NOT ILIKE', "%".$filter['values']."%"); break;
+          $query->where("model.".$filter['field'], 'NOT ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
 
         case 'begins':
-          $query->where("model.".$filter['field'], 'ILIKE', $filter['values']."%"); break;
+          $query->where("model.".$filter['field'], 'ILIKE', implode(',', (array) $filter['values'])."%"); break;
 
         case 'ends':
-          $query->where("model.".$filter['field'], 'ILIKE', "%".$filter['values']); break;
+          $query->where("model.".$filter['field'], 'ILIKE', "%".implode(',', (array) $filter['values'])); break;
 
         case 'between':
           $query->where("model.".$filter['field'], 'BETWEEN', (array) $filter['values']); break;
@@ -280,6 +280,18 @@ class Controller_Reports extends Controller {
 
         case 'less_than':
           $query->where("model.".$filter['field'], '<', reset($filter['values'])); break;
+
+        case 'true':
+          $query->where("model.".$filter['field'], '=', TRUE); break;
+
+        case 'false':
+          $query->where("model.".$filter['field'], '=', FALSE); break;
+
+        case 'null':
+          $query->where("model.".$filter['field'], 'IS', NULL); break;
+
+        case 'not_null':
+          $query->where("model.".$filter['field'], 'IS NOT', NULL); break;
       }
 
       $group_by_fields = array_diff_key((array) $field_array, (array) $not_group_by_fields);
