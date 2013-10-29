@@ -107,11 +107,6 @@ class Model_Report extends ORM {
           'local_field'   => 'id',
           'foreign_field' => 'site_id'
         ),
-        'specs' => array(
-          'type' => 'one_to_many',
-          'local_field'   => 'id',
-          'foreign_field' => 'site_id'
-        ),
       )
     ),
     'block' => array(
@@ -618,6 +613,7 @@ class Model_Report extends ORM {
         'class' => array('name' => 'Species Class'),
         'botanic_name' => array('name' => 'Botanic Name'),
         'trade_name' => array('name' => 'Trade Name'),
+        'min_diameter' => array('name' => 'Minimum Diameter'),
       ),
       'models' => array(
         'ssf' => array(
@@ -690,7 +686,9 @@ class Model_Report extends ORM {
   public static function field_query($model, $field, $filters = array()) {
     $field = array_merge(self::$models[$field['model']]['fields'][$field['field']], $field);
     $sql = $field['sql'] ? '('.str_replace(':table', self::$models[$field['model']]['table'], $field['sql']).')' : $field['field'];
-    if ($field['value'] and ($field['value'] != 'value') and !(in_array(self::$models[$model]['models'][$field['model']]['type'], array('one_to_one', 'many_to_one'))))
+    if (($field['value']) and
+        ($field['value'] != 'value') and
+        (!in_array(self::$models[$model]['models'][$field['model']]['type'], array('one_to_one', 'many_to_one'))))
       switch ($field['value']) {
         case 'list':
           $_field = DB::expr("array_to_string(array_agg($sql::text), ',')"); break;
@@ -761,6 +759,8 @@ class Model_Report extends ORM {
           $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'IS NOT', NULL); break;
       }
     }
+
+    if (in_array(self::$models[$model]['models'][$field['model']]['type'], array('one_to_one', 'many_to_one'))) $query->limit(1);
 
     if ($_field_aggregate) {
       $sql = $query->compile(Database::instance());

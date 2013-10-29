@@ -254,45 +254,48 @@ class Controller_Reports extends Controller {
       $query = DB::select_array($field_array)
         ->from(array($report::$models[$model]['table'], 'model'));
 
-      foreach ($filters as $filter) if ($filter['model'] == $model) switch ($filter['filter']) {
-        case 'equals':
-          $query->where("model.".$filter['field'], 'IN', (array) $filter['values']); break;
+      foreach ($filters as $filter) if ($filter['model'] == $model) {
+        $filter_field = $report::field_query($model, $filter);
+        switch ($filter['filter']) {
+          case 'equals':
+            $query->where($filter_field, 'IN', (array) $filter['values']); break;
 
-        case 'not_equals':
-          $query->where("model.".$filter['field'], 'NOT IN', (array) $filter['values']); break;
+          case 'not_equals':
+            $query->where($filter_field, 'NOT IN', (array) $filter['values']); break;
 
-        case 'contains':
-          $query->where("model.".$filter['field'], 'ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
+          case 'contains':
+            $query->where($filter_field, 'ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
 
-        case 'not_contains':
-          $query->where("model.".$filter['field'], 'NOT ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
+          case 'not_contains':
+            $query->where($filter_field, 'NOT ILIKE', "%".implode(',', (array) $filter['values'])."%"); break;
 
-        case 'begins':
-          $query->where("model.".$filter['field'], 'ILIKE', implode(',', (array) $filter['values'])."%"); break;
+          case 'begins':
+            $query->where($filter_field, 'ILIKE', implode(',', (array) $filter['values'])."%"); break;
 
-        case 'ends':
-          $query->where("model.".$filter['field'], 'ILIKE', "%".implode(',', (array) $filter['values'])); break;
+          case 'ends':
+            $query->where($filter_field, 'ILIKE', "%".implode(',', (array) $filter['values'])); break;
 
-        case 'between':
-          $query->where("model.".$filter['field'], 'BETWEEN', (array) $filter['values']); break;
+          case 'between':
+            $query->where($filter_field, 'BETWEEN', (array) $filter['values']); break;
 
-        case 'greater_than':
-          $query->where("model.".$filter['field'], '>', reset($filter['values'])); break;
+          case 'greater_than':
+            $query->where($filter_field, '>', reset($filter['values'])); break;
 
-        case 'less_than':
-          $query->where("model.".$filter['field'], '<', reset($filter['values'])); break;
+          case 'less_than':
+            $query->where($filter_field, '<', reset($filter['values'])); break;
 
-        case 'true':
-          $query->where("model.".$filter['field'], '=', TRUE); break;
+          case 'true':
+            $query->where($filter_field, '=', TRUE); break;
 
-        case 'false':
-          $query->where("model.".$filter['field'], '=', FALSE); break;
+          case 'false':
+            $query->where($filter_field, '=', FALSE); break;
 
-        case 'null':
-          $query->where("model.".$filter['field'], 'IS', NULL); break;
+          case 'null':
+            $query->where($filter_field, 'IS', NULL); break;
 
-        case 'not_null':
-          $query->where("model.".$filter['field'], 'IS NOT', NULL); break;
+          case 'not_null':
+            $query->where($filter_field, 'IS NOT', NULL); break;
+        }
       }
 
       $no_field_filters = $filters;
