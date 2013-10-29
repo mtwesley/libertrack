@@ -24,6 +24,7 @@ class Model_Block extends ORM {
       'utm_west'   => array('render' => FALSE),
       'inspection_file_id' => array('render' => FALSE),
       'status'     => array('render' => FALSE),
+      'file'       => array('render' => FALSE)
     );
     foreach (self::fields() as $field => $label) {
       $array[$field]['label'] = $label;
