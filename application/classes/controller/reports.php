@@ -247,6 +247,7 @@ class Controller_Reports extends Controller {
       $field_array = array();
       foreach ($fields as $index => $field) {
         if (($field['model'] == $model) and ($field['value'] != 'value')) $not_group_by_fields[$index] = $field;
+        else if ((in_array($report::$models[$model]['models'][$field['model']]['type'], array('one_to_one', 'many_to_one'))) and ($field['value'] != 'value')) $not_group_by_fields[$index] = $field;
         $field_array[] = array($report::field_query($model, $field, $filters), $field['name']);
       }
 
@@ -298,6 +299,7 @@ class Controller_Reports extends Controller {
       foreach ($no_field_filters as $index => $filter)
         foreach ($fields as $field)
           if (($no_field_filters['field'] == $field['field']) and ($no_field_filters['model'] == $field['model'])) unset($no_field_filters[$index]);
+          else if ($filter['model'] == $model) unset($no_field_filters[$index]);
 
       foreach ($no_field_filters as $filter) {
         $field_sql = $report::field_query($model, $filter);

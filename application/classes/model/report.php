@@ -666,19 +666,16 @@ class Model_Report extends ORM {
   );
 
   public static function field_values($model, $field, $field_model, $default = FALSE) {
-    if ($model == $field_model) {
-      $type = 'default';
-      if ($default) return 'value';
-      else $array = array('value');
-    } else {
-      $type  = self::$models[$model]['models'][$field_model]['type'];
-      $array = array();
-    }
+    $array = array();
+    if ($model == $field_model) $type = 'default';
+    else $type = self::$models[$model]['models'][$field_model]['type'];
 
     switch ($type) {
+      case 'default':
       case 'many_to_one':
       case 'one_to_one':
-        return $default ? 'value' : array('value');
+        if ($default) return 'value';
+        $array = array('value');
 
       case 'many_to_many':
       case 'one_to_many':
@@ -693,23 +690,24 @@ class Model_Report extends ORM {
   public static function field_query($model, $field, $filters = array()) {
     $field = array_merge(self::$models[$field['model']]['fields'][$field['field']], $field);
     $sql = $field['sql'] ? '('.str_replace(':table', self::$models[$field['model']]['table'], $field['sql']).')' : $field['field'];
-    switch ($field['value']) {
-      case 'list':
-        $_field = DB::expr("array_to_string(array_agg($sql::text), ',')"); break;
+    if ($field['value'] and ($field['value'] != 'value') and !(in_array(self::$models[$model]['models'][$field['model']]['type'], array('one_to_one', 'many_to_one'))))
+      switch ($field['value']) {
+        case 'list':
+          $_field = DB::expr("array_to_string(array_agg($sql::text), ',')"); break;
 
-      case 'unique':
-        $_field = DB::expr("array_to_string(array_agg(distinct $sql::text), ',')"); break;
+        case 'unique':
+          $_field = DB::expr("array_to_string(array_agg(distinct $sql::text), ',')"); break;
 
-      case 'count':
-      case 'sum':
-      case 'min':
-      case 'max':
-      case 'avg':
-        $_field = DB::expr("{$field['value']}($sql)"); break;
-
-      case 'value':
-      default:
-        $_field = $sql; break;
+        case 'count':
+        case 'sum':
+        case 'min':
+        case 'max':
+        case 'avg':
+          $_field = DB::expr("{$field['value']}($sql)"); break;
+      }
+    else {
+      $_field = $sql;
+      if ($field['value'] and ($field['value'] != 'value')) $_field_aggregate = $field['value'];
     }
 
     if ($field['cast']) $_field = DB::expr("($_field)::{$field['cast']}");
@@ -719,7 +717,7 @@ class Model_Report extends ORM {
       ->from(self::$models[$field['model']]['table'])
       ->where("model.".self::$models[$model]['models'][$field['model']]['local_field'], '=', DB::expr('"'.self::$models[$field['model']]['table'].'"."'.self::$models[$model]['models'][$field['model']]['foreign_field'].'"'));
 
-    foreach ($filters as $filter)
+    foreach ($filters as $filter) {
       if (($filter['model'] == $field['model']) and
           ($filter['field'] == $field['field'])) switch ($filter['filter']) {
 
@@ -762,6 +760,28 @@ class Model_Report extends ORM {
         case 'not_null':
           $query->where(self::$models[$field['model']]['table'].".".$filter['field'], 'IS NOT', NULL); break;
       }
+    }
+
+    if ($_field_aggregate) {
+      $sql = $query->compile(Database::instance());
+      switch ($field['value']) {
+        case 'list':
+          $query = DB::expr("array_to_string(array_agg(($sql)::text), ',')"); break;
+
+        case 'unique':
+          $query = DB::expr("array_to_string(array_agg(distinct ($sql)::text), ',')"); break;
+
+        case 'count':
+        case 'sum':
+        case 'min':
+        case 'max':
+        case 'avg':
+          $query = DB::expr("{$field['value']}(($sql))"); break;
+
+        default:
+          $query = DB::expr("($sql)"); break;
+      }
+    }
 
     return $query;
   }
