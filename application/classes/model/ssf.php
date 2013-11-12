@@ -27,8 +27,11 @@ class Model_SSF extends SGS_Form_ORM {
       case 'is_fda_approved':
         parent::set($column, SGS::booleanify($value));
 
+      case 'length':
+        return $this->height;
+
       case 'volume':
-        return SGS::volumify(($this->diameter / 100), $this->length);
+        return SGS::volumify(($this->diameter / 100), $this->height);
 
       default:
         parent::set($column, $value);

@@ -23,8 +23,11 @@ class Model_SSFV extends SGS_Form_ORM {
 
   public function set($column, $value) {
     switch ($column) {
+      case 'length':
+        return $this->height;
+
       case 'volume':
-        return SGS::volumify(($this->diameter / 100), $this->length);
+        return SGS::volumify(($this->diameter / 100), $this->height);
 
       default:
         parent::set($column, $value);
