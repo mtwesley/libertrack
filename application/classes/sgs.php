@@ -74,6 +74,7 @@ class SGS {
     'config'            => 'Configuration',
 //    'config/files'      => 'File Management',
     'config/operators'  => 'Operator Registration',
+    'config/buyers'     => 'Buyer Registration',
     'config/sites'      => 'Site Registration',
     'config/blocks'     => 'Block Registration',
     'config/species'    => 'Species Configuration',

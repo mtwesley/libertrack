@@ -114,15 +114,9 @@ $classes[] = 'data';
 
 <table class="<?php echo SGS::render_classes($classes); ?> document-exp-summary" style="border: 1px solid #D9C7AD;">
   <tr>
-    <td colspan="2">
-      <div class="strong">Type</div>
-      <?php echo $document->values['product_type']; ?>
-    </td>
-  </tr>
-  <tr>
     <td>
-      <div class="strong">Description</div>
-      <?php echo preg_replace('/(\w+): (\d+\.\d+)m3/i', '<em>$1:</em> $2m<sup>3</sup>', $document->values['product_description']); ?>
+      <div class="strong">Site Reference</div>
+      <?php echo $document->values['site_reference']; ?>
     </td>
     <td>
       <div class="strong">Quantity</div>
@@ -130,9 +124,19 @@ $classes[] = 'data';
     </td>
   </tr>
   <tr>
-    <td colspan="2">
+    <td>
+      <div class="strong">Type</div>
+      <?php echo $document->values['product_type']; ?>
+    </td>
+    <td>
       <div class="strong">Total FOB Value (USD)</div>
       $<?php echo SGS::amountify($total_fob); ?>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <div class="strong">Description</div>
+      <?php echo preg_replace('/(\w+): (\d+\.\d+)m3/i', '<em>$1:</em> $2m<sup>3</sup>', $document->values['product_description']); ?>
     </td>
   </tr>
 </table>

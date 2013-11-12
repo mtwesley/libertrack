@@ -295,6 +295,10 @@ $num = $cntr;
         <td colspan="2"><?php echo $document->values['loading_date']; ?></td>
       </tr>
       <tr>
+        <td class="label">Site Reference:</td>
+        <td colspan="3"><?php echo $document->values['site_reference']; ?></td>
+      </tr>
+      <tr>
         <td class="label">Port of Origin:</td>
         <td><?php echo SGS::locationify($document->values['origin']); ?></td>
         <td class="label">Port of Destination:</td>

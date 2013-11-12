@@ -71,6 +71,7 @@ class Controller_Exports extends Controller {
       'SPEC NUMBER ' => $document->values['specs_number'],
       'EXPORTER'     => $document->operator->name,
       'BUYER'        => $document->values['buyer'],
+      'SITE'         => $document->values['site_reference'],
       'ORIGIN'       => $document->values['origin'],
       'DESTINATION'  => $document->values['destination'],
       'VESSEL'       => $document->values['vessel'],
@@ -216,7 +217,7 @@ VALIDATION: $secret";
       ->find_all()
       ->as_array();
 
-    $page_max = 28;
+    $page_max = 27;
     $total = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
       ->where('id', 'IN', (array) $data_ids)
@@ -227,6 +228,7 @@ VALIDATION: $secret";
       'SPEC NUMBER'  => $document->number,
       'SPEC BARCODE' => $document->values['specs_barcode'],
       'EXPORTER'     => $document->operator->name,
+      'SITE'         => $document->values['site_reference'],
       'ORIGIN'       => $document->values['origin'],
       'DESTINATION'  => $document->values['destination'],
       'QUANTITY'     => SGS::quantitify($total).'m3',
@@ -634,7 +636,23 @@ VALIDATION: $secret";
       if ($form_type and $ids) {
         $operator = ORM::factory('operator', $operator_id);
 
+        $site_reference = DB::select('sites.id', array(DB::expr("sites.type || '/' || sites.name"), 'reference'))
+          ->distinct(TRUE)
+          ->from('specs_data')
+          ->join('barcodes')
+          ->on('specs_data.barcode_id', '=', 'barcodes.id')
+          ->join('printjobs')
+          ->on('barcodes.printjob_id', '=', 'printjobs.id')
+          ->join('sites')
+          ->on('printjobs.site_id', '=', 'sites.id')
+          ->where('specs_data.id', 'IN', (array) $ids)
+          ->execute()
+          ->as_array('id', 'reference');
+
+        $values['site_reference'] = implode(', ', $site_reference);
+
         $document = ORM::factory('document');
+        if (count($site_reference) == 1) $document->site = ORM::factory('site', reset(array_keys($site_reference)));
         $document->operator = $operator;
         $document->type     = $document_type;
         $document->is_draft = $is_draft ? TRUE : FALSE;

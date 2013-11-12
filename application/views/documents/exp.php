@@ -403,6 +403,11 @@ $options = (array) $options + array(
       </tr>
       <tr>
         <td colspan="4">
+          <div class="strong">Site Reference</div>
+          <?php echo $document->values['site_reference']; ?>
+        </td>
+      </tr>
+        <td colspan="4">
           <div class="strong">Description</div>
           <?php echo preg_replace('/(\w+): (\d+\.\d+)m3/i', '<em>$1:</em> $2m<sup>3</sup>', $document->values['product_description']); ?>
         </td>

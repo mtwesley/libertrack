@@ -36,22 +36,28 @@ $classes[] = 'data';
     <td><?php echo $document->operator->name; ?></td>
   </tr>
   <tr>
-    <td class="label">Port of Origin:</td>
-    <td><?php echo SGS::locationify($document->values['origin']); ?></td>
+    <td class="label">Site Reference:</td>
+    <td><?php echo $document->values['site_reference']; ?></td>
     <td class="label">Expected Loading Date:</td>
     <td><?php echo $document->values['loading_date']; ?></td>
   </tr>
   <tr>
-    <td class="label">Port of Destination:</td>
-    <td><?php echo SGS::locationify($document->values['destination']); ?></td>
+    <td class="label">Port of Origin:</td>
+    <td><?php echo SGS::locationify($document->values['origin']); ?></td>
     <td class="label">Buyer:</td>
     <td><?php echo $document->values['buyer']; ?></td>
   </tr>
   <tr>
-    <td class="label">Submitted By:</td>
-    <td><?php echo $document->values['submitted_by']; ?></td>
+    <td class="label">Port of Destination:</td>
+    <td><?php echo SGS::locationify($document->values['destination']); ?></td>
     <td class="label">Date:</td>
     <td><?php echo SGS::date($document->created_date, SGS::US_DATE_FORMAT); ?></td>
+  </tr>
+  <tr>
+    <td class="label">Submitted By:</td>
+    <td><?php echo $document->values['submitted_by']; ?></td>
+    <td class="label"></td>
+    <td></td>
   </tr>
 </table>
 <table class="<?php echo SGS::render_classes($classes); ?> invoice-specs-summary" style="border: 1px solid #D9C7AD;">

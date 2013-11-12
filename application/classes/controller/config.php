@@ -76,6 +76,60 @@ class Controller_Config extends Controller {
     $this->response->body($view);
   }
 
+  public function action_buyers() {
+    $id = $this->request->param('id');
+
+    $buyer = ORM::factory('buyer', $id);
+    $form = Formo::form(array('attr' => array('style' => ($id or $_POST) ? '' : 'display: none;')))
+      ->orm('load', $buyer, array('sites', 'user_id', 'timestamp'), true)
+      ->add('save', 'submit', array(
+        'label' => $id ? 'Update Buyer' : 'Add a New Buyer'
+      ));
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      try {
+        $buyer->save();
+        if ($id) Notify::msg('Buyer successfully updated.', 'success', TRUE);
+        else Notify::msg('Buyer successfully added.', 'success', TRUE);
+
+        $this->request->redirect('config/buyers');
+      } catch (Database_Exception $e) {
+        Notify::msg('Sorry, unable to save buyer due to incorrect or missing input. Please try again.', 'error');
+      } catch (Exception $e) {
+        Notify::msg('Sorry, buyer failed to be saved. Please try again.', 'error');
+      }
+    }
+
+    if ($id === null) {
+      $pagination = Pagination::factory(array(
+        'items_per_page' => 20,
+        'total_items' => $buyer->find_all()->count()));
+
+      $buyers = ORM::factory('buyer')
+        ->offset($pagination->offset)
+        ->limit($pagination->items_per_page);
+      if ($sort = $this->request->query('sort')) $buyers->order_by($sort);
+      $buyers = $buyers->order_by('name')
+        ->find_all()
+        ->as_array();
+
+      $table .= View::factory('buyers')
+        ->set('classes', array('has-pagination'))
+        ->set('buyers', $buyers);
+
+      if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' buyer found');
+      elseif ($pagination->total_items) Notify::msg($pagination->total_items.' buyers found');
+      else Notify::msg('No buyers found');
+    }
+
+    $content .= ($id or $_POST) ? $form->render() : SGS::render_form_toggle($form->save->get('label')).$form->render();
+    $content .= $table;
+    $content .= $pagination;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
   public function action_sites() {
     if (!Request::$current->query()) Session::instance()->delete('pagination.sites.list');
 

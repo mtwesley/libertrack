@@ -73,6 +73,7 @@ if (!$command && !is_numeric($id)) {
   <ul class="nav secondary">
     <?php if ($primary == 'config'): ?>
     <li class="<?php if ($secondary == 'operators')  echo 'active'; ?>"><?php echo HTML::anchor('config/operators', SGS::title('config/operators')); ?></li>
+    <li class="<?php if ($secondary == 'buyers')     echo 'active'; ?>"><?php echo HTML::anchor('config/buyers', SGS::title('config/buyers')); ?></li>
     <li class="<?php if ($secondary == 'sites')      echo 'active'; ?>"><?php echo HTML::anchor('config/sites', SGS::title('config/sites')); ?></li>
     <li class="<?php if ($secondary == 'blocks')     echo 'active'; ?>"><?php echo HTML::anchor('config/blocks', SGS::title('config/blocks')); ?></li>
     <li class="<?php if ($secondary == 'species')    echo 'active'; ?>"><?php echo HTML::anchor('config/species', SGS::title('config/species')); ?></li>

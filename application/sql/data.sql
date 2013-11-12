@@ -353,3 +353,10 @@ insert into tolerances (form_type,"check",accuracy_range,tolerance_range) values
 insert into tolerances (form_type,"check",accuracy_range,tolerance_range) values ('LDFV','is_matching_length',0.5,2);
 insert into tolerances (form_type,"check",accuracy_range,tolerance_range) values ('LDFV','is_matching_volume',0.2,2);
 
+-- fees
+
+insert into fees (type,value,name,description,tax_code) values ('P',0.652,'Stumpage Fee (GoL share)','FDA Regulation 107-7, Section 22(b)','1415-14');
+insert into fees (type,value,name,description,tax_code) values ('P',0.348,'Chain of Custody Stumpage Share','GoL-SGS Contract','1415-15');
+insert into fees (type,value,name,description,tax_code) values ('P',1.000,'Log and Wood Product Export Fee','FDA Regulation 107-7, Section 44-45','1415-17');
+insert into fees (type,value,name,description,tax_code) values ('P',0.014,'Chain of Custody Management Fee','GoL-SGS Contract (1.4% of FOB Value)','1415-18');
+insert into fees (type,value,name,description,tax_code) values ('F',100,'Timber Export License Fee','FDA Regulation 107-7, Section 42(c)','1415-16');
