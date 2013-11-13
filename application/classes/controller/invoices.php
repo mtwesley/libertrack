@@ -205,6 +205,20 @@ class Controller_Invoices extends Controller {
         $site     = ORM::factory('site', $site_id);
         $operator = ORM::factory('operator', $operator_id ?: $site->operator->id);
 
+        if ($invoice_type == 'EXF') {
+          $_site_id = DB::select('sites.id')
+            ->distinct(TRUE)
+            ->from('specs_data')
+            ->join('ldf_data')
+            ->on('specs_data.barcode_id', '=', 'ldf_data.barcode_id')
+            ->join('sites')
+            ->on('ldf_data.site_id', '=', 'sites.id')
+            ->where('specs_data.id', 'IN', (array) $ids)
+            ->execute()
+            ->as_array(NULL, 'id');
+          if (count($_site_id) == 1) $invoice->site = ORM::factory('site', reset($_site_id));
+        }
+
         $invoice = ORM::factory('invoice');
         $invoice->type = $invoice_type;
         $invoice->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
