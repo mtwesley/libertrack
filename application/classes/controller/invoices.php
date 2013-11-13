@@ -613,7 +613,7 @@ class Controller_Invoices extends Controller {
 
         if ($ids) {
           $func = strtolower('generate_'.$invoice->type.'_preview');
-          $summary = self::$func($invoice);
+          $summary = self::$func($invoice, $ids);
 
           switch ($invoice->type) {
             case 'ST':
