@@ -581,6 +581,9 @@ VALIDATION: $secret";
             ->join(DB::expr('"document_data" as "related_document_data"'), 'LEFT OUTER')
             ->on('related_specs_data.id', '=', 'related_document_data.form_data_id')
             ->on('related_document_data.form_type', '=', DB::expr("'SPECS'"))
+            ->join(DB::expr('"documents" as "related_documents"'), 'LEFT OUTER')
+            ->on('related_document_data.document_id', '=', 'related_documents.id')
+            ->on('related_documents.type', '=', DB::expr("'SPECS'"))
 
             ->join(DB::expr('"document_data" as "parent_document_data"'), 'LEFT OUTER')
             ->on('parent_specs_data.id', '=', 'parent_document_data.form_data_id')
