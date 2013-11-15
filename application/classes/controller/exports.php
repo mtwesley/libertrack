@@ -570,10 +570,17 @@ VALIDATION: $secret";
             ->on('specs_data.barcode_id', '=', 'parent_barcodes.barcode_id')
             ->join(DB::expr('"barcode_hops" as "children_barcodes"'), 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'children_barcodes.parent_id')
+
+            ->join(DB::expr('"specs_data" as "related_specs_data"'), 'LEFT OUTER')
+            ->on('specs_data.barcode_id', '=', 'related_specs_data.barcode_id')
             ->join(DB::expr('"specs_data" as "parent_specs_data"'), 'LEFT OUTER')
             ->on('parent_barcodes.parent_id', '=', 'parent_specs_data.barcode_id')
             ->join(DB::expr('"specs_data" as "children_specs_data"'), 'LEFT OUTER')
             ->on('children_barcodes.barcode_id', '=', 'children_specs_data.barcode_id')
+
+            ->join(DB::expr('"document_data" as "related_document_data"'), 'LEFT OUTER')
+            ->on('related_specs_data.id', '=', 'related_document_data.form_data_id')
+            ->on('related_document_data.form_type', '=', DB::expr("'SPECS'"))
 
             ->join(DB::expr('"document_data" as "parent_document_data"'), 'LEFT OUTER')
             ->on('parent_specs_data.id', '=', 'parent_document_data.form_data_id')
@@ -592,7 +599,6 @@ VALIDATION: $secret";
             ->join(DB::expr('"barcode_activity" as "parent_barcode_activity"'), 'LEFT OUTER')
             ->on('parent_specs_data.barcode_id', '=', 'parent_barcode_activity.barcode_id')
             ->on('parent_barcode_activity.activity', 'IN', DB::expr("('D','E','O','H','Y','A','L','S','Z')"))
-
             ->join(DB::expr('"barcode_activity" as "children_barcode_activity"'), 'LEFT OUTER')
             ->on('children_specs_data.barcode_id', '=', 'children_barcode_activity.barcode_id')
             ->on('children_barcode_activity.activity', 'IN', DB::expr("('D','E','O','H','Y','A','L','S','Z')"))
@@ -600,6 +606,12 @@ VALIDATION: $secret";
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
             ->and_where('specs_data.specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
+
+            ->and_where_open()
+              ->where('related_documents.type', '<>', 'SPECS')
+              ->or_where('related_documents.id', '=', NULL)
+            ->and_where_close()
+
             ->and_where_open()
               ->where('barcode_activity.activity', 'NOT IN', array('E', 'O', 'H', 'Y', 'A', 'L', 'Z'))
               ->or_where('barcode_activity.activity', '=', NULL)
