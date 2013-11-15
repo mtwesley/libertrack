@@ -909,7 +909,7 @@ VALIDATION: $secret";
         $form->specs_barcode->val($specs_barcode = $settings['specs_barcode']);
         // $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
         $form->from->val($from = $settings['from']);
-        $to->from->val($to = $settings['to']);
+        $form->from->val($to = $settings['to']);
 
         if ($type)        $documents->and_where('type', 'IN', (array) $type);
         if ($site_id)     $documents->and_where('site_id', 'IN', (array) $site_id);
