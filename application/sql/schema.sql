@@ -2039,6 +2039,7 @@ begin
     select type,number,is_draft from documents where id = old.document_id into x_document;
     case x_document.type
       when 'EXP' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('E') and trigger = 'document_data' limit 1);
+      when 'SPECS' then delete from barcode_activity where id in (select id from barcode_activity where barcode_id = x_data.barcode_id and activity in ('D') and trigger = 'document_data' limit 1);
       else null;
     end case;
     delete from barcode_locks where barcode_id = x_data.barcode_id and lock = 'DOC' and lock_id = old.document_id;
@@ -2051,6 +2052,7 @@ begin
     if (x_document.is_draft = false) then
       case x_document.type
         when 'EXP' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'E','document_data');
+        when 'SPECS' then insert into barcode_activity (barcode_id,activity,trigger) values (x_data.barcode_id,'D','document_data');
         else null;
       end case;
     end if;

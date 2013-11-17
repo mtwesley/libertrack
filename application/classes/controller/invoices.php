@@ -133,32 +133,21 @@ class Controller_Invoices extends Controller {
 
             ->join(DB::expr('"barcode_activity" as "tdf_barcode_activity"'), 'LEFT OUTER')
             ->on('tdf_data.barcode_id', '=', 'tdf_barcode_activity.barcode_id')
-            ->on('tdf_barcode_activity.activity', '=', DB::expr("'T'"))
 
             ->join(DB::expr('"barcode_activity" as "ldf_barcode_activity"'), 'LEFT OUTER')
             ->on('ldf_data.barcode_id', '=', 'ldf_barcode_activity.barcode_id')
-            ->on('ldf_barcode_activity.activity', '=', DB::expr("'T'"))
 
             ->where('tdf_data.site_id', '=', $site_id)
             ->and_where('tdf_data.create_date', 'BETWEEN', SGS::db_range($from, $to))
 
-            ->and_where_open()
-              ->where('tdf_invoices.type', '<>', 'ST')
-              ->or_where('tdf_invoices.id', '=', NULL)
-            ->and_where_close()
-            ->and_where_open()
-              ->where('ldf_invoices.type', '<>', 'ST')
-              ->or_where('ldf_invoices.id', '=', NULL)
-            ->and_where_close()
+            ->group_by('barcodes.barcode')
+            ->group_by('tdf_data.id')
 
-            ->and_where_open()
-              ->where('tdf_barcode_activity.activity', '<>', 'T')
-              ->or_where('tdf_barcode_activity.activity', '=', NULL)
-            ->and_where_close()
-            ->and_where_open()
-              ->where('ldf_barcode_activity.activity', '<>', 'T')
-              ->or_where('ldf_barcode_activity.activity', '=', NULL)
-            ->and_where_close()
+            ->having(DB::expr('NOT coalesce(array_agg(distinct "tdf_barcode_activity"."activity"::text)'), '@>', DB::expr("array['T']"))
+            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "ldf_barcode_activity"."activity"::text)'), '@>', DB::expr("array['T']"))
+
+            ->and_having(DB::expr('coalesce(array_agg(distinct "tdf_invoices"."id"::text), \'{}\')'), '=', NULL)
+            ->and_having(DB::expr('coalesce(array_agg(distinct "ldf_invoices"."id"::text), \'{}\')'), '=', NULL)
 
             ->order_by('barcodes.barcode')
             ->execute()
@@ -170,45 +159,49 @@ class Controller_Invoices extends Controller {
           $ids = array_filter(DB::select('barcodes.barcode', 'specs_data.id')
             ->distinct(TRUE)
             ->from('specs_data')
+
             ->join('document_data')
             ->on('specs_data.id', '=', 'document_data.form_data_id')
             ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
+
             ->join(DB::expr('"specs_data" as "related_specs_data"'), 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'related_specs_data.barcode_id')
             ->on('specs_data.id', '<>', 'related_specs_data.id')
+
             ->join('invoice_data', 'LEFT OUTER')
             ->on('specs_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
+
             ->join(DB::expr('"invoice_data" as "related_invoice_data"'), 'LEFT OUTER')
             ->on('related_specs_data.id', '=', 'related_invoice_data.form_data_id')
             ->on('related_invoice_data.form_type', '=', DB::expr("'SPECS'"))
+
             ->join('invoices', 'LEFT OUTER')
             ->on('invoice_data.invoice_id', '=', 'invoices.id')
             ->on('invoices.type', '=', DB::expr("'EXF'"))
+
             ->join(DB::expr('"invoices" as "related_invoices"'), 'LEFT OUTER')
             ->on('related_invoice_data.invoice_id', '=', 'related_invoices.id')
             ->on('related_invoices.type', '=', DB::expr("'EXF'"))
+
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', 'IN', DB::expr("('S','E','O','H','Y','A','L','T','X','Z')"))
+
             ->where('specs_data.status', '=', 'A')
             ->and_where('document_data.document_id', '=', SGS::lookup_document('SPECS', $specs_number, TRUE))
-            ->and_where('invoice_data.form_data_id', '=', NULL)
-            ->and_where('related_invoice_data.form_data_id', '=', NULL)
-            ->and_where_open()
-              ->where('barcode_activity.activity', 'NOT IN', array('S', 'E', 'O', 'H', 'Y', 'A', 'L', 'X', 'Z'))
-              ->or_where('barcode_activity.activity', '=', NULL)
-            ->and_where_close()
-            ->and_where_open()
-              ->where('invoices.type', '<>', 'EXF')
-              ->or_where('invoices.id', '=', NULL)
-            ->and_where_close()
-            ->and_where_open()
-              ->where('related_invoices.type', '<>', 'EXF')
-              ->or_where('related_invoices.id', '=', NULL)
-            ->and_where_close()
+
+            ->group_by('barcodes.barcode')
+            ->group_by('specs_data.id')
+
+            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text)'), '@>', DB::expr("array['D','T']"))
+            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text)'), '@>', DB::expr("array['S','E','O','H','Y','A','L','X','Z']"))
+
+            ->and_having(DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'), '=', NULL)
+            ->and_having(DB::expr('coalesce(array_agg(distinct "related_invoices"."id"::text), \'{}\')'), '=', NULL)
+
             ->order_by('barcodes.barcode')
             ->execute()
             ->as_array(NULL, 'id'));

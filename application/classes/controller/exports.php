@@ -507,44 +507,50 @@ VALIDATION: $secret";
           $ids = array_filter(DB::select('specs_data.id','barcodes.barcode')
             ->distinct(TRUE)
             ->from('specs_data')
+
             ->join('document_data')
             ->on('specs_data.id', '=', 'document_data.form_data_id')
             ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+
             ->join('documents')
             ->on('document_data.document_id', '=', 'documents.id')
             ->on('documents.type', '=', DB::expr("'SPECS'"))
+
             ->join(DB::expr('"documents" as "exp_documents"'), 'LEFT OUTER')
             ->on('document_data.document_id', '=', 'exp_documents.id')
             ->on('exp_documents.type', '=', DB::expr("'EXP'"))
+
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', 'IN', DB::expr("('X','E','O','H','Y','A','L','S','Z')"))
+
             ->join('invoice_data', 'LEFT OUTER')
             ->on('specs_data.id', '=', 'invoice_data.form_data_id')
             ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
+
             ->join('invoices', 'LEFT OUTER')
             ->on('invoice_data.invoice_id', '=', 'invoices.id')
+
+            ->join(DB::expr('"invoices" as "invoices_paid"'), 'LEFT OUTER')
+            ->on('invoice_data.invoice_id', '=', 'invoices.id')
+            ->on('invoices_paid.is_paid', '=', DB::expr("TRUE"))
+
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
-            ->and_where_open()
-              ->where('barcode_activity.activity', 'NOT IN', array('E', 'O', 'H', 'Y', 'A', 'L', 'Z'))
-              ->or_where('barcode_activity.activity', '=', NULL)
-            ->and_where_close()
             ->and_where('documents.number', '=', $specs_number)
-            ->and_where_open()
-              ->where('exp_documents.type', '<>', 'EXP')
-              ->or_where('exp_documents.id', '=', NULL)
-            ->and_where_close()
-            ->and_where_open()
-              ->or_where_open()
-                ->and_where('invoices.type', '=', 'EXF')
-                ->and_where('invoices.is_paid', '=', TRUE)
-              ->or_where_close()
-              ->or_where('barcode_activity.activity', '=', 'X')
-            ->and_where_close()
-            ->order_by('barcode')
+
+            ->group_by('specs_data.id')
+            ->group_by('barcodes.barcode')
+
+            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text)'), '@>', DB::expr("array['D','T','X']"))
+            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text)'), '@>', DB::expr("array['E', 'O', 'H', 'Y', 'A', 'L', 'Z']"))
+
+            ->and_having(DB::expr('coalesce(array_agg(distinct "exp_documents"."id"::text), \'{}\')'), '=', NULL)
+
+            ->and_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '@>', DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'))
+
+            ->order_by('barcodes.barcode')
             ->execute()
             ->as_array(NULL, 'id'));
           break;
@@ -554,15 +560,28 @@ VALIDATION: $secret";
           $ids = array_filter(DB::select('specs_data.id','barcodes.barcode')
             ->distinct(TRUE)
             ->from('specs_data')
+
             ->join('document_data', 'LEFT OUTER')
             ->on('specs_data.id', '=', 'document_data.form_data_id')
             ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+
             ->join('documents', 'LEFT OUTER')
             ->on('document_data.document_id', '=', 'documents.id')
             ->on('documents.type', '=', DB::expr("'SPECS'"))
+
+            ->join('invoice_data', 'LEFT OUTER')
+            ->on('specs_data.id', '=', 'invoice_data.form_data_id')
+            ->on('invoice_data.form_type', '=', DB::expr("'SPECS'"))
+
+            ->join('invoices', 'LEFT OUTER')
+            ->on('invoice_data.invoice_id', '=', 'invoices.id')
+
+            ->join(DB::expr('"invoices" as "invoices_paid"'), 'LEFT OUTER')
+            ->on('invoice_data.invoice_id', '=', 'invoices.id')
+            ->on('invoices_paid.is_paid', '=', DB::expr("TRUE"))
+
             ->join('barcode_activity', 'LEFT OUTER')
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
-            ->on('barcode_activity.activity', 'IN', DB::expr("('T','E','O','H','Y','A','L','S','Z')"))
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
 
@@ -601,48 +620,29 @@ VALIDATION: $secret";
 
             ->join(DB::expr('"barcode_activity" as "parent_barcode_activity"'), 'LEFT OUTER')
             ->on('parent_specs_data.barcode_id', '=', 'parent_barcode_activity.barcode_id')
-            ->on('parent_barcode_activity.activity', 'IN', DB::expr("('D','E','O','H','Y','A','L','S','Z')"))
             ->join(DB::expr('"barcode_activity" as "children_barcode_activity"'), 'LEFT OUTER')
             ->on('children_specs_data.barcode_id', '=', 'children_barcode_activity.barcode_id')
-            ->on('children_barcode_activity.activity', 'IN', DB::expr("('D','E','O','H','Y','A','L','S','Z')"))
 
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
             ->and_where('specs_data.specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
 
-            ->and_where_open()
-              ->where('related_documents.type', '<>', 'SPECS')
-              ->or_where('related_documents.id', '=', NULL)
-            ->and_where_close()
+            ->group_by('specs_data.id')
+            ->group_by('barcodes.barcode')
 
-            ->and_where_open()
-              ->where('barcode_activity.activity', 'NOT IN', array('E', 'O', 'H', 'Y', 'A', 'L', 'Z'))
-              ->or_where('barcode_activity.activity', '=', NULL)
-            ->and_where_close()
-            ->and_where_open()
-              ->where('documents.type', '<>', 'SPECS')
-              ->or_where('documents.id', '=', NULL)
-            ->and_where_close()
+            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['T']"))
+            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['E','O','H','Y','A','L','S','Z']"))
+            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "parent_barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['D','E','O','H','Y','A','L','S','Z']"))
+            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "children_barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['D','E','O','H','Y','A','L','S','Z']"))
 
-            ->and_where_open()
-              ->where('parent_barcode_activity.activity', 'NOT IN', array('D', 'E', 'O', 'H', 'Y', 'A', 'L', 'S', 'Z'))
-              ->or_where('parent_barcode_activity.activity', '=', NULL)
-            ->and_where_close()
-            ->and_where_open()
-              ->where('parent_documents.type', '<>', 'SPECS')
-              ->or_where('parent_documents.id', '=', NULL)
-            ->and_where_close()
+            ->and_having(DB::expr('array_agg(distinct "documents"."id"::text)'), '=', NULL)
+            ->and_having(DB::expr('array_agg(distinct "related_documents"."id"::text)'), '=', NULL)
+            ->and_having(DB::expr('array_agg(distinct "parent_documents"."id"::text)'), '=', NULL)
+            ->and_having(DB::expr('array_agg(distinct "children_documents"."id"::text)'), '=', NULL)
 
-            ->and_where_open()
-              ->where('children_barcode_activity.activity', 'NOT IN', array('D', 'E', 'O', 'H', 'Y', 'A', 'L', 'S', 'Z'))
-              ->or_where('children_barcode_activity.activity', '=', NULL)
-            ->and_where_close()
-            ->and_where_open()
-              ->where('children_documents.type', '<>', 'SPECS')
-              ->or_where('children_documents.id', '=', NULL)
-            ->and_where_close()
+            ->and_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '@>', DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'))
 
-            ->order_by('barcode')
+            ->order_by('barcodes.barcode')
             ->execute()
             ->as_array(NULL, 'id'));
           break;
