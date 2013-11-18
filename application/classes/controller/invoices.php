@@ -143,11 +143,11 @@ class Controller_Invoices extends Controller {
             ->group_by('barcodes.barcode')
             ->group_by('tdf_data.id')
 
-            ->having(DB::expr('NOT coalesce(array_agg(distinct "tdf_barcode_activity"."activity"::text)'), '@>', DB::expr("array['T']"))
-            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "ldf_barcode_activity"."activity"::text)'), '@>', DB::expr("array['T']"))
+            ->having(DB::expr('NOT coalesce(array_agg(distinct "tdf_barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['T']"))
+            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "ldf_barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['T']"))
 
-            ->and_having(DB::expr('coalesce(array_agg(distinct "tdf_invoices"."id"::text), \'{}\')'), '=', NULL)
-            ->and_having(DB::expr('coalesce(array_agg(distinct "ldf_invoices"."id"::text), \'{}\')'), '=', NULL)
+            ->and_having(DB::expr('array_agg(distinct "tdf_invoices"."id"::text)'), '=', NULL)
+            ->and_having(DB::expr('array_agg(distinct "ldf_invoices"."id"::text)'), '=', NULL)
 
             ->order_by('barcodes.barcode')
             ->execute()
@@ -163,6 +163,9 @@ class Controller_Invoices extends Controller {
             ->join('document_data')
             ->on('specs_data.id', '=', 'document_data.form_data_id')
             ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+
+            ->join('documents')
+            ->on('document_data.document_id', '=', 'documents.id')
 
             ->join('barcodes')
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
@@ -191,16 +194,17 @@ class Controller_Invoices extends Controller {
             ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
 
             ->where('specs_data.status', '=', 'A')
-            ->and_where('document_data.document_id', '=', SGS::lookup_document('SPECS', $specs_number, TRUE))
+            ->and_where('documents.number', '=', $specs_number, TRUE)
+            ->and_where('documents.is_draft', '=', FALSE)
 
             ->group_by('barcodes.barcode')
             ->group_by('specs_data.id')
 
-            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text)'), '@>', DB::expr("array['D','T']"))
-            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text)'), '@>', DB::expr("array['S','E','O','H','Y','A','L','X','Z']"))
+            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['D','T']"))
+            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['S','E','O','H','Y','A','L','X','Z']"))
 
-            ->and_having(DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'), '=', NULL)
-            ->and_having(DB::expr('coalesce(array_agg(distinct "related_invoices"."id"::text), \'{}\')'), '=', NULL)
+            ->and_having(DB::expr('array_agg(distinct "invoices"."id"::text)'), '=', NULL)
+            ->and_having(DB::expr('array_agg(distinct "related_invoices"."id"::text)'), '=', NULL)
 
             ->order_by('barcodes.barcode')
             ->execute()
