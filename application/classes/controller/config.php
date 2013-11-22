@@ -315,6 +315,11 @@ class Controller_Config extends Controller {
     $ids = $block->get_inspection_data();
 
     $declaration = ORM::factory('SSF')->where('block_id', '=', $block->id)->find_all()->count();
+    if (!$declaration) {
+      Notify::msg('No declaration data found.', 'warning', TRUE);
+      $this->request->redirect('blocks/'.$id);
+    }
+
     $inspection  = count($ids);
 
     $rate = $inspection / $declaration;
