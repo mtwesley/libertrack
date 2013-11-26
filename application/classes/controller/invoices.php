@@ -200,8 +200,8 @@ class Controller_Invoices extends Controller {
             ->group_by('barcodes.barcode')
             ->group_by('specs_data.id')
 
-            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['D','T']"))
-            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['S','E','O','H','Y','A','L','X','Z']"))
+            // ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['D']"))
+            ->having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['S','E','O','H','Y','A','L','X','Z']"))
 
             ->and_having(DB::expr('array_agg(distinct "invoices"."id"::text)'), '=', NULL)
             ->and_having(DB::expr('array_agg(distinct "related_invoices"."id"::text)'), '=', NULL)

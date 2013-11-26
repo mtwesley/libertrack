@@ -544,11 +544,10 @@ VALIDATION: $secret";
             ->group_by('specs_data.id')
             ->group_by('barcodes.barcode')
 
-            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array[/*'D',*/'T','X']"))
+            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array[/*'D',*/'X']"))
             ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['E', 'O', 'H', 'Y', 'A', 'L', 'Z']"))
 
             ->and_having(DB::expr('array_agg(distinct "exp_documents"."id"::text)'), '=', NULL)
-
             ->and_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '@>', DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'))
 
             ->order_by('barcodes.barcode')
@@ -631,8 +630,7 @@ VALIDATION: $secret";
             ->group_by('specs_data.id')
             ->group_by('barcodes.barcode')
 
-            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['T']"))
-            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['E','O','H','Y','A','L','S','Z']"))
+            ->having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['E','O','H','Y','A','L','S','Z']"))
             ->and_having(DB::expr('NOT coalesce(array_agg(distinct "parent_barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['D','E','O','H','Y','A','L','S','Z']"))
             ->and_having(DB::expr('NOT coalesce(array_agg(distinct "children_barcode_activity"."activity"::text), \'{}\')'), '@>', DB::expr("array['D','E','O','H','Y','A','L','S','Z']"))
 
