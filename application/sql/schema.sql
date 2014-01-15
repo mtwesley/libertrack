@@ -97,7 +97,7 @@ create domain d_csv_status as character(1) check (value ~ E'^[PARDU]$');
 
 create domain d_data_status as character(1) check (value ~ E'^[PARD]$');
 
-create domain d_block_status as character(1) check (value ~ E'^[PAR]$');
+create domain d_block_status as character(1) check (value ~ E'^[PIAR]$');
 
 create domain d_username as character varying(24) check (value ~ E'^[0-9A-Za-z_]{3,24}$');
 
