@@ -180,6 +180,28 @@ create table sessions (
   constraint sessions_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
+create table files (
+  id bigserial not null,
+  name d_text_long not null,
+  path d_text_long unique,
+  type d_file_type not null,
+  size d_int not null,
+  operator_id d_id,
+  site_id d_id,
+  block_id d_id,
+  operation d_operation not null,
+  operation_type d_operation_type default 'UNKWN' not null,
+  content d_oid unique,
+  content_md5 d_text_short,
+  user_id d_id default 1 not null,
+  timestamp d_timestamp default current_timestamp not null,
+
+  constraint files_pkey primary key (id),
+  constraint files_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+
+  constraint files_unique_name_path unique(name,path)
+);
+
 create table species (
   id bigserial not null,
   code d_species_code unique not null,
@@ -268,28 +290,6 @@ create table block_inspection_data (
   constraint block_inspection_data_block_id foreign key (block_id) references blocks (id) on update cascade on delete cascade,
 
   constraint block_inspection_data_unique unique(form_type,form_data_id,block_id)
-);
-
-create table files (
-  id bigserial not null,
-  name d_text_long not null,
-  path d_text_long unique,
-  type d_file_type not null,
-  size d_int not null,
-  operator_id d_id,
-  site_id d_id,
-  block_id d_id,
-  operation d_operation not null,
-  operation_type d_operation_type default 'UNKWN' not null,
-  content d_oid unique,
-  content_md5 d_text_short,
-  user_id d_id default 1 not null,
-  timestamp d_timestamp default current_timestamp not null,
-
-  constraint files_pkey primary key (id),
-  constraint files_user_id_fkey foreign key (user_id) references users (id) on update cascade,
-
-  constraint files_unique_name_path unique(name,path)
 );
 
 create table printjobs (
