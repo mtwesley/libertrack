@@ -269,6 +269,7 @@ create table blocks (
   utm_west d_utm,
   block_inspection_file_id d_id,
   status d_block_status default 'P' not null,
+  file_id d_id,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -377,7 +378,7 @@ create table qrcodes (
   timestamp d_timestamp default current_timestamp not null,
 
   constraint qrcodes_pkey primary key (id),
-  constraint qrcodes_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint qrcodes_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table locations (
@@ -429,7 +430,7 @@ create table invoices (
 
   constraint invoices_number_unique unique(type,number),
 
-  constraint invoices_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null)))
+  constraint invoices_final_check check (not((is_draft = false and number is not null) and (is_draft <> false and number is null))),
   constraint invoices_check check (not((operator_id is null) and (site_id is null)))
 );
 
@@ -458,7 +459,7 @@ create table invoice_payments (
 
   constraint invoice_payment_pkey primary key (id),
   constraint invoice_payment_invoice_id foreign key (invoice_id) references invoices (id) on update cascade on delete cascade,
-  constraint invoice_payment_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint invoice_payment_user_id_fkey foreign key (user_id) references users (id) on update cascade
 );
 
 create table invoice_data (
@@ -530,9 +531,9 @@ create table reports (
   tables d_text_long,
   fields d_text_long,
   filters d_text_long,
-  order d_text_long,
-  offset d_positive_int,
-  limit d_positive_int,
+  "order" d_text_long,
+  "offset" d_positive_int,
+  "limit" d_positive_int,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
@@ -577,7 +578,7 @@ create table report_files (
   file_id d_id unique not null,
 
   constraint report_files_pkey primary key (id),
-  constraint report_files_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint report_files_file_id_fkey foreign key (file_id) references files (id) on update cascade,
   constraint report_files_report_id_fkey foreign key (report_id) references reports (id) on update cascade
 );
 
@@ -590,7 +591,7 @@ create table csv (
   operator_id d_id,
   site_id d_id,
   block_id d_id,
-  original_values not null,
+  original_values d_text_long not null,
   values d_text_long,
   content_md5 d_text_short,
   status d_csv_status default 'P' not null,
@@ -637,7 +638,7 @@ create table data (
   csv_id d_id unique not null,
   form_type d_form_type not null,
   form_data_id d_id unique,
-  form_verification_id unique,
+  form_verification_id d_id unique
 );
 
 create table ssf_data (
@@ -695,7 +696,7 @@ create table ssf_verification (
   diameter d_diameter not null,
   height d_length not null,
   volume d_volume not null,
-  inspected_by,
+  inspected_by d_text_short,
   inspection_date d_date not null,
   inspection_label d_text_short,
   create_date d_date not null,
@@ -866,6 +867,7 @@ create table mif_data (
   length d_length not null,
   original_volume d_volume not null,
   volume d_volume not null,
+  create_date d_date not null,
   status d_data_status default 'P' not null,
   recorded_by d_text_short,
   submitted_by d_text_short,
@@ -934,6 +936,7 @@ create table mof_data (
   grade d_grade not null,
   original_volume d_volume not null,
   volume d_volume not null,
+  create_date d_date not null,
   status d_data_status default 'P' not null,
   recorded_by d_text_short,
   submitted_by d_text_short,
@@ -1014,7 +1017,6 @@ create table specs_data (
   constraint specs_data_barcode_id_fkey foreign key (barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_specs_barcode_id_fkey foreign key (specs_barcode_id) references barcodes (id) on update cascade,
   constraint specs_data_exp_barcode_id_fkey foreign key (exp_barcode_id) references barcodes (id) on update cascade,
-  constraint specs_data_exp_id_fkey foreign key (exp_id) references exp (id) on update cascade on delete set null,
   constraint specs_data_species_id_fkey foreign key (species_id) references species (id) on update cascade,
   constraint specs_data_user_id_fkey foreign key (user_id) references users (id) on update cascade,
 
@@ -1199,8 +1201,6 @@ create index documents_type on documents (id,type);
 create index documents_number on documents (id,number);
 create unique index documents_type_number on documents (id,type,number);
 
-create index files_operation on files (id,operation);
-
 create index csv_status on csv (id,status);
 create index csv_operation on csv (id,operation);
 create index csv_form_type_data_id on csv (id,form_type,form_data_id);
@@ -1214,7 +1214,7 @@ create index csv_duplicates_duplicate_csv_id_type on csv_duplicates (duplicate_c
 
 create index ssf_data_diameter on ssf_data (id,diameter);
 create index ssf_data_height on ssf_data (id,height);
-create index sdf_data_volume on sdf_data (id,volume);
+create index ssf_data_volume on ssf_data (id,volume);
 create index ssf_data_create_date on ssf_data (id,create_date);
 create index ssf_data_status on ssf_data (id,status);
 
@@ -1266,7 +1266,6 @@ create index mif_verification_conversion_factor on mif_verification (id,conversi
 create index mif_verification_create_date on mif_verification (id,create_date);
 create index mif_verification_status on mif_verification (id,status);
 
-create index mof_data_diameter on mof_data (id,top_min,top_max,bottom_min,bottom_max);
 create index mof_data_dimension on mof_data (id,length,width,height);
 create index mof_data_original_volume on mof_data (id,original_volume,volume);
 create index mof_data_volume on mof_data (id,volume);
@@ -1275,7 +1274,6 @@ create index mof_data_grade on mof_data (id,grade);
 create index mof_data_create_date on mof_data (id,create_date);
 create index mof_data_status on mof_data (id,status);
 
-create index mof_verification_diameter on mof_verification (id,top_min,top_max,bottom_min,bottom_max);
 create index mof_verification_dimension on mof_verification (id,length,width,height);
 create index mof_verification_original_volume on mof_verification (id,original_volume,volume);
 create index mof_verification_volume on mof_verification (id,volume);
@@ -1287,7 +1285,6 @@ create index mof_verification_status on mof_verification (id,status);
 create index specs_data_diameter on specs_data (id,top_min,top_max,bottom_min,bottom_max);
 create index specs_data_origin on specs_data (id,origin);
 create index specs_data_destination on specs_data (id,destination);
-create index specs_data_dimension on specs_data (id,length,width,height);
 create index specs_data_original_volume on specs_data (id,original_volume,volume);
 create index specs_data_volume on specs_data (id,volume);
 create index specs_data_grade on specs_data (id,grade);
@@ -1296,18 +1293,6 @@ create index specs_data_loading_date on specs_data (id,loading_date);
 create index specs_data_create_date on specs_data (id,create_date);
 create index specs_data_status on specs_data (id,status);
 
-create index specs_verification_diameter on specs_verification (id,top_min,top_max,bottom_min,bottom_max);
-create index specs_verification_origin on specs_verification (id,origin);
-create index specs_verification_destination on specs_verification (id,destination);
-create index specs_verification_dimension on specs_verification (id,length,width,height);
-create index specs_verification_original_volume on specs_verification (id,original_volume,volume);
-create index specs_verification_volume on specs_verification (id,volume);
-create index specs_verification_grade on specs_verification (id,grade);
-create index specs_verification_contract_number on specs_verification (id,contract_number);
-create index specs_verification_loading_date on specs_verification (id,loading_date);
-create index specs_verification_create_date on specs_verification (id,create_date);
-create index specs_verification_status on specs_verification (id,status);
-
 create index checks_form_type_data_id on checks (form_type,form_data_id);
 create index checks_field on checks (form_type,form_data_id,field);
 create index checks_check on checks (form_type,form_data_id,"check");
@@ -1315,17 +1300,17 @@ create index checks_type on checks (id,form_type,form_data_id,type);
 
 create index verification_checks_form_type_verification_id on verification_checks (form_type,form_verification_id);
 create index verification_checks_field on verification_checks (form_type,form_verification_id,field);
-create index verification_checks_check on verification_checks (form_type,form_verification_id,check);
+create index verification_checks_check on verification_checks (form_type,form_verification_id,"check");
 create index verification_checks_type on verification_checks (id,form_type,form_verification_id,type);
 
 create index revisions_model on revisions (model,model_id);
 
-create index tolerances_form_type_check on tolerances (form_type,check);
+create index tolerances_form_type_check on tolerances (form_type,"check");
 
 
 -- language
 
-create language plpgsql;
+-- create language plpgsql;
 
 
 -- functions
@@ -1340,6 +1325,8 @@ begin
     select id from barcodes where barcode = x_barcode limit 1 into x_id;
   else
     select id from barcodes where barcode = x_barcode and type = x_type limit 1 into x_id;
+  end if;
+
   return x_id;
 
 end
@@ -2151,11 +2138,6 @@ create trigger t_mif_verification_update_barcodes
 
 create trigger t_mof_verification_update_barcodes
   after insert or update or delete on mof_verification
-  for each row
-  execute procedure verification_update_barcodes();
-
-create trigger t_specs_verification_update_barcodes
-  after insert or update or delete on specs_verification
   for each row
   execute procedure verification_update_barcodes();
 
