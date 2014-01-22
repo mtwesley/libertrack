@@ -27,7 +27,6 @@ if (!$top) $top = View::factory('top')->set('title', $title);
 
 if (!$navigation) $navigation = View::factory('navigation');
 if (!$messages)   $messages   = Notify::render();
-if (!$help)       $help       = Help::render();
 
 if ($left or $help) $classes['body'][] = 'sidebar-left';
 if ($right)         $classes['body'][] = 'sidebar-right';
