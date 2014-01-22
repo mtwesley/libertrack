@@ -57,7 +57,7 @@ create domain d_operator_tin as bigint check (value > 0);
 
 create domain d_survey_line as numeric(2) check ((value > 0) and (value <= 20));
 
-create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB)$');
+create domain d_form_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB|SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV)$');
 
 create domain d_form_data_type as character varying(5) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB)$');
 
