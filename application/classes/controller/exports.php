@@ -1324,6 +1324,11 @@ VALIDATION: $secret";
   }
 
   private function handle_document_delete($id) {
+    if (Auth::instance()->get_user()->id != 1) {
+      Notify::msg('Access denied. You must be the superuser to delete export documents.', 'locked', TRUE);
+      $this->request->redirect();
+    }
+    
     $document = ORM::factory('document', $id);
 
     if (!$document->loaded()) {
