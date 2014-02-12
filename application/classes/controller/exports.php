@@ -1343,7 +1343,7 @@ VALIDATION: $secret";
       Notify::msg('Access denied. You must be the superuser to delete export documents.', 'locked', TRUE);
       $this->request->redirect();
     }
-    
+
     $document = ORM::factory('document', $id);
 
     if (!$document->loaded()) {
@@ -1493,7 +1493,7 @@ VALIDATION: $secret";
       ->join('barcode_activity')
       ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
       ->where('specs_data.id', 'IN', (array) $ids)
-      ->and_where('barcode_activity.activity', '=', 'L')
+      ->and_where('barcode_activity.activity', '=', 'O')
       ->execute()
       ->get('volume');
 
