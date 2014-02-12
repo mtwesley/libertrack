@@ -1629,7 +1629,8 @@ VALIDATION: $secret";
       $buyer = $form->buyer->val();
       $company = $form->company->val();
 
-      $document->values['certificate_file_id'] = self::generate_certificate_file($document, array(
+      $values = $document->values;
+      $values['certificate_file_id'] = self::generate_certificate_file($document, array(
         'number'  => $number,
         'origin'  => $origin,
         'inspection_date' => $inspection_date,
@@ -1640,6 +1641,7 @@ VALIDATION: $secret";
       ));
 
       try {
+        $document->values = (array) $values;
         $document->save();
       } catch (Exception $e) {
         Notify::msg('Sorry, unable to create certificate of origin file. Please try again.', 'error');
