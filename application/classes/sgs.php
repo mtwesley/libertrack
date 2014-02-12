@@ -11,6 +11,7 @@ class SGS {
   const DATE_FORMAT = 'j M Y';
   const DATETIME_FORMAT = 'j M Y g:i A';
   const PRETTY_DATE_FORMAT = 'F j, Y';
+  const CERTIFICATE_DATE_FORMAT = 'd.m.Y';
 
   const PGSQL_DATE_FORMAT = 'Y-m-d';
   const PGSQL_DATETIME_FORMAT = 'Y-m-d H:i:s';
@@ -435,6 +436,7 @@ class SGS {
   public static $block_status = array(
     'A' => 'Approved',
     'R' => 'Rejected',
+    'I' => 'Inspected',
     'P' => 'Pending',
   );
 

@@ -149,7 +149,7 @@ class Model_CSV extends ORM {
     }
 
     if ($duplicate) $this->status = 'D';
-    else if ($duplicates)  $this->status = 'U';
+    else if ($duplicates) $this->status = 'U';
     else if ($errors) $this->status = 'R';
     else $this->status = 'A';
 

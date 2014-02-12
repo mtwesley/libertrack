@@ -196,6 +196,7 @@ class Controller_Ajax extends Controller {
       try {
         switch ($status) {
           case 'A':
+          case 'I':
           case 'R':
             $block->status = $status;
         }

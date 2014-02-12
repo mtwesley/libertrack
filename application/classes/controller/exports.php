@@ -1273,7 +1273,13 @@ VALIDATION: $secret";
       }
     }
 
+    $table = View::factory('documents')
+      ->set('mode', 'exports')
+      ->set('documents', array($document))
+      ->render();
+
     $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -1317,7 +1323,13 @@ VALIDATION: $secret";
       }
     }
 
+    $table = View::factory('documents')
+      ->set('mode', 'exports')
+      ->set('documents', array($document))
+      ->render();
+
     $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -1352,7 +1364,13 @@ VALIDATION: $secret";
       $this->request->redirect('exports/documents');
     }
 
+    $table = View::factory('documents')
+      ->set('mode', 'exports')
+      ->set('documents', array($document))
+      ->render();
+
     $content .= $form->render();
+    $contene .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -1360,7 +1378,16 @@ VALIDATION: $secret";
 
   public function handle_document_loading($id) {
     $document  = ORM::factory('document', $id);
-    if (!$document->loaded() or $document->type != 'SPECS') return $this->request->redirect('exports/documents');
+
+    if (!$document->loaded()) {
+      Notify::msg('No document found.', 'warning', TRUE);
+      $this->request->redirect('exports/documents');
+    }
+
+    if ($document->type != 'EXP') {
+      Notify::msg('Incorrect document type.', 'warning', TRUE);
+      $this->request->redirect('exports/documents');
+    }
 
     $form_type = 'SPECS';
     $ids       = $document->get_data();
@@ -1441,6 +1468,194 @@ VALIDATION: $secret";
     $this->response->body($view);
   }
 
+  private function generate_certificate_file($document, $vars = array()) {
+    extract($vars);
+
+    $ids = $document->get_data();
+
+    $specs_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
+      ->distinct(TRUE)
+      ->from('specs_data')
+      ->where('specs_data.id', 'IN', (array) $ids)
+      ->execute()
+      ->get('volume');
+
+    $loaded_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
+      ->distinct(TRUE)
+      ->from('specs_data')
+      ->join('barcode_activity')
+      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
+      ->where('specs_data.id', 'IN', (array) $ids)
+      ->and_where('barcode_activity.activity', '=', 'L')
+      ->execute()
+      ->get('volume');
+
+    $short_shipped_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
+      ->distinct(TRUE)
+      ->from('specs_data')
+      ->join('barcode_activity')
+      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
+      ->where('specs_data.id', 'IN', (array) $ids)
+      ->and_where('barcode_activity.activity', '=', 'S')
+      ->execute()
+      ->get('volume');
+
+    $html .= View::factory('certificate')
+      ->set('certificiate', $certificiate)
+      ->set('options', array(
+        'info'    => TRUE,
+        'summary' => TRUE,
+        'styles'  => TRUE,
+      ))
+      ->set('number', $number)
+      ->set('origin', $origin)
+      ->set('inspection_date', $inspection_date)
+      ->set('inspection_location', $inspection_location)
+      ->set('vessel', $vessel)
+      ->set('buyer', $buyer)
+      ->set('company', $company)
+      ->set('document', $document)
+      ->set('specs_volume', $specs_volume)
+      ->set('loaded_volume', $loaded_volume)
+      ->set('short_shipped_volume', $short_shipped_volume)
+      ->render();
+
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array(
+      'certificiates',
+      SGS::wordify($document->operator->name)
+    ));
+
+    $newname = SGS::wordify('CERTIFICATE_'.$document->type.'_'.SGS::numberify($document->number)).'.'.$ext;
+
+    $version = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access certificate of origin folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 22,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('certificate')
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->render()
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate certificate of origin. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
+
+    $this->response->send_file($fullname, $newname);
+
+    try {
+      // prepare and save file
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'D';
+      $file->operation_type = 'DOC';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+      $file->save();
+      return $file->id;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }
+  }
+
+  public function handle_document_certificate($id) {
+    $document = ORM::factory('document', $id);
+
+    if (!$document->loaded()) {
+      Notify::msg('No document found.', 'warning', TRUE);
+      $this->request->redirect('exports/documents');
+    }
+
+    if ($document->is_draft) {
+      Notify::msg('Document must be finalized.', 'warning', TRUE);
+      $this->request->redirect('exports/documents/'.$id);
+    }
+
+    $certificate_file = ORM::factory('file', $document->values['certificate_file_id']);
+    if ($certificate_file->loaded()) {
+      $this->response->send_file(DOCROOT.$certificate_file->path);
+    }
+
+    $form = Formo::form()
+      ->add('number', 'input', NULL, array('required' => TRUE, 'label' => 'Statement Number'))
+      ->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'value' => $document->values['origin']))
+      ->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'value' => $document->values['inspection_date'], 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')))
+      ->add('inspection_location', 'input', NULL, array('label' => 'Inspection Location', 'value' => $document->values['inspection_location']))
+      ->add('vessel', 'input', NULL, array('required' => TRUE, 'label' => 'Vessel', 'value' => $document->values['vessel']))
+      ->add('buyer', 'input', NULL, array('required' => TRUE, 'label' => 'Buyer', 'value' => $document->values['buyer']))
+      ->add('company', 'textarea', NULL, array('required' => TRUE, 'label' => 'Company', 'value' => $document->operator->name."\n".$document->operator->address))
+      ->add('submit', 'submit', 'Create Certificate of Origin');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $number = $form->number->val();
+      $origin = $form->origin->val();
+      $inspection_date = $form->inspection_date->val();
+      $inspection_location = $form->inspection_location->val();
+      $vessel = $form->vessel->val();
+      $buyer = $form->buyer->val();
+      $company = $form->company->val();
+
+
+      $document->values['certificate_file_id'] = self::generate_certificate_file($document, array(
+        'number'  => $number,
+        'origin'  => $origin,
+        'inspection_date' => $inspection_date,
+        'inspection_location' => $inspection_location,
+        'vessel'  => $vessel,
+        'buyer'   => $buyer,
+        'company' => $company
+      ));
+
+      try {
+        // $document->save();
+      } catch (Exception $e) {
+        Notify::msg('Sorry, unable to create certificate of origin file. Please try again.', 'error');
+      }
+      $certificate_file = ORM::factory('file', $document->values['certificate_file_id']);
+      $this->response->send_file(DOCROOT.$certificate_file->path);
+    }
+
+    $table = View::factory('documents')
+      ->set('mode', 'exports')
+      ->set('documents', array($document))
+      ->render();
+
+    $content .= $form->render();
+    $content .= $table;
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
   public function action_index() {
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -1463,6 +1678,7 @@ VALIDATION: $secret";
       case 'asycuda': return self::handle_document_asycuda($id);
       case 'delete': return self::handle_document_delete($id);
       case 'loading': return self::handle_document_loading($id);
+      case 'certificate': return self::handle_document_certificate($id);
       case 'list':
       default: return self::handle_document_list($id);
     }

@@ -1732,8 +1732,8 @@ begin
     end if;
   end if;
 
-  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
-    if new.barcode_id is not null then
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    if (new.status <> 'R') and (new.barcode_id is not null) then
       update barcodes set type = 'T' where id = new.barcode_id;
     end if;
   end if;
@@ -1767,8 +1767,8 @@ begin
     end if;
   end if;
 
-  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
-    if new.barcode_id is not null then
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    if (new.status <> 'R') and (new.barcode_id is not null) then
       update barcodes set type = 'F' where id = new.barcode_id;
 
       if new.tree_barcode_id is not null then
@@ -1790,7 +1790,7 @@ end
 $$ language 'plpgsql';
 
 
-create or replace function ldf_data_update_barcodes()
+create function ldf_data_update_barcodes()
   returns trigger as
 $$
   declare x_barcode_type d_barcode_type;
@@ -1809,8 +1809,8 @@ begin
     end if;
   end if;
 
-  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
-    if new.barcode_id is not null then
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    if (new.status <> 'R') and (new.barcode_id is not null) then
       update barcodes set type = 'L' where id = new.barcode_id;
 
       if new.parent_barcode_id is not null then
@@ -1846,8 +1846,8 @@ begin
     end if;
   end if;
 
-  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
-    if new.barcode_id is not null then
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    if (new.status <> 'R') and (new.barcode_id is not null) then
       update barcodes set type = 'B' where id = new.barcode_id;
     end if;
   end if;
@@ -1881,8 +1881,8 @@ begin
     end if;
   end if;
 
-  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
-    if new.specs_barcode_id is not null then
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    if (new.status <> 'R') and (new.barcode_id is not null) then
       update barcodes set type = 'H' where id = new.specs_barcode_id;
     end if;
 
@@ -1915,8 +1915,8 @@ begin
     end if;
   end if;
 
-  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') and (new.status <> 'R') then
-    if new.wb_barcode_id is not null then
+  if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
+    if (new.status <> 'R') and (new.barcode_id is not null) then
       update barcodes set type = 'W' where id = new.wb_barcode_id;
     end if;
   end if;

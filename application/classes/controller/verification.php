@@ -177,8 +177,8 @@ class Controller_Verification extends Controller {
       ))
       ->render();
 
-    $content .= $table;
     if ($form) $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -500,8 +500,8 @@ class Controller_Verification extends Controller {
       ))
       ->render();
 
-    $content .= $table;
     $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

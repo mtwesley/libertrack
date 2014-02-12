@@ -392,7 +392,12 @@ class Controller_Invoices extends Controller {
       }
     }
 
+    $table = View::factory('invoices')
+      ->set('invoices', array($invoice))
+      ->render();
+
     $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -446,7 +451,12 @@ class Controller_Invoices extends Controller {
       }
     }
 
+    $table = View::factory('invoices')
+      ->set('invoices', array($invoice))
+      ->render();
+
     $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -538,7 +548,12 @@ class Controller_Invoices extends Controller {
       }
     }
 
+    $table = View::factory('invoices')
+      ->set('invoices', array($invoice))
+      ->render();
+
     $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);
@@ -851,7 +866,12 @@ class Controller_Invoices extends Controller {
       $this->request->redirect('invoices');
     }
 
+    $table = View::factory('invoices')
+      ->set('invoices', array($invoice))
+      ->render();
+
     $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

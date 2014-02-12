@@ -843,8 +843,8 @@ class Controller_Analysis extends Controller {
       ))
       ->render();
 
-    $content .= $table;
     $content .= $form->render();
+    $content .= $table;
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

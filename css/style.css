@@ -178,7 +178,7 @@
 }
 
 #content form p.text span.confirm {
-  margin-bottom: 15px;
+  margin: 15px 0;
   display: block;
   color: #bc672e;
   text-align: center;
