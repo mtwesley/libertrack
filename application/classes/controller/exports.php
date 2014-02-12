@@ -1640,7 +1640,7 @@ VALIDATION: $secret";
       ));
 
       try {
-        // $document->save();
+        $document->save();
       } catch (Exception $e) {
         Notify::msg('Sorry, unable to create certificate of origin file. Please try again.', 'error');
       }
