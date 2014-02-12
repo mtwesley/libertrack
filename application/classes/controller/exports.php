@@ -1478,7 +1478,6 @@ VALIDATION: $secret";
 
   private function generate_certificate_file($document, $vars = array()) {
     extract($vars);
-
     $ids = $document->get_data();
 
     $specs_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
@@ -1575,8 +1574,6 @@ VALIDATION: $secret";
       return FALSE;
     }
 
-    $this->response->send_file($fullname, $newname);
-
     try {
       // prepare and save file
       $file = ORM::factory('file');
@@ -1632,7 +1629,6 @@ VALIDATION: $secret";
       $buyer = $form->buyer->val();
       $company = $form->company->val();
 
-
       $document->values['certificate_file_id'] = self::generate_certificate_file($document, array(
         'number'  => $number,
         'origin'  => $origin,
@@ -1649,7 +1645,8 @@ VALIDATION: $secret";
         Notify::msg('Sorry, unable to create certificate of origin file. Please try again.', 'error');
       }
       $certificate_file = ORM::factory('file', $document->values['certificate_file_id']);
-      $this->response->send_file(DOCROOT.$certificate_file->path);
+      Notify::msg('Certificate of origin created successfully.', 'success', TRUE);
+      $this->request->redirect('exports/documents/'.$document->id);
     }
 
     $table = View::factory('documents')
