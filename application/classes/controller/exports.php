@@ -1416,7 +1416,7 @@ VALIDATION: $secret";
           $activity = $value;
           switch ($activity) {
             case 'O': if (!$barcode->get_activity('O')) $barcode->set_activity($activity, NULL, 'loading'); break;
-            case 'S': if ($barcode->get_activity(array('E', 'S')) != 'S') $barcode->set_activity($activity, NULL, 'loading');
+            case 'S': if (!$barcode->get_activity('S')) $barcode->set_activity($activity, NULL, 'loading'); break;
           }
         } catch (Database_Exception $e) {
           Notify::msg('Sorry, loading status failed to be updated due to input. Please try again.', 'error');

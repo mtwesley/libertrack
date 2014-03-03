@@ -80,8 +80,8 @@ class Model_Barcode extends ORM {
     }
 
     if (in_array($activity, array_keys(SGS::$barcode_activity)))
-      DB::insert('barcode_activity', array('barcode_id', 'activity', 'comment', 'user_id'))
-        ->values(array($this->id, $activity, $comment, Auth::instance()->get_user()->id ?: 1,))
+      DB::insert('barcode_activity', array('barcode_id', 'activity', 'comment', 'trigger', 'user_id'))
+        ->values(array($this->id, $activity, $comment, $trigger, Auth::instance()->get_user()->id ?: 1,))
         ->execute();
   }
 
