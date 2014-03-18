@@ -113,7 +113,7 @@ create domain d_invoice_type as character varying(3) check (value ~ E'(ST|EXF)')
 
 create domain d_invoice_number as numeric(6) check ((value > 100000) and (value < 200000));
 
-create domain d_document_type as character varying(5) check (value ~ E'(SPECS|EXP)');
+create domain d_document_type as character varying(5) check (value ~ E'(SPECS|EXP|CERT)');
 
 create domain d_document_number as numeric(6) check (value > 0);
 

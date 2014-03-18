@@ -98,6 +98,8 @@ class Model_CSV extends ORM {
         $this->form_data_id = $model->id;
       } catch (ORM_Validation_Exception $e) {
         $errors = $e->errors();
+      } catch (Database_Exception $e) {
+        $problem = TRUE;
       }
     }
 
@@ -150,7 +152,7 @@ class Model_CSV extends ORM {
 
     if ($duplicate) $this->status = 'D';
     else if ($duplicates) $this->status = 'U';
-    else if ($errors) $this->status = 'R';
+    else if ($problem or $errors) $this->status = 'R';
     else $this->status = 'A';
 
     $this->save();
