@@ -507,7 +507,7 @@ VALIDATION: $secret";
 
     $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
 
-//    try {
+    try {
       $snappy = new \Knp\Snappy\Pdf();
       $snappy->generateFromHtml($html, $fullname, array(
         'load-error-handling' => 'ignore',
@@ -524,10 +524,10 @@ VALIDATION: $secret";
             'break'  => FALSE))
           ->render()
       ));
-//    } catch (Exception $e) {
-//      Notify::msg('Sorry, unable to generate document. If this problem continues, contact the system administrator.', 'error');
-//      return FALSE;
-//    }
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate document. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
 
     try {
       $file = ORM::factory('file');
@@ -1947,7 +1947,6 @@ VALIDATION: $secret";
       case 'asycuda': return self::handle_document_asycuda($id);
       case 'delete': return self::handle_document_delete($id);
       case 'loading': return self::handle_document_loading($id);
-      case 'certificate': return self::handle_document_certificate($id);
       case 'list':
       default: return self::handle_document_list($id);
     }

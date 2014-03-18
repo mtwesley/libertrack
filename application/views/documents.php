@@ -39,7 +39,6 @@ $classes[] = 'data';
           <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor($mode.'documents/'.$document->id.'/refinalize', 'Re-finalize', array('class' => 'link')); ?>
           <?php if ($document->type == 'EXP'): ?>
           <?php echo HTML::anchor($mode.'documents/'.$document->id.'/loading', 'Loading', array('class' => 'link')); ?>
-          <?php echo HTML::anchor($mode.'documents/'.$document->id.'/certificate', 'Certificate', array('class' => 'link')); ?>
           <?php endif; ?>
           <?php endif; ?>
 
