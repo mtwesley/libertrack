@@ -1058,6 +1058,7 @@ VALIDATION: $secret";
         switch ($document->type) {
           case 'EXP': $form_type = 'SPECS'; break;
           case 'SPECS': $form_type = 'SPECS'; break;
+          case 'CERT': $form_type = 'SPECS'; break;
         }
 
         $summary_data = ORM::factory($form_type)
