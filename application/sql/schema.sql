@@ -43,7 +43,7 @@ create domain d_file_type as character varying(100);
 
 create domain d_operation as character(1) check (value ~ E'^[UD]$');
 
-create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB|SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV|CHECKS|VERIFY|EXP|INV|DOC|PJ|UNKWN)$');
+create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB|SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV|CHECKS|VERIFY|EXP|CERT|INV|DOC|PJ|UNKWN)$');
 
 create domain d_species_code as character varying(5) check (value ~ E'^[A-Z]{3,5}$');
 
@@ -1149,6 +1149,7 @@ create sequence s_invoices_st_number minvalue 100100;
 create sequence s_invoices_exf_number minvalue 100100;
 create sequence s_documents_specs_number minvalue 1;
 create sequence s_documents_exp_number minvalue 1;
+create sequence s_documents_cert_number minvalue 250;
 create sequence s_report_csv_number minvalue 1;
 create sequence s_report_data_number minvalue 1;
 create sequence s_report_summary_number minvalue 1;

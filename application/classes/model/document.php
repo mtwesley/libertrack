@@ -9,6 +9,10 @@ class Model_Document extends ORM {
     'file'     => array(),
     'user'     => array()
   );
+  
+  public static function lookup($type, $number) {
+    return Model::factory('document', DB::query(Database::SELECT, "SELECT lookup_document_id('{$type}', {$number})"));
+  }
 
   public static function create_document_number($type) {
     return DB::query(Database::SELECT, "SELECT nextval('s_documents_{$type}_number') number")

@@ -403,6 +403,20 @@ $(function() {
     );
   });
 
+  $("select.exp_expnumberinputs").change(function() {
+    $.post(
+      '/ajax/docarray',
+      {
+        type: 'exp_number',
+        value: $(this).val()
+      },
+      function(data) {
+        var values = $.parseJSON(data);
+        for (var key in values) if ($('.'+key+'input').val() === '') $('.'+key+'input').val(values[key]);
+      }
+    );
+  });
+
   $("select.exp_specsinputs").change(function() {
     $.post(
       '/ajax/docarray',

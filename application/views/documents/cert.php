@@ -232,6 +232,7 @@ $options = (array) $options + array(
   }
 
   .qr_image {
+    float: right;
     text-align: center;
     vertical-align: middle;
   }
@@ -257,20 +258,22 @@ $options = (array) $options + array(
   </div>
   <?php endif; ?>
 
-
   <?php if ($options['info']): ?>
+  <div class="qr_image"><img src="<?php echo $qr_image; ?>" /></div>
+
   <br /><br />
   <strong>
-  Statement # SGS - LiberFor - <?php echo $exp_number; ?><br />
+  Statement # SGS - LiberFor - <?php echo $document->number ? $document->number : 'DRAFT'; ?><br />
   Date: <?php echo SGS::date('now', SGS::CERTIFICATE_DATE_FORMAT); ?><br />
   </strong>
   <br /><br /><br />
   Further to the inspection carried out by SGS Liberia Inc. on
-  <?php echo SGS::date($inspection_date, SGS::CERTIFICATE_DATE_FORMAT); ?> at
-  <?php echo $inspection_location; ?> - Liberia, the company:<br />
+  <?php echo SGS::date($document->values['inspection_date'], SGS::CERTIFICATE_DATE_FORMAT); ?> at
+  <?php echo $document->values['inspection_location']; ?> - Liberia, the company:<br />
   <br />
   <strong>
-  <?php echo nl2br($company); ?>
+  <?php echo $document->operator->name; ?>
+  <?php echo nl2br($document->operator->address); ?>
   </strong>
   <br /><br />
   Has been successfully evaluated on the origin of the following consignment(s):<br />
@@ -283,8 +286,8 @@ $options = (array) $options + array(
     </tr>
     <tr>
       <td><?php echo SGS::quantitify($loaded_volume); ?> m3</td>
-      <td><?php echo $vessel; ?></td>
-      <td><?php echo $buyer; ?></td>
+      <td><?php echo $document->values['vessel']; ?></td>
+      <td><?php echo $document->values['buyer']; ?></td>
     </tr>
   </table>
   <br /><br />
@@ -293,7 +296,7 @@ $options = (array) $options + array(
   <table class="certificate-info-table" style="width: 70%;">
     <tr>
       <td class="label" style="padding-right: 20px;">Export Permit Number</td>
-      <td>EP <?php echo SGS::numberify($document->number); ?></td>
+      <td>EP <?php echo SGS::numberify($document->values['exp_number']); ?></td>
     </tr>
     <tr>
       <td class="label">Shipment Specification Number</td>

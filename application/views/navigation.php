@@ -188,6 +188,7 @@ if (!$command && !is_numeric($id)) {
       <ul class="nav commands">
         <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('exports/documents/create/specs', SGS::title('exports/documents/create/specs')); ?></li>
         <li class="<?php if ($command == 'exp')   echo 'active'; ?>"><?php echo HTML::anchor('exports/documents/create/exp', SGS::title('exports/documents/create/exp')); ?></li>
+        <li class="<?php if ($command == 'cert')  echo 'active'; ?>"><?php echo HTML::anchor('exports/documents/create/cert', SGS::title('exports/documents/create/cert')); ?></li>
       </ul>
       <?php endif; ?>
     </li>

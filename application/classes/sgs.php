@@ -134,6 +134,7 @@ class SGS {
 
     'exports/documents/create/specs' => 'Shipment Specification',
     'exports/documents/create/exp'   => 'Export Permit',
+    'exports/documents/create/cert'  => 'Certificate of Origin',
 
     'reports'         => 'Reports',
     'reports/list'    => 'List Reports',
@@ -310,6 +311,7 @@ class SGS {
 //    'SPECSV' => 'Shipping Specification Verification',
     'WB'     => 'Waybill',
     'EXP'    => 'Export Permit',
+    'CERT'   => 'Certificate of Origin',
     'CHECKS' => 'Checks and Queries Report',
     'INV'    => 'Invoice',
     'PJ'     => 'Print Job',
@@ -400,7 +402,8 @@ class SGS {
 
   public static $document_type = array(
     'SPECS' => 'Shipment Specification',
-    'EXP'   => 'Export Permit'
+    'EXP'   => 'Export Permit',
+    'CERT'  => 'Certificate of Origin'
   );
 
   public static $error_type = array(

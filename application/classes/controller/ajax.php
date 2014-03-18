@@ -522,11 +522,12 @@ class Controller_Ajax extends Controller {
     }
 
     $clone = clone($query);
-    $specs = reset(array_filter($query
+    $arr = array_filter($query
       ->select('origin', 'destination', 'submitted_by', 'buyer', 'loading_date')
       ->limit(1)
       ->execute()
-      ->as_array()));
+      ->as_array());
+    $specs = reset($arr);
 
     if ($specs) {
       $ids = (array) $clone
@@ -597,6 +598,51 @@ class Controller_Ajax extends Controller {
       $this->response->body($output);
     }
   }
+
+//  public function action_expopts() {
+//    if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);
+//
+//    $operator_id   = $this->request->post('operator_id');
+//    $exp_number  = $this->request->post('exp_number');
+//    $exp_barcode = $this->request->post('exp_barcode');
+//
+//    if ($operator_id) {
+//      $output = '<optgroup label=""><option value=""></option>';
+//
+//      if ($exp_number) {
+//        $sql = "SELECT distinct number
+//                FROM documents
+//                WHERE operator_id = $operator_id AND type = 'EXP'
+//                ORDER BY number";
+//
+//        if ($numbers = array_filter(DB::query(Database::SELECT, $sql)
+//          ->execute()
+//          ->as_array(NULL, 'number'))) {
+//          $output .= '<optgroup label="Export Permit Number">';
+//          foreach ($numbers as $number) $output .= '<option value="'.$number.'">EP '.SGS::numberify($number).'</option>';
+//          $output .= '</optgroup>';
+//        }
+//      }
+//
+//      if ($exp_barcode) {
+//        $sql = "SELECT distinct barcode
+//                FROM barcodes
+//                JOIN specs_data ON specs_data.exp_barcode_id = barcodes.id
+//                WHERE specs_data.operator_id = $operator_id
+//                ORDER BY barcode";
+//
+//        if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
+//          ->execute()
+//          ->as_array(NULL, 'barcode'))) {
+//          $output .= '<optgroup label="Export Permit Barcode">';
+//          foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'</option>';
+//          $output .= '</optgroup>';
+//        }
+//      }
+//
+//      $this->response->body($output);
+//    }
+//  }
 
   public function action_expopts() {
     if (!Auth::instance()->logged_in('analysis')) return $this->response->status(401);

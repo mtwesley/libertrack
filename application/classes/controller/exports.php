@@ -68,7 +68,7 @@ class Controller_Exports extends Controller {
 
     $qr_array = array(
       'EP NUMBER'    => $document->number,
-      'SPEC NUMBER ' => $document->values['specs_number'],
+      'SPEC NUMBER'  => $document->values['specs_number'],
       'EXPORTER'     => $document->operator->name,
       'BUYER'        => $document->values['buyer'],
       'SITE'         => $document->values['site_reference'],
@@ -354,6 +354,198 @@ VALIDATION: $secret";
     }
   }
 
+  private function generate_cert_preview($document, $data_ids) {
+    if (!($data_ids = $data_ids ?: $document->get_data())) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
+    $specs_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
+      ->distinct(TRUE)
+      ->from('specs_data')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('volume');
+
+    $loaded_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
+      ->distinct(TRUE)
+      ->from('specs_data')
+      ->join('barcode_activity')
+      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->and_where('barcode_activity.activity', '=', 'O')
+      ->execute()
+      ->get('volume');
+
+    $short_shipped_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
+      ->distinct(TRUE)
+      ->from('specs_data')
+      ->join('barcode_activity')
+      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->and_where('barcode_activity.activity', '=', 'S')
+      ->execute()
+      ->get('volume');
+
+    return View::factory('documents/cert_summary')
+      ->set('document', $document)
+      ->set('specs_volume', $specs_volume)
+      ->set('loaded_volume', $loaded_volume)
+      ->set('short_shipped_volume', $short_shipped_volume)
+      ->render();
+  }
+
+  private function generate_cert_document($document, $data_ids) {
+    if (!($data_ids = $data_ids ?: $document->get_data())) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+    
+    $specs_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
+      ->distinct(TRUE)
+      ->from('specs_data')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('volume');
+
+    $loaded_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
+      ->distinct(TRUE)
+      ->from('specs_data')
+      ->join('barcode_activity')
+      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->and_where('barcode_activity.activity', '=', 'O')
+      ->execute()
+      ->get('volume');
+
+    $short_shipped_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
+      ->distinct(TRUE)
+      ->from('specs_data')
+      ->join('barcode_activity')
+      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
+      ->where('specs_data.id', 'IN', (array) $data_ids)
+      ->and_where('barcode_activity.activity', '=', 'S')
+      ->execute()
+      ->get('volume');
+
+    $qr_array = array(
+      'STATEMENT NUMBER' => $document->number,
+      'EP NUMBER'        => $document->values['exp_number'],
+      'SPEC NUMBER'      => $document->values['specs_number'],
+      'EXPORTER'         => $document->operator->name,
+      'BUYER'            => $document->values['buyer'],
+      'SITE'             => $document->values['site_reference'],
+      'VESSEL'           => $document->values['vessel'],
+      'LOADED'           => SGS::quantitify($loaded_volume).'m3',
+      'SHORT-SHIPPED'    => SGS::quantitify($short_shipped_volume).'m3',
+    );
+
+    $hash   = $document->get_hash();
+    $secret = strtoupper(substr($hash, mt_rand(0, strlen($hash) - 16), 16));
+
+    $disclaimer = "
+FOR VALIDATION, PLEASE CONTACT SGS-LIBERFOR:
+PHONE: +231886410110
+EMAIL: MYERS.TUWEH@SGS.COM
+
+VALIDATION: $secret";
+
+    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\n";
+    $qr_text .= $disclaimer;
+
+    $tempname = tempnam(sys_get_temp_dir(), 'qr_').'.png';
+    try {
+      QRcode::png($qr_text, $tempname, QR_ECLEVEL_L, 2, 1);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate validation image. Please try again.', 'error');
+    }
+
+    if ($document->is_draft === FALSE) try {
+      $qr = ORM::factory('qrcode');
+      $qr->qrcode = $hash;
+      $qr->save();
+      $document->qrcode = $qr;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to create validation code. Please try again.', 'error');
+    }
+
+    $html .= View::factory('documents/cert')
+      ->set('options', array(
+        'info'    => TRUE,
+        'styles'  => TRUE,
+        'break'   => FALSE
+      ))
+      ->set('qr_image', $tempname)
+      ->set('document', $document)
+      ->set('specs_volume', $specs_volume)
+      ->set('loaded_volume', $loaded_volume)
+      ->set('short_shipped_volume', $short_shipped_volume)
+      ->render();
+    
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array('exp'));
+
+    if ($document->is_draft) $newname = 'CERT_DRAFT_'.SGS::date('now', 'Y_m_d').'.'.$ext;
+    else $newname = 'CERT_'.$document->number.'.'.$ext;
+
+    $version = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+//    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 22,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('documents/cert')
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->render()
+      ));
+//    } catch (Exception $e) {
+//      Notify::msg('Sorry, unable to generate document. If this problem continues, contact the system administrator.', 'error');
+//      return FALSE;
+//    }
+
+    try {
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'D';
+      $file->operation_type = 'DOC';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+      $file->save();
+      return $file->id;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }
+  }
+
   private function handle_document_create($document_type) {
     if (!Request::$current->query()) Session::instance()->delete('pagination.exports.document.data');
 
@@ -395,6 +587,15 @@ VALIDATION: $secret";
         $form->add('loading_date', 'input', NULL, array('required' => TRUE, 'label' => 'Expected Loading Date', 'attr' => array('class' => 'dpicker loading_date-dpicker loading_dateinput')));
         $form->add('contract_number', 'input', NULL, array('label' => 'Contract Number', 'attr' => array('class' => 'contract_numberinput')));
         $form->add('submitted_by', 'input', NULL, array('required' => TRUE, 'label' => 'Submitted By', 'attr' => array('class' => 'submitted_byinput')));
+        break;
+      
+      case 'CERT':
+        $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'exp_operatoropts exp_number')));
+        $form->add_group('exp_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts exp_number exp_expnumberinputs')));
+        $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'value' => $document->values['inspection_date'], 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')));
+        $form->add('inspection_location', 'input', NULL, array('label' => 'Inspection Location', 'value' => $document->values['inspection_location']));
+        $form->add('vessel', 'input', NULL, array('required' => TRUE, 'label' => 'Vessel', 'value' => $document->values['vessel'], 'attr' => array('class' => 'vesselinput')));
+        $form->add('buyer', 'input', NULL, array('required' => TRUE, 'label' => 'Buyer', 'value' => $document->values['buyer'], 'attr' => array('class' => 'buyerinput')));
         break;
     }
 
@@ -451,13 +652,24 @@ VALIDATION: $secret";
             'submitted_by'    => $form->submitted_by->val(),
           );
           break;
+        
+        case 'CERT':
+          $exp_number = $form->exp_number->val();
+          $values = array(
+            'exp_number'      => $exp_number,
+            'inspection_date' => $form->inspection_date->val(),
+            'inspection_location' => $form->inspection_location->val(),
+            'vessel'          => $form->vessel->val(),
+            'buyer'           => $form->buyer->val(),
+          );
+          break;
       }
 
       Session::instance()->set('pagination.exports.document.data', array(
         'operator_id'   => $operator_id,
         'specs_barcode' => $specs_barcode,
         'specs_number'  => $specs_number,
-        // 'exp_number'    => $exp_number,
+        'exp_number'    => $exp_number,
         'format'        => $format,
         'created'       => $created,
         'values'        => $values
@@ -493,6 +705,14 @@ VALIDATION: $secret";
           $form->loading_date->val($values['loading_date'] = $settings['values']['loading_date']);
           $form->contract_number->val($values['contract_number'] = $settings['values']['contract_number']);
           $form->submitted_by->val($values['submitted_by'] = $settings['values']['submitted_by']);
+          break;
+        
+        case 'CERT':
+          $form->exp_number->val($exp_number = $settings['exp_number']);
+          $form->inspection_date->val($values['inspection_date'] = $settings['values']['inspection_date']);
+          $form->inspection_location->val($values['inspection_location'] = $settings['values']['inspection_location']);
+          $form->vessel->val($values['vessel'] = $settings['values']['vessel']);
+          $form->buyer->val($values['buyer'] = $settings['values']['buyer']);
           break;
       }
 
@@ -648,6 +868,46 @@ VALIDATION: $secret";
             ->execute()
             ->as_array(NULL, 'id'));
           break;
+        
+        case 'CERT':
+          $form_type = 'SPECS';
+          $ids = array_filter(DB::select('specs_data.id','barcodes.barcode')
+            ->distinct(TRUE)
+            ->from('specs_data')
+
+            ->join('document_data')
+            ->on('specs_data.id', '=', 'document_data.form_data_id')
+            ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+
+            ->join('documents')
+            ->on('document_data.document_id', '=', 'documents.id')
+            ->on('documents.type', '=', DB::expr("'EXP'"))
+
+            ->join(DB::expr('"documents" as "cert_documents"'), 'LEFT OUTER')
+            ->on('document_data.document_id', '=', 'cert_documents.id')
+            ->on('cert_documents.type', '=', DB::expr("'CERT'"))
+
+            ->join('barcode_activity', 'LEFT OUTER')
+            ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
+
+            ->join('barcodes')
+            ->on('specs_data.barcode_id', '=', 'barcodes.id')
+            ->where('specs_data.operator_id', '=', $operator_id)
+            ->and_where('specs_data.status', '=', 'A')
+            ->and_where('documents.number', '=', $exp_number)
+            ->and_where('documents.is_draft', '=', FALSE)
+
+            ->group_by('specs_data.id')
+            ->group_by('barcodes.barcode')
+
+            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '&&', DB::expr("array['O', 'L']"))
+            ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '&&', DB::expr("array['H', 'Y', 'A', 'Z']"))
+            ->and_having(DB::expr('array_agg(distinct "cert_documents"."id"::text)'), '=', NULL)
+
+            ->order_by('barcodes.barcode')
+            ->execute()
+            ->as_array(NULL, 'id'));
+          break;
       }
 
       if ($form_type and $ids) {
@@ -668,6 +928,7 @@ VALIDATION: $secret";
 
         $document = ORM::factory('document');
         if (count($site_reference) == 1) $document->site = ORM::factory('site', reset(array_keys($site_reference)));
+        
         $document->operator = $operator;
         $document->type     = $document_type;
         $document->is_draft = $is_draft ? TRUE : FALSE;
@@ -1106,6 +1367,7 @@ VALIDATION: $secret";
     switch ($command) {
       case 'specs': return self::handle_document_create('SPECS');
       case 'exp': return self::handle_document_create('EXP');
+      case 'cert': return self::handle_document_create('CERT');
     }
 
     $view = View::factory('main')->set('content', $content);
