@@ -232,9 +232,10 @@ $options = (array) $options + array(
   }
 
   .qr_image {
-    margin-left: 20px;
-    padding: 10px;
-    border: 2px solid #000;
+    margin-left: 10px;
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid #000;
     float: right;
     text-align: center;
     vertical-align: middle;
@@ -263,11 +264,12 @@ $options = (array) $options + array(
 
   <?php if ($options['info']): ?>
   <br /><br />
+  <div class="qr_image"><img src="<?php echo $qr_image; ?>" /></div>
   <strong>
   Statement # SGS - LiberFor - <?php echo $document->number ? $document->number : 'DRAFT'; ?><br />
   Date: <?php echo SGS::date('now', SGS::CERTIFICATE_DATE_FORMAT); ?><br />
   </strong>
-  <br /><div class="qr_image"><img src="<?php echo $qr_image; ?>" /></div>
+  <br /><br />
   Further to the inspection carried out by SGS Liberia Inc. on
   <?php echo SGS::date($document->values['inspection_date'], SGS::CERTIFICATE_DATE_FORMAT); ?> at
   <?php echo $document->values['inspection_location']; ?> - Liberia, the company:<br />
