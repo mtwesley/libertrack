@@ -235,7 +235,6 @@ $options = (array) $options + array(
     margin-left: 10px;
     margin-bottom: 10px;
     padding: 5px;
-    border: 1px solid #000;
     float: right;
     text-align: center;
     vertical-align: middle;

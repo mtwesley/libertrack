@@ -401,6 +401,12 @@ VALIDATION: $secret";
       return FALSE;
     }
     
+    $exp_document = Model_Document::lookup('EXP', $document->values['exp_number']);
+    if ($exp_document->values['certificate_file_id']) {
+      Notify::msg('Certificate file already generated.', 'warning');
+      return ORM::factory('file', $exp_document->values['certificate_file_id']);
+    }
+
     $specs_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
       ->distinct(TRUE)
       ->from('specs_data')
@@ -489,7 +495,7 @@ VALIDATION: $secret";
 
     // save file
     $ext = 'pdf';
-    $newdir = implode(DIRECTORY_SEPARATOR, array('exp'));
+    $newdir = implode(DIRECTORY_SEPARATOR, array('cert'));
 
     if ($document->is_draft) $newname = 'CERT_DRAFT_'.SGS::date('now', 'Y_m_d').'.'.$ext;
     else $newname = 'CERT_'.$document->number.'.'.$ext;

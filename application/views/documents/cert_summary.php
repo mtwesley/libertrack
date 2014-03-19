@@ -56,7 +56,11 @@ $classes[] = 'data';
   <tr>
     <td>
       <span class="label">Statement Number: </span>&nbsp;
-      <?php echo $document->number ? $document->number : 'DRAFT'; ?>
+      <?php echo $document->number ? SGS::numberify($document->number) : 'DRAFT'; ?>
+    </td>
+    <td>
+      <span class="label">EP Number: </span>&nbsp;
+      <?php echo SGS::numberify($document->values['exp_number']); ?>
     </td>
     <td>
       <span class="label">Date of Issue:</span>&nbsp;
