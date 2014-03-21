@@ -126,7 +126,10 @@ class Controller_Declaration extends Controller {
   }
 
   private function handle_file_delete($id) {
-    if (!Auth::instance()->logged_in('management')) $this->request->redirect('declaration/files/'.$id);
+    if (Auth::instance()->get_user()->id != 1) {
+      Notify::msg('Access denied. You must be the superuser to delete files.', 'locked', TRUE);
+      $this->request->redirect();
+    }
 
     $file = ORM::factory('file', $id);
     if (!$file->loaded()) {
