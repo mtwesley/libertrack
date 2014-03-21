@@ -240,7 +240,8 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function parent($types = array()) {
-    return reset($this->parents(1, $types)) ?: NULL;
+    $arr = $this->parents(1, $types);
+    return reset($arr) ?: NULL;
   }
 
   public function parents($max_hops = NULL, $types = array()) {

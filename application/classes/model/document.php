@@ -11,7 +11,7 @@ class Model_Document extends ORM {
   );
   
   public static function lookup($type, $number) {
-    return Model::factory('document', DB::query(Database::SELECT, "SELECT lookup_document_id('{$type}', {$number})"));
+    return ORM::factory('document', DB::query(Database::SELECT, "SELECT lookup_document_id('{$type}', {$number})"));
   }
 
   public static function create_document_number($type) {

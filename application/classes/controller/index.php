@@ -7,7 +7,7 @@ class Controller_Index extends Controller {
       Notify::msg('Please login.', NULL, TRUE);
       $this->request->redirect('login');
     }
-
+    
     $view = View::factory('main');
     $this->response->body($view);
   }
