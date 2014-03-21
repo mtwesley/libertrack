@@ -256,7 +256,7 @@ class Model_LDFV extends SGS_Form_ORM {
         $this->site = SGS::lookup_site($value); break;
 
       case 'barcode':
-        $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value, array('L'))); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;

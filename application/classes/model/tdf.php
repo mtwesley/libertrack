@@ -291,9 +291,13 @@ class Model_TDF extends SGS_Form_ORM {
         $this->block = SGS::lookup_block($data['site_name'], $value); break;
 
       case 'barcode':
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value), array('F', 'P')); break;
+      
       case 'tree_barcode':
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value), array('T', 'P')); break;
+      
       case 'stump_barcode':
-        $this->$key = SGS::lookup_barcode(SGS::barcodify($value)); break;
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value), array('S', 'P')); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;

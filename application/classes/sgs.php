@@ -616,11 +616,12 @@ class SGS {
     $id = DB::select('id')
       ->from('barcodes')
       ->where('barcode', '=', (string) $barcode);
-    if ($type) $id->and_where('type', 'IN', (array) $type);
-    $id = $id
-      ->execute()
-      ->as_array(NULL, 'id');
-
+    if ($type) {
+      $id->and_where('type', 'IN', (array) $type);
+      if (is_array($type)) foreach ($type as $typ) $id->order_by(DB::expr("(type = '$typ')"), 'DESC');
+    }    
+    $id = $id->execute()->as_array(NULL, 'id');
+    
     if (count($id) == 1 or $returning_multiple == FALSE) return $returning_id ? reset($id) : ORM::factory('barcode', reset($id));
     else return $returning_id ? $id : ORM::factory('barcode')
       ->where('id', 'IN', $id)
