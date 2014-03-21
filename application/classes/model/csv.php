@@ -149,10 +149,12 @@ class Model_CSV extends ORM {
     if ($duplicates) foreach ($duplicates as $field => $duplicate_csv_id) {
       $this->set_duplicate($duplicate_csv_id, is_int($field) ? NULL : $field);
     }
-
-    if ($duplicate) $this->status = 'D';
-    else if ($duplicates) $this->status = 'U';
-    else if ($problem or $errors) $this->status = 'R';
+    
+    if ($problem or $errors) {
+      if ($duplicate) $this->status = 'D';
+      else if ($duplicates) $this->status = 'U';
+      else $this->status = 'R';
+    }
     else $this->status = 'A';
 
     $this->save();
