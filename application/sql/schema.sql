@@ -1756,20 +1756,58 @@ begin
   end if;
 
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
-    if (new.status <> 'R') and (new.barcode_id is not null) then
-      update barcodes set type = 'F' where id = new.barcode_id;
+    if new.status <> 'R' then
+      if new.barcode_id is not null then
+        update barcodes set type = 'F' where id = new.barcode_id;
+      else 
+        if old.barcode_id is not null then
+          update barcodes set type = 'F' where id = old.barcode_id;
+        end if;
+      end if;
 
       if new.tree_barcode_id is not null then
-        update barcodes set parent_id = new.tree_barcode_id where id = new.barcode_id;
+        if new.barcode_id is not null then
+          update barcodes set parent_id = new.tree_barcode_id where id = new.barcode_id;
+        else
+          if old.barcode_id is not null then
+            update barcodes set parent_id = new.tree_barcode_id where id = old.barcode_id;
+          end if;
+        end if;
 
         if new.stump_barcode_id is not null then
           update barcodes set parent_id = new.tree_barcode_id where id = new.stump_barcode_id;
+        else
+          if old.stump_barcode is not null then
+            update barcodes set parent_id = new.tree_barcode_id where id = old.stump_barcode_id;
+          end if;
+        end if;
+      else
+        if old.tree_barcode_id is not null then
+          if new.barcode_id is not null then
+            update barcodes set parent_id = old.tree_barcode_id where id = new.barcode_id;
+          else
+            if old.barcode_id is not null then
+              update barcodes set parent_id = old.tree_barcode_id where id = old.barcode_id;
+            end if;
+          end if;
+
+          if new.stump_barcode_id is not null then
+            update barcodes set parent_id = old.tree_barcode_id where id = new.stump_barcode_id;
+          else
+            if old.stump_barcode is not null then
+              update barcodes set parent_id = old.tree_barcode_id where id = old.stump_barcode_id;
+            end if;
+          end if;
         end if;
       end if;
     end if;
 
     if new.stump_barcode_id is not null then
       update barcodes set type = 'S' where id = new.stump_barcode_id;
+    else
+      if old.stump_barcode_id is not null then
+        update barcodes set type = 'S' where id = old.stump_barcode_id;
+      end if;
     end if;
   end if;
 
@@ -1798,11 +1836,29 @@ begin
   end if;
 
   if (tg_op = 'INSERT') or (tg_op = 'UPDATE') then
-    if (new.status <> 'R') and (new.barcode_id is not null) then
-      update barcodes set type = 'L' where id = new.barcode_id;
+    if new.status <> 'R' then
+      if new.barcode_id is not null then
+        update barcodes set type = 'L' where id = new.barcode_id;
 
-      if new.parent_barcode_id is not null then
-        update barcodes set parent_id = new.parent_barcode_id where id = new.barcode_id;
+        if new.parent_barcode_id is not null then
+          update barcodes set parent_id = new.parent_barcode_id where id = new.barcode_id;
+        else
+          if new.parent_barcode_id is not null then
+            update barcodes set parent_id = old.parent_barcode_id where id = old.barcode_id;
+          end if;
+        end if;
+      end if;
+    else
+      if old.barcode_id is not null then
+        update barcodes set type = 'L' where id = old.barcode_id;
+
+        if new.parent_barcode_id is not null then
+          update barcodes set parent_id = new.parent_barcode_id where id = old.barcode_id;
+        else
+          if new.parent_barcode_id is not null then
+            update barcodes set parent_id = old.parent_barcode_id where id = old.barcode_id;
+          end if;
+        end if;
       end if;
     end if;
   end if;
