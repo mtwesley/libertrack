@@ -67,7 +67,7 @@ $classes[] = 'data';
     <td><span class="accepted"><?php echo $_a; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=A', 'Accepted'); ?> (<?php echo $_ap; ?>%)</span></td>
     <td><span class="rejected"><?php echo $_r; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=R', 'Rejected'); ?> (<?php echo $_rp; ?>%)</span></td>
     <td><span class="duplicated"><?php echo $_u; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=U', 'Duplicated'); ?> (<?php echo $_up; ?>%)</span></td>
-    <!-- <td><span class="deleted"><?php echo $_d; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=D', 'Deleted'); ?> (<?php echo $_dp; ?>%)</span></td> -->
+    <td><span class="deleted"><?php echo $_d; ?> <?php print HTML::anchor($file->data_type.'/files/'.$file->id.'/review?status=D', 'Deleted'); ?> (<?php echo $_dp; ?>%)</span></td>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>
