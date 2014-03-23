@@ -933,7 +933,8 @@ VALIDATION: $secret";
         $values['site_reference'] = implode(', ', $site_reference);
 
         $document = ORM::factory('document');
-        if (count($site_reference) == 1) $document->site = ORM::factory('site', reset(array_keys($site_reference)));
+        $arr = array_keys($site_reference);
+        if (count($site_reference) == 1) $document->site = ORM::factory('site', reset($arr));
         
         $document->operator = $operator;
         $document->type     = $document_type;
