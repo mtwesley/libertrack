@@ -269,7 +269,7 @@ class Controller_Verification extends Controller {
 
     $csvs   = $file->csv;
     if ($status) $csvs->where('status', 'IN', $status);
-    $csvs = $csvs->find_all()->as_array();
+    $csvs = $csvs->find_all();
 
     switch ($type) {
       case 'csv':
@@ -305,6 +305,7 @@ class Controller_Verification extends Controller {
         $model->download_data($csv->values, $csv->get_errors(), $excel, $row);
         if (strtotime($csv->values['create_date']) > strtotime($create_date)) $create_date = $csv->values['create_date'];
         $row++;
+        unset($csv);
       }
 
       // headers
@@ -564,14 +565,14 @@ class Controller_Verification extends Controller {
 //        ->add('download_csv', 'submit', 'Download '.SGS::$file_type['csv'])
 //        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls']);
 
-      $csvs = ORM::factory('csv')
-        ->where('operation', '=', 'U')
-        ->and_where('form_type', 'IN', array_keys(SGS::$form_verification_type))
-        ->and_where('form_type', '=', $form_type)
-        ->order_by('timestamp', 'DESC');
-
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.csv');
+
+        $csvs = ORM::factory('csv')
+          ->where('operation', '=', 'U')
+          ->and_where('form_type', 'IN', array_keys(SGS::$form_verification_type))
+          ->and_where('form_type', '=', $form_type)
+          ->order_by('timestamp', 'DESC');
 
         if ($has_site_id) $site_id = $form->site_id->val();
         else $operator_id = $form->operator_id->val();
@@ -587,7 +588,7 @@ class Controller_Verification extends Controller {
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
 
         if (in_array($format, array('csv', 'xls'))) {
-          $csvs = $csvs->find_all()->as_array();
+          $csvs = $csvs->find_all();
 
           switch ($format) {
             case 'csv':
@@ -625,6 +626,7 @@ class Controller_Verification extends Controller {
               $model->download_data($csv->values, $csv->get_errors(), $excel, $row);
               if (strtotime($csv->values['create_date']) > strtotime($create_date)) $create_date = $csv->values['create_date'];
               $row++;
+              unset($csv);
             }
 
             // headers

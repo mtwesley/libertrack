@@ -269,7 +269,7 @@ class Controller_Declaration extends Controller {
 
     $csvs   = $file->csv;
     if ($status) $csvs->where('status', 'IN', $status);
-    $csvs = $csvs->find_all()->as_array();
+    $csvs = $csvs->find_all();
 
     switch ($type) {
       case 'csv':
@@ -305,6 +305,7 @@ class Controller_Declaration extends Controller {
         $model->download_data($csv->values, $csv->get_errors(), $excel, $row);
         if (strtotime($csv->values['create_date']) > strtotime($create_date)) $create_date = $csv->values['create_date'];
         $row++;
+        unset($csv);
       }
 
       // headers
