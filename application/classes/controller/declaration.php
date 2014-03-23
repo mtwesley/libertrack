@@ -570,14 +570,16 @@ class Controller_Declaration extends Controller {
 //        ->add('download_csv', 'submit', 'Download '.SGS::$file_type['csv'])
 //        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls']);
 
-      $csvs = ORM::factory('csv')
-        ->where('operation', '=', 'U')
-        ->and_where('form_type', 'IN', array_keys(SGS::$form_data_type))
-        ->and_where('form_type', '=', $form_type)
-        ->order_by('timestamp', 'DESC');
-
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.csv');
+
+        set_time_limit(600);
+        
+        $csvs = ORM::factory('csv')
+          ->where('operation', '=', 'U')
+          ->and_where('form_type', 'IN', array_keys(SGS::$form_data_type))
+          ->and_where('form_type', '=', $form_type)
+          ->order_by('timestamp', 'DESC');
 
         if ($has_site_id) $site_id = $form->site_id->val();
         else $operator_id = $form->operator_id->val();
@@ -586,7 +588,7 @@ class Controller_Declaration extends Controller {
         if ($has_specs_info) $specs_barcode = $form->specs_barcode->val();
         if ($has_exp_info) $exp_barcode = $form->exp_barcode->val();
         if ($has_wb_info) $wb_barcode = $form->wb_barcode->val();
-
+        
         $status = $form->status->val();
         $format = $form->format->val();
 
