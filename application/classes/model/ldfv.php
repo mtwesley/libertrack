@@ -256,7 +256,7 @@ class Model_LDFV extends SGS_Form_ORM {
         $this->site = SGS::lookup_site($value); break;
 
       case 'barcode':
-        $this->$key = SGS::lookup_barcode(SGS::barcodify($value, array('L'))); break;
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value), array('L')); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;
@@ -333,6 +333,12 @@ class Model_LDFV extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('F'.$row, $values['top_min']);
     $excel->getActiveSheet()->SetCellValue('G'.$row, $values['length']);
     $excel->getActiveSheet()->SetCellValue('H'.$row, $values['volume']);
+    
+    if ($errors) {
+      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $this->field($field))).'.';
+      $excel->getActiveSheet()->SetCellValue('K'.$row, implode(" ", (array) $text));
+      $excel->getActiveSheet()->getStyle('K'.$row)->getAlignment()->setWrapText(true);
+    }
   }
 
   public function download_headers($values, $excel, $args, $headers = TRUE) {

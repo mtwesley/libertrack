@@ -133,6 +133,15 @@ class Model_SSF extends SGS_Form_ORM {
     return (array) self::$fields;
   }
 
+  public function field($field)
+  {
+    $fields = self::$fields;
+    $labels = $this->labels();
+    if ($fields[$field]) return $fields[$field];
+    else if ($labels[$field]) return $labels[$field];
+    else return NULL;
+  }
+
   public function formo() {
     $array = array(
       'id'        => array('render' => FALSE),
@@ -211,7 +220,7 @@ class Model_SSF extends SGS_Form_ORM {
         $this->block = SGS::lookup_block($data['site_name'], $value); break;
 
       case 'barcode':
-        $this->$key = SGS::lookup_barcode(SGS::barcodify($value, array('T', 'P'))); break;
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value), array('T', 'P')); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;
@@ -309,9 +318,9 @@ class Model_SSF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('J'.$row, $values['fda_remarks']);
 
     if ($errors) {
-      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $fields[$field]));
-      $excel->getActiveSheet()->SetCellValue('L'.$row, implode(" \n", (array) $text));
-      $excel->getActiveSheet()->getStyle('L'.$row)->getAlignment()->setWrapText(true);
+      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $this->field($field))).'.';
+      $excel->getActiveSheet()->SetCellValue('K'.$row, implode(" ", (array) $text));
+      $excel->getActiveSheet()->getStyle('K'.$row)->getAlignment()->setWrapText(true);
     }
   }
 

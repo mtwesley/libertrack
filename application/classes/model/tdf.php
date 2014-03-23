@@ -222,6 +222,15 @@ class Model_TDF extends SGS_Form_ORM {
     return (array) self::$fields;
   }
 
+  public function field($field)
+  {
+    $fields = self::$fields;
+    $labels = $this->labels();
+    if ($fields[$field]) return $fields[$field];
+    else if ($labels[$field]) return $labels[$field];
+    else return NULL;
+  }
+
   public function formo() {
     $array = array(
       'id'              => array('render' => FALSE),
@@ -399,9 +408,9 @@ class Model_TDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('M'.$row, $values['comment']);
 
     if ($errors) {
-      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $fields[$field]));
-      $excel->getActiveSheet()->SetCellValue('O'.$row, implode(" \n", (array) $text));
-      $excel->getActiveSheet()->getStyle('O'.$row)->getAlignment()->setWrapText(true);
+      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $this->field($field))).'.';
+      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" ", (array) $text));
+      $excel->getActiveSheet()->getStyle('M'.$row)->getAlignment()->setWrapText(true);
     }
   }
 

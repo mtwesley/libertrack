@@ -268,10 +268,10 @@ class Model_LDF extends SGS_Form_ORM {
         $this->site = SGS::lookup_site($value); break;
 
       case 'barcode':
-        $this->$key = SGS::lookup_barcode(SGS::barcodify($value, array('L', 'P'))); break;
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value), array('L', 'P')); break;
       
       case 'parent_barcode':
-        $this->$key = SGS::lookup_barcode(SGS::barcodify($value, array('L', 'F', 'P'))); break;
+        $this->$key = SGS::lookup_barcode(SGS::barcodify($value), array('L', 'F', 'P')); break;
 
       case 'species_code':
         $this->species = SGS::lookup_species($value); break;
@@ -365,12 +365,12 @@ class Model_LDF extends SGS_Form_ORM {
     $excel->getActiveSheet()->SetCellValue('H'.$row, $values['length']);
     $excel->getActiveSheet()->SetCellValue('I'.$row, $values['volume']);
     $excel->getActiveSheet()->SetCellValue('J'.$row, $values['action']);
-    $excel->getActiveSheet()->SetCellValue('K'.$row, $values['comment']);
+    // $excel->getActiveSheet()->SetCellValue('K'.$row, $values['comment']);
 
     if ($errors) {
-      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $fields[$field]));
-      $excel->getActiveSheet()->SetCellValue('M'.$row, implode(" \n", (array) $text));
-      $excel->getActiveSheet()->getStyle('M'.$row)->getAlignment()->setWrapText(true);
+      foreach ($errors as $field => $array) foreach ((array) $array as $error) $text[] = SGS::decode_error($field, $error, array(':field' => $this->field($field))).'.';
+      $excel->getActiveSheet()->SetCellValue('K'.$row, implode(" ", (array) $text));
+      $excel->getActiveSheet()->getStyle('K'.$row)->getAlignment()->setWrapText(true);
     }
   }
 
@@ -646,6 +646,15 @@ class Model_LDF extends SGS_Form_ORM {
   public static function fields()
   {
     return (array) self::$fields;
+  }
+
+  public function field($field)
+  {
+    $fields = self::$fields;
+    $labels = $this->labels();
+    if ($fields[$field]) return $fields[$field];
+    else if ($labels[$field]) return $labels[$field];
+    else return NULL;
   }
 
   public function rules()
