@@ -602,7 +602,7 @@ class Controller_Declaration extends Controller {
         if (Valid::is_barcode($wb_barcode))    $csvs->and_where('values', 'LIKE', '%"wb_barcode";s:'.strlen($wb_barcode).':"'.$wb_barcode.'"%');
 
         if (in_array($format, array('csv', 'xls'))) {
-          $csvs = $csvs->find_all()->as_array();
+          $csvs = $csvs->find_all();
 
           switch ($format) {
             case 'csv':
@@ -640,6 +640,7 @@ class Controller_Declaration extends Controller {
               $model->download_data($csv->values, $csv->get_errors(), $excel, $row);
               if (strtotime($csv->values['create_date']) > strtotime($create_date)) $create_date = $csv->values['create_date'];
               $row++;
+              unset($csv);
             }
 
             // headers
