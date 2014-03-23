@@ -185,7 +185,7 @@ class Controller_Analysis extends Controller {
           ->render()
       ));
     } catch (Exception $e) {
-      Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
+      Notify::msg('Sorry, unable to generate check report. If this problem continues, contact the system administrator.', 'error');
       return FALSE;
     }
 
@@ -536,7 +536,7 @@ class Controller_Analysis extends Controller {
 
         $data = ORM::factory($form_type);
       }
-
+      
       if ($data) {
         if ($site_id)     $data->and_where('site_id', 'IN', (array) $site_id);
         if ($operator_id) $data->and_where('operator_id', 'IN', (array) $operator_id);
@@ -1356,7 +1356,7 @@ class Controller_Analysis extends Controller {
         }
 
         try {
-          $record->save();
+          if ($run) $record->save();
         } catch (Exception $e) {
           $failure++;
         }

@@ -261,7 +261,7 @@ class SGS {
       'is_form_type'         => ':field must not be a correct type of form (for example, "SSF")',
       'is_grade'             => ':field must not be a correct grade (for example, "A", "B" or "C")',
       'is_barcode'           => ':field must match the required barcode format',
-      'is_barcode_type'      => ':field must be a correct barcode type (for example, "Standing Tree")',
+      'is_barcode_type'      => ':field must be a correct barcode type to match the data',
       'is_conversion_factor' => ':field must be a fraction or decimal number between 0 and 1',
       'is_block_name'        => ':field must match the required block name format',
       'is_status'            => ':field must be a correct status (for example, "Accepted")',
@@ -619,9 +619,9 @@ class SGS {
     if ($type) {
       $id->and_where('type', 'IN', (array) $type);
       if (is_array($type)) foreach ($type as $typ) $id->order_by(DB::expr("(type = '$typ')"), 'DESC');
-    }    
+    }
     $id = $id->execute()->as_array(NULL, 'id');
-    
+
     if (count($id) == 1 or $returning_multiple == FALSE) return $returning_id ? reset($id) : ORM::factory('barcode', reset($id));
     else return $returning_id ? $id : ORM::factory('barcode')
       ->where('id', 'IN', $id)
