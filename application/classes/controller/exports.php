@@ -906,7 +906,7 @@ VALIDATION: $secret";
             ->group_by('specs_data.id')
             ->group_by('barcodes.barcode')
 
-            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '&&', DB::expr("array['O', 'L']"))
+            ->having(DB::expr('coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '&&', DB::expr("array['O', 'S']"))
             ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '&&', DB::expr("array['H', 'Y', 'A', 'Z']"))
             ->and_having(DB::expr('array_agg(distinct "cert_documents"."id"::text)'), '=', NULL)
 
