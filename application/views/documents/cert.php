@@ -265,7 +265,7 @@ $options = (array) $options + array(
   <br /><br />
   <div class="qr_image"><img src="<?php echo $qr_image; ?>" /></div>
   <strong>
-  Statement # SGS - LiberFor - <?php echo $document->number ? $document->number : 'DRAFT'; ?><br />
+  Statement # SGS - LiberFor - <?php echo $document->is_draft ? 'DRAFT' : $document->values['statement_number']; ?><br />
   Date: <?php echo SGS::date('now', SGS::CERTIFICATE_DATE_FORMAT); ?><br />
   </strong>
   <br /><br />

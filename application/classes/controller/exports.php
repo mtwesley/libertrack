@@ -370,20 +370,26 @@ VALIDATION: $secret";
     $loaded_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
       ->distinct(TRUE)
       ->from('specs_data')
-      ->join('barcode_activity')
-      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
       ->where('specs_data.id', 'IN', (array) $data_ids)
-      ->and_where('barcode_activity.activity', '=', 'O')
+      ->and_where(DB::select('barcode_activity.activity')
+          ->from('barcode_activity')
+          ->where('barcode_activity.barcode_id', '=', DB::expr('"specs_data"."barcode_id"'))
+          ->and_where('barcode_activity.activity', 'IN', array('O', 'S'))
+          ->order_by('barcode_activity.timestamp', 'DESC')
+          ->limit(1), '=', 'O')
       ->execute()
       ->get('volume');
-
+    
     $short_shipped_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
       ->distinct(TRUE)
       ->from('specs_data')
-      ->join('barcode_activity')
-      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
       ->where('specs_data.id', 'IN', (array) $data_ids)
-      ->and_where('barcode_activity.activity', '=', 'S')
+      ->and_where(DB::select('barcode_activity.activity')
+          ->from('barcode_activity')
+          ->where('barcode_activity.barcode_id', '=', DB::expr('"specs_data"."barcode_id"'))
+          ->and_where('barcode_activity.activity', 'IN', array('O', 'S'))
+          ->order_by('barcode_activity.timestamp', 'DESC')
+          ->limit(1), '=', 'S')
       ->execute()
       ->get('volume');
 
@@ -1279,6 +1285,7 @@ VALIDATION: $secret";
         switch ($document->type) {
           case 'EXP': $form_type = 'SPECS'; break;
           case 'SPECS': $form_type = 'SPECS'; break;
+          case 'CERT': $form_type = 'SPECS'; break;
         }
 
         $summary_data = ORM::factory($form_type)
@@ -1520,17 +1527,24 @@ VALIDATION: $secret";
       $this->request->redirect('exports/documents/'.$id);
     }
 
-    $form = Formo::form()
-      ->add('confirm', 'text', 'Finalizing a document will make it permanent. Are you sure you want to finalize this draft document?')
-      ->add('delete', 'centersubmit', 'Finalize');
+    $form = Formo::form()->add('confirm', 'text', 'Finalizing a document will make it permanent. Are you sure you want to finalize this draft document?');
+    if ($document->type == 'CERT') $form = $form->add('statement_number', 'input', NULL, array('required' => TRUE, 'label' => 'Statement Number'));
+    $form = $form->add('delete', 'centersubmit', 'Finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $document->is_draft = FALSE;
       $document->number = $document::create_document_number($document->type);
+      
+      if ($document->type == 'CERT') {
+        $_values = $document->values;
+        $_values['statement_number'] = trim($form->statement_number->val());
+        $document->values = $_values;
+      }
 
       switch ($document->type) {
         case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
         case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
+        case 'CERT':  $document->file_id = self::generate_cert_document($document, $document->get_data()); break;
       }
 
       if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);
@@ -1581,6 +1595,7 @@ VALIDATION: $secret";
       switch ($document->type) {
         case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
         case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
+        case 'CERT':  $document->file_id = self::generate_cert_document($document, $document->get_data()); break;
       }
 
       if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);
