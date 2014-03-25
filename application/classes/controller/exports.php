@@ -423,20 +423,26 @@ VALIDATION: $secret";
     $loaded_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
       ->distinct(TRUE)
       ->from('specs_data')
-      ->join('barcode_activity')
-      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
       ->where('specs_data.id', 'IN', (array) $data_ids)
-      ->and_where('barcode_activity.activity', '=', 'O')
+      ->and_where(DB::select('barcode_activity.activity')
+          ->from('barcode_activity')
+          ->where('barcode_activity.barcode_id', '=', DB::expr('"specs_data"."barcode_id"'))
+          ->and_where('barcode_activity.activity', 'IN', array('O', 'S'))
+          ->order_by('barcode_activity.timestamp', 'DESC')
+          ->limit(1), '=', 'O')
       ->execute()
       ->get('volume');
-
+    
     $short_shipped_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
       ->distinct(TRUE)
       ->from('specs_data')
-      ->join('barcode_activity')
-      ->on('specs_data.barcode_id', '=', 'barcode_activity.barcode_id')
       ->where('specs_data.id', 'IN', (array) $data_ids)
-      ->and_where('barcode_activity.activity', '=', 'S')
+      ->and_where(DB::select('barcode_activity.activity')
+          ->from('barcode_activity')
+          ->where('barcode_activity.barcode_id', '=', DB::expr('"specs_data"."barcode_id"'))
+          ->and_where('barcode_activity.activity', 'IN', array('O', 'S'))
+          ->order_by('barcode_activity.timestamp', 'DESC')
+          ->limit(1), '=', 'S')
       ->execute()
       ->get('volume');
 
