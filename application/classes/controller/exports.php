@@ -497,6 +497,7 @@ VALIDATION: $secret";
       ))
       ->set('qr_image', $tempname)
       ->set('document', $document)
+      ->set('exp_document', $exp_document)
       ->set('specs_volume', $specs_volume)
       ->set('loaded_volume', $loaded_volume)
       ->set('short_shipped_volume', $short_shipped_volume)

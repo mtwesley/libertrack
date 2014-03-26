@@ -302,7 +302,7 @@ $options = (array) $options + array(
     </tr>
     <tr>
       <td class="label">Shipment Specification Number</td>
-      <td>SPEC <?php echo SGS::numberify($document->values['specs_number']); ?></td>
+      <td>SPEC <?php echo SGS::numberify($exp_document->values['specs_number']); ?></td>
     </tr>
     <tr>
       <td class="label">Shipment Specification Volume</td>
