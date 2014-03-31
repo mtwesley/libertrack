@@ -360,13 +360,6 @@ VALIDATION: $secret";
       return FALSE;
     }
 
-    $specs_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
-      ->distinct(TRUE)
-      ->from('specs_data')
-      ->where('specs_data.id', 'IN', (array) $data_ids)
-      ->execute()
-      ->get('volume');
-
     $loaded_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
       ->distinct(TRUE)
       ->from('specs_data')
@@ -392,6 +385,8 @@ VALIDATION: $secret";
           ->limit(1), '=', 'S')
       ->execute()
       ->get('volume');
+
+    $specs_volume = $loaded_volume + $short_shipped_volume;
 
     return View::factory('documents/cert_summary')
       ->set('document', $document)
@@ -413,13 +408,6 @@ VALIDATION: $secret";
       return ORM::factory('file', $exp_document->values['certificate_file_id']);
     }
 
-    $specs_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
-      ->distinct(TRUE)
-      ->from('specs_data')
-      ->where('specs_data.id', 'IN', (array) $data_ids)
-      ->execute()
-      ->get('volume');
-
     $loaded_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
       ->distinct(TRUE)
       ->from('specs_data')
@@ -445,6 +433,8 @@ VALIDATION: $secret";
           ->limit(1), '=', 'S')
       ->execute()
       ->get('volume');
+
+    $specs_volume = $loaded_volume + $short_shipped_volume;
 
     $qr_array = array(
       'STATEMENT NUMBER' => $document->number,

@@ -59,8 +59,8 @@ $classes[] = 'data';
       <?php echo $document->is_draft ? 'DRAFT' : $document->values['statement_number']; ?>
     </td>
     <td>
-      <span class="label">CERT Number: </span>&nbsp;
-      <?php echo $document->is_draft ? 'DRAFT' : SGS::numberify($document->number); ?>
+      <span class="label">EP Number: </span>&nbsp;
+      <?php echo SGS::numberify($exp_document->number); ?>
     </td>
     <td>
       <span class="label">Date of Issue:</span>&nbsp;

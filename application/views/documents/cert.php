@@ -257,7 +257,7 @@ $options = (array) $options + array(
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="certificate-title">Certificate of Origin</div>
+    <div class="certificate-title"><?php if ($document->is_draft) echo 'Draft '; ?>Certificate of Origin</div>
   </div>
   <?php endif; ?>
 
