@@ -487,37 +487,45 @@ class Controller_Ajax extends Controller {
 
     switch ($type) {
       case 'specs_barcode':
+        if (is_array($value)) foreach ($value as $vlue) $id[] = SGS::lookup_barcode($vlue, NULL, TRUE);
+        else $id = (array) $value;
         $query = $query
           ->join('document_data', 'LEFT OUTER')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
           ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
-          ->where('specs_barcode_id', '=', SGS::lookup_barcode($value, NULL, TRUE));
+          ->where('specs_barcode_id', 'IN', $id);
         break;
 
       case 'specs_number':
+        if (is_array($value)) foreach ($value as $vlue) $id[] = SGS::lookup_document('SPECS', $vlue, TRUE);
+        else $id = (array) $value;
         $query = $query->join('document_data')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
           ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
           ->join('documents')
           ->on('document_data.document_id', '=', 'documents.id')
-          ->where('documents.id', '=', SGS::lookup_document('SPECS', $value, TRUE));
+          ->where('documents.id', 'IN', $id);
         break;
 
       case 'exp_barcode':
+        if (is_array($value)) foreach ($value as $vlue) $id[] = SGS::lookup_barcode($vlue, NULL, TRUE);
+        else $id = (array) $value;
         $query = $query
           ->join('document_data', 'LEFT OUTER')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
           ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
-          ->where('specs_barcode_id', '=', SGS::lookup_barcode($value, NULL, TRUE));
+          ->where('specs_barcode_id', 'IN', $id);
         break;
 
       case 'exp_number':
+        if (is_array($value)) foreach ($value as $vlue) $id[] = SGS::lookup_document('SPECS', $vlue, TRUE);
+        else $id = (array) $value;
         $query = $query->join('document_data')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
           ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
           ->join('documents')
           ->on('document_data.document_id', '=', 'documents.id')
-          ->where('documents.id', '=', SGS::lookup_document('EXP', $value, TRUE));
+          ->where('documents.id', 'IN', $id);
         break;
     }
 

@@ -328,7 +328,7 @@ $options = (array) $options + array(
       </tr>
       <tr class="info-bar">
         <td class="label">SPEC Number:</td>
-        <td colspan="2"><?php echo 'SPEC ' . SGS::numberify($document->values['specs_number']); ?></td>
+        <td colspan="2"><?php echo 'SPEC ' . SGS::implodify((array)$document->values['specs_number']); ?></td>
       </tr>
       <tr class="info-bar">
         <td class="label">Date of Issue:</td>

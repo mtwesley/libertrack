@@ -375,7 +375,7 @@ $(function() {
     }
   );
 
-  $("select.specs_specsbarcodeinputs").change(function() {
+  $("select.specs_specsbarcodeinputs").blur(function() {
     $.post(
       '/ajax/docarray',
       {
@@ -389,7 +389,7 @@ $(function() {
     );
   });
 
-  $("select.specs_specsnumberinputs").change(function() {
+  $("select.specs_specsnumberinputs").blur(function() {
     $.post(
       '/ajax/docarray',
       {
@@ -403,7 +403,7 @@ $(function() {
     );
   });
 
-  $("select.exp_expnumberinputs").change(function() {
+  $("select.exp_expnumberinputs").blur(function() {
     $.post(
       '/ajax/docarray',
       {
@@ -417,7 +417,7 @@ $(function() {
     );
   });
 
-  $("select.exp_specsinputs").change(function() {
+  $("select.exp_specsinputs").blur(function() {
     $.post(
       '/ajax/docarray',
       {

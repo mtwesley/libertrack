@@ -68,7 +68,7 @@ class Controller_Exports extends Controller {
 
     $qr_array = array(
       'EP NUMBER'    => $document->number,
-      'SPEC NUMBER'  => $document->values['specs_number'],
+      'SPEC NUMBER'  => SGS::implodify($document->values['specs_number']),
       'EXPORTER'     => $document->operator->name,
       'BUYER'        => $document->values['buyer'],
       'SITE'         => $document->values['site_reference'],
@@ -226,7 +226,7 @@ VALIDATION: $secret";
 
     $qr_array = array(
       'SPEC NUMBER'  => $document->number,
-      'SPEC BARCODE' => $document->values['specs_barcode'],
+      'SPEC BARCODE' => SGS::implodify($document->values['specs_barcode']),
       'EXPORTER'     => $document->operator->name,
       'SITE'         => $document->values['site_reference'],
       'ORIGIN'       => $document->values['origin'],
@@ -359,6 +359,8 @@ VALIDATION: $secret";
       Notify::msg('No data found. Unable to generate document.', 'warning');
       return FALSE;
     }
+    
+    $exp_document = Model_Document::lookup('EXP', $document->values['exp_number']);
 
     $loaded_volume = DB::select(array(DB::expr('sum(volume)'), 'volume'))
       ->distinct(TRUE)
@@ -390,6 +392,7 @@ VALIDATION: $secret";
 
     return View::factory('documents/cert_summary')
       ->set('document', $document)
+      ->set('exp_document', $exp_document)
       ->set('specs_volume', $specs_volume)
       ->set('loaded_volume', $loaded_volume)
       ->set('short_shipped_volume', $short_shipped_volume)
@@ -439,7 +442,6 @@ VALIDATION: $secret";
     $qr_array = array(
       'STATEMENT NUMBER' => $document->number,
       'EP NUMBER'        => $document->values['exp_number'],
-      'SPEC NUMBER'      => $document->values['specs_number'],
       'EXPORTER'         => $document->operator->name,
       'BUYER'            => $document->values['buyer'],
       'SITE'             => $document->values['site_reference'],
@@ -569,7 +571,7 @@ VALIDATION: $secret";
     switch ($document_type) {
       case 'EXP':
         $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_number')));
-        $form->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts specs_number specs_specsnumberinputs')));
+        $form->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('multiple' => 'multiple', 'size' => '10', 'class' => 'specsopts specs_number specs_specsnumberinputs')));
         $form->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'attr' => array('class' => 'origininput')));
         $form->add('destination', 'input', NULL, array('required' => TRUE, 'label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
         $form->add('product_type', 'input', NULL, array('required' => TRUE, 'label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
@@ -767,7 +769,7 @@ VALIDATION: $secret";
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
-            ->and_where('documents.number', '=', $specs_number)
+            ->and_where('documents.number', 'IN', (array) $specs_number)
             ->and_where('documents.is_draft', '=', FALSE)
 
             ->group_by('specs_data.id')
@@ -786,6 +788,8 @@ VALIDATION: $secret";
 
         case 'SPECS':
           $form_type = 'SPECS';
+          if (is_array($specs_barcode)) foreach ($specs_barcode as $spc_bc) $specs_barcode_id[] = SGS::lookup_barcode($spc_bc, NULL, TRUE);
+          else $specs_barcode_id = (array) $specs_barcode_id;
           $ids = array_filter(DB::select('specs_data.id','barcodes.barcode')
             ->distinct(TRUE)
             ->from('specs_data')
@@ -854,7 +858,7 @@ VALIDATION: $secret";
 
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
-            ->and_where('specs_data.specs_barcode_id', '=', SGS::lookup_barcode($specs_barcode, NULL, TRUE))
+            ->and_where('specs_data.specs_barcode_id', 'IN', (array) $specs_barcode_id)
 
             ->group_by('specs_data.id')
             ->group_by('barcodes.barcode')
@@ -903,7 +907,7 @@ VALIDATION: $secret";
             ->on('specs_data.barcode_id', '=', 'barcodes.id')
             ->where('specs_data.operator_id', '=', $operator_id)
             ->and_where('specs_data.status', '=', 'A')
-            ->and_where('documents.number', '=', $exp_number)
+            ->and_where('documents.number', 'IN', (array) $exp_number)
             ->and_where('documents.is_draft', '=', FALSE)
 
             ->group_by('specs_data.id')
@@ -1621,12 +1625,12 @@ VALIDATION: $secret";
   }
 
   private function handle_document_delete($id) {
-    if (Auth::instance()->get_user()->id != 1) {
+    $document = ORM::factory('document', $id);
+
+    if (!$document->is_draft and (Auth::instance()->get_user()->id != 1)) {
       Notify::msg('Access denied. You must be the superuser to delete export documents.', 'locked', TRUE);
       $this->request->redirect();
     }
-
-    $document = ORM::factory('document', $id);
 
     if (!$document->loaded()) {
       Notify::msg('No document found.', 'warning', TRUE);
