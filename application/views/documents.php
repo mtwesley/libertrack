@@ -19,9 +19,16 @@ $classes[] = 'data';
       switch ($document->type) {
         case 'SPECS': $type = 'SPEC'; echo HTML::image('images/page_green.png'); break;
         case 'EXP': $type = 'EP'; echo HTML::image('images/page.png'); break;
+        case 'CERT': $type = 'EP'; echo HTML::image('images/page_white.png'); break;
       }
     ?></td>
-    <td><?php echo $document->is_draft ? 'DRAFT' : $type.' '.$document->number; ?></td>
+    <td>
+    <?php 
+      if ($document->is_draft) echo 'DRAFT';
+      else if ($document->type == 'CERT') echo $document->values['statement_number'];
+      else echo $document->number; 
+    ?>
+    </td>
     <td><?php echo $document->operator->name; ?></td>
     <td><?php echo $document->site->loaded() ? $document->site->name : 'N/A'; ?></td>
     <td><?php echo SGS::date($document->created_date); ?></td>
