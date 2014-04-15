@@ -789,7 +789,8 @@ VALIDATION: $secret";
         case 'SPECS':
           $form_type = 'SPECS';
           if (is_array($specs_barcode)) foreach ($specs_barcode as $spc_bc) $specs_barcode_id[] = SGS::lookup_barcode($spc_bc, NULL, TRUE);
-          else $specs_barcode_id = (array) $specs_barcode_id;
+          else $specs_barcode_id = (array) SGS::lookup_barcode($specs_barcode, NULL, TRUE);
+          
           $ids = array_filter(DB::select('specs_data.id','barcodes.barcode')
             ->distinct(TRUE)
             ->from('specs_data')
