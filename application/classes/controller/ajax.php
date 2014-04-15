@@ -488,7 +488,7 @@ class Controller_Ajax extends Controller {
     switch ($type) {
       case 'specs_barcode':
         if (is_array($value)) foreach ($value as $vlue) $id[] = SGS::lookup_barcode($vlue, NULL, TRUE);
-        else $id = (array) $value;
+        else $id = (array) SGS::lookup_barcode($value, NULL, TRUE);
         $query = $query
           ->join('document_data', 'LEFT OUTER')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
@@ -498,7 +498,7 @@ class Controller_Ajax extends Controller {
 
       case 'specs_number':
         if (is_array($value)) foreach ($value as $vlue) $id[] = SGS::lookup_document('SPECS', $vlue, TRUE);
-        else $id = (array) $value;
+        else $id = (array) SGS::lookup_document('SPECS', $value, TRUE);
         $query = $query->join('document_data')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
           ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
@@ -509,7 +509,7 @@ class Controller_Ajax extends Controller {
 
       case 'exp_barcode':
         if (is_array($value)) foreach ($value as $vlue) $id[] = SGS::lookup_barcode($vlue, NULL, TRUE);
-        else $id = (array) $value;
+        else $id = (array) SGS::lookup_barcode($value, NULL, TRUE);
         $query = $query
           ->join('document_data', 'LEFT OUTER')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
@@ -519,7 +519,7 @@ class Controller_Ajax extends Controller {
 
       case 'exp_number':
         if (is_array($value)) foreach ($value as $vlue) $id[] = SGS::lookup_document('SPECS', $vlue, TRUE);
-        else $id = (array) $value;
+        else $id = (array) SGS::lookup_document('SPECS', $value, TRUE);
         $query = $query->join('document_data')
           ->on('specs_data.id', '=', 'document_data.form_data_id')
           ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
