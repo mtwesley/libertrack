@@ -68,7 +68,7 @@ class Controller_Exports extends Controller {
 
     $qr_array = array(
       'EP NUMBER'    => $document->number,
-      'SPEC NUMBER'  => SGS::implodify($document->values['specs_number']),
+      'SPEC NUMBER'  => SGS::implodify((array) $document->values['specs_number']),
       'EXPORTER'     => $document->operator->name,
       'BUYER'        => $document->values['buyer'],
       'SITE'         => $document->values['site_reference'],
@@ -226,7 +226,7 @@ VALIDATION: $secret";
 
     $qr_array = array(
       'SPEC NUMBER'  => $document->number,
-      'SPEC BARCODE' => SGS::implodify($document->values['specs_barcode']),
+      'SPEC BARCODE' => SGS::implodify((array) $document->values['specs_barcode']),
       'EXPORTER'     => $document->operator->name,
       'SITE'         => $document->values['site_reference'],
       'ORIGIN'       => $document->values['origin'],

@@ -570,7 +570,7 @@ class Controller_Ajax extends Controller {
     $specs_barcode = $this->request->post('specs_barcode');
 
     if ($operator_id) {
-      $output = '<optgroup label=""><option value=""></option>';
+//      $output = '<optgroup label=""><option value=""></option>';
 
       if ($specs_number) {
         $sql = "SELECT distinct number
@@ -581,9 +581,9 @@ class Controller_Ajax extends Controller {
         if ($numbers = array_filter(DB::query(Database::SELECT, $sql)
           ->execute()
           ->as_array(NULL, 'number'))) {
-          $output .= '<optgroup label="Shipment Specification Number">';
+//          $output .= '<optgroup label="Shipment Specification Number">';
           foreach ($numbers as $number) $output .= '<option value="'.$number.'">SPEC '.SGS::numberify($number).'</option>';
-          $output .= '</optgroup>';
+//          $output .= '</optgroup>';
         }
       }
 
@@ -597,9 +597,9 @@ class Controller_Ajax extends Controller {
         if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
           ->execute()
           ->as_array(NULL, 'barcode'))) {
-          $output .= '<optgroup label="Shipment Specification Barcode">';
+//          $output .= '<optgroup label="Shipment Specification Barcode">';
           foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'</option>';
-          $output .= '</optgroup>';
+//          $output .= '</optgroup>';
         }
       }
 
@@ -660,7 +660,7 @@ class Controller_Ajax extends Controller {
     $exp_barcode = $this->request->post('exp_barcode');
 
     if ($operator_id) {
-      $output = '<optgroup label=""><option value=""></option>';
+//      $output = '<optgroup label=""><option value=""></option>';
 
       if ($exp_number) {
         $sql = "SELECT distinct number
@@ -671,9 +671,9 @@ class Controller_Ajax extends Controller {
         if ($numbers = array_filter(DB::query(Database::SELECT, $sql)
           ->execute()
           ->as_array(NULL, 'number'))) {
-          $output .= '<optgroup label="Export Permit Number">';
+//          $output .= '<optgroup label="Export Permit Number">';
           foreach ($numbers as $number) $output .= '<option value="'.$number.'">EP '.SGS::numberify($number).'</option>';
-          $output .= '</optgroup>';
+//          $output .= '</optgroup>';
         }
       }
 
@@ -687,9 +687,9 @@ class Controller_Ajax extends Controller {
         if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
           ->execute()
           ->as_array(NULL, 'barcode'))) {
-          $output .= '<optgroup label="Export Permit Barcode">';
+//          $output .= '<optgroup label="Export Permit Barcode">';
           foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'</option>';
-          $output .= '</optgroup>';
+//          $output .= '</optgroup>';
         }
       }
 
@@ -704,7 +704,7 @@ class Controller_Ajax extends Controller {
     $wb_barcode  = $this->request->post('wb_barcode');
 
     if ($operator_id) {
-      $output = '<optgroup label=""><option value=""></option>';
+//      $output = '<optgroup label=""><option value=""></option>';
 
       if ($wb_barcode) {
         $sql = "SELECT distinct barcode
@@ -716,9 +716,9 @@ class Controller_Ajax extends Controller {
         if ($barcodes = array_filter(DB::query(Database::SELECT, $sql)
           ->execute()
           ->as_array(NULL, 'barcode'))) {
-          $output .= '<optgroup label="Waybill Barcode">';
+//          $output .= '<optgroup label="Waybill Barcode">';
           foreach ($barcodes as $barcode) $output .= '<option value="'.$barcode.'">'.$barcode.'</option>';
-          $output .= '</optgroup>';
+//          $output .= '</optgroup>';
         }
       }
 
