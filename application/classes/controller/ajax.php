@@ -570,7 +570,7 @@ class Controller_Ajax extends Controller {
     $specs_barcode = $this->request->post('specs_barcode');
 
     if ($operator_id) {
-//      $output = '<optgroup label=""><option value=""></option>';
+      $output = '<optgroup label=""><option value=""></option>';
 
       if ($specs_number) {
         $sql = "SELECT distinct number
@@ -660,7 +660,7 @@ class Controller_Ajax extends Controller {
     $exp_barcode = $this->request->post('exp_barcode');
 
     if ($operator_id) {
-//      $output = '<optgroup label=""><option value=""></option>';
+      $output = '<optgroup label=""><option value=""></option>';
 
       if ($exp_number) {
         $sql = "SELECT distinct number
@@ -704,7 +704,7 @@ class Controller_Ajax extends Controller {
     $wb_barcode  = $this->request->post('wb_barcode');
 
     if ($operator_id) {
-//      $output = '<optgroup label=""><option value=""></option>';
+      $output = '<optgroup label=""><option value=""></option>';
 
       if ($wb_barcode) {
         $sql = "SELECT distinct barcode
