@@ -1545,21 +1545,16 @@ VALIDATION: $secret";
         ->execute()
         ->as_array('id', 'reference');
 
-      $values = $document->values;
-      $values['site_reference'] = implode(', ', $site_reference);
-
-      $document = ORM::factory('document');
       $arr = array_keys($site_reference);
       if (count($site_reference) == 1) $document->site = ORM::factory('site', reset($arr));
 
       $document->is_draft = FALSE;
       $document->number = $document::create_document_number($document->type);
       
-      if ($document->type == 'CERT') {
-        $_values = $document->values;
-        $_values['statement_number'] = trim($form->statement_number->val());
-        $document->values = $_values;
-      }
+      $_values = $document->values;
+      $_values['site_reference'] = implode(', ', $site_reference);
+      if ($document->type == 'CERT') $_values['statement_number'] = trim($form->statement_number->val());
+      $document->values = $_values;
 
       switch ($document->type) {
         case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
@@ -1621,14 +1616,14 @@ VALIDATION: $secret";
         ->execute()
         ->as_array('id', 'reference');
 
-      $values = $document->values;
-      $values['site_reference'] = implode(', ', $site_reference);
-
-      $document = ORM::factory('document');
       $arr = array_keys($site_reference);
       if (count($site_reference) == 1) $document->site = ORM::factory('site', reset($arr));
 
       $document->is_draft = FALSE;
+
+      $_values = $document->values;
+      $_values['site_reference'] = implode(', ', $site_reference);
+      $document->values = $_values;
 
       switch ($document->type) {
         case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
