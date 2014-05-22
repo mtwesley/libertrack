@@ -978,7 +978,7 @@ class Controller_Invoices extends Controller {
       ->execute()
       ->as_array();
 
-    foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), 'diameter', 'length', 'volume')
+    foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), array('class', 'species_class'), 'diameter', 'length', 'volume')
       ->from($table)
       ->join('barcodes')
       ->on('barcode_id', '=', 'barcodes.id')

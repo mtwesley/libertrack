@@ -1534,6 +1534,24 @@ VALIDATION: $secret";
     $form = $form->add('delete', 'centersubmit', 'Finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $site_reference = DB::select('sites.id', array(DB::expr("sites.name"), 'reference'))
+        ->distinct(TRUE)
+        ->from('specs_data')
+        ->join('ldf_data')
+        ->on('specs_data.barcode_id', '=', 'ldf_data.barcode_id')
+        ->join('sites')
+        ->on('ldf_data.site_id', '=', 'sites.id')
+        ->where('specs_data.id', 'IN', (array) $document->get_data())
+        ->execute()
+        ->as_array('id', 'reference');
+
+      $values = $document->values;
+      $values['site_reference'] = implode(', ', $site_reference);
+
+      $document = ORM::factory('document');
+      $arr = array_keys($site_reference);
+      if (count($site_reference) == 1) $document->site = ORM::factory('site', reset($arr));
+
       $document->is_draft = FALSE;
       $document->number = $document::create_document_number($document->type);
       
@@ -1592,6 +1610,24 @@ VALIDATION: $secret";
       ->add('delete', 'centersubmit', 'Re-finalize');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $site_reference = DB::select('sites.id', array(DB::expr("sites.name"), 'reference'))
+        ->distinct(TRUE)
+        ->from('specs_data')
+        ->join('ldf_data')
+        ->on('specs_data.barcode_id', '=', 'ldf_data.barcode_id')
+        ->join('sites')
+        ->on('ldf_data.site_id', '=', 'sites.id')
+        ->where('specs_data.id', 'IN', (array) $document->get_data())
+        ->execute()
+        ->as_array('id', 'reference');
+
+      $values = $document->values;
+      $values['site_reference'] = implode(', ', $site_reference);
+
+      $document = ORM::factory('document');
+      $arr = array_keys($site_reference);
+      if (count($site_reference) == 1) $document->site = ORM::factory('site', reset($arr));
+
       $document->is_draft = FALSE;
 
       switch ($document->type) {
