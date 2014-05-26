@@ -111,6 +111,7 @@
 #content form p.submit input,
 #content form p.textarea textarea,
 #content form p.forceselect select,
+#content form p.multiselect select,
 #content form p.select select {
   font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
   font-size: 12px;
@@ -154,6 +155,7 @@
 #content form p.select {}
 
 #content form p.forceselect select,
+#content form p.multiselect select,
 #content form p.select select {
   width: 410px;
 }
