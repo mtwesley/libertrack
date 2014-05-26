@@ -571,7 +571,7 @@ VALIDATION: $secret";
     switch ($document_type) {
       case 'EXP':
         $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_number')));
-        $form->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('multiple' => 'multiple', 'size' => '10', 'class' => 'specsopts specs_number specs_specsnumberinputs')));
+        $form->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('multiple' => 'multiple', 'name' => 'specs_number[]', 'size' => '10', 'class' => 'specsopts specs_number specs_specsnumberinputs')));
         $form->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'attr' => array('class' => 'origininput')));
         $form->add('destination', 'input', NULL, array('required' => TRUE, 'label' => 'Destination', 'attr' => array('class' => 'destinationinput')));
         $form->add('product_type', 'input', NULL, array('required' => TRUE, 'label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
