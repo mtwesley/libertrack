@@ -764,9 +764,16 @@ class SGS {
     // FIXME: fix for operator using two sets of printjobs
     $FMC_I = SGS::lookup_operator(406824004, TRUE);
     $PUP_2 = SGS::lookup_operator(406820009, TRUE);
-    if ((is_array($args['operators.id'])) and
-        (in_array($FMC_I, $args['operators.id']) or in_array($PUP_2, $args['operators.id']))) $args['operators.id'] = array($FMC_I, $PUP_2);
-
+    
+    // FIXME: fix for Atlantic and Alpha sharing printjobs
+    $ARL = SGS::lookup_operator(413236002, TRUE);
+    $ALP = SGS::lookup_operator(406805000, TRUE);
+    
+    if (is_array($args['operators.id'])) {
+      if (in_array($FMC_I, $args['operators.id']) or in_array($PUP_2, $args['operators.id'])) $args['operators.id'] = array($FMC_I, $PUP_2);
+      if (in_array($ARL, $args['operators.id']) or in_array($ALP, $args['operators.id'])) $args['operators.id'] = array($ARL, $ALP);
+    }
+    
     if ($args['operators.id']) {
       $query_args[] = array('join' => array('printjobs'));
       $query_args[] = array('on' => array('barcodes.printjob_id', '=', 'printjobs.id'));

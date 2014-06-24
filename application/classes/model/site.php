@@ -34,7 +34,8 @@ class Model_Site extends ORM {
     return array(
       'operator_id' => 'Operator',
       'name'        => 'Name',
-      'type'        => 'Type'
+      'type'        => 'Type',
+      'owner'       => 'Owner'
     );
   }
 

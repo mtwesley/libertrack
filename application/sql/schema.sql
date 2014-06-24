@@ -250,6 +250,7 @@ create table sites (
   id bigserial not null,
   type d_site_type not null,
   name d_site_name unique not null,
+  owner d_text_short,
   operator_id d_id not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,

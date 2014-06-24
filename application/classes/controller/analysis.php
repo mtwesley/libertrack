@@ -1853,11 +1853,11 @@ class Controller_Analysis extends Controller {
           }
 
           if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
-            Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error'); break;
+            Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error');
             throw new Exception();
           }
           else if (!(rename($tempname, DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname) and chmod(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname, 0777))) {
-            Notify::msg('Sorry, cannot create document. Check file operation capabilities with the site administrator and try again.', 'error'); break;
+            Notify::msg('Sorry, cannot create document. Check file operation capabilities with the site administrator and try again.', 'error');
             throw new Exception();
           }
         } catch (Exception $e) {
