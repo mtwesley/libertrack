@@ -1478,6 +1478,23 @@ end
 $$ language 'plpgsql';
 
 
+create or replace function calculate_volume_and_diameter()
+  returns trigger as
+$$
+  declare x_volume d_volume;
+  declare x_diameter d_diameter;
+begin
+  select (pi() * power(((((new.top_min + new.top_max + new.bottom_min + new.bottom_max)::real / 4) / 100) / 2), 2) * new.length)::d_volume into x_volume;
+  select ((new.top_min + new.top_max + new.bottom_min + new.bottom_max) / 4)::d_diameter into x_diameter;
+
+  new.volume = x_volume;
+  new.diameter = x_diameter;
+
+  return new;
+end
+$$ language 'plpgsql';
+
+
 create function sites_parse_type()
   returns trigger as
 $$
@@ -2139,6 +2156,31 @@ $$ language 'plpgsql';
 
 
 -- triggers
+
+create trigger t_tdf_data_volume_and_diameter
+  before insert or update on tdf_data
+  for each row
+  execute procedure calculate_volume_and_diameter();
+
+create trigger t_tdf_data_volume_and_diameter
+  before insert or update on tdf_verification
+  for each row
+  execute procedure calculate_volume_and_diameter();
+
+create trigger t_ldf_data_volume_and_diameter
+  before insert or update on ldf_data
+  for each row
+  execute procedure calculate_volume_and_diameter();
+
+create trigger t_ldf_data_volume_and_diameter
+  before insert or update on ldf_verification
+  for each row
+  execute procedure calculate_volume_and_diameter();
+
+create trigger t_specs_data_volume_and_diameter
+  before insert or update on specs_data
+  for each row
+  execute procedure calculate_volume_and_diameter();
 
 create trigger t_sites_parse_type
   before insert or update on sites

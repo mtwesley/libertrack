@@ -1,5 +1,7 @@
 <?php
 
+$form = Model::factory($form_type);
+
 $options = (array) $options + array(
   'header'    => TRUE,
   'footer'    => FALSE,
@@ -152,6 +154,7 @@ $num = $cntr;
 
   .checks-details-table tr td.status {
     padding: 1px;
+    height: 100%;
   }
 
   .checks-summary-table tr td.status .error,
@@ -162,7 +165,7 @@ $num = $cntr;
   .checks-details-table tr td.status .success {
     margin: 0;
     padding: 2px 4px;
-    width: 50px;
+    width: 50px; 
     display: inline-block;
     /* border: 1px solid; */
     text-align: center;
@@ -174,7 +177,8 @@ $num = $cntr;
   .checks-details-table tr td.status .warning,
   .checks-details-table tr td.status .success {
     padding: 2px;
-    width: 10px;
+    height: 90%;
+    /* width: 10px; */
   }
 
   .checks-summary-table tr td.status .error,
@@ -468,16 +472,16 @@ $num = $cntr;
         $warnings  = $record->get_warnings(TRUE, FALSE, FALSE);
         $successes = $record->get_successes(TRUE, FALSE, FALSE);
       ?>
-      <tr class="<?php print SGS::odd_even($odd); ?>">
-        <td class="status">
+      <tr class="<?php print $odd_even = SGS::odd_even($odd); ?>">
+        <td class="status" rowspan="2">
           <?php if (in_array('is_valid_parent', array_keys($errors))): ?>
-          <div class="error">F</div>
+          <div class="error">FAILED</div>
 
           <?php elseif (in_array('is_valid_parent', array_keys($warnings))): ?>
-          <div class="warning">W</div>
+          <div class="warning">WARNING</div>
 
           <?php else: ?>
-          <div class="success">P</div>
+          <div class="success">PASSED</div>
           <?php endif; ?>
         </td>
         <?php if ($form_type == 'SSF'): ?>
@@ -494,23 +498,74 @@ $num = $cntr;
         </td>
         <?php endif; ?>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
-        <td class="status">
+        <td class="status" rowspan="2">
           <?php if (!in_array($kck, array_keys($errors + $warnings + $successes))): $sts = 'U'; ?>
-          <div class="warning">-</div>
+          <div></div>
 
           <?php elseif (in_array($kck, array_keys($errors))): $sts = 'E'; ?>
-          <div class="error">F</div>
+          <div class="error">FAILED</div>
 
           <?php elseif (in_array($kck, array_keys($warnings))): $sts = 'W'; ?>
-          <div class="warning">W</div>
+          <div class="warning">WARNING</div>
 
           <?php else: $sts = 'S'; ?>
-          <div class="success">P</div>
+          <div class="success">PASSED</div>
           <?php endif; ?>
         </td>
-        <td class="value"><?php echo $errors[$kck]['value'] ?: $warnings[$kck]['value'] ?: $successes[$kck]['value'] ?: ' - '; ?> </td>
-        <td class="comparison"><?php echo $errors[$kck]['comparison'] ?: $warnings[$kck]['comparison'] ?: $successes[$kck]['comparison'] ?: ' - '; ?> </td>
+        <td class="value"><?php echo $errors[$kck]['value'] ?: $warnings[$kck]['value'] ?: $successes[$kck]['value'] ?: ''; ?> </td>
+        <td class="comparison"><?php echo $errors[$kck]['comparison'] ?: $warnings[$kck]['comparison'] ?: $successes[$kck]['comparison'] ?: ''; ?> </td>
         <?php endforeach; ?>
+      </tr>
+      <tr class="<?php print $odd_even; ?>">
+        <td style="white-space: normal;" colspan="2">
+          <?php if (in_array('is_existing_parent', array_keys($errors))): ?>
+          <div><?php echo $form::$checks['traceability']['checks']['is_existing_parent']['error'] ?></div>
+
+          <?php elseif (in_array('is_valid_parent', array_keys($errors))): ?>
+          <div><?php echo $form::$checks['traceability']['checks']['is_valid_parent']['error'] ?></div>
+
+          <?php elseif (in_array('is_valid_parent', array_keys($warnings))): ?>
+          <div><?php echo $form::$checks['traceability']['checks']['is_valid_parent']['warning'] ?></div>
+
+          <?php else: ?>
+          <div><?php echo $form::$checks['traceability']['checks']['is_existing_parent']['title'] ?></div>
+          <?php endif; ?>
+        </td>
+        <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
+        <td style="white-space: normal;" colspan="2">
+          <?php if (!in_array($kck, array_keys($errors + $warnings + $successes))): ?>
+          <div></div>
+
+          <?php elseif (in_array($kck, array_keys($errors))): ?>
+          <div class="error">
+            <?php 
+              foreach ($form::$checks as $_type => $_array) 
+                foreach ($_array['checks'] as $_check => $_check_array) 
+                  if ($_check == $kck) echo $_check_array['error'] 
+            ?>
+          </div>
+
+          <?php elseif (in_array($kck, array_keys($warnings))): ?>
+          <div class="warning">
+            <?php 
+              foreach ($form::$checks as $_type => $_array) 
+                foreach ($_array['checks'] as $_check => $_check_array) 
+                  if ($_check == $kck) echo $_check_array['warning'] 
+            ?>
+          </div>
+
+          <?php else: ?>
+          <div class="success">
+            <?php 
+              foreach ($form::$checks as $_type => $_array) 
+                foreach ($_array['checks'] as $_check => $_check_array) 
+                  if ($_check == $kck) echo $_check_array['title'] 
+            ?>
+          </div>
+          <?php endif; ?>
+        </td>
+        <?php endforeach; ?>
+        
       </tr>
       <?php endforeach; ?>
       <?php endif; ?>
