@@ -171,14 +171,15 @@ $num = $cntr;
     text-align: center;
     color: #fff;
     font-weight: bold;
+    vertical-align: top;
   }
 
   .checks-details-table tr td.status .error,
   .checks-details-table tr td.status .warning,
   .checks-details-table tr td.status .success {
     padding: 2px;
-    height: 90%;
-    /* width: 10px; */
+    width: 10px;
+    vertical-align: top;
   }
 
   .checks-summary-table tr td.status .error,
