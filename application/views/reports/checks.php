@@ -475,13 +475,13 @@ $num = $cntr;
       <tr class="<?php print $odd_even = SGS::odd_even($odd); ?>">
         <td class="status" rowspan="2">
           <?php if (in_array('is_valid_parent', array_keys($errors))): ?>
-          <div class="error">FAILED</div>
+          <div class="error">F</div>
 
           <?php elseif (in_array('is_valid_parent', array_keys($warnings))): ?>
-          <div class="warning">WARNING</div>
+          <div class="warning">W</div>
 
           <?php else: ?>
-          <div class="success">PASSED</div>
+          <div class="success">P</div>
           <?php endif; ?>
         </td>
         <?php if ($form_type == 'SSF'): ?>
@@ -503,13 +503,13 @@ $num = $cntr;
           <div></div>
 
           <?php elseif (in_array($kck, array_keys($errors))): $sts = 'E'; ?>
-          <div class="error">FAILED</div>
+          <div class="error">F</div>
 
           <?php elseif (in_array($kck, array_keys($warnings))): $sts = 'W'; ?>
-          <div class="warning">WARNING</div>
+          <div class="warning">W</div>
 
           <?php else: $sts = 'S'; ?>
-          <div class="success">PASSED</div>
+          <div class="success">P</div>
           <?php endif; ?>
         </td>
         <td class="value"><?php echo $errors[$kck]['value'] ?: $warnings[$kck]['value'] ?: $successes[$kck]['value'] ?: ''; ?> </td>
