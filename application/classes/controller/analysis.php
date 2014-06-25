@@ -120,7 +120,7 @@ class Controller_Analysis extends Controller {
 
       $cntr += $max;
     }
-
+    
     // generate pdf
     set_time_limit(600);
 
@@ -176,6 +176,7 @@ class Controller_Analysis extends Controller {
         'orientation' => 'Landscape',
         'disable-smart-shrinking' => TRUE,
         'footer-html' => View::factory('reports/checks')
+          ->set('form_type', $form_type)
           ->set('options', array(
             'header' => FALSE,
             'footer' => TRUE,
