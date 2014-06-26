@@ -463,8 +463,8 @@ $num = $cntr;
         <td class="check-type" colspan="3"><?php echo $ck['name']; ?></td>
         <?php endforeach; ?>
         <?php if ($form_type == 'LDF'): ?>
-        <td class="value" rowspan="2">Stumpage Paid</td>
-        <td class="value" rowspan="2">Export Permit</td>
+        <td class="value" rowspan="2">Stumpage<br>Fee</td>
+        <td class="value" rowspan="2">Export<br>Permit</td>
         <?php endif; ?>
       </tr>
       <tr class="head">
