@@ -56,7 +56,7 @@ class Controller_Analysis extends Controller {
       ->render();
 
     $page_count = 0;
-    $page_max   = 10;
+    $page_max   = 5;
 
     // passed
     $cntr  = 0;
