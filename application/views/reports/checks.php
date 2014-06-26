@@ -24,7 +24,7 @@ $num = $cntr;
 
   * {
     font-family: "Arial";
-    font-size: 10px;
+    font-size: 9px;
   }
 
   body, html {
@@ -133,7 +133,7 @@ $num = $cntr;
   }
 
   .checks-summary-table tr.head td.fee_desc {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .checks-summary-table tr td.check-info {
