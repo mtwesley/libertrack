@@ -388,11 +388,11 @@ $num = $cntr;
           <?php endif; ?>
         </td>
         <td class="check-desc"><?php print $array['title']; ?></td>
-        <td class="check-info"><?php print $records . " ($records_volumem<sup>3</sup>)"; ?></td>
-        <td class="check-info"><?php print $checked . " ($checked_volumem<sup>3</sup>)"; ?></td>
-        <td class="check-info"><span class="accepted"><?php print $passed . " ($passed_volumem<sup>3</sup>)"; ?></span></td>
-        <td class="check-info"><span class="pending"><?php print $warned . " ($warned_volumem<sup>3</sup>)"; ?></span></td>
-        <td class="check-info"><span class="rejected"><?php print $failed . " ($failed_volumem<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><?php print $records . " ($records_volume m<sup>3</sup>)"; ?></td>
+        <td class="check-info"><?php print $checked . " ($checked_volume m<sup>3</sup>)"; ?></td>
+        <td class="check-info"><span class="accepted"><?php print $passed . " ($passed_volume m<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><span class="pending"><?php print $warned . " ($warned_volume m<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><span class="rejected"><?php print $failed . " ($failed_volume m<sup>3</sup>)"; ?></span></td>
         <td class="check-info"><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
       </tr>
       <?php endforeach; ?>
@@ -438,11 +438,11 @@ $num = $cntr;
           <?php endif; ?>
         </td>
         <td class="check-desc">Total</td>
-        <td class="check-info"><?php print $records . " ($records_volumem<sup>3</sup>)"; ?></td>
-        <td class="check-info"><?php print $checked . " ($checked_volumem<sup>3</sup>)"; ?></td>
-        <td class="check-info"><span class="accepted"><?php print $passed . " ($passed_volumem<sup>3</sup>)"; ?></span></td>
-        <td class="check-info"><span class="pending"><?php print $warned . " ($warned_volumem<sup>3</sup>)"; ?></span></td>
-        <td class="check-info"><span class="rejected"><?php print $failed . " ($failed_volumem<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><?php print $records . " ($records_volume m<sup>3</sup>)"; ?></td>
+        <td class="check-info"><?php print $checked . " ($checked_volume m<sup>3</sup>)"; ?></td>
+        <td class="check-info"><span class="accepted"><?php print $passed . " ($passed_volume m<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><span class="pending"><?php print $warned . " ($warned_volume m<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><span class="rejected"><?php print $failed . " ($failed_volume m<sup>3</sup>)"; ?></span></td>
         <td class="check-info"><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
       </tr>
     </table>
