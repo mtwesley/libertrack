@@ -466,6 +466,10 @@ $num = $cntr;
         <td class="value" colspan="2">Value</td>
         <td class="comparison">Comp</td>
         <?php endforeach; ?>
+        <?php if ($form_type == 'LDF'): ?>
+        <td class="value">Stumpage Paid</td>
+        <td class="value">Export Permit</td>
+        <?php endif; ?>
       </tr>
       <?php foreach ($data as $record): ?>
       <?php
@@ -566,7 +570,34 @@ $num = $cntr;
           <?php endif; ?>
         </td>
         <?php endforeach; ?>
-        
+        <?php if ($form_type == 'LDF'): ?>
+        <td rowspan="2">
+          <?php if ($record->is_invoiced('ST', TRUE)): ?>
+          Paid
+          <?php elseif ($record->is_invoiced('ST')): ?>
+          Not paid
+          <?php else: ?>
+          Not invoiced
+          <?php endif; ?>
+        </td>
+        <td rowspan="2">
+          <?php if ($record->barcode->get_activity('E') and 
+              $number = DB::select('documents.number')
+                ->from('specs_data')
+                ->join('document_data')
+                ->on('specs_data.id', '=', 'document_data.form_data_id')
+                ->on('document_data.form_type', '=', DB::expr("'SPECS'"))
+                ->join('documents')
+                ->on('document_data.document_id', '=', 'documents.id')
+                ->where('documents.type', '=', 'EXP')
+                ->execute()
+                ->get('number')): ?>
+          <?php print 'EP ' . SGS::numberify($number); ?>
+          <?php else: ?>
+          Not exported
+          <?php endif; ?>
+        </td>
+        <?php endif; ?>
       </tr>
       <?php endforeach; ?>
       <?php endif; ?>
