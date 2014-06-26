@@ -367,6 +367,13 @@ $num = $cntr;
         $failed  = $report['checks'][$type][$check]['failed'] ?: 0;
         $warned  = $report['checks'][$type][$check]['warned'] ?: 0;
         $percentage = $checked ? floor($passed * 100 / $checked) : 100;
+        
+        $records_volume = $report['total_volume']['records'] ?: 0;
+        $checked_volume = $report['volume'][$type][$check]['checked'] ?: 0;
+        $passed_volume  = $report['volume'][$type][$check]['passed'] ?: 0;
+        $failed_volume  = $report['volume'][$type][$check]['failed'] ?: 0;
+        $warned_volume  = $report['volume'][$type][$check]['warned'] ?: 0;
+        $percentage_volume = $checked_volume ? floor($passed_volume * 100 / $checked_volume) : 100;
       ?>
       <tr>
         <td class="status">
@@ -381,11 +388,11 @@ $num = $cntr;
           <?php endif; ?>
         </td>
         <td class="check-desc"><?php print $array['title']; ?></td>
-        <td class="check-info"><?php print $records; ?></td>
-        <td class="check-info"><?php print $checked; ?></td>
-        <td class="check-info"><span class="accepted"><?php print $passed; ?></span></td>
-        <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>
-        <td class="check-info"><span class="rejected"><?php print $failed; ?></span></td>
+        <td class="check-info"><?php print $records . " ($records_volume m<sup>3</sup>)"; ?></td>
+        <td class="check-info"><?php print $checked . " ($checked_volume m<sup>3</sup>)"; ?></td>
+        <td class="check-info"><span class="accepted"><?php print $passed . " ($passed_volume m<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><span class="pending"><?php print $warned . " ($warned_volume m<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><span class="rejected"><?php print $failed . " ($failed_volume m<sup>3</sup>)"; ?></span></td>
         <td class="check-info"><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
       </tr>
       <?php endforeach; ?>
@@ -410,6 +417,13 @@ $num = $cntr;
         $failed  = $report['total']['failed'] ?: 0;
         $warned  = $report['total']['warned'] ?: 0;
         $percentage = $checked ? floor($passed * 100 / $checked) : 100;
+
+        $records_volume = $report['total_volume']['records'] ?: 0;
+        $checked_volume = $report['total_volume']['checked'] ?: 0;
+        $passed_volume  = $report['total_volume']['passed'] ?: 0;
+        $failed_volume  = $report['total_volume']['failed'] ?: 0;
+        $warned_volume  = $report['total_volume']['warned'] ?: 0;
+        $percentage_volume = $checked_volume ? floor($passed_volume * 100 / $checked_volume) : 100;
       ?>
       <tr>
         <td class="status">
@@ -424,11 +438,11 @@ $num = $cntr;
           <?php endif; ?>
         </td>
         <td class="check-desc">Total</td>
-        <td class="check-info"><?php print $records; ?></td>
-        <td class="check-info"><?php print $checked; ?></td>
-        <td class="check-info"><span class="accepted"><?php print $passed; ?></span></td>
-        <td class="check-info"><span class="pending"><?php print $warned; ?></span></td>
-        <td class="check-info"><span class="rejected"><?php print $failed; ?></span></td>
+        <td class="check-info"><?php print $records . " ($records_volume m<sup>3</sup>)"; ?></td>
+        <td class="check-info"><?php print $checked . " ($checked_volume m<sup>3</sup>)"; ?></td>
+        <td class="check-info"><span class="accepted"><?php print $passed . " ($passed_volume m<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><span class="pending"><?php print $warned . " ($warned_volume m<sup>3</sup>)"; ?></span></td>
+        <td class="check-info"><span class="rejected"><?php print $failed . " ($failed_volume m<sup>3</sup>)"; ?></span></td>
         <td class="check-info"><span class="<?php print $percentage > 50 ? 'accepted' : 'rejected'; ?>"><?php print $percentage; ?>%</span></td>
       </tr>
     </table>
@@ -521,7 +535,7 @@ $num = $cntr;
         <td class="comparison"><?php echo $errors[$kck]['comparison'] ?: $warnings[$kck]['comparison'] ?: $successes[$kck]['comparison'] ?: ''; ?> </td>
         <?php endforeach; ?>
         <?php if ($form_type == 'LDF'): ?>
-        <td rowspan="2">
+        <td class="value" rowspan="2">
           <?php if ($record->is_invoiced('ST', TRUE)): ?>
           Paid
           <?php elseif ($record->is_invoiced('ST')): ?>
@@ -530,7 +544,7 @@ $num = $cntr;
           Not invoiced
           <?php endif; ?>
         </td>
-        <td rowspan="2">
+        <td class="value" rowspan="2">
           <?php if ($record->barcode->get_activity('E') and 
               $number = DB::select('documents.number')
                 ->from('specs_data')

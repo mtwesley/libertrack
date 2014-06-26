@@ -1198,6 +1198,7 @@ class Controller_Analysis extends Controller {
     $has_specs_info = (bool) (in_array($form_type, array('SPECS')));
     $has_exp_info   = (bool) (in_array($form_type, array('SPECS')));
     $has_wb_info    = (bool) (in_array($form_type, array('WB')));
+    $has_volume     = (bool) (in_array($form_type, array('SSF', 'TDF', 'LDF', 'SPECS')));
 
     if ($has_site_id) $site_ids = DB::select('id', 'name')
       ->from('sites')
@@ -1292,6 +1293,13 @@ class Controller_Analysis extends Controller {
           'failed'    => 0,
           'warned'    => 0,
           'unchecked' => 0
+        ),
+        'volume' => array(
+          'checked'   => 0,
+          'passed'    => 0,
+          'failed'    => 0,
+          'warned'    => 0,
+          'unchecked' => 0
         )
       );
 
@@ -1321,38 +1329,55 @@ class Controller_Analysis extends Controller {
             $check_warned = FALSE;
             if ($type == 'tolerance' and array_intersect(array_keys((array) $record::$checks['traceability']['checks']), $errors)) continue;
             $data['checks'][$type][$check]['checked']++;
-            if (in_array($check, $errors)) $data['checks'][$type][$check]['failed']++;
-            else {
+            if ($has_volume) $data['volume'][$type][$check]['checked'] += $record->volume;
+            if (in_array($check, $errors)) {
+              $data['checks'][$type][$check]['failed']++;
+              if ($has_volume) $data['volume'][$type][$check]['failed'] += $record->volume;
+            } else {
               if (in_array($check, $warnings)) {
                 if (!$check_warned) {
                   $data['checks'][$type][$check]['warned']++;
+                  if ($has_volume) $data['volume'][$type][$check]['warned'] += $record->volume;
                   $check_warned = TRUE;
                 }
                 if (!$total_warned) $total_warned = TRUE;
               }
               $data['checks'][$type][$check]['passed']++;
+              if ($has_volume) $data['volume'][$type][$check]['passed'] += $record->volume;
             }
           }
           if ($total_warned) $data['total']['warned']++;
+          if ($total_warned and $has_volume) $data['volume']['warned'] += $record->volume;
         }
 
         $data['total']['records']++;
+        if ($has_volume) $data['total_volume']['records'] += $record->volume;
+        
         switch ($record->status) {
           case 'A':
             $accepted++;
             $data['total']['checked']++;
             $data['total']['passed']++;
+            if ($has_volume) {
+              $data['total_volume']['checked'] += $record->volume;
+              $data['total_volume']['passed'] += $record->volume;
+            }
             break;
 
           case 'R':
             $rejected++;
             $data['total']['checked']++;
             $data['total']['failed']++;
+            if ($has_volume) {
+              $data['total_volume']['checked'] += $record->volume;
+              $data['total_volume']['failed'] += $record->volume;
+            }
             break;
 
           default:
             $unchecked++;
             $data['total']['unchecked']++;
+            if ($has_volume) $data['total_volume']['unchecked'] += $record->volume;
             break;
         }
 
