@@ -336,10 +336,10 @@ $classes[] = 'data';
             <?php if ($record->status == 'P' or !in_array($check, array_keys($errors + $warnings + $successes + $ldf_errors))): $desc = 'title'; ?>
             <div class="warning">Unchecked</div>
 
-            <?php elseif (in_array($check, array_keys($errors))): $sts = 'E'; $desc = 'error'; ?>
+            <?php elseif (in_array($check, array_keys($ldf_errors))): $sts = 'F'; $desc = 'error'; ?>
             <div class="error">Failed</div>
 
-            <?php elseif (in_array($check, array_keys($ldf_errors))): $sts = 'F'; $desc = 'error'; ?>
+            <?php elseif (in_array($check, array_keys($errors))): $sts = 'E'; $desc = 'error'; ?>
             <div class="error">Failed</div>
 
             <?php elseif (in_array($check, array_keys($warnings))): $sts = 'W'; $desc = 'warning'; ?>
@@ -351,7 +351,7 @@ $classes[] = 'data';
           </td>
           <td class="type"><span class="data-type"><?php print $info['title']; ?></span></td>
           <td><?php 
-            if ($ldf_errors[$check]) print $ldf::$checks[$type][$check][$desc];
+            if ($sts == 'F') print $ldf::$checks[$type]['checks'][$check][$desc];
             else print $array[$desc]; 
           ?></td>
           <td>
@@ -367,16 +367,16 @@ $classes[] = 'data';
           </td>
           <td class="value">
             <?php
-              if ($errors[$check]) print $errors[$check][$fld]['value'];
-              else if ($ldf_errors[$check]) print $ldf_errors[$check][$fld]['value'];
+              if ($ldf_errors[$check]) print $ldf_errors[$check][$fld]['value'];
+              else if ($errors[$check]) print $errors[$check][$fld]['value'];
               else if ($warnings[$check]) print $warnings[$check][$fld]['value'];
               else if ($successes[$check]) print $successes[$check][$fld]['value'];
             ?>
           </td>
           <td class="value">
             <?php
-              if ($errors[$check]) print $errors[$check][$fld]['comparison'];
               if ($ldf_errors[$check]) print $ldf_errors[$check][$fld]['comparison'];
+              else if ($errors[$check]) print $errors[$check][$fld]['comparison'];
               else if ($warnings[$check]) print $warnings[$check][$fld]['comparison'];
               else if ($successes[$check]) print $successes[$check][$fld]['comparison'];
             ?>
