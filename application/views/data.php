@@ -305,6 +305,16 @@ $classes[] = 'data';
     $errors    = $record->get_errors(TRUE, FALSE);
     $warnings  = $record->get_warnings(TRUE, FALSE);
     $successes = $record->get_successes(TRUE, FALSE);
+    
+    if ($form_type == 'SPECS' and $record->status == 'R') {
+      $ldf = ORM::factory('LDF')
+        ->where('barcode_id', '=', $record->barcode->id)
+        ->find();
+      $ldf_errors = $ldf->get_errors(TRUE, FALSE);
+    } else {
+      $ldf = $form;
+      $ldf_errors = array();
+    }
   ?>
   <tr class="details <?php echo $odd ? 'odd' : 'even'; ?>">
     <td colspan="<?php echo (count($fields) + $additional_columns - $header_columns); ?>">
@@ -323,10 +333,13 @@ $classes[] = 'data';
         ?>
         <tr>
           <td class="result">
-            <?php if ($record->status == 'P' or !in_array($check, array_keys($errors + $warnings + $successes))): $desc = 'title'; ?>
+            <?php if ($record->status == 'P' or !in_array($check, array_keys($errors + $warnings + $successes + $ldf_errors))): $desc = 'title'; ?>
             <div class="warning">Unchecked</div>
 
             <?php elseif (in_array($check, array_keys($errors))): $sts = 'E'; $desc = 'error'; ?>
+            <div class="error">Failed</div>
+
+            <?php elseif (in_array($check, array_keys($ldf_errors))): $sts = 'F'; $desc = 'error'; ?>
             <div class="error">Failed</div>
 
             <?php elseif (in_array($check, array_keys($warnings))): $sts = 'W'; $desc = 'warning'; ?>
@@ -337,12 +350,16 @@ $classes[] = 'data';
             <?php endif; ?>
           </td>
           <td class="type"><span class="data-type"><?php print $info['title']; ?></span></td>
-          <td><?php print $array[$desc]; ?></td>
+          <td><?php 
+            if ($ldf_errors[$check]) print $ldf::$checks[$type][$check][$desc];
+            else print $array[$desc]; 
+          ?></td>
           <td>
             <?php
               $fld  = NULL;
               $flds = array();
               if ($sts == 'E') foreach (array_filter(array_unique(array_keys((array) $errors[$check]))) as $fld) $flds[] = $fields[$fld];
+              else if ($sts == 'F') foreach (array_filter(array_unique(array_keys((array) $ldf_errors[$check]))) as $fld) $flds[] = $fields[$fld];
               else if ($sts == 'W') foreach (array_filter(array_unique(array_keys((array) $warnings[$check]))) as $fld) $flds[] = $fields[$fld];
               else if ($sts == 'S') foreach (array_filter(array_unique(array_keys((array) $successes[$check]))) as $fld) $flds[] = $fields[$fld];
               if ($flds) print SGS::implodify($flds);
@@ -351,16 +368,18 @@ $classes[] = 'data';
           <td class="value">
             <?php
               if ($errors[$check]) print $errors[$check][$fld]['value'];
+              else if ($ldf_errors[$check]) print $ldf_errors[$check][$fld]['value'];
               else if ($warnings[$check]) print $warnings[$check][$fld]['value'];
               else if ($successes[$check]) print $successes[$check][$fld]['value'];
-              ?>
+            ?>
           </td>
           <td class="value">
             <?php
               if ($errors[$check]) print $errors[$check][$fld]['comparison'];
+              if ($ldf_errors[$check]) print $ldf_errors[$check][$fld]['comparison'];
               else if ($warnings[$check]) print $warnings[$check][$fld]['comparison'];
               else if ($successes[$check]) print $successes[$check][$fld]['comparison'];
-              ?>
+            ?>
           </td>
           <?php endforeach; ?>
         </tr>

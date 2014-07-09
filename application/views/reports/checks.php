@@ -490,10 +490,20 @@ $num = $cntr;
         $errors    = $record->get_errors(TRUE, FALSE, FALSE);
         $warnings  = $record->get_warnings(TRUE, FALSE, FALSE);
         $successes = $record->get_successes(TRUE, FALSE, FALSE);
+        
+        if ($form_type == 'SPECS' and $record->status == 'R') {
+          $ldf = ORM::factory('LDF')
+            ->where('barcode_id', '=', $form->barcode->id)
+            ->find();
+          $ldf_errors = $ldf->get_errors(FALSE, FALSE);
+        } else {
+          $ldf = $form;
+          $ldf_errors = array();
+        }
       ?>
       <tr class="<?php print $odd_even = SGS::odd_even($odd); ?>">
         <td class="status" rowspan="2">
-          <?php if (in_array('is_valid_parent', array_keys($errors))): ?>
+          <?php if (in_array('is_valid_parent', array_keys($errors + $ldf_errors))): ?>
           <div class="error">F</div>
 
           <?php elseif (in_array('is_valid_parent', array_keys($warnings))): ?>
@@ -518,10 +528,10 @@ $num = $cntr;
         <?php endif; ?>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="status" rowspan="2">
-          <?php if (!in_array($kck, array_keys($errors + $warnings + $successes))): $sts = 'U'; ?>
+          <?php if (!in_array($kck, array_keys($errors + $warnings + $successes + $ldf_errors))): $sts = 'U'; ?>
           <div></div>
 
-          <?php elseif (in_array($kck, array_keys($errors))): $sts = 'E'; ?>
+          <?php elseif (in_array($kck, array_keys($errors + $ldf_errors))): $sts = 'E'; ?>
           <div class="error">F</div>
 
           <?php elseif (in_array($kck, array_keys($warnings))): $sts = 'W'; ?>
@@ -531,8 +541,8 @@ $num = $cntr;
           <div class="success">P</div>
           <?php endif; ?>
         </td>
-        <td class="value"><?php echo $errors[$kck]['value'] ?: $warnings[$kck]['value'] ?: $successes[$kck]['value'] ?: ''; ?> </td>
-        <td class="comparison"><?php echo $errors[$kck]['comparison'] ?: $warnings[$kck]['comparison'] ?: $successes[$kck]['comparison'] ?: ''; ?> </td>
+        <td class="value"><?php echo $errors[$kck]['value'] ?: $ldf_errors[$kck]['value'] ?: $warnings[$kck]['value'] ?: $successes[$kck]['value'] ?: ''; ?> </td>
+        <td class="comparison"><?php echo $errors[$kck]['comparison'] ?: $ldf_errors[$kck]['comparison'] ?: $warnings[$kck]['comparison'] ?: $successes[$kck]['comparison'] ?: ''; ?> </td>
         <?php endforeach; ?>
         <?php if ($form_type == 'LDF'): ?>
         <td class="value" rowspan="2">
@@ -568,8 +578,14 @@ $num = $cntr;
           <?php if (in_array('is_existing_parent', array_keys($errors))): ?>
           <div><?php echo $form::$checks['traceability']['checks']['is_existing_parent']['error'] ?></div>
 
+          <?php elseif (in_array('is_existing_parent', array_keys($ldf_errors))): ?>
+          <div><?php echo $ldf::$checks['traceability']['checks']['is_existing_parent']['error'] ?></div>
+
           <?php elseif (in_array('is_valid_parent', array_keys($errors))): ?>
           <div><?php echo $form::$checks['traceability']['checks']['is_valid_parent']['error'] ?></div>
+
+          <?php elseif (in_array('is_valid_parent', array_keys($ldf_errors))): ?>
+          <div><?php echo $ldf::$checks['traceability']['checks']['is_valid_parent']['error'] ?></div>
 
           <?php elseif (in_array('is_valid_parent', array_keys($warnings))): ?>
           <div><?php echo $form::$checks['traceability']['checks']['is_valid_parent']['warning'] ?></div>
@@ -587,6 +603,15 @@ $num = $cntr;
           <div class="error">
             <?php 
               foreach ($form::$checks as $_type => $_array) 
+                foreach ($_array['checks'] as $_check => $_check_array) 
+                  if ($_check == $kck) echo $_check_array['error'] 
+            ?>
+          </div>
+
+          <?php elseif (in_array($kck, array_keys($ldf_errors))): ?>
+          <div class="error">
+            <?php 
+              foreach ($ldf::$checks as $_type => $_array) 
                 foreach ($_array['checks'] as $_check => $_check_array) 
                   if ($_check == $kck) echo $_check_array['error'] 
             ?>
