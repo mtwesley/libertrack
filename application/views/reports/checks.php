@@ -478,7 +478,7 @@ $num = $cntr;
         <td class="barcode">Parent Barcode</td>
         <?php elseif ($form_type == 'SPECS'): ?>
         <td class="barcode" colspan="2">Barcode</td>
-        <td class="barcode">Log Barcode</td>
+        <td class="barcode">Parent Barcode</td>
         <?php endif; ?>
         <?php if ($chks) foreach ($chks as $chk) foreach ($chk['checks'] as $kck => $ck): ?>
         <td class="value" colspan="2">Value</td>
@@ -522,7 +522,7 @@ $num = $cntr;
             if ($form_type == 'SSF') echo 'N/A';
             else if ($form_type == 'TDF') echo $record->tree_barcode->barcode;
             else if ($form_type == 'LDF') echo $record->parent_barcode->barcode;
-            else if ($form_type == 'SPECS') echo $record->barcode->barcode;
+            else if ($form_type == 'SPECS') echo $record->parent()->barcode->barcode;
           ?>
         </td>
         <?php endif; ?>
