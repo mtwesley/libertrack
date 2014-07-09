@@ -493,13 +493,13 @@ $num = $cntr;
         
         if ($form_type == 'SPECS' and $record->status == 'R') {
           $ldf = ORM::factory('LDF')
-            ->where('barcode_id', '=', $form->barcode->id)
+            ->where('barcode_id', '=', $record->barcode->id)
             ->find();
           $ldf_errors = $ldf->get_errors(FALSE, FALSE);
         } else {
           $ldf = $form;
           $ldf_errors = array();
-        }
+        }       
       ?>
       <tr class="<?php print $odd_even = SGS::odd_even($odd); ?>">
         <td class="status" rowspan="2">
