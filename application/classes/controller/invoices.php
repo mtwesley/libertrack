@@ -620,7 +620,8 @@ class Controller_Invoices extends Controller {
 //    foreach ($default_payments as $amt) $default_amount += abs($amt);
     foreach ($ledger_payments as $amt) $ledger_amount += abs($amt);
 
-    if (/* ($default_amount != $amount) or */ ($ledger_amount != $amount) /* or
+    
+    if (/* ($default_amount != $amount) or */ (abs(floatval($ledger_amount) != floatval($amount)) < 0.001) /* or
         (count($default_payments) != count($ledger_payments)) */) $no_payment[] = TRUE;
 
     if ($no_payment) Notify::msg('Missing payment information.', 'error', TRUE);
