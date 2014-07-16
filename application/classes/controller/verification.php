@@ -657,6 +657,12 @@ class Controller_Verification extends Controller {
 
       }
       elseif ($settings = Session::instance()->get('pagination.csv')) {
+        $csvs = ORM::factory('csv')
+          ->where('operation', '=', 'U')
+          ->and_where('form_type', 'IN', array_keys(SGS::$form_verification_type))
+          ->and_where('form_type', '=', $form_type)
+          ->order_by('timestamp', 'DESC');
+
         if ($has_site_id) $form->site_id->val($site_id = $settings['site_id']);
         else $form->operator_id->val($operator_id = $settings['operator_id']);
         if ($has_site_id and $has_block_id) $form->block_id->val($block_id = $settings['block_id']);
