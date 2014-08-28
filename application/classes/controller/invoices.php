@@ -589,9 +589,9 @@ class Controller_Invoices extends Controller {
       ->where('invnumber', '=', $invoice->invnumber)
       ->execute($ledger)
       ->as_array();
-
+        
     if ($account) extract(reset($account));
-    if (!(($amount and $netamount and $paid) and ($amount == $netamount) and ($amount == $paid))) {
+    if (!(($amount and $netamount and $paid) and ($amount == $netamount) and ($amount <= $paid))) {
       Notify::msg('Invoice has not yet been paid.', 'warning', TRUE);
       $this->request->redirect('invoices/'.$id);
     }
@@ -620,8 +620,8 @@ class Controller_Invoices extends Controller {
 //    foreach ($default_payments as $amt) $default_amount += abs($amt);
     foreach ($ledger_payments as $amt) $ledger_amount += abs($amt);
 
-    $diff = abs(floatval($ledger_amount) != floatval($amount));
-    if (/* ($default_amount != $amount) or */ ($diff and ($diff < 0.001)) /* or
+    $diff = abs(floatval($ledger_amount) - floatval($amount));
+    if (/* ($default_amount != $amount) or */ ($diff and ($diff > 0.01)) /* or
         (count($default_payments) != count($ledger_payments)) */) $no_payment[] = TRUE;
 
     if ($no_payment) Notify::msg('Missing payment information.', 'error', TRUE);

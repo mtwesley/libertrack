@@ -43,7 +43,7 @@ create domain d_file_type as character varying(100);
 
 create domain d_operation as character(1) check (value ~ E'^[UD]$');
 
-create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB|SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV|CHECKS|VERIFY|EXP|CERT|INV|DOC|PJ|UNKWN)$');
+create domain d_operation_type as character varying(6) check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|WB|SSFV|TDFV|LDFV|MIFV|MOFV|SPECSV|CHECKS|VERIFY|EXP|EPT|CERT|INV|DOC|PJ|UNKWN)$');
 
 create domain d_species_code as character varying(5) check (value ~ E'^[A-Z]{3,5}$');
 
@@ -113,7 +113,7 @@ create domain d_invoice_type as character varying(3) check (value ~ E'(ST|EXF)')
 
 create domain d_invoice_number as numeric(6) check ((value > 100000) and (value < 200000));
 
-create domain d_document_type as character varying(5) check (value ~ E'(SPECS|EXP|CERT)');
+create domain d_document_type as character varying(5) check (value ~ E'(SPECS|EXP|EPT|CERT)');
 
 create domain d_document_number as numeric(6) check (value > 0);
 
@@ -1484,7 +1484,7 @@ $$
   declare x_volume d_volume;
   declare x_diameter d_diameter;
 begin
-  select (pi() * power(((((new.top_min + new.top_max + new.bottom_min + new.bottom_max)::real / 4) / 100) / 2), 2) * new.length)::d_volume into x_volume;
+  select (3.1426 * power(((((new.top_min + new.top_max + new.bottom_min + new.bottom_max)::real / 4) / 100) / 2), 2) * new.length)::d_volume into x_volume;
   select ((new.top_min + new.top_max + new.bottom_min + new.bottom_max) / 4)::d_diameter into x_diameter;
 
   new.volume = x_volume;
