@@ -320,9 +320,9 @@ $options = (array) $options + array(
   SGS Liberia Inc.<br />
   <br /><br /><br /><br /><br /><br />
   <div style="text-align: right;">
-  Jerome Laporte<br />
+  Clinton Bambridge<br />
   SGS - LiberFor Project Coordinator<br />
-  <a href="mailto:jerome.laporte@sgs.com">jerome.laporte@sgs.com</a><br />
+  <a href="mailto:clinton.bambridge@sgs.com">clinton.bambridge@sgs.com</a><br />
   +231 (0) 88 678 5992
   </div>
   <br /><br />
