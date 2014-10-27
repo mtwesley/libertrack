@@ -316,7 +316,7 @@ $options = (array) $options + array(
   <br /><br /><br /><br /><br /><br />
   <div style="text-align: right;">
   Clinton Bambridge<br />
-  SGS - LiberFor Project Coordinator<br />
+  SGS - LiberFor Project Manager<br />
   <a href="mailto:clinton.bambridge@sgs.com">clinton.bambridge@sgs.com</a><br />
   +231 (0) 888 034 105
   </div>
