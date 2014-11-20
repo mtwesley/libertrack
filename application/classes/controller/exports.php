@@ -1191,7 +1191,7 @@ VALIDATION: $secret";
         $form->from->val($to = $settings['to']);
 
         if ($type)        $documents->and_where('type', 'IN', (array) $type);
-        if ($site_id)     $documents->and_where('site_id', 'IN', (array) $site_id);
+        if ($operator_id) $documents->and_where('operator_id', 'IN', (array) $operator_id);
         if ($from or $to) $documents->and_where('created_date', 'BETWEEN', SGS::db_range($from, $to));
 
         if (Valid::is_barcode($specs_barcode)) $documents->and_where('values', 'LIKE', '%"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"%');
