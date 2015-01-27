@@ -154,6 +154,7 @@ if ($options['hide_upload_info']) $classes[] = 'has-hide-upload';
           case 'A': echo HTML::image('images/flag_green.png', array('class' => 'status accepted', 'title' => 'Accepted')); break;
           case 'R': echo HTML::image('images/flag_red.png', array('class' => 'status rejected', 'title' => 'Rejected')); break;
           case 'U': echo HTML::image('images/flag_blue.png', array('class' => 'status duplicated', 'title' => 'Duplicated')); break;
+          case 'C': echo HTML::image('images/flag_purple.png', array('class' => 'status corrected', 'title' => 'Corrected')); break;
           case 'D': echo HTML::image('images/flag_grey.png', array('class' => 'status deleted', 'title' => 'Deleted')); break;
         endswitch;
       ?>

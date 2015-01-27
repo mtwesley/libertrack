@@ -145,9 +145,24 @@ class Model_CSV extends ORM {
 
     // FIXME: handle issues with NO duplicate CSV id found !!!
     // $duplicates = array_filter($duplicates);
-
+    
+    $corrected = FALSE;
     if ($duplicates) foreach ($duplicates as $field => $duplicate_csv_id) {
-      $this->set_duplicate($duplicate_csv_id, is_int($field) ? NULL : $field);
+      if (($corrected == FALSE) and (count($this->get_corrections()) < 3)) {
+        $duplicate_csv = ORM::factory('CSV', $duplicate_csv_id);        
+        if ($duplicate_csv->form_data_id and (SGS::datetime($duplicate_csv->timestamp, SGS::EPOCH_DATE_FORMAT) < SGS::datetime($this->timestamp, SGS::EPOCH_DATE_FORMAT))) {
+          $this->unset_corrections();
+          $this->set_correction($duplicate_csv_id, is_int($field) ? NULL : $field);
+          $corrected = TRUE;
+        }
+      } else $this->set_duplicate($duplicate_csv_id, is_int($field) ? NULL : $field);
+    }
+    
+    if ($corrected) {
+      $this->resolve();
+      $this->reload();
+      
+      if ($this->status != 'P') return;
     }
     
     if ($problem or $errors) {
@@ -160,28 +175,36 @@ class Model_CSV extends ORM {
     $this->save();
   }
 
-  public function resolve($id) {
-    $new = ORM::factory('CSV', $id);
-
+  public function resolve() {
     $duplicates = ORM::factory('CSV')
-      ->where('id', 'IN', array_diff(array_merge(array($csv->id), SGS::flattenify($csv->get_duplicates())), array($id)))
+      ->where('id', 'IN', array_diff(SGS::flattenify($this->get_duplicates(array(), NULL)), array($this->id)))
       ->find_all()
       ->as_array();
 
     foreach ($duplicates as $duplicate) {
-      if ($form_data_id = $duplicate->form_data_id) {
+      if ($duplicate->form_data_id) {
         $data = ORM::factory($duplicate->form_type, $duplicate->form_data_id);
-
-        if ($data->loaded()) $data->parse_data($new->values);
+        
+        if ($data->is_locked()) continue;
+        
+        if ($data->loaded()) {
+          $data->parse_data($this->values);
+          $data->save();
+        }
+        
+        $this->form_data_id = $duplicate->form_data_id;
+        $this->status = $duplicate->status;
+        
         $duplicate->form_data_id = NULL;
-        $new->form_data_id = $form_data_id;
+        $duplicate->status = 'C';
       }
-
-      $duplicate->status = 'D';
+      else {
+        $duplicate->status = 'U';
+      }
       $duplicate->save();
     }
 
-    $new->process();
+    $this->save();
   }
 
   public function get_errors($args = array()) {
@@ -206,36 +229,53 @@ class Model_CSV extends ORM {
       ->execute();
   }
 
-  public function get_duplicates($args = array()) {
+  public function get_duplicates($args = array(), $corrections = FALSE) {
     $query = DB::select()
       ->from('csv_duplicates')
       ->where('csv_id', '=', $this->id);
+    if ($corrections) $query = $query->where('is_corrected', '=', TRUE);
+    else if ($corrections === FALSE) $query = $query->where('is_corrected', '=', FALSE);
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) $duplicates[$result['field'] ? $result['field'] : 'all'][] = $result['duplicate_csv_id'];
 
     $query = DB::select()
       ->from('csv_duplicates')
       ->where('duplicate_csv_id', '=', $this->id);
+    if ($corrections) $query = $query->where('is_corrected', '=', TRUE);
+    else if ($corrections === FALSE) $query = $query->where('is_corrected', '=', FALSE);
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     foreach ($query->execute() as $result) $duplicates[$result['field'] ? $result['field'] : 'all'][] = $result['csv_id'];
 
     return (array) $duplicates;
   }
 
-  public function unset_duplicates($args = array()) {
+  public function unset_duplicates($args = array(), $corrections = FALSE) {
     $query = DB::delete('csv_duplicates')
       ->where('csv_id', '=', $this->id)
       ->or_where('duplicate_csv_id', '=', $this->id);
+    if ($corrections) $query = $query->where('is_corrected', '=', TRUE);
+    else if ($corrections === FALSE) $query = $query->where('is_corrected', '=', FALSE);
     foreach ($args as $key => $value) $query->where($key, 'IN', (array) $value);
     $query->execute();
   }
 
-  public function set_duplicate($duplicate_csv_id, $field = NULL) {
+  public function set_duplicate($duplicate_csv_id, $field = NULL, $is_corrected = FALSE) {
     $ids = array($this->id, $duplicate_csv_id);
-    DB::insert('csv_duplicates', array('csv_id', 'duplicate_csv_id', 'field'))
-      ->values(array(min($ids), max($ids), $field))
+    DB::insert('csv_duplicates', array('csv_id', 'duplicate_csv_id', 'field', 'is_corrected'))
+      ->values(array(min($ids), max($ids), $field, $is_corrected))
       ->execute();
   }
 
+  public function get_corrections($args = array()) {
+    return $this->get_duplicates($args, TRUE);
+  }
+
+  public function unset_corrections($args = array()) {
+    return $this->unset_duplicates($args, TRUE);
+  }
+
+  public function set_correction($duplicate_csv_id, $field = NULL) {
+    return $this->set_duplicate($duplicate_csv_id, $field, TRUE);
+  }
 
 }

@@ -93,7 +93,7 @@ create domain d_conversion_factor as numeric(6,4) check ((value > 0) and (value 
 
 create domain d_block_name as character varying(7) check (value ~ E'^[A-Z]{1,4}[0-9]{1,3}$');
 
-create domain d_csv_status as character(1) check (value ~ E'^[PARDU]$');
+create domain d_csv_status as character(1) check (value ~ E'^[PARDCU]$');
 
 create domain d_data_status as character(1) check (value ~ E'^[PARD]$');
 
@@ -623,6 +623,7 @@ create table csv_duplicates (
   csv_id d_id,
   duplicate_csv_id d_id,
   field d_text_short,
+  is_corrected d_bool default false not null,
 
   -- constraint csv_duplicates_pkey primary key (id),
   constraint csv_duplicates_csv_id_fkey foreign key (csv_id) references csv (id) on update cascade on delete cascade,
@@ -1213,6 +1214,7 @@ create index csv_errors_error on csv_errors (csv_id,error);
 create index csv_duplicates_duplicate_csv_id on csv_duplicates (csv_id,duplicate_csv_id);
 create index csv_duplicates_csv_id_type on csv_duplicates (csv_id,field);
 create index csv_duplicates_duplicate_csv_id_type on csv_duplicates (duplicate_csv_id,field);
+create index csv_duplicates_corrections on csv_duplicates (csv_id,duplicate_csv_id,is_corrected);
 
 create index ssf_data_diameter on ssf_data (id,diameter);
 create index ssf_data_height on ssf_data (id,height);

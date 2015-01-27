@@ -19,6 +19,12 @@
   text-decoration: none;
 }
 
+.corrected,
+.corrected a {
+  color: #6c025e;
+  text-decoration: none;
+}
+
 .duplicated,
 .duplicated a {
   color: #0066cc;
@@ -35,6 +41,7 @@
 .accepted a:hover,
 .rejected a:hover,
 .duplicated a:hover,
+.corrected a:hover,
 .deleted a:hover {
   text-decoration: underline;
 }

@@ -375,7 +375,12 @@ class Controller_Verification extends Controller {
 
     $csv = ORM::factory('csv', $id);
     if ($csv->status == 'A') {
-      Notify::msg('Sorry, data that has already been processed and accepted cannot be re-processed. Please edit the form data instead.', 'warning', TRUE);
+      Notify::msg('Sorry, data that has been processed and accepted cannot be re-processed. Please edit the form data instead.', 'warning', TRUE);
+      $this->request->redirect('verification/data/'.$id.'/list');
+    }
+
+    if ($csv->status == 'C') {
+      Notify::msg('Sorry, data that has been corrected cannot be re-processed.', 'warning', TRUE);
       $this->request->redirect('verification/data/'.$id.'/list');
     }
 
@@ -388,6 +393,7 @@ class Controller_Verification extends Controller {
       case 'A': Notify::msg('Updated data accepted as form data.', 'success', TRUE); break;
       case 'R': Notify::msg('Updated data rejected as form data.', 'error', TRUE); break;
       case 'U': Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE); break;
+      case 'C': Notify::msg('Updated data has corrected existing form data.', 'error', TRUE); break;
       case 'D': Notify::msg('Updated data deleted.', 'error', TRUE); break;
       default:  Notify::msg('Updated data failed to be processed.', 'error', TRUE);
     }
@@ -402,7 +408,12 @@ class Controller_Verification extends Controller {
 
     $csv = ORM::factory('csv', $id);
     if ($csv->status == 'A') {
-      Notify::msg('Sorry, data that has already been processed and accepted cannot be edited. Please edit the form data instead.', 'warning', TRUE);
+      Notify::msg('Sorry, data that has been processed and accepted cannot be edited. Please edit the form data instead.', 'warning', TRUE);
+      $this->request->redirect('verification/data/'.$id);
+    }
+
+    if ($csv->status == 'C') {
+      Notify::msg('Sorry, data that has been corrected cannot be edited.', 'warning', TRUE);
       $this->request->redirect('verification/data/'.$id);
     }
 
@@ -443,6 +454,7 @@ class Controller_Verification extends Controller {
           case 'A': Notify::msg('Updated data accepted as form data.', 'success', TRUE); break;
           case 'R': Notify::msg('Updated data rejected as form data.', 'error', TRUE); break;
           case 'U': Notify::msg('Updated data is a duplicate of existing form data.', 'error', TRUE); break;
+          case 'C': Notify::msg('Updated data has corrected existing form data.', 'error', TRUE); break;
           default:  Notify::msg('Updated data failed to be processed.', 'error', TRUE);
         }
       }

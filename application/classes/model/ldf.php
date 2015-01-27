@@ -279,17 +279,17 @@ class Model_LDF extends SGS_Form_ORM {
       case 'create_date':
         $this->$key = SGS::date($value, SGS::PGSQL_DATE_FORMAT); break;
 
-      case 'bottom_min':
-        $this->$key = SGS::floatify(min(array($data['bottom_min'],$data['bottom_max']))); break;
-
       case 'bottom_max':
         $this->$key = SGS::floatify(max(array($data['bottom_min'],$data['bottom_max']))); break;
 
-      case 'top_min':
-        $this->$key = SGS::floatify(min(array($data['top_min'],$data['top_max']))); break;
+      case 'bottom_min':
+        $this->$key = SGS::floatify(min(array($data['bottom_min'],$data['bottom_max']))); break;
 
       case 'top_max':
         $this->$key = SGS::floatify(max(array($data['top_min'],$data['top_max']))); break;
+
+      case 'top_min':
+        $this->$key = SGS::floatify(min(array($data['top_min'],$data['top_max']))); break;
 
       case 'length':
         $this->$key = SGS::floatify($value, 1); break;
@@ -668,13 +668,13 @@ class Model_LDF extends SGS_Form_ORM {
                                     array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'parent_barcode_id'  => array(array('not_empty'),
                                     array('is_barcode_type', array($this->parent_barcode->type, array('F', 'L', 'P')))),
-      'top_min'            => array(array('not_empty'),
-                                    array('is_measurement_int')),
-      'top_max'            => array(array('not_empty'),
+      'bottom_max'         => array(array('not_empty'),
                                     array('is_measurement_int')),
       'bottom_min'         => array(array('not_empty'),
                                     array('is_measurement_int')),
-      'bottom_max'         => array(array('not_empty'),
+      'top_max'            => array(array('not_empty'),
+                                    array('is_measurement_int')),
+      'top_min'            => array(array('not_empty'),
                                     array('is_measurement_int')),
       'length'             => array(array('not_empty'),
                                     array('is_measurement_float')),
@@ -721,10 +721,10 @@ class Model_LDF extends SGS_Form_ORM {
       'measured_by'        => self::$fields['measured_by'],
       'entered_by'         => self::$fields['entered_by'],
       'form_number'        => self::$fields['form_number'],
-      'bottom_min'         => self::$fields['bottom_min'],
       'bottom_max'         => self::$fields['bottom_max'],
-      'top_min'            => self::$fields['top_min'],
+      'bottom_min'         => self::$fields['bottom_min'],
       'top_max'            => self::$fields['top_max'],
+      'top_min'            => self::$fields['top_min'],
       'length'             => self::$fields['length'],
       'volume'             => self::$fields['volume'],
       'action'             => self::$fields['action'],

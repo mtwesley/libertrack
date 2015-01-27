@@ -77,8 +77,10 @@ class SGS_Form_ORM extends ORM {
   }
 
   public function has_problem() {
-    if (isset($this->barcode) and $this->barcode->loaded()) $problems['barcode_activity'] = $this->barcode->get_activity(array('H'), FALSE);
-    return array_unique(array_filter($problems));
+    if (isset($this->barcode) and $this->barcode->loaded()) {
+      $problems['barcode_activity'] = $this->barcode->get_activity(array('H'), FALSE);
+      return array_unique(array_filter($problems));
+    } else return array();
   }
 
   public function process_check($error_test, $warning_test, $field, $check, $params = array(), &$errors = array(), &$warnings = array()) {

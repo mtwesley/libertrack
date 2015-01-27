@@ -426,7 +426,7 @@ class Controller_Ajax extends Controller {
 
     $csv = ORM::factory('CSV', $id);
     try {
-      $csv->resolve($new_id);
+      $csv->resolve();
     } catch (Exception $e) {
       return;
     }
