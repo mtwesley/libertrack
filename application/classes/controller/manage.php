@@ -40,7 +40,7 @@ class Controller_Manage extends Controller {
 
     switch ($command) {
       case 'upload': return self::handle_printjob_upload();
-      case 'download': return self::handle_printjob_download();
+      case 'download': return self::handle_printjob_download($id);
       case 'labels': return self::handle_printjob_labels($id);
       case 'edit': return self::handle_printjob_edit($id);
       case 'list': return self::handle_printjob_list($id);
