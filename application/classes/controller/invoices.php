@@ -1492,7 +1492,8 @@ class Controller_Invoices extends Controller {
       ->set('operator', $invoice->operator)
       ->set('site', $invoice->site)
       ->set('options', array(
-        'summary'   => TRUE,
+        'signature' => TRUE,
+        'summary' => TRUE,
         'break'  => FALSE,
         'styles' => TRUE,
         'info'   => TRUE,
