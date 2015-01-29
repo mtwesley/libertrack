@@ -204,7 +204,7 @@ class Controller_Manage extends Controller {
         $info = pathinfo($upload['name']);
         if (!array_filter($info)) Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
         else {
-
+          ini_set('auto_detect_line_endings', TRUE);
           $array = file($upload['tmp_name']);
 
           // upload file
@@ -319,14 +319,14 @@ class Controller_Manage extends Controller {
     if (!is_null($barcodes)) {
       if ($barcodes = $barcodes->execute()->as_array()) {
         $text = "% Total barcodes: ".count($barcodes);
-        if ($id) $text .= "\n% Print Job: ".$id;
+        if ($printjob) $text .= "\n% Print Job: ".$printjob->number;
         $text .= "\n% Requested by: ".Auth::instance()->get_user()->name;
         $text .= "\n% Role: LiberTrack, Barcode Management";
         $text .= "\n% Requested from IP: ".Request::$client_ip;
         $text .= "\n% Generated at: ".SGS::datetime('now', 'm/d/Y H:i:s T,(\G\M\TP)');
 
         foreach ($barcodes as $barcode) $text .= "\n".$barcode['barcode'];
-        if ($id) $text .= "\n% End of Print Job: ";
+        if ($printjob) $text .= "\n% End of Print Job: ".$printjob->number;;
 
         try {
           $tempname = tempnam(sys_get_temp_dir(), 'PJ_download_').'.txt';

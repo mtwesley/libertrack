@@ -33,7 +33,8 @@ class Model_Printjob extends ORM {
     return array(
       'number'          => 'Print Job',
       'site_id'         => 'Site',
-      'allocation_date' => 'Allocation Date'
+      'allocation_date' => 'Allocation Date',
+      'is_monitored'    => 'Monitored',
     );
   }
 
@@ -55,6 +56,7 @@ class Model_Printjob extends ORM {
       'site_id'         => array(),
       'number'          => array(array('is_positive_int')),
       'allocation_date' => array(array('is_date')),
+      'is_monitored'    => array(),
       'user_id'         => array(),
       'timestamp'       => array()
     );

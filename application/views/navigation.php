@@ -177,6 +177,7 @@ if (!$command && !is_numeric($id)) {
       <ul class="nav commands">
         <li class="<?php if ($command == 'st')  echo 'active'; ?>"><?php echo HTML::anchor('invoices/create/st', SGS::title('invoices/create/st')); ?></li>
         <li class="<?php if ($command == 'exf') echo 'active'; ?>"><?php echo HTML::anchor('invoices/create/exf', SGS::title('invoices/create/exf')); ?></li>
+        <li class="<?php if ($command == 'tag') echo 'active'; ?>"><?php echo HTML::anchor('invoices/create/tag', SGS::title('invoices/create/tag')); ?></li>
       </ul>
       <?php endif; ?>
     </li>

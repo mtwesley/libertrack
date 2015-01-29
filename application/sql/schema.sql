@@ -109,7 +109,7 @@ create domain d_fee_type as character varying(1) check (value ~ E'(F|P)');
 
 create domain d_tax_code as character varying(16) check (value ~ E'^(((CBL)|R|T)-)?[0-9]{3,4}(-[0-9]{2})?$');
 
-create domain d_invoice_type as character varying(3) check (value ~ E'(ST|EXF)');
+create domain d_invoice_type as character varying(3) check (value ~ E'(ST|EXF|TAG)');
 
 create domain d_invoice_number as numeric(6) check ((value > 100000) and (value < 200000));
 
@@ -299,6 +299,7 @@ create table printjobs (
   number d_positive_int unique not null,
   site_id d_id,
   allocation_date d_date default current_timestamp not null,
+  is_monitored d_bool default false,
   file_id d_id,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
@@ -1149,6 +1150,7 @@ create table settings (
 
 create sequence s_invoices_st_number minvalue 100100;
 create sequence s_invoices_exf_number minvalue 100100;
+create sequence s_invoices_tag_number minvalue 100100;
 create sequence s_documents_specs_number minvalue 1;
 create sequence s_documents_exp_number minvalue 1;
 create sequence s_documents_cert_number minvalue 250;
@@ -1175,6 +1177,7 @@ create index files_operation on files (id,operation);
 create index files_operation_type on files (id,operation_type);
 
 create index printjobs_number on printjobs (id,number);
+create index printjobs_monitored on printjobs (id,is_monitored);
 
 create unique index barcodes_unique on barcodes (barcode) where type not in ('F','L','P');
 

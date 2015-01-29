@@ -31,6 +31,8 @@ class SGS {
   const FEE_SGS_CONTRACT_RATE = 0.014;
 
   const INSPECTION_RATE = 0.05;
+  
+  const TAG_PRICE = 0.10;
 
   const CONDITION_MATCHING = 'is_matching';
   const CONDITION_EXISTING = 'is_existing';
@@ -129,6 +131,7 @@ class SGS {
     'invoices/create'     => 'Create Invoice',
     'invoices/create/st'  => 'Stumpage Invoice',
     'invoices/create/exf' => 'Export Fee Invoice',
+    'invoices/create/tag' => 'Barcode Tag Invoice',
 
     'exports'                    => 'Exports',
     'exports/documents'          => 'List Documents',
@@ -400,7 +403,8 @@ class SGS {
 
   public static $invoice_type = array(
     'ST'  => 'Stumpage Invoice',
-    'EXF' => 'Export Fee Invoice'
+    'EXF' => 'Export Fee Invoice',
+    'TAG' => 'Barcode Tag Invoice'
   );
 
   public static $document_type = array(

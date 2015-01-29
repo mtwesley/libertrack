@@ -20,9 +20,9 @@ class Controller_Invoices extends Controller {
   public function handle_invoice_create($invoice_type) {
     if (!Request::$current->query()) Session::instance()->delete('pagination.invoice.data');
 
-    $has_site_id    = (bool) (in_array($invoice_type, array('ST')));
+    $has_site_id    = (bool) (in_array($invoice_type, array('ST', 'TAG')));
     $has_specs_info = (bool) (in_array($invoice_type, array('EXF')));
-
+    
     if ($has_site_id) $site_ids = DB::select('id', 'name')
       ->from('sites')
       ->order_by('name')
@@ -35,11 +35,16 @@ class Controller_Invoices extends Controller {
       ->as_array('id', 'name');
 
     $form = Formo::form();
-    if ($has_site_id) $form = $form
-      ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'required' => TRUE))
-      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
-      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
-    else if ($has_specs_info) {
+    if ($has_site_id) {
+      $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'required' => TRUE));
+      if ($invoice_type == 'TAG') {
+        $tag_quantities = array();
+        foreach (range(1000, 2000, 1000) as $x) $tag_quantities[$x] = $x;
+        if ($invoice_type == 'TAG') $form = $form->add_group('tag_quantity', 'select', $tag_quantities, NULL, array('label' => 'Quantity', 'required' => TRUE));
+      } else $form = $form
+          ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+          ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
+    } else if ($has_specs_info) {
       $form = $form
         ->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator', ), $has_specs_info ? array('attr' => array('class' => 'specs_operatoropts specs_number')) : array()))
         ->add_group('specs_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')));
@@ -63,8 +68,11 @@ class Controller_Invoices extends Controller {
       $format     = $form->format->val();
       if ($has_site_id) {
         $site_id  = $form->site_id->val();
-        $from     = $form->from->val();
-        $to       = $form->to->val();
+        if ($invoice_type == 'TAG') $tag_quantity = $form->tag_quantity->val();
+        else {
+          $from     = $form->from->val();
+          $to       = $form->to->val();
+        }
       }
       if ($has_specs_info) {
         $operator_id  = $form->operator_id->val();
@@ -78,6 +86,7 @@ class Controller_Invoices extends Controller {
         'operator_id'  => $operator_id,
         'site_id'      => $site_id,
         'specs_number' => $specs_number,
+        'tag_quantity' => $tag_quantity,
         'from'         => $from,
         'to'           => $to,
         'created'      => $created,
@@ -86,20 +95,34 @@ class Controller_Invoices extends Controller {
     }
     else if ($settings = Session::instance()->get('pagination.invoice.data')) {
       if ($has_site_id) {
-        $form->format->val($format = $settings['format']);
         $form->site_id->val($site_id = $settings['site_id']);
-        $form->from->val($from = $settings['from']);
-        $form->to->val($to = $settings['to']);
+        if ($invoice_type == 'TAG') $form->tag_quanity->val($tag_quantity = $settings['tag_quantity']);
+        else {
+          $form->from->val($from = $settings['from']);
+          $form->to->val($to = $settings['to']);
+        }
       } else if ($has_specs_info) {
         $form->operator_id->val($operator_id = $settings['operator_id']);
         $form->specs_number->val($specs_number = $settings['specs_number']);
       }
+      $form->format->val($format = $settings['format']);
       $form->created->val($created = $settings['created']);
       $form->due->val($due = $settings['due']);
     }
 
     if ($format) {
       switch ($invoice_type) {
+        case 'TAG':
+          if (DB::select('barcodes.id')
+            ->from('barcodes')
+            ->join('printjobs')
+            ->on('barcodes.printjob_id', '=', 'printjobs.id')
+            ->on('printjobs.is_monitored', '=', DB::expr('true'))
+            ->where('barcodes.type', '=', 'P')
+            ->execute()->count() > 1000) $ids = FALSE;
+          else $ids = TRUE;
+          break;
+        
         case 'ST':
           $form_type = 'TDF';
           $ids = array_filter(DB::select('barcodes.barcode', 'tdf_data.id')
@@ -212,7 +235,7 @@ class Controller_Invoices extends Controller {
           break;
       }
 
-      if ($form_type and $ids) {
+      if ($ids) {
         $site     = ORM::factory('site', $site_id);
         $operator = ORM::factory('operator', $operator_id ?: $site->operator->id);
 
@@ -229,39 +252,47 @@ class Controller_Invoices extends Controller {
             ->as_array(NULL, 'id');
           if (count($_site_id) == 1) $invoice->site = ORM::factory('site', reset($_site_id));
         }
+        
+        if ($invoice_type == 'TAG') $values['tag_quantity'] = $tag_quantity;
 
         $invoice = ORM::factory('invoice');
         $invoice->type = $invoice_type;
         $invoice->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
         $invoice->due_date = SGS::date($due, SGS::PGSQL_DATE_FORMAT, TRUE);
+        $invoice->values = (array) $values;
 
         if ($from) $invoice->from_date = SGS::date($from, SGS::PGSQL_DATE_FORMAT, TRUE);
         if ($to) $invoice->to_date = SGS::date($to, SGS::PGSQL_DATE_FORMAT, TRUE);
         if ($operator->loaded()) $invoice->operator = $operator;
-        if ($site->loaded()) $invoice->site = $site;
+        if ($site->loaded()) {
+          $invoice->site = $site;
+          if (!($invoice->operator and $invoice->operator->loaded())) $invoice->operator = $site->operator;
+        }
 
         switch ($format) {
           case 'preview':
-            $data = ORM::factory($form_type)
-              ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
-              ->join('barcodes')
-              ->on('barcode_id', '=', 'barcodes.id')
-              ->order_by('barcode', 'ASC');
+            if ($form_type) {
+              $data = ORM::factory($form_type)
+                ->where(strtolower($form_type).'.id', 'IN', (array) $ids)
+                ->join('barcodes')
+                ->on('barcode_id', '=', 'barcodes.id')
+                ->order_by('barcode', 'ASC');
 
-            $clone = clone($data);
-            $pagination = Pagination::factory(array(
-              'items_per_page' => 50,
-              'total_items' => $clone->find_all()->count()));
+              $clone = clone($data);
+              $pagination = Pagination::factory(array(
+                'items_per_page' => 50,
+                'total_items' => $clone->find_all()->count()));
 
-            $data = $data
-              ->offset($pagination->offset)
-              ->limit($pagination->items_per_page)
-              ->find_all()
-              ->as_array();
+              $data = $data
+                ->offset($pagination->offset)
+                ->limit($pagination->items_per_page)
+                ->find_all()
+                ->as_array();
 
-            if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
-            elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
-            else Notify::msg('No records found');
+              if ($pagination->total_items == 1) Notify::msg($pagination->total_items.' record found');
+              elseif ($pagination->total_items) Notify::msg($pagination->total_items.' records found');
+              else Notify::msg('No records found');
+            }
 
             $func = strtolower('generate_'.$invoice_type.'_preview');
             $summary = self::$func($invoice, (array) $ids);
@@ -278,38 +309,40 @@ class Controller_Invoices extends Controller {
                 'barcode' => $sample->exp_barcode->barcode
               );
             }
+            
+            if ($form_type) {
+              $header = View::factory('data')
+                ->set('form_type', $form_type)
+                ->set('data', $data)
+                ->set('site', $site_id ? $site : NULL)
+                ->set('operator', $operator_id ? $operator : NULL)
+                ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+                ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+                ->set('options', array(
+                  'table'   => FALSE,
+                  'rows'    => FALSE,
+                  'actions' => FALSE,
+                  'header'  => TRUE,
+                  'details' => FALSE,
+                  'links'   => FALSE
+                ))
+                ->render();
 
-            $header = View::factory('data')
-              ->set('form_type', $form_type)
-              ->set('data', $data)
-              ->set('site', $site_id ? $site : NULL)
-              ->set('operator', $operator_id ? $operator : NULL)
-              ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-              ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-              ->set('options', array(
-                'table'   => FALSE,
-                'rows'    => FALSE,
-                'actions' => FALSE,
-                'header'  => TRUE,
-                'details' => FALSE,
-                'links'   => FALSE
-              ))
-              ->render();
-
-            $table = View::factory('data')
-              ->set('classes', array('has-pagination'))
-              ->set('form_type', $form_type)
-              ->set('data', $data)
-              ->set('site', $site_id ? $site : NULL)
-              ->set('operator', $operator_id ? $operator : NULL)
-              ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
-              ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
-              ->set('options', array(
-                'links'  => FALSE,
-                'header' => FALSE,
-                'hide_header_info' => TRUE
-              ))
-              ->render();
+              $table = View::factory('data')
+                ->set('classes', array('has-pagination'))
+                ->set('form_type', $form_type)
+                ->set('data', $data)
+                ->set('site', $site_id ? $site : NULL)
+                ->set('operator', $operator_id ? $operator : NULL)
+                ->set('specs_info', $info ? array_filter((array) $info['specs']) : NULL)
+                ->set('exp_info', $info ? array_filter((array) $info['exp']) : NULL)
+                ->set('options', array(
+                  'links'  => FALSE,
+                  'header' => FALSE,
+                  'hide_header_info' => TRUE
+                ))
+                ->render();
+            }
             break;
 
           case 'draft':
@@ -328,7 +361,7 @@ class Controller_Invoices extends Controller {
 
             try {
               $invoice->save();
-              foreach ($ids as $id) $invoice->set_data($form_type, $id);
+              if (is_array($ids)) foreach ($ids as $id) $invoice->set_data($form_type, $id);
 
               Notify::msg(($invoice->is_draft ? 'Draft invoice' : 'Invoice') . ' created.', 'success', TRUE);
               $this->request->redirect('invoices/'.$invoice->id);
@@ -337,7 +370,8 @@ class Controller_Invoices extends Controller {
             }
             break;
         }
-      } else Notify::msg('No data found. Skipping invoice.', 'warning');
+      } else if ($invoice_type == 'TAG') Notify::msg('No barcodes to be allocated. Skipping invoice.', 'warning');
+        else Notify::msg('No data found. Skipping invoice.', 'warning');
     }
 
     if ($form) $content .= $form;
@@ -589,7 +623,7 @@ class Controller_Invoices extends Controller {
       ->where('invnumber', '=', $invoice->invnumber)
       ->execute($ledger)
       ->as_array();
-        
+    
     if ($account) extract(reset($account));
     if (!(($amount and $netamount and $paid) and ($amount == $netamount) and ($amount <= $paid))) {
       Notify::msg('Invoice has not yet been paid.', 'warning', TRUE);
@@ -906,6 +940,7 @@ class Controller_Invoices extends Controller {
     switch ($invoice_type) {
       case 'st':  return self::handle_invoice_create('ST');
       case 'exf': return self::handle_invoice_create('EXF');
+      case 'tag': return self::handle_invoice_create('TAG');
     }
 
     $view = View::factory('main')->set('content', $content);
@@ -978,7 +1013,7 @@ class Controller_Invoices extends Controller {
       ->group_by('species_code', 'species_class', 'fob_price')
       ->execute()
       ->as_array();
-
+    
     foreach(DB::select('barcode', array('create_date', 'scan_date'), array('code', 'species_code'), array('class', 'species_class'), 'diameter', 'length', 'volume')
       ->from($table)
       ->join('barcodes')
@@ -1216,7 +1251,7 @@ class Controller_Invoices extends Controller {
     if (!($data_ids = $data_ids ?: $invoice->get_data())) {
       Notify::msg('No data found. Unable to generate invoice.', 'warning');
       return FALSE;
-    }
+    }      
 
     $sample = ORM::factory('SPECS', reset($data_ids));
 
@@ -1414,6 +1449,96 @@ class Controller_Invoices extends Controller {
         'page-size'  => 'A4',
         'disable-smart-shrinking' => TRUE,
         'footer-html' => View::factory('invoices/exf')
+          ->set('invoice', $invoice)
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->render()
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate invoice document. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
+
+    try {
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'D';
+      $file->operation_type = 'INV';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+      $file->save();
+      return $file->id;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }
+  }
+
+  private function generate_tag_preview($invoice, $data_ids = NULL) {
+    return View::factory('invoices/tag_summary')
+      ->set('invoice', $invoice)
+      ->set('total', array('summary' => $total))
+      ->render();
+  }
+
+  private function generate_tag_invoice($invoice, $data_ids = NULL) {
+    $html = View::factory('invoices/tag')
+      ->set('invoice', $invoice)
+      ->set('data', $set)
+      ->set('operator', $invoice->operator)
+      ->set('site', $invoice->site)
+      ->set('options', array(
+        'summary'   => TRUE,
+        'break'  => FALSE,
+        'styles' => TRUE,
+        'info'   => TRUE,
+        'fee'    => TRUE,
+        'total'  => TRUE
+      ));
+
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array(
+      'invoices',
+      'tag',
+      $invoice->operator->tin
+    ));
+
+    if ($invoice->is_draft) $newname = 'TAG_DRAFT_'.SGS::date($invoice->created_date, 'Y_m_d').'.'.$ext;
+    else $newname = 'TAG_'.$invoice->number.'.'.$ext;
+
+    $version = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access invoices folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 22,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'page-size'  => 'A4',
+        'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('invoices/tag')
           ->set('invoice', $invoice)
           ->set('options', array(
             'header' => FALSE,

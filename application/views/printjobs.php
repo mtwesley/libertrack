@@ -6,6 +6,7 @@
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'number')), 'Print Job'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'site_id')), 'Site'); ?></th>
     <th>Operator</th>
+    <th>Monitored</th>
     <th class="links"></th>
   </tr>
   <?php foreach ($printjobs as $printjob): ?>
@@ -15,6 +16,7 @@
     <td><?php echo $printjob->number; ?></td>
     <td><?php echo $printjob->site->name; ?></td>
     <td><?php echo $printjob->site->operator->name; ?></td>
+    <td><?php echo SGS::booleanify($printjob->is_monitored) ? 'YES' : 'NO'; ?></td>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>
