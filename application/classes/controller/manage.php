@@ -188,86 +188,102 @@ class Controller_Manage extends Controller {
       ->add('save', 'submit', 'Upload');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
-      $barcode_success = 0;
-      $barcode_error = 0;
+      
+      $site_id  = $form->site_id->val();
+      if (!($site_id and !(DB::select('barcodes.id')
+          ->from('barcodes')
+          ->join('printjobs')
+          ->on('barcodes.printjob_id', '=', 'printjobs.id')
+          ->on('printjobs.is_monitored', '=', DB::expr('true'))
+          ->on('printjobs.site_id', 'IN', (array) $site_id)
+          ->where('barcodes.type', '=', 'P')
+          ->execute()->count() > 1000))) {
+      
+        $barcode_success = 0;
+        $barcode_error = 0;
 
-      $num_files = count(reset($_FILES['upload']));
-      for ($j = 0; $j < $num_files; $j++) {
-        $upload = array(
-          'name'     => $_FILES['upload']['name'][$j],
-          'type'     => $_FILES['upload']['type'][$j],
-          'tmp_name' => $_FILES['upload']['tmp_name'][$j],
-          'error'    => $_FILES['upload']['error'][$j],
-          'size'     => $_FILES['upload']['size'][$j]
-        );
+        $num_files = count(reset($_FILES['upload']));
+        for ($j = 0; $j < $num_files; $j++) {
+          $upload = array(
+            'name'     => $_FILES['upload']['name'][$j],
+            'type'     => $_FILES['upload']['type'][$j],
+            'tmp_name' => $_FILES['upload']['tmp_name'][$j],
+            'error'    => $_FILES['upload']['error'][$j],
+            'size'     => $_FILES['upload']['size'][$j]
+          );
 
-        $info = pathinfo($upload['name']);
-        if (!array_filter($info)) Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
-        else {
-          ini_set('auto_detect_line_endings', TRUE);
-          $array = file($upload['tmp_name']);
+          $info = pathinfo($upload['name']);
+          if (!array_filter($info)) Notify::msg('Sorry, no upload found or there is an error in the system. Please try again.', 'error');
+          else {
+            ini_set('auto_detect_line_endings', TRUE);
+            $array = file($upload['tmp_name']);
 
-          // upload file
-          $file = ORM::factory('file');
-          $file->name = $upload['name'];
-          $file->type = $upload['type'];
-          $file->size = $upload['size'];
-          $file->operation = 'U';
-          $file->operation_type = 'PJ';
-          $file->content_md5 = md5_file($upload['tmp_name']);
-
-          try {
-            $file->save();
-            Notify::msg($file->name.' print job successfully uploaded.', 'success', TRUE);
-          } catch (ORM_Validation_Exception $e) {
-            foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error');
-          } catch (Exception $e) {
-            Notify::msg('Sorry, print job upload failed. Please try again.', 'error');
-          }
-
-          if ($file->id) {
-            // save printjob
-            $_printjob = clone($printjob);
-            $_printjob->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
-            for ($i = 0; $i < 10; $i++) {
-              $matches = array();
-              if (preg_match('/Print\sJob(\sID)?\:\s*(\d+).*/i', $array[$i], $matches)) {
-                $_printjob->number = $matches[2];
-                break;
-              }
-            }
+            // upload file
+            $file = ORM::factory('file');
+            $file->name = $upload['name'];
+            $file->type = $upload['type'];
+            $file->size = $upload['size'];
+            $file->operation = 'U';
+            $file->operation_type = 'PJ';
+            $file->content_md5 = md5_file($upload['tmp_name']);
 
             try {
-              $_printjob->save();
+              $file->save();
+              Notify::msg($file->name.' print job successfully uploaded.', 'success', TRUE);
+            } catch (ORM_Validation_Exception $e) {
+              foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error');
             } catch (Exception $e) {
-              Notify::msg('Sorry, print job failed to be saved. Please try again.', 'error', TRUE);
-              try {
-                $file->delete();
-              } catch (Exception $e) {
-                Notify::msg('Sorry, attempting to delete an non-existing file failed.', 'warning', TRUE);
-              }
+              Notify::msg('Sorry, print job upload failed. Please try again.', 'error');
             }
 
-            // prase barcodes
-            $start = Model_Printjob::PARSE_START;
-            $count = count($array);
-            for ($i = $start; $i < ($count - 1); $i++) {
-              $line = $array[$i];
-              if (! $data = $_printjob->parse_txt($line, $array)) continue;
+            if ($file->id) {
+              // save printjob
+              $_printjob = clone($printjob);
+              $_printjob->allocation_date = SGS::date('now', SGS::PGSQL_DATE_FORMAT);
+              for ($i = 0; $i < 10; $i++) {
+                $matches = array();
+                if (preg_match('/Print\sJob(\sID)?\:\s*(\d+).*/i', $array[$i], $matches)) {
+                  $_printjob->number = $matches[2];
+                  break;
+                } else if (preg_match('/Type\sof\Tag\:\s*(tree|log).*/i', $array[$i], $matches)) {
+                  $type_of_tag = $matches[1];
+                  break;
+                }
+              }
 
-              $barcode = ORM::factory('barcode');
-              $barcode->printjob = $_printjob;
-              $barcode->barcode = $data['barcode'];
               try {
-                $barcode->save();
-                $barcode_success++;
+                $_printjob->save();
               } catch (Exception $e) {
-                $barcode_error++;
+                Notify::msg('Sorry, print job failed to be saved. Please try again.', 'error', TRUE);
+                try {
+                  $file->delete();
+                } catch (Exception $e) {
+                  Notify::msg('Sorry, attempting to delete an non-existing file failed.', 'warning', TRUE);
+                }
+              }
+
+              // prase barcodes
+              $start = Model_Printjob::PARSE_START;
+              $count = count($array);
+              for ($i = $start; $i < ($count - 1); $i++) {
+                $line = $array[$i];
+                if (! $data = $_printjob->parse_txt($line, $array)) continue;
+
+                $barcode = ORM::factory('barcode');
+                $barcode->printjob = $_printjob;
+                $barcode->barcode = $data['barcode'];
+                try {
+                  $barcode->save();
+                  $barcode_success++;
+                } catch (Exception $e) {
+                  $barcode_error++;
+                }
               }
             }
           }
         }
-      }
+      } else Notify::msg('No barcodes to be allocated.', 'warning');
+      
       if ($barcode_success) Notify::msg($barcode_success.' barcodes successfully parsed.', 'success', TRUE);
       if ($barcode_error) Notify::msg($barcode_error.' barcodes failed to be parsed.', 'error', TRUE);
 

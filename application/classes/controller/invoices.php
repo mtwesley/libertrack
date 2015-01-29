@@ -117,8 +117,9 @@ class Controller_Invoices extends Controller {
             ->from('barcodes')
             ->join('printjobs')
             ->on('barcodes.printjob_id', '=', 'printjobs.id')
-            ->on('printjobs.is_monitored', '=', DB::expr('true'))
-            ->where('barcodes.type', '=', 'P')
+            ->where('printjobs.is_monitored', '=', DB::expr('true'))
+            ->and_where('printjobs.site_id', 'IN', (array) $site_id)
+            ->and_where('barcodes.type', '=', 'P')
             ->execute()->count() > 1000) $ids = FALSE;
           else $ids = TRUE;
           break;
