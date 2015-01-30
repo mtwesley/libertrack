@@ -113,14 +113,14 @@ class Controller_Invoices extends Controller {
     if ($format) {
       switch ($invoice_type) {
         case 'TAG':
-          if (DB::select('barcodes.id')
+          if ((SGS::TAG_ALLOCATION_LIMIT - DB::select('barcodes.id')
             ->from('barcodes')
             ->join('printjobs')
             ->on('barcodes.printjob_id', '=', 'printjobs.id')
             ->where('printjobs.is_monitored', '=', DB::expr('true'))
             ->and_where('printjobs.site_id', 'IN', (array) $site_id)
             ->and_where('barcodes.type', '=', 'P')
-            ->execute()->count() > $tag_quantity) $ids = FALSE;
+            ->execute()->count()) >= $tag_quantity) $ids = FALSE;
           else $ids = TRUE;
           break;
         

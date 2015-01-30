@@ -20,7 +20,8 @@ class Model_Printjob extends ORM {
       'id' => array('render' => FALSE),
       'site' => array(
         'orm_primary_val' => 'name',
-        'label'           => 'Site'
+        'label'           => 'Site',
+        'required'        => TRUE,
       ),
     );
     foreach (self::fields() as $field => $label) {

@@ -188,16 +188,16 @@ class Controller_Manage extends Controller {
       ->add('save', 'submit', 'Upload');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $site_id  = $form->site->val();
       
-      $site_id  = $form->site_id->val();
-      if (!($site_id and !(DB::select('barcodes.id')
+      if (DB::select('barcodes.id')
           ->from('barcodes')
           ->join('printjobs')
           ->on('barcodes.printjob_id', '=', 'printjobs.id')
           ->on('printjobs.is_monitored', '=', DB::expr('true'))
           ->on('printjobs.site_id', 'IN', (array) $site_id)
           ->where('barcodes.type', '=', 'P')
-          ->execute()->count() > SGS::TAG_ALLOCATION_LIMIT))) {
+          ->execute()->count() < SGS::TAG_ALLOCATION_LIMIT) {
       
         $barcode_success = 0;
         $barcode_error = 0;
