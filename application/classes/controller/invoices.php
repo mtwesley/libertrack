@@ -113,14 +113,15 @@ class Controller_Invoices extends Controller {
     if ($format) {
       switch ($invoice_type) {
         case 'TAG':
-          if ((SGS::TAG_ALLOCATION_LIMIT - DB::select('barcodes.id')
+          $tag_pending = DB::select('barcodes.id')
             ->from('barcodes')
             ->join('printjobs')
             ->on('barcodes.printjob_id', '=', 'printjobs.id')
             ->where('printjobs.is_monitored', '=', DB::expr('true'))
             ->and_where('printjobs.site_id', 'IN', (array) $site_id)
             ->and_where('barcodes.type', '=', 'P')
-            ->execute()->count()) >= $tag_quantity) $ids = FALSE;
+            ->execute()->count();
+          if ((SGS::TAG_ALLOCATION_LIMIT - $tag_pending) >= $tag_quantity) $ids = FALSE;
           else $ids = TRUE;
           break;
         
@@ -371,8 +372,10 @@ class Controller_Invoices extends Controller {
             }
             break;
         }
-      } else if ($invoice_type == 'TAG') Notify::msg('No barcodes to be allocated. Skipping invoice.', 'warning');
-        else Notify::msg('No data found. Skipping invoice.', 'warning');
+      } else if ($invoice_type == 'TAG') {
+        Notify::msg('No barcodes to be allocated. Skipping invoice.', 'warning');
+        Notify::msg("$tag_quantity barcodes requested. $tag_pending barcodes allocated but still pending. Limit of ".SGS::TAG_ALLOCATION_LIMIT." reached.", 'warning');
+      } else Notify::msg('No data found. Skipping invoice.', 'warning');
     }
 
     if ($form) $content .= $form;

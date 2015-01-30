@@ -190,14 +190,15 @@ class Controller_Manage extends Controller {
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $site_id  = $form->site->val();
       
-      if (DB::select('barcodes.id')
-          ->from('barcodes')
-          ->join('printjobs')
-          ->on('barcodes.printjob_id', '=', 'printjobs.id')
-          ->on('printjobs.is_monitored', '=', DB::expr('true'))
-          ->on('printjobs.site_id', 'IN', (array) $site_id)
-          ->where('barcodes.type', '=', 'P')
-          ->execute()->count() < SGS::TAG_ALLOCATION_LIMIT) {
+      $tag_pending = DB::select('barcodes.id')
+        ->from('barcodes')
+        ->join('printjobs')
+        ->on('barcodes.printjob_id', '=', 'printjobs.id')
+        ->on('printjobs.is_monitored', '=', DB::expr('true'))
+        ->on('printjobs.site_id', 'IN', (array) $site_id)
+        ->where('barcodes.type', '=', 'P')
+        ->execute()->count();
+      if ($tag_pending < SGS::TAG_ALLOCATION_LIMIT) {
       
         $barcode_success = 0;
         $barcode_error = 0;
@@ -282,7 +283,10 @@ class Controller_Manage extends Controller {
             }
           }
         }
-      } else Notify::msg('No barcodes to be allocated.', 'warning');
+      } else {
+        Notify::msg('No barcodes to be allocated.', 'warning');
+        Notify::msg("$tag_pending barcodes allocated but still pending. Limit of ".SGS::TAG_ALLOCATION_LIMIT." reached.", 'warning');
+      }
       
       if ($barcode_success) Notify::msg($barcode_success.' barcodes successfully parsed.', 'success', TRUE);
       if ($barcode_error) Notify::msg($barcode_error.' barcodes failed to be parsed.', 'error', TRUE);
