@@ -33,6 +33,8 @@ class SGS {
   const INSPECTION_RATE = 0.05;
   
   const TAG_PRICE = 0.10;
+  const TAG_ALLOCATION_UNIT = 1000;
+  const TAG_ALLOCATION_LIMIT = 2000;
 
   const CONDITION_MATCHING = 'is_matching';
   const CONDITION_EXISTING = 'is_existing';

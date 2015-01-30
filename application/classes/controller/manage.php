@@ -197,7 +197,7 @@ class Controller_Manage extends Controller {
           ->on('printjobs.is_monitored', '=', DB::expr('true'))
           ->on('printjobs.site_id', 'IN', (array) $site_id)
           ->where('barcodes.type', '=', 'P')
-          ->execute()->count() > 1000))) {
+          ->execute()->count() > SGS::TAG_ALLOCATION_LIMIT))) {
       
         $barcode_success = 0;
         $barcode_error = 0;

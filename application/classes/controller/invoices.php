@@ -39,7 +39,7 @@ class Controller_Invoices extends Controller {
       $form = $form->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'required' => TRUE));
       if ($invoice_type == 'TAG') {
         $tag_quantities = array();
-        foreach (range(1000, 2000, 1000) as $x) $tag_quantities[$x] = $x;
+        foreach (range(SGS::TAG_ALLOCATION_UNIT, SGS::TAG_ALLOCATION_LIMIT, SGS::TAG_ALLOCATION_UNIT) as $x) $tag_quantities[$x] = $x;
         if ($invoice_type == 'TAG') $form = $form->add_group('tag_quantity', 'select', $tag_quantities, NULL, array('label' => 'Quantity', 'required' => TRUE));
       } else $form = $form
           ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
@@ -120,7 +120,7 @@ class Controller_Invoices extends Controller {
             ->where('printjobs.is_monitored', '=', DB::expr('true'))
             ->and_where('printjobs.site_id', 'IN', (array) $site_id)
             ->and_where('barcodes.type', '=', 'P')
-            ->execute()->count() > 1000) $ids = FALSE;
+            ->execute()->count() > $tag_quantity) $ids = FALSE;
           else $ids = TRUE;
           break;
         
