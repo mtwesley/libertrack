@@ -121,8 +121,8 @@ class Controller_Invoices extends Controller {
             ->and_where('printjobs.site_id', 'IN', (array) $site_id)
             ->and_where('barcodes.type', '=', 'P')
             ->execute()->count();
-          if ((SGS::TAG_ALLOCATION_LIMIT - $tag_pending) >= $tag_quantity) $ids = FALSE;
-          else $ids = TRUE;
+          if ((SGS::TAG_ALLOCATION_LIMIT - $tag_pending) >= $tag_quantity) $ids = TRUE;
+          else $ids = FALSE;
           break;
         
         case 'ST':

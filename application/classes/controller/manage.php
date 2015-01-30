@@ -194,9 +194,9 @@ class Controller_Manage extends Controller {
         ->from('barcodes')
         ->join('printjobs')
         ->on('barcodes.printjob_id', '=', 'printjobs.id')
-        ->on('printjobs.is_monitored', '=', DB::expr('true'))
-        ->on('printjobs.site_id', 'IN', (array) $site_id)
-        ->where('barcodes.type', '=', 'P')
+        ->where('printjobs.is_monitored', '=', DB::expr('true'))
+        ->and_where('printjobs.site_id', 'IN', (array) $site_id)
+        ->and_where('barcodes.type', '=', 'P')
         ->execute()->count();
       if ($tag_pending < SGS::TAG_ALLOCATION_LIMIT) {
       
@@ -269,7 +269,7 @@ class Controller_Manage extends Controller {
               for ($i = $start; $i < ($count - 1); $i++) {
                 $line = $array[$i];
                 if (! $data = $_printjob->parse_txt($line, $array)) continue;
-
+                
                 $barcode = ORM::factory('barcode');
                 $barcode->printjob = $_printjob;
                 $barcode->barcode = $data['barcode'];
@@ -291,7 +291,7 @@ class Controller_Manage extends Controller {
       if ($barcode_success) Notify::msg($barcode_success.' barcodes successfully parsed.', 'success', TRUE);
       if ($barcode_error) Notify::msg($barcode_error.' barcodes failed to be parsed.', 'error', TRUE);
 
-      if (isset($_printjob) and $_printjob->loaded()) $this->request->redirect('manage/barcodes');
+      if (isset($_printjob) and $_printjob->loaded()) $this->request->redirect('manage/printjobs/'.$_printjob->id);
     }
 
     if ($form) $content .= $form->render();

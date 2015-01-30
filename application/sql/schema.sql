@@ -67,7 +67,7 @@ create domain d_duplicate_type as character(1) check (value ~ E'^[BP]$');
 
 create domain d_grade as character varying(3) check (value ~ E'^(LM|A|AB|B|BC|C|D|FAS|CG|1|2|3)$');
 
-create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ACEFHJKLMNPRYXW]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
+create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ABCDEFGHJKLMNPQRSTVWXYZ]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHEW]$');
 

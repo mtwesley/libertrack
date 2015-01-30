@@ -25,3 +25,7 @@ alter domain d_invoice_type add check (value ~ E'(ST|EXF|TAG)');
 create sequence s_invoices_tag_number minvalue 100100;
 
 
+-- updated barcodes
+
+alter domain d_barcode drop constraint d_barcode_check ;
+alter domain d_barcode add check (value ~ E'^[0123456789ABCDEFGHJKLMNPQRSTVWXYZ]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');

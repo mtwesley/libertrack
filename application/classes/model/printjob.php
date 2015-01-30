@@ -45,9 +45,9 @@ class Model_Printjob extends ORM {
 
     $number = $matches[1];
 
-    return (Valid::is_barcode($barcode = trim($line))) ? array(
+    return (Valid::is_barcode($barcode = trim($line), TRUE)) ? array(
       'printjob_number' => $number,
-      'barcode'         => $barcode,
+      'barcode'         => SGS::barcodify($barcode),
     ) : NULL;
   }
 
