@@ -959,8 +959,9 @@ class SGS {
 
   public static function barcodify($string)
   {
-    $string = preg_replace('/[^0123456789ACEFHJKLMNPRYXW]/', '', strtoupper($string));
-    if (strlen($string) > 8) $string = substr($string, 0, 8).'-'.substr($string, 8);
+    $string = preg_replace('/[^0123456789ABCDEFGHJKLMNPQRSTVWXYZ]/', '', strtoupper($string));
+    if (strlen($string) == 12 and strpos($string, '430') === 0) $string = substr($string, 4);
+    else if (strlen($string) > 8) $string = substr($string, 0, 8).'-'.substr($string, 8);
     return trim($string);
   }
 
