@@ -475,6 +475,7 @@ class Controller_Invoices extends Controller {
       switch ($invoice->type) {
         case 'ST': $invoice->file_id = self::generate_st_invoice($invoice); break;
         case 'EXF': $invoice->file_id = self::generate_exf_invoice($invoice); break;
+        case 'TAG': $invoice->file_id = self::generate_tag_invoice($invoice); break;
       }
 
       if ($invoice->file_id) Notify::msg('Invoice file successfully generated.', NULL, TRUE);
