@@ -6,6 +6,7 @@
 }
 
 .page-break {
+  padding-top: 8px;
   page-break-before: always;
 }
 
@@ -26,9 +27,9 @@
 .barcode-image {
   padding: 5px 0;
   height: 35px;
-  width: 245px;
+  width: 254px;
   position: relative;
-  left: -13px;
+  left: -18px;
 }
 
 .fda-logo {
