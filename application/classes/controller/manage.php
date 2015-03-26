@@ -400,6 +400,89 @@ class Controller_Manage extends Controller {
     die($pdf->Output('PRINTJOB_LABELS_'.$printjob->number.'.pdf', 'D'));
   }
 
+  private function handle_printjob_print($id) {
+    $printjob = ORM::factory('printjob', $id);
+    
+    $html .= View::factory('tags')->render();
+      
+//    $max = $details_page_max;
+//    foreach ($details_data as $code => $records) {
+//      $cntr = 0;
+//      while ($cntr < count($records)) {
+//        $set = array_slice($records, $cntr, $max);
+//        $html .= View::factory('tags')
+//          ->set('invoice', $invoice)
+//          ->set('data', $set)
+//          ->set('options', array(
+//            'details' => TRUE,
+//            'total'   => count($records) > ($cntr + $max) ? FALSE : TRUE
+//          ))
+//          ->set('total', array('details' => $details_total))
+//          ->render();
+//        $cntr += $max;
+//      }
+//    }
+
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array(
+      'tags',
+      $printjob->number
+    ));
+
+    $newname = 'TAGS_PRINTJOB_'.$printjob->number.'.'.$ext;
+
+    $version = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access tags folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 0,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'page-width'  => 80,
+        'page-height' => 40,
+        'disable-smart-shrinking' => TRUE,
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate tags document. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
+
+    try {
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'D';
+      $file->operation_type = 'TAG';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+      $file->save();
+      return $file->id;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }      
+  }
+  
   public function action_barcodes() {
     if (!Auth::instance()->logged_in()) {
       Notify::msg('Please login.', NULL, TRUE);
