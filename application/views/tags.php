@@ -1,15 +1,12 @@
-<?php
-
-$tempname = tempnam(sys_get_temp_dir(), 'br_');
-Barcode::png('430LAA999AAX', $tempname);
-
-?>
-
 <style type="text/css">
 
 @font-face {
   font-family: 'SGS';
-  src: url('sgs_font_bold.ttf');
+  src: url('<?php echo DOCROOT; ?>fonts/sgs_font_bold.ttf');
+}
+
+.page-break {
+  page-break-before: always;
 }
 
 .barcode-text,
@@ -67,25 +64,43 @@ Barcode::png('430LAA999AAX', $tempname);
 }
 </style>
 
-<div class="clear-all" style="padding-top: 5px;"></div>
+<?php $first = TRUE; ?>
+<?php foreach ($barcodes as $barcode): ?>
+
+<?php if ($first): ?>
+<div class="clear-all <?php if ($options['break']) echo 'page-break'; ?>"></div>
+<?php endif; ?>
+
+<?php
+$first = FALSE;
+$tempname = tempnam(sys_get_temp_dir(), 'br_');
+$barcode->image($tempname);
+?>
 
 <div class="right-float">
-  <img class="fda-logo" src="fda_logo.png">
+  <img class="fda-logo" src="<?php echo DOCROOT; ?>images/tags/fda_logo.png">
 </div>
 
 <div class="left-float">
-  <div class="barcode-text"><span class="orange">LOG:</span> AA-999-AA-X</div>
-  <div class="company-text">ALPHA LOGGING - FMC A</div>
+  <div class="barcode-text">
+    <span class="orange"><?php echo $printjob->type ? SGS::$printjob_type[$prinjob->type] : 'LOG'; ?>:</span> 
+    <?php echo $barcode->pretty(); ?>
+  </div>
+  <div class="company-text"><?php echo $printjob->site->operator->short_name or $printjob->site->operator->name; ?> - <?php echo $printjob->site->name; ?></div>
 </div>
 
 <div class="clear-all">
-  <img class="barcode-image" src="barcode.php?format=jpeg&size=38&barcode=430LAA999AAX">
+  <img class="barcode-image" src="<?php echo $tempname; ?>">
 </div>
 
 <div class="left-float">
-  <img class="libertrace-logo" src="libertrace_logo.png">
+  <img class="libertrace-logo" src="<?php echo DOCROOT; ?>images/tags/libertrace_logo.png">
 </div>
 <div class="right-float">
-  <div class="company-text rotate">ALPHA LOGGING - FMC A</div>
-  <div class="barcode-text rotate"><span class="orange">LOG:</span> AA-999-AA-X</div>
+  <div class="company-text rotate">ALPHA LOGGING - <?php echo $printjob->site->name; ?></div>
+  <div class="barcode-text rotate">
+    <span class="orange"><?php echo $printjob->type ? SGS::$printjob_type[$prinjob->type] : 'LOG'; ?>:</span> 
+    <?php echo $barcode->pretty(); ?>
+  </div>
 </div>
+<?php endforeach; ?>

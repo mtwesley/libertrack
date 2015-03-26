@@ -7,6 +7,8 @@ create domain d_int as integer;
 
 create domain d_positive_int as integer check (value > 0);
 
+create domain d_text_tiny as character varying(25);
+
 create domain d_text_short as character varying(50);
 
 create domain d_text_medium as character varying(500);
@@ -70,6 +72,8 @@ create domain d_grade as character varying(3) check (value ~ E'^(LM|A|AB|B|BC|C|
 create domain d_barcode as character varying(13) check (value ~ E'^[0123456789ABCDEFGHJKLMNPQRSTVWXYZ]{8}(-[0123456789ACEFHJKLMNPRYXW]{4})?$');
 
 create domain d_barcode_type as character(1) check (value ~ E'^[PTFSLRHEW]$');
+
+create domain d_printjob_type as character(1) check (value ~ E'^[TL]$');
 
 create domain d_barcode_activity as character(1) check (value ~ E'^[PIHTXDNEOSYALZC]$');
 
@@ -221,6 +225,7 @@ create table operators (
   id bigserial not null,
   tin d_operator_tin unique not null,
   name d_text_short unique not null,
+  short_name d_text_tiny unique,
   contact d_text_short,
   address d_text_medium,
   email d_text_short,
@@ -297,6 +302,7 @@ create table block_inspection_data (
 create table printjobs (
   id bigserial not null,
   number d_positive_int unique not null,
+  type d_printjob_type,
   site_id d_id,
   allocation_date d_date default current_timestamp not null,
   is_monitored d_bool default false,

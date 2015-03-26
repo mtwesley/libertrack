@@ -33,6 +33,7 @@ class Model_Printjob extends ORM {
   public static function fields() {
     return array(
       'number'          => 'Print Job',
+      'type'            => 'Type',
       'site_id'         => 'Site',
       'allocation_date' => 'Allocation Date',
       'is_monitored'    => 'Monitored',

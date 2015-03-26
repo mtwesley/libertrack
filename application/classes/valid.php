@@ -67,6 +67,11 @@ class Valid extends Kohana_Valid {
     return (bool) ($max_length ? self::max_length($value, $max_length) : TRUE);
   }
 
+  public static function is_text_tiny($value)
+  {
+    return (bool) (self::is_varchar($value, 25));
+  }
+
   public static function is_text_short($value)
   {
     return (bool) (self::is_varchar($value, 50));

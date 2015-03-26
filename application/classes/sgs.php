@@ -248,6 +248,7 @@ class SGS {
       'is_float'             => ':field must be a number (for example, "19.85")',
       'is_char'              => ':field must be exactly one letter (for example, "A")',
       'is_varchar'           => ':field must contain only numbers, letters, and valid characters',
+      'is_text_tiny'         => ':field must be of tiny-length',
       'is_text_short'        => ':field must be of short-length',
       'is_text_medium'       => ':field must be of medium-length',
       'is_text_long'         => ':field must be of long-length',
@@ -323,6 +324,7 @@ class SGS {
     'CHECKS' => 'Checks and Queries Report',
     'INV'    => 'Invoice',
     'PJ'     => 'Print Job',
+    'TAG'    => 'Tag',
     'UNKWN'  => 'Unknown'
   );
 
@@ -363,6 +365,11 @@ class SGS {
 //    'MIFV'   => 'Mill Input Verification Form',
 //    'MOFV'   => 'Mill Output Verification Form',
 //    'SPECSV' => 'Shipping Specification Verification Form',
+  );
+
+  public static $printjob_type = array(
+    'T' => 'Tree/Stump',
+    'L' => 'Log',
   );
 
   public static $barcode_type = array(

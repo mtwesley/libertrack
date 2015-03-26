@@ -24,6 +24,7 @@
     <th class="status"></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'tin')), 'TIN'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'name')), 'Name'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'short_name')), 'Short Name'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'contact')), 'Contact'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'address')), 'Address'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'email')), 'E-mail'); ?></th>
@@ -36,6 +37,7 @@
     <td class="status"><?php echo HTML::image('images/building.png', array('class' => 'barcode', 'title' => 'Barcode')); ?></td>
     <td><?php echo $operator->tin; ?></td>
     <td><?php echo $operator->name; ?></td>
+    <td><?php echo $operator->short_name; ?></td>
     <td><?php echo $operator->contact; ?></td>
     <td><?php echo nl2br($operator->address); ?></td>
     <td><?php echo $operator->email; ?></td>

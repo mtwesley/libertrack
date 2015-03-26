@@ -4,6 +4,7 @@
     <th class="type"></th>
     <th class="status"></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'number')), 'Print Job'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'type')), 'Type'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'site_id')), 'Site'); ?></th>
     <th>Operator</th>
     <th>Monitored</th>
@@ -14,6 +15,7 @@
     <td class="type"><span class="data-type">PJ</span></td>
     <td class="status"><?php echo HTML::image('images/printjobs.png', array('class' => 'barcode', 'title' => 'Print Job')); ?></td>
     <td><?php echo $printjob->number; ?></td>
+    <td><?php echo $printjob->type ? SGS::$printjob_type[$printjob->type] : ''; ?></td>
     <td><?php echo $printjob->site->name; ?></td>
     <td><?php echo $printjob->site->operator->name; ?></td>
     <td><?php echo SGS::booleanify($printjob->is_monitored) ? 'YES' : 'NO'; ?></td>

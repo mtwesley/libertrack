@@ -126,4 +126,15 @@ class Model_Barcode extends ORM {
     return Barcode::png($this->barcode, $filename);
   }
 
+  public function ugly() {
+    if (preg_match('/^(430L)?[A-Z][A-Z][0-9][0-9][0-9][A-Z][A-Z][A-Z0-9]$/i', $barcode)) return strtoupper('430L'.$this->barcode);
+    else return $this->barcode;
+  }
+  
+  public function pretty() {
+    if (preg_match('/^(430L)?[A-Z][A-Z][0-9][0-9][0-9][A-Z][A-Z][A-Z0-9]$/i', $barcode)) return strtoupper(substr($this->barcode, 0, 2).'-'.substr($this->barcode, 2, 3).'-'.substr($this->barcode, 5, 2).'-'.substr($this->barcode, 7, 1));
+    else if (strlen($this->barcode) == 12) return substr($this->barcode, 0, 8).'-'.substr($this->barcode, 7, 4);
+    else return $this->barcode;
+  }
+
 }
