@@ -1183,6 +1183,7 @@ create index files_operation on files (id,operation);
 create index files_operation_type on files (id,operation_type);
 
 create index printjobs_number on printjobs (id,number);
+create index printjobs_type on printjobs (id,type);
 create index printjobs_monitored on printjobs (id,is_monitored);
 
 create unique index barcodes_unique on barcodes (barcode) where type not in ('F','L','P');

@@ -8,6 +8,7 @@ alter domain d_operation_type add check (value ~ E'^(SSF|TDF|LDF|MIF|MOF|SPECS|W
 
 create domain d_printjob_type as character(1) check (value ~ E'^[TL]$');
 alter table printjobs add column type d_barcode_type;
+create index printjobs_type on printjobs (id,type);
 
 -- operator short names
 

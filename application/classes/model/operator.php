@@ -42,7 +42,7 @@ class Model_Operator extends ORM {
                            array('is_unique', array($this->_table_name, ':field', ':value', $this->id))),
       'name'      => array(array('not_empty'),
                            array('is_text_short')),
-      'name'      => array(array('is_text_tiny')),
+      'short_name' => array(array('is_text_tiny')),
       'contact'   => array(array('is_text_short')),
       'address'   => array(array('is_text_medium')),
       'email'     => array(array('is_text_short')),
