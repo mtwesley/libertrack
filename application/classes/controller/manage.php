@@ -42,6 +42,7 @@ class Controller_Manage extends Controller {
       case 'upload': return self::handle_printjob_upload();
       case 'download': return self::handle_printjob_download($id);
       case 'labels': return self::handle_printjob_labels($id);
+      case 'tags': return self::handle_printjob_tags($id);
       case 'edit': return self::handle_printjob_edit($id);
       case 'list': return self::handle_printjob_list($id);
       default: if ($id) return self::handle_printjob_list($id);
@@ -400,7 +401,7 @@ class Controller_Manage extends Controller {
     die($pdf->Output('PRINTJOB_LABELS_'.$printjob->number.'.pdf', 'D'));
   }
 
-  private function handle_printjob_print($id) {
+  private function handle_printjob_tags($id) {
     $printjob = ORM::factory('printjob', $id);
     
     $html .= View::factory('tags')->render();
