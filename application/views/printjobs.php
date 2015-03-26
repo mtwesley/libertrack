@@ -25,6 +25,7 @@
           <?php echo HTML::anchor('manage/printjobs/'.$printjob->id.'/edit', 'Edit', array('class' => 'link')); ?>
           <?php echo HTML::anchor('manage/printjobs/'.$printjob->id.'/download', 'Download', array('class' => 'link')); ?>
           <?php echo HTML::anchor('manage/printjobs/'.$printjob->id.'/labels', 'Labels', array('class' => 'link')); ?>
+          <?php echo HTML::anchor('manage/printjobs/'.$printjob->id.'/tags', 'Tags', array('class' => 'link')); ?>
         </div>
       </div>
     </td>
