@@ -407,8 +407,9 @@ class Controller_Manage extends Controller {
     $printjob = ORM::factory('printjob', $id);
     
     $html .= View::factory('tags')
-        ->set('barcodes', ORM::factory('barcode')->where('printjob_id', '=', $printjob->id))        
-        ->render();
+      ->set('printjob', $printjob)
+      ->set('barcodes', ORM::factory('barcode')->where('printjob_id', '=', $printjob->id)->find_all())
+      ->render();
       
 //    $max = $details_page_max;
 //    foreach ($details_data as $code => $records) {

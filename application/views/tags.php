@@ -68,7 +68,7 @@
 <?php $first = TRUE; ?>
 <?php foreach ($barcodes as $barcode): ?>
 
-<?php if ($first): ?>
+<?php if (!$first): ?>
 <div class="clear-all <?php if ($options['break']) echo 'page-break'; ?>"></div>
 <?php endif; ?>
 
