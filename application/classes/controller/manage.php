@@ -406,10 +406,14 @@ class Controller_Manage extends Controller {
   private function handle_printjob_tags($id) {
     $printjob = ORM::factory('printjob', $id);
     
-    $html .= View::factory('tags')
-      ->set('printjob', $printjob)
-      ->set('barcodes', ORM::factory('barcode')->where('printjob_id', '=', $printjob->id)->find_all())
-      ->render();
+    foreach (ORM::factory('barcode')
+      ->where('printjob_id', '=', $printjob->id)
+      ->find_all() as $barcode) {
+        $html .= View::factory('tags')
+          ->set('printjob', $printjob)
+          ->set('barcodes', array($barcode))
+          ->render();
+      }
       
 //    $max = $details_page_max;
 //    foreach ($details_data as $code => $records) {
