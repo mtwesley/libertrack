@@ -84,10 +84,13 @@ $barcode->image($tempname);
 
 <div class="left-float">
   <div class="barcode-text">
-    <span class="orange"><?php echo $printjob->type ? SGS::$printjob_type[$prinjob->type] : 'LOG'; ?>:</span> 
+    <span class="orange"><?php echo $printjob->type ? SGS::$printjob_type[$printjob->type] : 'LOG'; ?>:</span> 
     <?php echo $barcode->pretty(); ?>
   </div>
-  <div class="company-text"><?php echo $printjob->site->operator->short_name or $printjob->site->operator->name; ?> - <?php echo $printjob->site->name; ?></div>
+  <div class="company-text">
+    <?php echo $printjob->site->operator->short_name ? $printjob->site->operator->short_name : $printjob->site->operator->name; ?> - 
+    <?php echo $printjob->site->name; ?>
+  </div>
 </div>
 
 <div class="clear-all">
@@ -98,9 +101,12 @@ $barcode->image($tempname);
   <img class="libertrace-logo" src="<?php echo DOCROOT; ?>images/tags/libertrace_logo.png">
 </div>
 <div class="right-float">
-  <div class="company-text rotate">ALPHA LOGGING - <?php echo $printjob->site->name; ?></div>
+  <div class="company-text rotate">
+    <?php echo $printjob->site->operator->short_name ? $printjob->site->operator->short_name : $printjob->site->operator->name; ?> - 
+    <?php echo $printjob->site->name; ?>
+  </div>
   <div class="barcode-text rotate">
-    <span class="orange"><?php echo $printjob->type ? SGS::$printjob_type[$prinjob->type] : 'LOG'; ?>:</span> 
+    <span class="orange"><?php echo $printjob->type ? SGS::$printjob_type[$printjob->type] : 'LOG'; ?>:</span> 
     <?php echo $barcode->pretty(); ?>
   </div>
 </div>
