@@ -428,36 +428,36 @@ class Controller_Manage extends Controller {
     set_time_limit(600);
 
     // save file
-    $ext = 'pdf';
-    $newdir = implode(DIRECTORY_SEPARATOR, array(
-      'tags',
-      $printjob->number
-    ));
+//    $ext = 'pdf';
+//    $newdir = implode(DIRECTORY_SEPARATOR, array(
+//      'tags',
+//      $printjob->number
+//    ));
 
     $newname = 'TAGS_PRINTJOB_'.$printjob->number.'.'.$ext;
 
-    $version = 0;
-    $testname = $newname;
-    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
-      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
-    }
+//    $version = 0;
+//    $testname = $newname;
+//    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+//      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+//    }
 
-    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
-      Notify::msg('Sorry, cannot access tags folder. Check file access capabilities with the site administrator and try again.', 'error');
-      return FALSE;
-    }
+//    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+//      Notify::msg('Sorry, cannot access tags folder. Check file access capabilities with the site administrator and try again.', 'error');
+//      return FALSE;
+//    }
+//
+//    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
 
-    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
-
+    $tempname = tempnam(sys_get_temp_dir(), 'tag_').'.'.$ext;
+    
     try {
       $snappy = new \Knp\Snappy\Pdf();
-      $snappy->generateFromHtml($html, $fullname, array(
-        'load-error-handling' => 'ignore',
+      $snappy->generateFromHtml($html, $tempname, array(
         'margin-bottom' => 0,
         'margin-left' => 0,
         'margin-right' => 0,
         'margin-top' => 0,
-        'lowquality' => TRUE,
         'page-width'  => 80,
         'page-height' => 40,
         'disable-smart-shrinking' => TRUE,
@@ -467,8 +467,7 @@ class Controller_Manage extends Controller {
       return FALSE;
     }
 
-    $tempname = tempnam(sys_get_temp_dir(), 'tag_').'.'.$ext;
-    $this->response->send_file($tempname, $fullname, array('mime_type' => 'application/pdf', 'delete' => TRUE));
+    $this->response->send_file($tempname, $newname, array('mime_type' => 'application/pdf', 'delete' => TRUE));
   }
   
   public function action_barcodes() {
