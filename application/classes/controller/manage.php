@@ -467,21 +467,8 @@ class Controller_Manage extends Controller {
       return FALSE;
     }
 
-    try {
-      $file = ORM::factory('file');
-      $file->name = $newname;
-      $file->type = 'application/pdf';
-      $file->size = filesize($fullname);
-      $file->operation      = 'D';
-      $file->operation_type = 'TAG';
-      $file->content_md5    = md5_file($fullname);
-      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
-      $file->save();
-      return $file->id;
-    } catch (ORM_Validation_Exception $e) {
-      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
-      return FALSE;
-    }      
+    $tempname = tempnam(sys_get_temp_dir(), 'tag_').'.'.$ext;
+    $this->response->send_file($tempname, $fullname, array('mime_type' => 'application/pdf', 'delete' => TRUE));
   }
   
   public function action_barcodes() {

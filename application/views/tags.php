@@ -1,9 +1,7 @@
 <?php
 
-include 'barcode.php';  
-
 $tempname = tempnam(sys_get_temp_dir(), 'br_');
-Barcode::jpeg('430LAA999AAX', $tempname);
+Barcode::png('430LAA999AAX', $tempname);
 
 ?>
 
