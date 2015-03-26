@@ -12,6 +12,7 @@
 .barcode-text,
 .company-text {
   font-family: 'SGS';
+  text-transform: uppercase;
 }
 
 .barcode-text {
