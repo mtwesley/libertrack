@@ -247,8 +247,8 @@ class Controller_Manage extends Controller {
                 if (preg_match('/Print\sJob(\sID)?\:\s*(\d+).*/i', $array[$i], $matches)) {
                   $_printjob->number = $matches[2];
                   break;
-                } else if (preg_match('/Type\sof\Tag\:\s*(tree|log).*/i', $array[$i], $matches)) {
-                  $type_of_tag = strtolower($matches[1]);
+                } else if (preg_match('/(Tag\sType|Type\sof\Tag)\:.*(tree|log).*/i', $array[$i], $matches)) {
+                  $type_of_tag = strtolower($matches[2]);
                   if ($type_of_tag == 'tree') $_printjob->type = 'T';
                   else if ($type_of_tag == 'log') $_printjob->type = 'L';
                   break;
