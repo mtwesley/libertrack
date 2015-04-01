@@ -914,7 +914,7 @@ class Controller_Verification extends Controller {
           if     (strpos(strtoupper($excel[1][C]), 'STOCK SURVEY VERIFICATION FORM') !== FALSE) $form_type = 'SSFV';
           elseif (strpos(strtoupper($excel[1][C]), 'TREE DATA VERIFICATION')         !== FALSE) $form_type = 'TDFV';
           elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA VERIFICATION FORM')     !== FALSE) $form_type = 'LDFV';
-//          elseif (strpos(strtoupper($excel[1][A]), 'EXPORT SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECSV';
+//          elseif (strpos(strtoupper($excel[1][A]), 'SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECSV';
           else   Notify::msg('Sorry, the form type cannot be determined from the uploaded file. Please check the form title for errors and try again.', 'error', TRUE);
 
           if ($form_type) {

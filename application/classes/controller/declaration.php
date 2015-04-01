@@ -911,7 +911,7 @@ class Controller_Declaration extends Controller {
           elseif (strpos(strtoupper($excel[1][C]), 'TREE FELLING')      !== FALSE) $form_type = 'TDF';
           elseif (strpos(strtoupper($excel[1][C]), 'TREE DATA FORM')    !== FALSE) $form_type = 'TDF';
           elseif (strpos(strtoupper($excel[1][C]), 'LOG DATA FORM')     !== FALSE) $form_type = 'LDF';
-          elseif (strpos(strtoupper($excel[1][A]), 'EXPORT SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECS';
+          elseif (strpos(strtoupper($excel[1][A]), 'SHIPMENT SPECIFICATION') !== FALSE) $form_type = 'SPECS';
           elseif (strpos(strtoupper($excel[1][A]), 'LOG WAYBILL') !== FALSE) $form_type = 'WB';
           else   Notify::msg('Sorry, the form type cannot be determined from the uploaded file. Please check the form title for errors and try again.', 'error', TRUE);
 
