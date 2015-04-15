@@ -43,8 +43,8 @@ class Model_TDF extends SGS_Form_ORM {
       case 'diameter':
         return SGS::floatify(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
-      case 'volume':
-        return SGS::volumify(($this->diameter / 100), $this->length);
+//      case 'volume':
+//        return SGS::volumify(($this->diameter / 100), $this->length);
 
       default:
         return parent::__get($column);
@@ -54,7 +54,7 @@ class Model_TDF extends SGS_Form_ORM {
   public function set($column, $value) {
     switch ($column) {
       case 'diameter':
-      case 'volume':
+//      case 'volume':
         return parent::set($column, $this->$column);
 
       default:
