@@ -632,7 +632,7 @@ class Controller_Manage extends Controller {
             ->on('printjob_id', '=', 'printjobs.id')
             ->and_where('printjobs.site_id', 'IN', (array) $site_id);
         }
-        if ($type) $barcodes->where('type', 'IN', (array) $type);
+        if ($type) $barcodes->where('barcode.type', 'IN', (array) $type);
 
         Session::instance()->set('pagination.barcode.list', array(
           'site_id' => $site_id,
