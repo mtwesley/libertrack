@@ -50,11 +50,11 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($primary == 'config')     echo 'active'; ?>"><?php echo HTML::anchor('config', SGS::title('config')); ?></li>
     <?php endif; ?>
 
-    <?php if (Auth::instance()->logged_in('admin')): ?>
+    <?php if (Auth::instance()->logged_in('barcodes')): ?>
     <li class="<?php if ($primary == 'manage')     echo 'active'; ?>"><?php echo HTML::anchor('manage', SGS::title('manage')); ?></li>
     <?php endif; ?>
 
-    <?php if (Auth::instance()->logged_in('admin')): ?>
+    <?php if (Auth::instance()->logged_in('tolerances')): ?>
     <li class="<?php if ($primary == 'settings')     echo 'active'; ?>"><?php echo HTML::anchor('settings', SGS::title('settings')); ?></li>
     <?php endif; ?>
 
