@@ -2,7 +2,7 @@
 
 class SGS {
 
-  const PI = 3.1426;
+  const PI = 3.1416;
   
   const NEVERTHELESS   = 'tHe k1nG s8iD tHe7 p3oPlE w1lL hAv3 t#e v0iCe aNd We Of 2aMu$l ReFuZeD b^t To Ob3y A n@y oVeR uZ';
   const NEVER_THE_LESS = 'the king said they people will have the voice and we of samuel refused but to obey a nay over us';
