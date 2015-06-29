@@ -731,18 +731,22 @@ create table tdf_data (
   tree_barcode_id d_id not null,
   stump_barcode_id d_id unique not null,
   species_id d_id not null,
+  original_species_id d_id not null,
   measured_by d_text_short,
   entered_by d_text_short,
   signed_by d_text_short,
   survey_line d_survey_line not null,
   cell_number d_positive_int not null,
   diameter d_diameter not null,
+  original_diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
   bottom_max d_diameter not null,
   length d_length not null,
+  original_length d_length not null,
   volume d_volume not null,
+  original_volume d_volume not null,
   action d_text_long,
   comment d_text_long,
   create_date d_date not null,
@@ -1490,6 +1494,25 @@ end
 $$ language 'plpgsql';
 
 
+create or replace function calculate_original_values()
+  returns trigger as
+$$
+  declare x_volume d_volume;
+  declare x_length d_volume;
+  declare x_diameter d_diameter;
+  declare x_species_id d_id;
+begin
+  select (3.1416 * power(((((new.top_min + new.top_max + new.bottom_min + new.bottom_max)::real / 4) / 100) / 2), 2) * new.length)::d_volume into x_volume;
+  select ((new.top_min + new.top_max + new.bottom_min + new.bottom_max) / 4)::d_diameter into x_diameter;
+
+  new.volume = x_volume;
+  new.diameter = x_diameter;
+
+  return new;
+end
+$$ language 'plpgsql';
+
+
 create or replace function calculate_volume_and_diameter()
   returns trigger as
 $$
@@ -2174,7 +2197,7 @@ create trigger t_tdf_data_volume_and_diameter
   for each row
   execute procedure calculate_volume_and_diameter();
 
-create trigger t_tdf_data_volume_and_diameter
+create trigger t_tdf_verification_volume_and_diameter
   before insert or update on tdf_verification
   for each row
   execute procedure calculate_volume_and_diameter();
@@ -2184,7 +2207,7 @@ create trigger t_ldf_data_volume_and_diameter
   for each row
   execute procedure calculate_volume_and_diameter();
 
-create trigger t_ldf_data_volume_and_diameter
+create trigger t_ldf_verification_volume_and_diameter
   before insert or update on ldf_verification
   for each row
   execute procedure calculate_volume_and_diameter();

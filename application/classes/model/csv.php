@@ -185,11 +185,21 @@ class Model_CSV extends ORM {
       if ($duplicate->form_data_id) {
         $data = ORM::factory($duplicate->form_type, $duplicate->form_data_id);
         
-        if ($data->is_locked()) continue;
+        if ($data->data_type != 'TDF' and $data->is_locked()) continue;
         
         if ($data->loaded()) {
+          if ($data->is_locked()) {
+            DB::query(NULL, 'BEGIN');
+            DB::query(NULL, 'ALTER TABLE '.$data->table_name().' DISABLE TRIGGER t_check_barcode_locks');
+          }
+          
           $data->parse_data($this->values);
           $data->save();
+          
+          if ($data->is_locked()) {
+            DB::query(NULL, 'ALTER TABLE '.$data->table_name().' ENABLE TRIGGER t_check_barcode_locks');
+            DB::query(NULL, 'COMMIT');
+          }
         }
         
         $this->form_data_id = $duplicate->form_data_id;

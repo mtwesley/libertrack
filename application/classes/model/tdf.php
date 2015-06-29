@@ -17,6 +17,9 @@ class Model_TDF extends SGS_Form_ORM {
     'stump_barcode' => array(
       'model'       => 'barcode',
       'foreign_key' => 'stump_barcode_id'),
+    'original_species' => array(
+      'model' => 'species',
+      'foreign_key' => 'original_species_id'),
     'species'  => array(),
     'user'     => array(),
   );
@@ -54,9 +57,21 @@ class Model_TDF extends SGS_Form_ORM {
   public function set($column, $value) {
     switch ($column) {
       case 'diameter':
-//      case 'volume':
+        if ($this->original_diamter == NULL) $this->original_diameter = $this->$column;
         return parent::set($column, $this->$column);
 
+      case 'volume':
+        if ($this->original_volume == NULL) $this->original_volume = $value;
+        return parent::set($column, $value);
+        
+      case 'length':
+        if ($this->original_length == NULL) $this->original_length = $value;
+        return parent::set($column, $value);
+        
+      case 'species':
+        if ($this->original_species == NULL) $this->original_species = $value;
+        return parent::set($column, $value);
+        
       default:
         return parent::set($column, $value);
     }
@@ -245,7 +260,11 @@ class Model_TDF extends SGS_Form_ORM {
       'status'          => array('render' => FALSE),
       'user'            => array('render' => FALSE),
       'timestamp'       => array('render' => FALSE),
-      'species'         => array(
+      'original_volume'   => array('render' => FALSE),
+      'original_length'   => array('render' => FALSE),
+      'original_diameter' => array('render' => FALSE),
+      'original_species'  => array('render' => FALSE),
+      'species'           => array(
         'orm_primary_val' => 'code',
         'label' => 'Species'
       ),
