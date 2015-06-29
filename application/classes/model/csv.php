@@ -185,7 +185,7 @@ class Model_CSV extends ORM {
       if ($duplicate->form_data_id) {
         $data = ORM::factory($duplicate->form_type, $duplicate->form_data_id);
         
-        if ($data->data_type != 'TDF' and $data->is_locked()) continue;
+        if ($data::$data_type != 'TDF' and $data->is_locked()) continue;
         
         if ($data->loaded()) {
           if ($data->is_locked()) {

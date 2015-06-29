@@ -57,7 +57,7 @@ class Model_TDF extends SGS_Form_ORM {
   public function set($column, $value) {
     switch ($column) {
       case 'diameter':
-        if ($this->original_diamter == NULL) $this->original_diameter = $this->$column;
+        if ($this->original_diameter == NULL) $this->original_diameter = $this->$column;
         return parent::set($column, $this->$column);
 
       case 'volume':
