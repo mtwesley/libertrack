@@ -57,19 +57,19 @@ class Model_TDF extends SGS_Form_ORM {
   public function set($column, $value) {
     switch ($column) {
       case 'diameter':
-        if ($this->original_diameter == NULL) $this->original_diameter = $this->$column;
+        if (!$this->is_locked()) $this->original_diameter = $this->$column;
         return parent::set($column, $this->$column);
 
       case 'volume':
-        if ($this->original_volume == NULL) $this->original_volume = $value;
+        if (!$this->is_locked()) $this->original_volume = $value;
         return parent::set($column, $value);
         
       case 'length':
-        if ($this->original_length == NULL) $this->original_length = $value;
+        if (!$this->is_locked()) $this->original_length = $value;
         return parent::set($column, $value);
         
       case 'species':
-        if ($this->original_species == NULL) $this->original_species = $value;
+        if (!$this->is_locked()) $this->original_species = $value;
         return parent::set($column, $value);
         
       default:

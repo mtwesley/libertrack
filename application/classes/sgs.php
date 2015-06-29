@@ -34,7 +34,7 @@ class SGS {
   
   const TAG_PRICE = 0.10;
   const TAG_ALLOCATION_UNIT = 1000;
-  const TAG_ALLOCATION_LIMIT = 10000;
+  const TAG_ALLOCATION_LIMIT = 10000000;
 
   const CONDITION_MATCHING = 'is_matching';
   const CONDITION_EXISTING = 'is_existing';

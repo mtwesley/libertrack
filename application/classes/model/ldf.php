@@ -52,7 +52,7 @@ class Model_LDF extends SGS_Form_ORM {
         return parent::set($column, $this->diameter);
 
       case 'volume':
-        if ($this->original_volume == NULL) $this->original_volume = $value;
+        if (!$this->is_locked()) $this->original_volume = $value;
         return parent::set($column, $value);
 
       default:
