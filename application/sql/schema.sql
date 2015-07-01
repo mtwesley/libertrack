@@ -1505,7 +1505,7 @@ $$
   declare x_diameter d_diameter;
   declare x_species_id d_id;
 begin
-  select (3.1416 * power(((((new.top_min + new.top_max + new.bottom_min + new.bottom_max)::real / 4) / 100) / 2), 2) * new.length)::d_volume into x_volume;
+  select (3.1416 * power(((floor((top_min + top_max + bottom_min + bottom_max)::real / 4) / 100) / 2), 2) * new.length)::d_volume into x_volume;
   select ((new.top_min + new.top_max + new.bottom_min + new.bottom_max) / 4)::d_diameter into x_diameter;
 
   new.volume = x_volume;
@@ -1522,7 +1522,7 @@ $$
   declare x_volume d_volume;
   declare x_diameter d_diameter;
 begin
-  select (3.1416 * power(((((new.top_min + new.top_max + new.bottom_min + new.bottom_max)::real / 4) / 100) / 2), 2) * new.length)::d_volume into x_volume;
+  select (3.1416 * power(((floor((top_min + top_max + bottom_min + bottom_max)::real / 4) / 100) / 2), 2) * new.length)::d_volume into x_volume;
   select ((new.top_min + new.top_max + new.bottom_min + new.bottom_max) / 4)::d_diameter into x_diameter;
 
   new.volume = x_volume;
