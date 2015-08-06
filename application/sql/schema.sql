@@ -773,12 +773,14 @@ create table tdf_verification (
   barcode_id d_id unique not null,
   species_id d_id not null,
   diameter d_diameter not null,
+  original_diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
   bottom_max d_diameter not null,
   length d_length not null,
   volume d_volume not null,
+  original_volume d_volume not null,
   inspected_by d_text_short,
   inspection_date d_date not null,
   inspection_label d_text_short not null,
@@ -840,6 +842,7 @@ create table ldf_verification (
   barcode_id d_id unique not null,
   species_id d_id not null,
   diameter d_diameter not null,
+  original_diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -1013,6 +1016,7 @@ create table specs_data (
   buyer d_text_short,
   submitted_by d_text_short,
   diameter d_diameter not null,
+  original_diameter d_diameter not null,
   top_min d_diameter not null,
   top_max d_diameter not null,
   bottom_min d_diameter not null,
@@ -1508,8 +1512,8 @@ begin
   select (3.1416 * power(((((new.top_min + new.top_max + new.bottom_min + new.bottom_max)::real / 4) / 100) / 2), 2) * new.length)::d_volume into x_volume;
   select ((new.top_min + new.top_max + new.bottom_min + new.bottom_max) / 4)::d_diameter into x_diameter;
 
-  new.volume = x_volume;
-  new.diameter = x_diameter;
+  new.original_volume = x_volume;
+  new.original_diameter = x_diameter;
 
   return new;
 end
@@ -1527,6 +1531,11 @@ begin
 
   new.volume = x_volume;
   new.diameter = x_diameter;
+
+  if (tg_op = 'INSERT') then
+    new.original_volume = x_volume;
+    new.original_diameter = x_diameter;
+  end if;
 
   return new;
 end

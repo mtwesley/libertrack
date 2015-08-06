@@ -33,13 +33,13 @@ class Model_LDF extends SGS_Form_ORM {
 //        return SGS::volumify(($this->diameter / 100), $this->length);
 
       case 'top_diameter':
-        return SGS::floatify(($this->top_min + $this->top_max) / 2);
+        return floor(($this->top_min + $this->top_max) / 2);
 
       case 'bottom_diameter':
-        return SGS::floatify(($this->bottom_min + $this->bottom_max) / 2);
+        return floor(($this->bottom_min + $this->bottom_max) / 2);
 
       case 'diameter':
-        return SGS::floatify(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
+        return floor(($this->top_min + $this->top_max + $this->bottom_min + $this->bottom_max) / 4);
 
       default:
         return parent::__get($column);
@@ -49,9 +49,11 @@ class Model_LDF extends SGS_Form_ORM {
   public function set($column, $value) {
     switch ($column) {
       case 'diameter':
-        return parent::set($column, $this->diameter);
+        if (!$this->is_locked()) $this->original_diameter = $this->$column;
+        return parent::set($column, $this->$column);
 
       case 'volume':
+        $value = $value ? $value : SGS::volumify(($this->diameter / 100), $this->length);
         if (!$this->is_locked()) $this->original_volume = $value;
         return parent::set($column, $value);
 
