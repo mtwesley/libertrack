@@ -92,6 +92,7 @@ class Model_SPECS extends SGS_Form_ORM {
   public function set($column, $value) {
     switch ($column) {
       case 'diameter':
+        if (!$this->is_locked()) $this->original_diameter = $this->$column;
         return parent::set($column, $this->diameter);
 
       case 'volume':

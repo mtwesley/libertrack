@@ -13,6 +13,9 @@ class Model_LDF extends SGS_Form_ORM {
     'parent_barcode' => array(
       'model'        => 'barcode',
       'foreign_key'  => 'parent_barcode_id'),
+    'original_species' => array(
+      'model' => 'species',
+      'foreign_key' => 'original_species_id'),
     'species'  => array(),
     'user'     => array(),
   );
@@ -57,6 +60,14 @@ class Model_LDF extends SGS_Form_ORM {
         if (!$this->is_locked()) $this->original_volume = $value;
         return parent::set($column, $value);
 
+      case 'length':
+        if (!$this->is_locked()) $this->original_length = $value;
+        return parent::set($column, $value);
+        
+      case 'species':
+        if (!$this->is_locked()) $this->original_species = $value;
+        return parent::set($column, $value);
+        
       default:
         return parent::set($column, $value);
     }
