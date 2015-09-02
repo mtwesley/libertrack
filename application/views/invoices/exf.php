@@ -473,14 +473,14 @@ $options = (array) $options + array(
       <td class="blank" colspan="3">For SGS internal use only</td>
     </tr>
     <tr>
-      <td class="signature half-signature">Authorized Signature</td>
+      <td class="signature half-signature">Reviewed Signature</td>
       <td class="blank" rowspan="2"></td>
       <td class="signature" rowspan="2">Invoice Registered</td>
       <td class="signature" rowspan="2">Payment Done</td>
       <td class="signature" rowspan="2">Payment Registered</td>
     </tr>
     <tr>
-      <td class="signature half-signature">Reviewed Signature</td>
+      <td class="signature half-signature">Authorized Signature</td>
     </tr>
     <div class="payment-date">
       <br />Date: _______________________________________
