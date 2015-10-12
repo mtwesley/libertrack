@@ -243,6 +243,20 @@ class Model_SPECS extends SGS_Form_ORM {
           'error'   => 'Stumpage fee has not been invoiced or paid',
         ),
       )),
+    'export' => array(
+      'title'  => 'Export',
+      'checks' => array(
+        'is_not_exported' => array(
+          'name'    => 'Export Status',
+          'title'   => 'Log ready for export',
+          'error'   => 'Log already exported',
+        ),
+        'is_inspected' => array(
+          'name'    => 'Inspection Status',
+          'title'   => 'Log declaration matches inspection data',
+          'error'   => 'Log declaration does not match inspection data',
+        ),
+      )),
     'consignment' => array(
       'title'  => 'Consignment',
       'checks' => array(
@@ -665,6 +679,18 @@ class Model_SPECS extends SGS_Form_ORM {
     if ($waybill and $waybill->loaded()) $successes['barcode_id']['has_valid_waybill'] = array('value' => 'Found', 'comparison' => 'N/A');
     else $warnings['barcode_id']['has_valid_waybill'] = array('value' => 'Not Found', 'comparison' => 'N/A');
 
+    // export
+    if (!$this->barcode->get_activity('E')) $successes['barcode_id']['is_not_exported'] = array('value' => 'Already Exported', 'comparison' => 'N/A');
+    else $successes['barcode_id']['is_not_exported'] = array('value' => 'Not Exported', 'comparison' => 'N/A');
+
+    $ldfv = ORM::factory('LDFV')
+      ->where('barcode_id', '=', $this->barcode->id)
+      ->find();
+
+    if ($ldfv and $ldfv->loaded()) {
+        
+    } else $successes['barcode_id']['is_inspected'] = array('value' => 'N/A', 'comparison' => 'N/A');
+    
     /*** all tolerance checks fail if any traceability checks fail
     foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
       foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['barcode_id'][$check] = array();
