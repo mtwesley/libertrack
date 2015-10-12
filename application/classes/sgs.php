@@ -141,6 +141,7 @@ class SGS {
     'exports/documents/create'   => 'Create Document',
 
     'exports/documents/create/specs' => 'Shipment Specification',
+    'exports/documents/create/specs' => 'Short-Shipment Specification',
     'exports/documents/create/exp'   => 'Export Permit',
     'exports/documents/create/cert'  => 'Certificate of Origin',
 
@@ -418,6 +419,7 @@ class SGS {
 
   public static $document_type = array(
     'SPECS' => 'Shipment Specification',
+    'SHSH'  => 'Short-Shipment Specification',
     'EXP'   => 'Export Permit',
     'CERT'  => 'Certificate of Origin'
   );

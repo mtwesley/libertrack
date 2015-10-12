@@ -354,6 +354,175 @@ VALIDATION: $secret";
     }
   }
 
+  private function generate_shsh_preview($document, $data_ids) {
+    if (!($data_ids = $data_ids ?: $document->get_data())) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
+    $total  = DB::select(array(DB::expr('sum(volume)'), 'sum'))
+      ->from('specs_data')
+      ->where('id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('sum');
+
+    return View::factory('documents/shsh_summary')
+      ->set('document', $document)
+      ->set('total', $total)
+      ->render();
+  }
+
+  private function generate_shsh_document($document, $data_ids) {
+    if (!($data_ids = $data_ids ?: $document->get_data())) {
+      Notify::msg('No data found. Unable to generate document.', 'warning');
+      return FALSE;
+    }
+
+    $records = ORM::factory('SPECS')
+      ->where('specs.id', 'IN', (array) $data_ids)
+      ->join('barcodes')
+      ->on('barcode_id', '=', 'barcodes.id')
+      ->order_by('barcode', 'ASC')
+      ->find_all()
+      ->as_array();
+
+    $page_max = 27;
+    $total = DB::select(array(DB::expr('sum(volume)'), 'sum'))
+      ->from('specs_data')
+      ->where('id', 'IN', (array) $data_ids)
+      ->execute()
+      ->get('sum');
+
+    $qr_array = array(
+      'SHSH NUMBER'  => $document->number,
+      'EP NUMBER'    => $document->values['ep_number'],
+      'EXPORTER'     => $document->operator->name,
+      'SITE'         => $document->values['site_reference'],
+      'ORIGIN'       => $document->values['origin'],
+      'DESTINATION'  => $document->values['destination'],
+      'QUANTITY'     => SGS::quantitify($total).'m3',
+    );
+
+    $hash   = $document->get_hash();
+    $secret = strtoupper(substr($hash, mt_rand(0, strlen($hash) - 16), 16));
+
+    $disclaimer = "
+FOR VALIDATION, PLEASE CONTACT SGS-LIBERFOR:
+PHONE: +231886410110
+EMAIL: MYERS.TUWEH@SGS.COM
+
+VALIDATION: $secret";
+
+    foreach ($qr_array as $key => $value) $qr_text .= "$key: $value\n";
+    $qr_text .= $disclaimer;
+
+    $tempname = tempnam(sys_get_temp_dir(), 'qr_').'.png';
+    try {
+      QRcode::png($qr_text, $tempname, QR_ECLEVEL_L, 2, 1);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate validation image. Please try again.', 'error');
+    }
+
+    if ($document->is_draft === FALSE) try {
+      $qr = ORM::factory('qrcode');
+      $qr->qrcode = $hash;
+      $qr->save();
+      $document->qrcode = $qr;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err), 'error', TRUE);
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to create validation code. Please try again.', 'error');
+    }
+
+    $cntr   = 0;
+    $styles = TRUE;
+    while ($cntr < count($data_ids)) {
+      $max  = $page_max;
+      $last = count($data_ids) > ($cntr + $max);
+
+      $set  = array_slice($records, $cntr, $max);
+      $html .= View::factory('documents/shsh')
+        ->set('data', $set)
+        ->set('options', array(
+          'info'    => TRUE,
+          'details' => TRUE,
+          'styles'  => $styles ? TRUE : FALSE,
+          'total'   => $last ? FALSE : TRUE
+        ))
+        ->set('qr_image', $tempname)
+        ->set('document', $document)
+        ->set('cntr', $cntr)
+        ->set('total', $total)
+        ->render();
+
+      $cntr += $max;
+      $styles = FALSE;
+    }
+
+    // generate pdf
+    set_time_limit(600);
+
+    // save file
+    $ext = 'pdf';
+    $newdir = implode(DIRECTORY_SEPARATOR, array(
+      'shsh',
+    ));
+
+    if ($document->is_draft) $newname = 'SHSH_DRAFT_'.SGS::date('now', 'Y_m_d').'.'.$ext;
+    else $newname = 'SHSH_'.$document->number.'.'.$ext;
+
+    $version = 0;
+    $testname = $newname;
+    while (file_exists(DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname)) {
+      $newname = substr($testname, 0, strrpos($testname, '.'.$ext)).'_'.($version++).'.'.$ext;
+    }
+
+    if (!is_dir(DOCPATH.$newdir) and !mkdir(DOCPATH.$newdir, 0777, TRUE)) {
+      Notify::msg('Sorry, cannot access documents folder. Check file access capabilities with the site administrator and try again.', 'error');
+      return FALSE;
+    }
+
+    $fullname = DOCPATH.$newdir.DIRECTORY_SEPARATOR.$newname;
+
+    try {
+      $snappy = new \Knp\Snappy\Pdf();
+      $snappy->generateFromHtml($html, $fullname, array(
+        'load-error-handling' => 'ignore',
+        'margin-bottom' => 22,
+        'margin-left' => 0,
+        'margin-right' => 0,
+        'margin-top' => 0,
+        'lowquality' => TRUE,
+        'disable-smart-shrinking' => TRUE,
+        'footer-html' => View::factory('documents/shsh')
+          ->set('options', array(
+            'header' => FALSE,
+            'footer' => TRUE,
+            'break'  => FALSE))
+          ->render()
+      ));
+    } catch (Exception $e) {
+      Notify::msg('Sorry, unable to generate document. If this problem continues, contact the system administrator.', 'error');
+      return FALSE;
+    }
+
+    try {
+      $file = ORM::factory('file');
+      $file->name = $newname;
+      $file->type = 'application/pdf';
+      $file->size = filesize($fullname);
+      $file->operation      = 'D';
+      $file->operation_type = 'DOC';
+      $file->content_md5    = md5_file($fullname);
+      $file->path = DIRECTORY_SEPARATOR.str_replace(DOCROOT, '', DOCPATH).$newdir.DIRECTORY_SEPARATOR.$newname;
+      $file->save();
+      return $file->id;
+    } catch (ORM_Validation_Exception $e) {
+      foreach ($e->errors('') as $err) Notify::msg(SGS::errorify($err).' ('.$file->name.')', 'error');
+      return FALSE;
+    }
+  }
+
   private function generate_cert_preview($document, $data_ids) {
     if (!($data_ids = $data_ids ?: $document->get_data())) {
       Notify::msg('No data found. Unable to generate document.', 'warning');
@@ -600,6 +769,13 @@ VALIDATION: $secret";
         $form->add('submitted_by', 'input', NULL, array('required' => TRUE, 'label' => 'Submitted By', 'attr' => array('class' => 'submitted_byinput')));
         break;
       
+      case 'SHSH':
+        $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'exp_operatoropts exp_number')));
+        $form->add_group('exp_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts exp_number exp_expnumberinputs')));
+        $form->add('loading_date', 'input', NULL, array('required' => TRUE, 'label' => 'Actual Loading Date', 'attr' => array('class' => 'dpicker loading_date-dpicker loading_dateinput')));
+        $form->add('inspected_by', 'input', NULL, array('required' => TRUE, 'label' => 'Inspected By', 'attr' => array('class' => 'inspected_byinput')));
+        break;
+      
       case 'CERT':
         $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'exp_operatoropts exp_number')));
         $form->add_group('exp_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts exp_number exp_expnumberinputs')));
@@ -651,6 +827,20 @@ VALIDATION: $secret";
           );
           break;
 
+        case 'SHSH':
+          $exp_number = $form->exp_number->val();
+          $exp_document = Model_Document::lookup('EXP', $exp_number);
+          $values = array(
+            'exp_number'      => $exp_number,
+            'specs_number'    => $exp_document->values['specs_number'],
+            'origin'          => $exp_document->values['origin'],
+            'destination'     => $exp_document->values['destination'],
+            'buyer'           => $exp_document->values['buyer'],
+            'loading_date'    => $form->loading_date->val(),
+            'inspected_by'    => $form->inspected_by->val(),
+          );
+          break;
+        
         case 'SPECS':
           $specs_barcode = $form->specs_barcode->val();
           $values = array(
@@ -716,6 +906,16 @@ VALIDATION: $secret";
           $form->loading_date->val($values['loading_date'] = $settings['values']['loading_date']);
           $form->contract_number->val($values['contract_number'] = $settings['values']['contract_number']);
           $form->submitted_by->val($values['submitted_by'] = $settings['values']['submitted_by']);
+          break;
+        
+        case 'SHSH':
+          $form->specs_barcode->val($exp_number = $settings['exp_number']);
+          $form->specs_barcode->val($specs_number = $settings['specs_number']);
+          $form->origin->val($values['origin'] = $settings['values']['origin']);
+          $form->destination->val($values['destination'] = $settings['values']['destination']);
+          $form->buyer->val($values['buyer'] = $settings['values']['buyer']);
+          $form->loading_date->val($values['loading_date'] = $settings['values']['loading_date']);
+          $form->inspected_by->val($values['inspected_by'] = $settings['values']['inspected_by']);
           break;
         
         case 'CERT':
@@ -878,6 +1078,30 @@ VALIDATION: $secret";
 
             ->and_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '@>', DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'))
 
+            ->order_by('barcodes.barcode')
+            ->execute()
+            ->as_array(NULL, 'id'));
+          break;
+          
+        case 'SHSH':            
+          $form_type = 'SPECS';
+          $exp_document = Model_Document::lookup('EXP', $exp_number);
+          
+          $ids = array_filter(DB::select('specs_data.id','barcodes.barcode')
+            ->distinct(TRUE)
+            ->from('specs_data')
+
+            ->join('barcodes')
+            ->on('specs_data.barcode_id', '=', 'barcodes.id')
+            
+            ->where('specs_data.id', 'IN', (array) $exp_document->get_data())
+            ->and_where(DB::select('barcode_activity.activity')
+                ->from('barcode_activity')
+                ->where('barcode_activity.barcode_id', '=', DB::expr('"specs_data"."barcode_id"'))
+                ->and_where('barcode_activity.activity', 'IN', array('O', 'S'))
+                ->order_by('barcode_activity.timestamp', 'DESC')
+                ->limit(1), '=', 'S')
+          
             ->order_by('barcodes.barcode')
             ->execute()
             ->as_array(NULL, 'id'));
@@ -1083,6 +1307,7 @@ VALIDATION: $secret";
         switch ($document->type) {
           case 'EXP': $form_type = 'SPECS'; break;
           case 'SPECS': $form_type = 'SPECS'; break;
+          case 'SHSH': $form_type = 'SPECS'; break;
           case 'CERT': $form_type = 'SPECS'; break;
         }
 
@@ -1159,7 +1384,7 @@ VALIDATION: $secret";
         ->as_array('id', 'name');
 
       $form = Formo::form()
-        ->add_group('type', 'checkboxes', array('SPECS' => SGS::$document_type['SPECS'], 'EXP' => SGS::$document_type['EXP'], 'CERT' => SGS::$document_type['CERT']), NULL, array('label' => 'Type'))
+        ->add_group('type', 'checkboxes', array('SPECS' => SGS::$document_type['SPECS'], 'SPECS' => SGS::$document_type['SHSH'], 'EXP' => SGS::$document_type['EXP'], 'CERT' => SGS::$document_type['CERT']), NULL, array('label' => 'Type'))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')))
         ->add_group('specs_barcode', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')))
         // ->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')))
@@ -1297,6 +1522,7 @@ VALIDATION: $secret";
         switch ($document->type) {
           case 'EXP': $form_type = 'SPECS'; break;
           case 'SPECS': $form_type = 'SPECS'; break;
+          case 'SHSH': $form_type = 'SPECS'; break;
           case 'CERT': $form_type = 'SPECS'; break;
         }
 
@@ -1393,6 +1619,7 @@ VALIDATION: $secret";
 
     switch ($command) {
       case 'specs': return self::handle_document_create('SPECS');
+      case 'shsh': return self::handle_document_create('SHSH');
       case 'exp': return self::handle_document_create('EXP');
       case 'cert': return self::handle_document_create('CERT');
     }
@@ -1568,6 +1795,7 @@ VALIDATION: $secret";
 
       switch ($document->type) {
         case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
+        case 'SHSH': $document->file_id = self::generate_shsh_document($document, $document->get_data()); break;
         case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
         case 'CERT':  $document->file_id = self::generate_cert_document($document, $document->get_data()); break;
       }
@@ -1637,6 +1865,7 @@ VALIDATION: $secret";
 
       switch ($document->type) {
         case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
+        case 'SHSH': $document->file_id = self::generate_shsh_document($document, $document->get_data()); break;
         case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
         case 'CERT':  $document->file_id = self::generate_cert_document($document, $document->get_data()); break;
       }

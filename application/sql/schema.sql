@@ -117,7 +117,7 @@ create domain d_invoice_type as character varying(3) check (value ~ E'(ST|EXF|TA
 
 create domain d_invoice_number as numeric(6) check ((value > 100000) and (value < 200000));
 
-create domain d_document_type as character varying(5) check (value ~ E'(SPECS|EXP|EPT|CERT)');
+create domain d_document_type as character varying(5) check (value ~ E'(SPECS|SHSH|EXP|EPT|CERT)');
 
 create domain d_document_number as numeric(6) check (value > 0);
 
@@ -1169,6 +1169,7 @@ create sequence s_invoices_st_number minvalue 100100;
 create sequence s_invoices_exf_number minvalue 100100;
 create sequence s_invoices_tag_number minvalue 100100;
 create sequence s_documents_specs_number minvalue 1;
+create sequence s_documents_shsh_number minvalue 1;
 create sequence s_documents_exp_number minvalue 1;
 create sequence s_documents_cert_number minvalue 250;
 create sequence s_report_csv_number minvalue 1;
