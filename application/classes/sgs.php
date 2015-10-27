@@ -141,7 +141,7 @@ class SGS {
     'exports/documents/create'   => 'Create Document',
 
     'exports/documents/create/specs' => 'Shipment Specification',
-    'exports/documents/create/specs' => 'Short-Shipment Specification',
+    'exports/documents/create/shsh' => 'Short-Shipment Specification',
     'exports/documents/create/exp'   => 'Export Permit',
     'exports/documents/create/cert'  => 'Certificate of Origin',
 
