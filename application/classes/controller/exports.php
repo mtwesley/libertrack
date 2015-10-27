@@ -1240,7 +1240,7 @@ VALIDATION: $secret";
             break;
 
           case 'draft':
-            $is_draft = TRUE;
+            $document->is_draft = TRUE;
 
           case 'final':
             set_time_limit(1800);

@@ -1514,6 +1514,8 @@ begin
       when 'CERT' then new.number = nextval('s_documents_cert_number');
     end case;
   end if;
+
+  return new;
 end
 $$ language 'plpgsql';
 
