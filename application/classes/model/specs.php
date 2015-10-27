@@ -654,6 +654,21 @@ class Model_SPECS extends SGS_Form_ORM {
         $warnings['bottom_max']['is_matching_diameter'] = array('value' => $this->diameter, 'comparison' => $ldf->diameter);
       }
       $successes['barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Found');
+
+      // export
+      if (!$this->barcode->get_activity('E')) $errors['barcode_id']['is_not_exported'] = array('value' => 'Already Exported', 'comparison' => 'N/A');
+      else $successes['barcode_id']['is_not_exported'] = array('value' => 'Not Exported', 'comparison' => 'N/A');
+
+      $ldfv = ORM::factory('LDFV')
+        ->where('barcode_id', '=', $this->barcode->id)
+        ->find();
+
+      if ($ldfv and $ldfv->loaded()) {
+      if ($ldfv->status == 'P') $ldfv->run_checks();
+      if ($ldfv->status == 'A') $successes['barcode_id']['is_inspected'] = array('value' => 'No Discrepancies', 'comparison' => 'N/A');
+        else $errors['barcode_id']['is_inspected'] = array('value' => 'Discrepancies', 'comparison' => 'N/A');
+      } else $successes['barcode_id']['is_inspected'] = array('value' => 'N/A', 'comparison' => 'N/A');
+    
     }
     else {
       $errors['barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Not Found');
@@ -679,18 +694,6 @@ class Model_SPECS extends SGS_Form_ORM {
     if ($waybill and $waybill->loaded()) $successes['barcode_id']['has_valid_waybill'] = array('value' => 'Found', 'comparison' => 'N/A');
     else $warnings['barcode_id']['has_valid_waybill'] = array('value' => 'Not Found', 'comparison' => 'N/A');
 
-    // export
-    if (!$this->barcode->get_activity('E')) $successes['barcode_id']['is_not_exported'] = array('value' => 'Already Exported', 'comparison' => 'N/A');
-    else $successes['barcode_id']['is_not_exported'] = array('value' => 'Not Exported', 'comparison' => 'N/A');
-
-    $ldfv = ORM::factory('LDFV')
-      ->where('barcode_id', '=', $this->barcode->id)
-      ->find();
-
-    if ($ldfv and $ldfv->loaded()) {
-        
-    } else $successes['barcode_id']['is_inspected'] = array('value' => 'N/A', 'comparison' => 'N/A');
-    
     /*** all tolerance checks fail if any traceability checks fail
     foreach ($errors as $array) if (array_intersect(array_keys($array), array_keys(self::$checks['traceability']['checks']))) {
       foreach (self::$checks['tolerance']['checks'] as $check => $array) $errors['barcode_id'][$check] = array();

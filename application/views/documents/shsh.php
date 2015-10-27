@@ -262,7 +262,7 @@ $num = $cntr;
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
-    <div class="specs-title"><?php if ($document->is_draft) echo 'Draft '; ?>Export Shipment Specification - Logs</div>
+    <div class="specs-title"><?php if ($document->is_draft) echo 'Draft '; ?>Short Shipment Specification - Logs</div>
   </div>
   <?php endif; ?>
 
@@ -271,7 +271,7 @@ $num = $cntr;
     <table class="specs-info-table">
       <tr>
         <td class="label">SH-SH Number:</td>
-        <td><?php echo $document->number ? 'SPEC '.$document->number : 'DRAFT'; ?></td>
+        <td><?php echo $document->number ? 'SH-SH '.$document->number : 'DRAFT'; ?></td>
         <td class="label">EP Number:</td>
         <td><?php echo $document->values['exp_number']; ?></td>
       </tr>
