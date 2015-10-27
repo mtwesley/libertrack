@@ -1170,13 +1170,6 @@ VALIDATION: $secret";
         
         $document->operator = $operator;
         $document->type     = $document_type;
-        if ($document->is_draft) {
-            $document->is_draft = TRUE;
-            $document->number   = NULL;
-        } else {
-            $document->is_draft = FALSE;
-            $document->number   = $document::create_document_number($document_type);
-        }
         $document->values   = (array) $values;
         $document->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
 
@@ -1251,13 +1244,6 @@ VALIDATION: $secret";
 
           case 'final':
             set_time_limit(1800);
-            if ($document->is_draft) {
-                $document->is_draft = TRUE;
-                $document->number   = NULL;
-            } else {
-                $document->is_draft = FALSE;
-                $document->number   = $document::create_document_number($document_type);
-            }
             
             $func = strtolower('generate_'.$document_type.'_document');
             $document->file_id = self::$func($document, $ids);
@@ -1786,7 +1772,6 @@ VALIDATION: $secret";
       if (count($site_reference) == 1) $document->site = ORM::factory('site', reset($arr));
 
       $document->is_draft = FALSE;
-      $document->number = $document::create_document_number($document->type);
       
       $_values = $document->values;
       $_values['site_reference'] = implode(', ', $site_reference);
