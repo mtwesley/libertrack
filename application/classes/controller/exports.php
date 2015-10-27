@@ -1384,7 +1384,7 @@ VALIDATION: $secret";
         ->as_array('id', 'name');
 
       $form = Formo::form()
-        ->add_group('type', 'checkboxes', array('SPECS' => SGS::$document_type['SPECS'], 'SPECS' => SGS::$document_type['SHSH'], 'EXP' => SGS::$document_type['EXP'], 'CERT' => SGS::$document_type['CERT']), NULL, array('label' => 'Type'))
+        ->add_group('type', 'checkboxes', array('SPECS' => SGS::$document_type['SPECS'], 'SHSH' => SGS::$document_type['SHSH'], 'EXP' => SGS::$document_type['EXP'], 'CERT' => SGS::$document_type['CERT']), NULL, array('label' => 'Type'))
         ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'specs_operatoropts specs_barcode exp_operatoropts exp_barcode')))
         ->add_group('specs_barcode', 'select', array(), NULL, array('label' => 'Shipment Specification', 'attr' => array('class' => 'specsopts')))
         // ->add_group('exp_barcode', 'select', array(), NULL, array('label' => 'Export Permit', 'attr' => array('class' => 'expopts')))
