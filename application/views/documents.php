@@ -43,7 +43,7 @@ $classes[] = 'data';
           <?php echo HTML::anchor($mode.'documents/'.$document->id.'/finalize', 'Finalize', array('class' => 'link')); ?>
           <?php else: ?>
           <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor($mode.'documents/'.$document->id.'/delete', 'Force Delete', array('class' => 'link')); ?>
-          <?php if (Auth::instance()->logged_in('management')) echo HTML::anchor($mode.'documents/'.$document->id.'/refinalize', 'Re-finalize', array('class' => 'link')); ?>
+          <?php echo HTML::anchor($mode.'documents/'.$document->id.'/refinalize', 'Re-finalize', array('class' => 'link')); ?>
           <?php if ($document->type == 'EXP'): ?>
           <?php echo HTML::anchor($mode.'documents/'.$document->id.'/loading', 'Loading', array('class' => 'link')); ?>
           <?php endif; ?>
