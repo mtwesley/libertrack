@@ -317,7 +317,7 @@ class Controller_Config extends Controller {
     $declaration = ORM::factory('SSF')->where('block_id', '=', $block->id)->find_all()->count();
     if (!$declaration) {
       Notify::msg('No declaration data found.', 'warning', TRUE);
-      $this->request->redirect('blocks/'.$id);
+      $this->request->redirect('config/blocks/'.$id);
     }
 
     $inspection  = count($ids);

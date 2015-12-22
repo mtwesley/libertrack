@@ -656,7 +656,7 @@ class Model_SPECS extends SGS_Form_ORM {
       $successes['barcode_id']['is_existing_parent'] = array('value' => 'Found', 'comparison' => 'Found');
 
       // export
-      if (!$this->barcode->get_activity('E')) $errors['barcode_id']['is_not_exported'] = array('value' => 'Already Exported', 'comparison' => 'N/A');
+      if ($this->barcode->get_activity(array('E', 'O'))) $errors['barcode_id']['is_not_exported'] = array('value' => 'Already Exported', 'comparison' => 'N/A');
       else $successes['barcode_id']['is_not_exported'] = array('value' => 'Not Exported', 'comparison' => 'N/A');
 
       $ldfv = ORM::factory('LDFV')
