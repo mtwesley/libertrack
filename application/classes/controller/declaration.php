@@ -579,9 +579,11 @@ class Controller_Declaration extends Controller {
           'label' => 'Options',
           'required' => TRUE,
           ))
-        ->add('search', 'submit', 'Go');
+        ->add('search', 'submit', 'Go')
 //        ->add('download_csv', 'submit', 'Download '.SGS::$file_type['csv'])
-//        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls']);
+//        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls'])
+        ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.csv');
@@ -604,8 +606,11 @@ class Controller_Declaration extends Controller {
         
         $status = $form->status->val();
         $format = $form->format->val();
+        $from = $form->from->val();
+        $to   = $form->to->val();
 
         if ($status)      $csvs->and_where('status', 'IN', (array) $status);
+        if ($from or $to) $csvs->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to));
         if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
@@ -656,6 +661,10 @@ class Controller_Declaration extends Controller {
               unset($csv);
             }
 
+            if (!$site)     $site     = ORM::factory('site', (int) $site_id);
+            if (!$block)    $block    = ORM::factory('block', (int) $block_id);
+            if (!$operator) $operator = ORM::factory('operator', (int) $operator_id);
+
             // headers
             $model->download_headers($csv->values, $excel, array(
               'create_date' => $create_date ? $create_date : $create_date = SGS::date ('now', SGS::PGSQL_DATE_FORMAT)
@@ -683,6 +692,8 @@ class Controller_Declaration extends Controller {
           'exp_barcode'   => $exp_barcode,
           'wb_barcode'    => $wb_barcode,
           'status'        => $status,
+          'from'          => $from,
+          'to'            => $to,
         ));
 
       }
@@ -700,11 +711,14 @@ class Controller_Declaration extends Controller {
         if ($has_wb_info) $form->wb_barcode->val($wb_barcode = $settings['wb_barcode']);
         if ($has_exp_info) $form->exp_barcode->val($exp_barcode = $settings['exp_barcode']);
         $form->status->val($status = $settings['status']);
+        $form->from->val($from = $settings['from']);
+        $form->to->val($to = $settings['to']);
 
         if ($site_id)     $csvs->and_where('site_id', 'IN', (array) $site_id);
         if ($operator_id) $csvs->and_where('operator_id', 'IN', (array) $operator_id);
         if ($block_id)    $csvs->and_where('block_id', 'IN', (array) $block_id);
         if ($status)      $csvs->and_where('status', 'IN', (array) $status);
+        if ($from or $to) $csvs->and_where('timestamp', 'BETWEEN', SGS::db_range($from, $to));
 
         if (Valid::is_barcode($specs_barcode)) $csvs->and_where('data', 'LIKE', '"specs_barcode";s:'.strlen($specs_barcode).':"'.$specs_barcode.'"');
         if (Valid::is_barcode($exp_barcode))   $csvs->and_where('data', 'LIKE', '"exp_barcode";s:'.strlen($exp_barcode).':"'.$exp_barcode.'"');
