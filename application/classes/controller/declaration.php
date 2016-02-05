@@ -579,11 +579,11 @@ class Controller_Declaration extends Controller {
           'label' => 'Options',
           'required' => TRUE,
           ))
-        ->add('search', 'submit', 'Go')
 //        ->add('download_csv', 'submit', 'Download '.SGS::$file_type['csv'])
 //        ->add('download_xls', 'submit', 'Download '.SGS::$file_type['xls'])
         ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
-        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')));
+        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
+        ->add('search', 'submit', 'Go');
 
       if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
         Session::instance()->delete('pagination.csv');
