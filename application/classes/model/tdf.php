@@ -681,7 +681,7 @@ class Model_TDF extends SGS_Form_ORM {
     }
 
     if ($errors) {
-      $this->status = 'R';
+      if ($this->status != 'A') $this->status = 'R';
       foreach ($errors as $field => $array) {
         foreach ($array as $error => $params) $this->set_error($field, $error, $params);
       }
