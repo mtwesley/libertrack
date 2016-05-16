@@ -787,7 +787,7 @@ VALIDATION: $secret";
     }
 
     $form->add('created', 'input', SGS::date('now', SGS::US_DATE_FORMAT), array('label' => 'Date Created', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'created-dpicker')));
-    $form->add('format', 'radios', 'preview', as_array(
+    $form->add('format', 'radios', 'preview', array(
         'options' => array(
           'preview' => 'Preview',
           'draft'   => 'Draft Copy',
