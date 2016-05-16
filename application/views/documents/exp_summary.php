@@ -166,7 +166,7 @@ $classes[] = 'data';
 </table>
 
 <table class="<?php echo SGS::render_classes($classes); ?> document-exp-summary" style="border: 1px solid #D9C7AD;">
-  <tr class="verification">
+  <tr>
     <td>
       <div class="strong">Physical Inspection</div>
       <?php echo $document->values['inspection_location']; ?>
