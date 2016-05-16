@@ -265,8 +265,7 @@ $options = (array) $options + array(
   Date: <?php echo SGS::date('now', SGS::CERTIFICATE_DATE_FORMAT); ?><br />
   </strong>
   <br /><br /><br />
-  Further to the inspection carried out by SGS Liberia Inc. on
-  <?php echo SGS::date($inspection_date, SGS::CERTIFICATE_DATE_FORMAT); ?> at
+  Further to the inspection carried out by SGS Liberia, Inc. at
   <?php echo $inspection_location; ?> - Liberia, the company:<br />
   <br />
   <strong>

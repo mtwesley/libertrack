@@ -442,16 +442,7 @@ $options = (array) $options + array(
       <tr class="verification">
         <td colspan="2">
           <div class="strong">Physical Inspection</div>
-          <table class="blank">
-            <tr>
-              <td><div class="strong">Date</div></td>
-              <td><div class="strong">Location</div></td>
-            </tr>
-            <tr>
-              <td><?php echo SGS::date($document->values['inspection_date'], SGS::US_DATE_FORMAT); ?></td>
-              <td><?php echo $document->values['inspection_location']; ?></td>
-            </tr>
-          </table>
+          <?php echo $document->values['inspection_location']; ?>
         </td>
         <td colspan="2">
           <div class="strong">SGS Approval</div>

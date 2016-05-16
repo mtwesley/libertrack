@@ -269,8 +269,7 @@ $options = (array) $options + array(
   Date: <?php echo SGS::date('now', SGS::CERTIFICATE_DATE_FORMAT); ?><br />
   </strong>
   <br /><br />
-  Further to the inspection carried out by SGS Liberia Inc. on
-  <?php echo SGS::date($document->values['inspection_date'], SGS::CERTIFICATE_DATE_FORMAT); ?> at
+  Further to the inspection carried out by SGS Liberia, Inc. at
   <?php echo $document->values['inspection_location']; ?> - Liberia, the company:<br />
   <br />
   <strong>
@@ -320,10 +319,11 @@ $options = (array) $options + array(
   SGS Liberia Inc.<br />
   <br /><br /><br /><br /><br /><br />
   <div style="text-align: right;">
-  Clinton Bambridge<br />
-  SGS - LiberFor Project Manager<br />
-  <a href="mailto:clinton.bambridge@sgs.com">clinton.bambridge@sgs.com</a><br />
-  +231 (0) 88 678 5992
+  Dr. Shiv S. Panse<br />
+  Government and Institutions (GIS)<br />
+  Forestry Project Coordinator - LAS Team Leader<br />
+  <a href="mailto:shiv.panse@sgs.com">shiv.panse@sgs.com</a><br />
+  +231 (0) 886 785 992
   </div>
   <br /><br />
   This statement is issued on behalf of SGS Liberia Inc. The findings recorded

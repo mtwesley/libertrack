@@ -746,7 +746,7 @@ VALIDATION: $secret";
         $form->add('product_type', 'input', NULL, array('required' => TRUE, 'label' => 'Product Type', 'attr' => array('class' => 'product_typeinput')));
         $form->add('product_description', 'textarea', NULL, array('required' => TRUE, 'label' => 'Product Description', 'attr' => array('class' => 'product_descriptioninput')));
         $form->add('eta_date', 'input', NULL, array('required' => TRUE, 'label' => 'ETA', 'attr' => array('class' => 'dpicker eta_dateinput', 'id' => 'eta-dpicker')));
-        $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')));
+        // $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')));
         $form->add('inspection_location', 'input', NULL, array('label' => 'Inspection Location', 'attr' => array('class' => 'inspection_locationinput')));
         $form->add('vessel', 'input', NULL, array('required' => TRUE, 'label' => 'Vessel', 'attr' => array('class' => 'vesselinput')));
         $form->add('buyer', 'input', NULL, array('required' => TRUE, 'label' => 'Buyer', 'attr' => array('class' => 'buyerinput')));
@@ -779,7 +779,7 @@ VALIDATION: $secret";
       case 'CERT':
         $form->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'exp_operatoropts exp_number')));
         $form->add_group('exp_number', 'select', array(), NULL, array('required' => TRUE, 'label' => 'Export Permit', 'attr' => array('class' => 'expopts exp_number exp_expnumberinputs')));
-        $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'value' => $document->values['inspection_date'], 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')));
+        // $form->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'value' => $document->values['inspection_date'], 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')));
         $form->add('inspection_location', 'input', NULL, array('label' => 'Inspection Location', 'value' => $document->values['inspection_location']));
         $form->add('vessel', 'input', NULL, array('required' => TRUE, 'label' => 'Vessel', 'value' => $document->values['vessel'], 'attr' => array('class' => 'vesselinput')));
         $form->add('buyer', 'input', NULL, array('required' => TRUE, 'label' => 'Buyer', 'value' => $document->values['buyer'], 'attr' => array('class' => 'buyerinput')));
@@ -787,7 +787,7 @@ VALIDATION: $secret";
     }
 
     $form->add('created', 'input', SGS::date('now', SGS::US_DATE_FORMAT), array('label' => 'Date Created', 'required' => TRUE, 'attr' => array('class' => 'dpicker', 'id' => 'created-dpicker')));
-    $form->add('format', 'radios', 'preview', array(
+    $form->add('format', 'radios', 'preview', as_array(
         'options' => array(
           'preview' => 'Preview',
           'draft'   => 'Draft Copy',
@@ -814,7 +814,7 @@ VALIDATION: $secret";
             'product_type'    => $form->product_type->val(),
             'product_description' => $form->product_description->val(),
             'eta_date'        => $form->eta_date->val(),
-            'inspection_date' => $form->inspection_date->val(),
+            // 'inspection_date' => $form->inspection_date->val(),
             'inspection_location' => $form->inspection_location->val(),
             'vessel'          => $form->vessel->val(),
             'buyer'           => $form->buyer->val(),
@@ -858,7 +858,7 @@ VALIDATION: $secret";
           $exp_number = $form->exp_number->val();
           $values = array(
             'exp_number'      => $exp_number,
-            'inspection_date' => $form->inspection_date->val(),
+            // 'inspection_date' => $form->inspection_date->val(),
             'inspection_location' => $form->inspection_location->val(),
             'vessel'          => $form->vessel->val(),
             'buyer'           => $form->buyer->val(),
@@ -886,7 +886,7 @@ VALIDATION: $secret";
           $form->product_type->val($values['product_type'] = $settings['values']['product_type']);
           $form->product_description->val($values['product_description'] = $settings['values']['product_description']);
           $form->eta_date->val($values['eta_date'] = $settings['values']['eta_date']);
-          $form->inspection_date->val($values['inspection_date'] = $settings['values']['inspection_date']);
+          // $form->inspection_date->val($values['inspection_date'] = $settings['values']['inspection_date']);
           $form->inspection_location->val($values['inspection_location'] = $settings['values']['inspection_location']);
           $form->vessel->val($values['vessel'] = $settings['values']['vessel']);
           $form->buyer->val($values['buyer'] = $settings['values']['buyer']);
@@ -920,7 +920,7 @@ VALIDATION: $secret";
         
         case 'CERT':
           $form->exp_number->val($exp_number = $settings['exp_number']);
-          $form->inspection_date->val($values['inspection_date'] = $settings['values']['inspection_date']);
+          // $form->inspection_date->val($values['inspection_date'] = $settings['values']['inspection_date']);
           $form->inspection_location->val($values['inspection_location'] = $settings['values']['inspection_location']);
           $form->vessel->val($values['vessel'] = $settings['values']['vessel']);
           $form->buyer->val($values['buyer'] = $settings['values']['buyer']);
@@ -2058,7 +2058,7 @@ VALIDATION: $secret";
       ))
       ->set('number', $number)
       ->set('origin', $origin)
-      ->set('inspection_date', $inspection_date)
+      // ->set('inspection_date', $inspection_date)
       ->set('inspection_location', $inspection_location)
       ->set('vessel', $vessel)
       ->set('buyer', $buyer)
@@ -2155,7 +2155,7 @@ VALIDATION: $secret";
     $form = Formo::form()
       ->add('number', 'input', NULL, array('required' => TRUE, 'label' => 'Statement Number'))
       ->add('origin', 'input', NULL, array('required' => TRUE, 'label' => 'Origin', 'value' => $document->values['origin']))
-      ->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'value' => $document->values['inspection_date'], 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')))
+      // ->add('inspection_date', 'input', NULL, array('label' => 'Inspection Date', 'value' => $document->values['inspection_date'], 'attr' => array('class' => 'dpicker inspection_dateinput', 'id' => 'inspection-dpicker')))
       ->add('inspection_location', 'input', NULL, array('label' => 'Inspection Location', 'value' => $document->values['inspection_location']))
       ->add('vessel', 'input', NULL, array('required' => TRUE, 'label' => 'Vessel', 'value' => $document->values['vessel']))
       ->add('buyer', 'input', NULL, array('required' => TRUE, 'label' => 'Buyer', 'value' => $document->values['buyer']))
@@ -2165,7 +2165,7 @@ VALIDATION: $secret";
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       $number = $form->number->val();
       $origin = $form->origin->val();
-      $inspection_date = $form->inspection_date->val();
+      // $inspection_date = $form->inspection_date->val();
       $inspection_location = $form->inspection_location->val();
       $vessel = $form->vessel->val();
       $buyer = $form->buyer->val();
@@ -2175,7 +2175,7 @@ VALIDATION: $secret";
       $values['certificate_file_id'] = self::generate_certificate_file($document, array(
         'number'  => $number,
         'origin'  => $origin,
-        'inspection_date' => $inspection_date,
+        // 'inspection_date' => $inspection_date,
         'inspection_location' => $inspection_location,
         'vessel'  => $vessel,
         'buyer'   => $buyer,
