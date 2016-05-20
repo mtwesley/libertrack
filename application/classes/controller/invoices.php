@@ -392,6 +392,11 @@ class Controller_Invoices extends Controller {
   private function handle_invoice_finalize($id) {
     $invoice = ORM::factory('invoice', $id);
 
+    if (!Auth::instance()->logged_in('invoices_approve')) {
+      Notify::msg('Access denied. You must have '.SGS::$roles['invoices_approve'].' privileges.', 'locked', TRUE);
+      $this->request->redirect('invoices/'.$id);
+    }
+
     if (!$invoice->loaded()) {
       Notify::msg('No invoice found.', 'warning', TRUE);
       $this->request->redirect('invoices');

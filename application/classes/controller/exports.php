@@ -1741,10 +1741,15 @@ VALIDATION: $secret";
 
   private function handle_document_finalize($id) {
     $document = ORM::factory('document', $id);
+    
+    if (!Auth::instance()->logged_in('exports_approve')) {
+      Notify::msg('Access denied. You must have '.SGS::$roles['exports_approve'].' privileges.', 'locked', TRUE);
+      $this->request->redirect('exports/documents/'.$id);
+    }
 
     if (!$document->loaded()) {
       Notify::msg('No document found.', 'warning', TRUE);
-      $this->request->redirect('documents');
+      $this->request->redirect('exports/documents');
     }
 
     if (!$document->is_draft) {

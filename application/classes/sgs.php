@@ -289,7 +289,9 @@ class SGS {
     'users'      => 'User Management',
     'barcodes'   => 'Barcode Management',
     'invoices'   => 'Invoice Management',
+    'invoices_approve' => 'Invoice Approval',
     'exports'    => 'Export Management',
+    'exports_approve' => 'Export Approval',
     'tolerances' => 'Accuracy and Tolerance Management',
   );
 
