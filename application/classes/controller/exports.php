@@ -755,7 +755,7 @@ VALIDATION: $secret";
         $form->add('buyer_email', 'input', NULL, array('label' => 'Buyer Email', 'attr' => array('class' => 'buyer_emailinput')));
         $form->add('buyer_phone', 'input', NULL, array('label' => 'Buyer Phone', 'attr' => array('class' => 'buyer_phoneinput')));
         $form->add('fob_price_notes', 'textarea', 'In line with international market prices for similar goods.', array('label' => 'FOB Price Verification'));
-        $form->add('notes', 'textarea', NULL, array('label' => 'Notes'));
+        // $form->add('notes', 'textarea', NULL, array('label' => 'Notes'));
         break;
 
       case 'SPECS':
@@ -822,7 +822,7 @@ VALIDATION: $secret";
             'buyer_address'   => $form->buyer_address->val(),
             'buyer_email'     => $form->buyer_email->val(),
             'buyer_phone'     => $form->buyer_phone->val(),
-            'notes'           => $form->notes->val(),
+            // 'notes'           => $form->notes->val(),
             'fob_price_notes' => $form->fob_price_notes->val(),
           );
           break;
@@ -894,7 +894,7 @@ VALIDATION: $secret";
           $form->buyer_address->val($values['buyer_address'] = $settings['values']['buyer_address']);
           $form->buyer_email->val($values['buyer_email'] = $settings['values']['buyer_email']);
           $form->buyer_phone->val($values['buyer_phone'] = $settings['values']['buyer_phone']);
-          $form->notes->val($values['notes'] = $settings['values']['notes']);
+          // $form->notes->val($values['notes'] = $settings['values']['notes']);
           $form->fob_price_notes->val($values['fob_price_notes'] = $settings['values']['fob_price_notes']);
           break;
 
