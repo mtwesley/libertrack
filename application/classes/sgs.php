@@ -500,6 +500,7 @@ class SGS {
 
   public static function title($path)
   {
+    $title = NULL;
     while (($title == NULL) and ($path)) {
       $title = self::path($path);
       $path  = substr($path, 0, strrpos($path, '/'));
@@ -530,7 +531,7 @@ class SGS {
 
   public static function datetime($datetime = 'now', $format = SGS::DATETIME_FORMAT, $is_us_date = FALSE, $fix = TRUE)
   {
-    if ($is_us_date AND ($test = self::internationalify($date))) $date = $test;
+    if ($is_us_date AND ($test = self::internationalify($datetime))) $date = $test;
 
     try {
       $dt = Date::formatted_time($datetime, $format);
@@ -1039,6 +1040,7 @@ class SGS {
   }
 
   public static function render_styles($styles) {
+    $return = NULL;
     foreach ((array) $styles as $style) {
       $return .= HTML::style('css/'.$style.'.css');
     }
@@ -1046,6 +1048,7 @@ class SGS {
   }
 
   public static function render_scripts($scripts) {
+    $return = NULL;
     foreach ((array) $scripts as $script) {
       $return .= HTML::script('js/'.$script.'.js');
     }

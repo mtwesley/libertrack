@@ -544,7 +544,7 @@ class Controller_Config extends Controller {
         'label' => $id ? 'Update Species' : 'Add a New Species'
       ));
 
-    if ($id) $add_form->remove('code');
+    if ($id) $form->remove('code');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
