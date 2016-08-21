@@ -322,11 +322,11 @@ class Controller_Config extends Controller {
 
     $inspection  = count($ids);
 
-    $rate = $inspection / $declaration;
-    if ($rate < SGS::INSPECTION_RATE) {
-      $needed = ceil($declaration * (SGS::INSPECTION_RATE - $rate));
+    // $rate = $inspection / $declaration;
+    if (!$ids) {
+      $needed = TRUE;
       $form = Formo::form()
-        ->add('confirm', 'text', 'Increasing block inspection by at least '.$needed.' trees is necessary to achieve a rate of '.SGS::floatify(SGS::INSPECTION_RATE * 100).'%. <br />Are you sure you want to do this?')
+        // ->add('confirm', 'text', 'Increasing block inspection by at least '.$needed.' trees is necessary to achieve a rate of '.SGS::floatify(SGS::INSPECTION_RATE * 100).'%. <br />Are you sure you want to do this?')
         ->add('update', 'centersubmit', 'Update Block Inspection');
     }
 
@@ -345,22 +345,32 @@ class Controller_Config extends Controller {
         ->execute()
         ->as_array(NULL, 'survey_line');
 
-      $max = (count($cell_numbers) ?: 1) * (count($survey_lines) ?: 1);
-
-      for ($t = 0; $t < $max; $t++) {
+      // $max = (count($cell_numbers) ?: 1) * (count($survey_lines) ?: 1);
+      
+      if ($block->site->type == 'TSC') $max = 10;
+      else $max = 20;
+      
+      $inspected_cells = array();
+      while (count($inspected_cells) < $max) {
+        $rand_cell_number = array_rand($cell_numbers);
+        $rand_survey_line = array_rand($survey_lines);
+        $rand_cell = "$rand_cell_number-$rand_survey_line";
+        
+        if (!in_array($rand_cell, $inspected_cells)) $inspected_cells[] = $rand_cell;
+        
         $additions = DB::select('id')
           ->from('ssf_data')
           ->where('block_id', '=', $block->id)
-          ->and_where('cell_number', '=', $cell_numbers[array_rand($cell_numbers)])
-          ->and_where('survey_line', '=', $survey_lines[array_rand($survey_lines)]);
+          ->and_where('cell_number', '=', $cell_numbers[$rand_cell_number])
+          ->and_where('survey_line', '=', $survey_lines[$rand_survey_line]);
         if ($ids) $additions->and_where('id', 'NOT IN', $ids);
         $additions = $additions
           ->execute()
           ->as_array(NULL, 'id');
 
         foreach ($additions as $addition) $block->set_inspection_data('SSF', $addition);
-        $needed -= count($additions);
-        if ($needed <= 0) { $needed = FALSE; break; }
+        // $needed -= count($additions);
+        // if ($needed <= 0) { $needed = FALSE; break; }
       }
 
       $ids = $block->get_inspection_data();
@@ -369,7 +379,7 @@ class Controller_Config extends Controller {
       $this->request->redirect($this->request->url());
     }
 
-    if (!$needed) $download_form = Formo::form()->add('download', 'centersubmit', 'Download Block Inspection Schedule');
+    if ($ids) $download_form = Formo::form()->add('download', 'centersubmit', 'Download Block Inspection Schedule');
     if ($download_form and $download_form->sent($_REQUEST) and $download_form->load($_REQUEST)->validate()) {
       $inspection_file = ORM::factory('file', $block->inspection_file_id);
 
@@ -386,7 +396,7 @@ class Controller_Config extends Controller {
       $this->response->send_file(DOCROOT.$inspection_file->path);
     }
 
-    Notify::msg('Inspection rate currently at '.SGS::floatify($rate * 100).'%', $needed ? 'warning' : 'success');
+    // Notify::msg('Inspection rate currently at '.SGS::floatify($rate * 100).'%', $needed ? 'warning' : 'success');
 
     if ($ids) {
       $data = ORM::factory($form_type)
