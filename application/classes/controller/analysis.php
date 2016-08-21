@@ -1730,8 +1730,8 @@ class Controller_Analysis extends Controller {
           ->on($model->table_name().'.id', '=', 'checks.form_data_id')
           ->on('checks.form_type', '=', DB::expr("'".$form_type."'"))
           ->and_where_open()
-            ->and_where('checks.check', 'IN', (array) $checks)
-            ->and_where('checks.type', '=', 'E')
+          ->and_where('checks.check', 'IN', (array) $checks)
+          ->and_where('checks.type', '=', 'E')
           ->and_where_close();
       }
 
@@ -1913,6 +1913,283 @@ class Controller_Analysis extends Controller {
     }
 
     $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+  public function action_migrate() {
+    $migration_type = $this->request->param('id');
+
+    if (in_array($migration_type, array_keys(SGS::$migration_type))) {
+      set_time_limit(0);
+
+      $operator_ids = db::select('id', 'name')
+        ->from('operators')
+        ->order_by('name')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $site_ids = db::select('id', 'name')
+        ->from('sites')
+        ->order_by('name')
+        ->execute()
+        ->as_array('id', 'name');
+
+      $species_ids = db::select('id', 'code')
+        ->from('species')
+        ->order_by('code')
+        ->execute()
+        ->as_array('id', 'code');
+
+      //    $block_ids = db::select('id', 'name')
+      //      ->from('blocks')
+      //      ->order_by('name')
+      //      ->execute()
+      //      ->as_array('id', 'name');
+
+      $form = Formo::form()
+        ->add_group('operator_id', 'select', $operator_ids, NULL, array_merge(array('label' => 'Operator'), array('attr' => array('class' => 'site_operatoropts'))))
+        ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
+        ->add_group('block_id', 'select', array(), NULL, array('label' => 'Block', 'attr' => array('class' => 'blockopts')))
+        ->add_group('species_id', 'select', $species_ids, NULL, array('label' => 'Species'))
+        ->add_group('status', 'checkboxes', in_array($migration_type, array_keys(SGS::$form_verification_type)) ? SGS::$verification_status : SGS::$data_status, NULL, array('label' => 'Status'))
+        ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker')))
+        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker')))
+        ->add('download', 'submit', array('label' => 'Download CSV'));
+
+      if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+        $operator_id = $form->operator_id->val();
+        $site_id = $form->site_id->val();
+        $block_id = $form->block_id->val();
+        $species_id = $form->species_id->val();
+
+        $from = $form->from->val() ? SGS::date($form->from->val(), SGS::PGSQL_DATE_FORMAT) : '-infinity';
+        $to   = $form->to->val() ? SGS::date($form->to->val(), SGS::PGSQL_DATE_FORMAT) : 'infinity';
+        $status = $form->status->val();
+
+        switch ($migration_type) {
+          case 'barcodes':
+            $sql = <<<EOD
+select barcodes.id, barcode, (case
+  when barcodes.type = 'P' then 'Draft'
+  when barcodes.type = 'P' then 'Pending'
+  when barcodes.type = 'T' then 'Standing Tree'
+  when barcodes.type = 'F' then 'Felled Tree'
+  when barcodes.type = 'S' then 'Stump'
+  when barcodes.type = 'L' then 'Log'
+  when barcodes.type = 'R' then 'Sawnmill Timber'
+  when barcodes.type = 'H' then 'Shipment Specification'
+  when barcodes.type = 'E' then 'Export Permit'
+  when barcodes.type = 'W' then 'Waybill'
+end) as type,
+sites.id as site_id, sites.name as site,
+operators.id as operator_id, operators.name as operator from barcodes
+left outer join printjobs on barcodes.printjob_id = printjobs.id
+left outer join sites on printjobs.site_id = sites.id
+left outer join operators on sites.operator_id = operators.id
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($site_id) $sql .= ' and sites.id in ('.implode(',', (array) $site_id).') ';
+            if ($from and $to) $sql .= " and barcodes.timestamp between '$from' and '$to' ";
+            $sql .= 'order by barcode;';
+            break;
+
+          case 'operators':
+            $sql = <<<EOD
+select operators.id, name, tin, contact, address, email, phone from operators
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($from and $to) $sql .= " and operators.timestamp between '$from' and '$to' ";
+            $sql .= 'order by name;';
+            break;
+
+          case 'sites':
+            $sql = <<<EOD
+select sites.id, sites.name, operators.name as operator, sites.operator_id from sites
+join operators on sites.operator_id = operators.id
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($site_id) $sql .= ' and sites.id in ('.implode(',', (array) $site_id).') ';
+            if ($from and $to) $sql .= " and sites.timestamp between '$from' and '$to' ";
+            $sql .= 'order by operator, sites.name;';
+            break;
+
+          case 'blocks':
+            $sql = <<<EOD
+select blocks.id, blocks.name, sites.name as site, blocks.site_id, operators.name as operator, sites.operator_id from blocks
+join sites on blocks.site_id = sites.id
+join operators on sites.operator_id = operators.id
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($site_id) $sql .= ' and sites.id in ('.implode(',', (array) $site_id).') ';
+            if ($block_id) $sql .= ' and blocks.id in ('.implode(',', (array) $block_id).') ';
+            if ($from and $to) $sql .= " and blocks.timestamp between '$from' and '$to' ";
+            $sql .= 'order by operator, site, blocks.name;';
+            break;
+
+          case 'species':
+            $sql = <<<EOD
+select id, code, class, botanic_name, trade_name, fob_price from species
+order by code;
+EOD;
+            break;
+
+          case 'ssf':
+            $sql = <<<EOD
+select ssf_data.id, blocks.name as block, ssf_data.block_id, sites.name as site, ssf_data.site_id, operators.name as operator, ssf_data.operator_id, barcodes.barcode, ssf_data.barcode_id, species.code as species, survey_line, cell_number, tree_map_number, diameter, height, volume from ssf_data
+join blocks on ssf_data.block_id = blocks.id
+join sites on ssf_data.site_id = sites.id
+join operators on ssf_data.operator_id = operators.id
+join barcodes on ssf_data.barcode_id = barcodes.id
+join species on ssf_data.species_id = species.id
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($site_id) $sql .= ' and sites.id in ('.implode(',', (array) $site_id).') ';
+            if ($block_id) $sql .= ' and blocks.id in ('.implode(',', (array) $block_id).') ';
+            if ($species_id) $sql .= ' and species.id in ('.implode(',', (array) $species_id).') ';
+            if ($from and $to) $sql .= " and ssf_data.timestamp between '$from' and '$to' ";
+            $sql .= 'order by operator, site, block, cell_number, survey_line, tree_map_number, barcode;';
+            break;
+
+          case 'tdf':
+            $sql = <<<EOD
+select tdf_data.id, blocks.name as block, tdf_data.block_id, sites.name as site, tdf_data.site_id, operators.name as operator, tdf_data.operator_id, barcodes.barcode, tdf_data.barcode_id, tree_barcodes.barcode as tree_barcode, tdf_data.tree_barcode_id, stump_barcodes.barcode as stump_barcode, tdf_data.stump_barcode_id, species.code as species, survey_line, cell_number, top_min, top_max, bottom_min, bottom_max, length, volume from tdf_data
+join blocks on tdf_data.block_id = blocks.id
+join sites on tdf_data.site_id = sites.id
+join operators on tdf_data.operator_id = operators.id
+join barcodes on tdf_data.barcode_id = barcodes.id
+join barcodes as tree_barcodes on tdf_data.tree_barcode_id = tree_barcodes.id
+join barcodes as stump_barcodes on tdf_data.stump_barcode_id = stump_barcodes.id
+join species on tdf_data.species_id = species.id
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($site_id) $sql .= ' and sites.id in ('.implode(',', (array) $site_id).') ';
+            if ($block_id) $sql .= ' and blocks.id in ('.implode(',', (array) $block_id).') ';
+            if ($species_id) $sql .= ' and species.id in ('.implode(',', (array) $species_id).') ';
+            if ($from and $to) $sql .= " and tdf_data.timestamp between '$from' and '$to' ";
+            $sql .= 'order by operator, site, block, cell_number, survey_line, barcode;';
+            break;
+
+          case 'ldf':
+            $sql = <<<EOD
+select ldf_data.id, sites.name as site, ldf_data.site_id, operators.name as operator, ldf_data.operator_id, barcodes.barcode, ldf_data.barcode_id, parent_barcodes.barcode as parent_barcode, ldf_data.parent_barcode_id, species.code as species, top_min, top_max, bottom_min, bottom_max, length, volume from ldf_data
+join sites on ldf_data.site_id = sites.id
+join operators on ldf_data.operator_id = operators.id
+join barcodes on ldf_data.barcode_id = barcodes.id
+join barcodes as parent_barcodes on ldf_data.parent_barcode_id = parent_barcodes.id
+join species on ldf_data.species_id = species.id
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($site_id) $sql .= ' and sites.id in ('.implode(',', (array) $site_id).') ';
+            if ($species_id) $sql .= ' and species.id in ('.implode(',', (array) $species_id).') ';
+            if ($from and $to) $sql .= " and ldf_data.timestamp between '$from' and '$to' ";
+            $sql .= 'order by operator, site, barcode;';
+            break;
+
+          case 'specs':
+            $sql = <<<EOD
+select specs_data.id, operators.name as operator, specs_data.operator_id, barcodes.barcode, specs_data.barcode_id, specs_barcodes.barcode as specs_barcode, specs_data.specs_barcode_id, species.code as species, top_min, top_max, bottom_min, bottom_max, length, volume from specs_data
+join operators on specs_data.operator_id = operators.id
+join barcodes on specs_data.barcode_id = barcodes.id
+join barcodes as specs_barcodes on specs_data.specs_barcode_id = specs_barcodes.id
+join species on specs_data.species_id = species.id
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($site_id) $sql .= ' and sites.id in ('.implode(',', (array) $site_id).') ';
+            if ($species_id) $sql .= ' and species.id in ('.implode(',', (array) $species_id).') ';
+            if ($from and $to) $sql .= " and specs_data.timestamp between '$from' and '$to' ";
+            $sql .= 'order by operator, barcode;';
+            break;
+
+          case 'documents':
+            $sql = <<<EOD
+select
+  documents.id as document_id,
+  sites.name as site,
+  operators.name as operator,
+  documents.operator_id,
+  documents.type,
+  documents.type || ' ' || lpad(documents.number::text, 6, '0') as number,
+  (case
+    when documents.is_draft then 'Draft'
+    else 'Final'
+  end) as status,
+  documents.created_date::date as date
+from documents
+left outer join sites on documents.site_id = sites.id
+left outer join operators on documents.operator_id = operators.id
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($site_id) $sql .= ' and sites.id in ('.implode(',', (array) $site_id).') ';
+            if ($from and $to) $sql .= " and documents.timestamp between '$from' and '$to' ";
+            $sql .= 'order by operator, site, number;';
+            break;
+
+          case 'invoices':
+            $sql = <<<EOD
+select
+  invoices.id as invoice_id,
+  sites.name as site,
+  invoices.site_id,
+  operators.name as operator,
+  invoices.operator_id,
+  invoices.type,
+  invoices.type || ' ' || lpad(invoices.number::text, 6, '0') as number,
+  invoices.invnumber as invoice_number,
+  (case
+    when invoices.is_draft then 'Draft'
+    else 'Final'
+  end) as status,
+  (case
+    when invoices.is_paid then 'Paid'
+    else 'Not Paid'
+  end) as paid_status,
+  invoices.created_date::date as date
+from invoices
+left outer join sites on invoices.site_id = sites.id
+left outer join operators on invoices.operator_id = operators.id
+where true = true
+EOD;
+            if ($operator_id) $sql .= ' and operators.id in ('.implode(',', (array) $operator_id).') ';
+            if ($site_id) $sql .= ' and sites.id in ('.implode(',', (array) $site_id).') ';
+            if ($from and $to) $sql .= " and invoices.timestamp between '$from' and '$to' ";
+            $sql .= 'order by operator, site, number;';
+            break;
+        }
+
+        if ($sql) {
+          $result = DB::query(Database::SELECT, $sql)->execute();
+          if ($result) {
+            $ext = 'csv';
+            $excel = new PHPExcel();
+            $excel->setActiveSheetIndex(0);
+            $excel->getActiveSheet()->fromArray(array_keys($result[0]), NULL, 'A1');
+            $row_count = 2;
+            foreach ($result as $row) $excel->getActiveSheet()->fromArray($row, NULL, 'A'.$row_count++);
+            $mime_type = 'text/csv';
+
+            $tempname = tempnam(sys_get_temp_dir(), $migration_type . '_migration');
+
+            $writer = new PHPExcel_Writer_CSV($excel);
+            $writer->save($tempname);
+
+            $this->response->send_file($tempname, strtoupper($migration_type.'_MIGRATION.'). $ext, array('mime_type' => $mime_type, 'delete' => TRUE));
+          } else Notify::msg('Sorry, no data found for migration.', 'warning');
+        }
+      }
+
+      $content .= $form->render();
+    }
 
     $view = View::factory('main')->set('content', $content);
     $this->response->body($view);

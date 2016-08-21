@@ -170,6 +170,24 @@ if (!$command && !is_numeric($id)) {
       <?php endif; ?>
     </li>
 
+    <li class="<?php if ($secondary == 'migrate') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate', SGS::title('analysis/migrate')); ?>
+      <?php if ($secondary == 'migrate'): ?>
+        <ul class="nav commands">
+          <li class="<?php if ($command == 'barcodes') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/barcodes', SGS::title('analysis/migrate/barcodes')); ?></li>
+          <li class="<?php if ($command == 'operators') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/operators', SGS::title('analysis/migrate/operators')); ?></li>
+          <li class="<?php if ($command == 'sites') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/sites', SGS::title('analysis/migrate/sites')); ?></li>
+          <li class="<?php if ($command == 'blocks') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/blocks', SGS::title('analysis/migrate/blocks')); ?></li>
+          <li class="<?php if ($command == 'species') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/species', SGS::title('analysis/migrate/species')); ?></li>
+          <li class="<?php if ($command == 'ssf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/ssf', SGS::title('analysis/migrate/ssf')); ?></li>
+          <li class="<?php if ($command == 'tdf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/tdf', SGS::title('analysis/migrate/tdf')); ?></li>
+          <li class="<?php if ($command == 'ldf') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/ldf', SGS::title('analysis/migrate/ldf')); ?></li>
+          <li class="<?php if ($command == 'specs') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/specs', SGS::title('analysis/migrate/specs')); ?></li>
+          <li class="<?php if ($command == 'documents') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/documents', SGS::title('analysis/migrate/documents')); ?></li>
+          <li class="<?php if ($command == 'invoices') echo 'active'; ?>"><?php echo HTML::anchor('analysis/migrate/invoices', SGS::title('analysis/migrate/invoices')); ?></li>
+        </ul>
+      <?php endif; ?>
+    </li>
+
     <?php elseif ($primary == 'invoices'): ?>
     <li class="<?php if ($secondary == 'list')     echo 'active'; ?>"><?php echo HTML::anchor('invoices/list', SGS::title('invoices/list')); ?></li>
     <li class="<?php if ($secondary == 'create')   echo 'active'; ?>"><?php echo HTML::anchor('invoices/create', SGS::title('invoices/create')); ?>
@@ -201,9 +219,11 @@ if (!$command && !is_numeric($id)) {
     <li class="<?php if ($secondary == 'create') echo 'active'; ?>"><?php echo HTML::anchor('reports/create', SGS::title('reports/create')); ?>
       <?php if ($secondary == 'create'): ?>
       <ul class="nav commands">
+        <li class="<?php if ($command == 'monthly') echo 'active'; ?>"><?php echo HTML::anchor('reports/create/monthly', SGS::title('reports/create/monthly')); ?></li>
         <li class="<?php if ($command == 'summary') echo 'active'; ?>"><?php echo HTML::anchor('reports/create/summary', SGS::title('reports/create/summary')); ?></li>
         <!-- <li class="<?php if ($command == 'csv')     echo 'active'; ?>"><?php echo HTML::anchor('reports/create/csv', SGS::title('reports/create/csv')); ?></li> -->
         <li class="<?php if ($command == 'data')    echo 'active'; ?>"><?php echo HTML::anchor('reports/create/data', SGS::title('reports/create/data')); ?></li>
+        <li class="<?php if ($command == 'export')    echo 'active'; ?>"><?php echo HTML::anchor('reports/create/export', SGS::title('reports/create/export')); ?></li>
       </ul>
       <?php endif; ?>
     </li>

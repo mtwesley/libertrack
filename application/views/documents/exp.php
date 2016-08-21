@@ -457,15 +457,6 @@ $options = (array) $options + array(
           <div class="strong">FDA Approval (Managing Director)</div>
         </td>
       </tr>
-      <tr>
-        <td colspan="2" class="blank stronger">For Administration Use Only</td>
-      </tr>
-      <tr class="notes">
-        <td colspan="4">
-          <div class="strong">Notes</div>
-          <?php echo $document->values['notes']; ?>
-        </td>
-      </tr>
     </table>
   </div>
   <?php endif; ?>

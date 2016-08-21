@@ -128,6 +128,20 @@ class SGS {
     'analysis/download/ldf'   => 'Log Data',
     'analysis/download/specs' => 'Shipment Specification',
 
+    'analysis/migrate'       => 'Migrate Data',
+
+    'analysis/migrate/barcodes' => 'Barcodes',
+    'analysis/migrate/operators' => 'Operators',
+    'analysis/migrate/sites' => 'Sites',
+    'analysis/migrate/blocks' => 'Blocks',
+    'analysis/migrate/species' => 'Species',
+    'analysis/migrate/ssf' => 'Stock Survey Form',
+    'analysis/migrate/tdf' => 'Tree Data Form',
+    'analysis/migrate/ldf' => 'Log Data Form',
+    'analysis/migrate/specs' => 'Shipment Specification Form',
+    'analysis/migrate/documents' => 'Export Documents',
+    'analysis/migrate/invoices' => 'Invoices',
+
     'invoices'            => 'Invoices',
     'invoices/list'       => 'List Invoices',
     'invoices/create'     => 'Create Invoice',
@@ -147,11 +161,17 @@ class SGS {
 
     'reports'         => 'Reports',
     'reports/list'    => 'List Reports',
+//    'reports/list/monthly/upload'     => 'Upload Report',
+//    'reports/list/monthly/processing' => 'Processing Report',
+//    'reports/list/monthly/harvest'    => 'Harvest Report',
+//    'reports/list/monthly/export'     => 'Export Report',
     'reports/create'  => 'Create Report',
 
+    'reports/create/monthly' => 'Monthly Report',
     'reports/create/csv'     => 'Declaration and Verification Report',
     'reports/create/data'    => 'Data Analysis Report',
     'reports/create/summary' => 'Summary Report',
+    'reports/create/export' => 'Export Document Report',
   );
 
   public static $tips = array(
@@ -481,6 +501,34 @@ class SGS {
     'A' => 0.10,
     'B' => 0.05,
     'C' => 0.025
+  );
+
+  public static $migration_type = array(
+    'barcodes' => 'Barcodes',
+    'operators' => 'Operators',
+    'sites' => 'Sites',
+    'blocks' => 'Blocks',
+    'species' => 'Species',
+    'ssf' => 'Stock Survey Form',
+    'tdf' => 'Tree Data Form',
+    'ldf' => 'Log Data Form',
+    'specs' => 'Shipment Specification Form',
+    'documents' => 'Export Documents',
+    'invoices' => 'Invoices'
+  );
+
+  public static $monthly_report = array(
+    'upload' => 'Data Upload Report',
+    'processing' => 'Data Processing Performance Report',
+    'harvest' => 'Declared Harvesting Volume Report',
+    'export' => 'Export Volume Report'
+  );
+
+  public static $export_report = array(
+    'specs' => 'Shipment Specification',
+//    'shsh' => 'Short-Shipment Specification',
+    'exp' => 'Export Permit',
+    'cert' => 'Certificate of Origin'
   );
 
   public static function value($key, $array, $default = NULL)

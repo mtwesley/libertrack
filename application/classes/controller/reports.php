@@ -437,6 +437,264 @@ class Controller_Reports extends Controller {
     $this->response->body($view);
   }
 
+  public function handle_report_create_monthly() {
+    set_time_limit(0);
+
+    $form = Formo::form()
+      ->add_group('report_type', 'select', SGS::$monthly_report, NULL, array('label' => 'Report', 'required' => TRUE))
+      ->add_group('form_type', 'select', SGS::$form_data_type, NULL, array('label' => 'Form'))
+      ->add_group('status', 'checkboxes', SGS::$data_status, array_keys(SGS::$data_status), array('label' => 'Status'))
+      ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker'), 'required' => TRUE))
+      ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker'), 'required' => TRUE));
+
+    $form->add('search', 'submit', 'Download Report');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $report_type = $form->report_type->val();
+      $form_type = $form->form_type->val();
+      $status = $form->status->val();
+      $from = SGS::date($form->from->val(), SGS::PGSQL_DATE_FORMAT);
+      $to   = SGS::date($form->to->val(), SGS::PGSQL_DATE_FORMAT);
+
+      $status_split = "'" . implode("','", (array) $status) . "'";
+
+      switch ($report_type) {
+        case 'upload':
+          if (in_array($form_type, array('SSF', 'TDF', 'LDF'))) $sql = <<<EOD
+select
+  site_name,
+  form_type,
+  sum((pi() * pow(((top_min + top_max + bottom_min + bottom_max) / 4 / 2 / 100), 2) * length)) as volume
+from (select
+  form_type,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"top_min";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as top_min,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"top_max";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as top_max,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"bottom_min";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as bottom_min,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"bottom_max";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as bottom_max,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"length";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as length,
+  sites.name as site_name
+from csv
+join sites on site_id = sites.id
+where form_type in ('$form_type') and csv.timestamp between '$from' and '$to' and status in ($status_split)) as result
+group by site_name, form_type
+order by form_type, site_name;
+EOD;
+
+          elseif (in_array($form_type, array('SPECS'))) $sql = <<<EOD
+select 
+  operator_name,
+  form_type,
+  sum((pi() * pow(((top_min + top_max + bottom_min + bottom_max) / 4 / 2 / 100), 2) * length)) as volume
+from (select
+  form_type, 
+  (regexp_matches((csv.values::text), E's:\\\\d+:"top_min";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as top_min,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"top_max";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as top_max,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"bottom_min";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as bottom_min,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"bottom_max";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as bottom_max,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"length";s:\\\\d+:"(-?[\\\\d.]+)";'))[1]::numeric as length,
+  operators.name as operator_name
+from csv 
+join operators on operator_id = operators.id
+where form_type in ('$form_type') and csv.timestamp between '$from' and '$to' and status in ($status_split)) as result
+group by operator_name, form_type
+order by form_type, operator_name;
+EOD;
+          $fullname = SGS::wordify(strtoupper('DATA_UPLOAD_REPORT'));
+          break;
+
+        case 'processing':
+          $sql = <<<EOD
+select 
+  form_type,
+  year_month,
+  status,
+  sum((pi() * pow(((top_min + top_max + bottom_min + bottom_max) / 4 / 2 / 100), 2) * length)) as volume
+from (select
+  form_type, 
+  (regexp_matches((csv.values::text), E's:\\\\d+:"top_min";s:\\\\d+:"(-?[\\\\d]+(\\\\.[\\\\d]+)?)";'))[1]::numeric as top_min,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"top_max";s:\\\\d+:"(-?[\\\\d]+(\\\\.[\\\\d]+)?)";'))[1]::numeric as top_max,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"bottom_min";s:\\\\d+:"(-?[\\\\d]+(\\\\.[\\\\d]+)?)";'))[1]::numeric as bottom_min,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"bottom_max";s:\\\\d+:"(-?[\\\\d]+(\\\\.[\\\\d]+)?)";'))[1]::numeric as bottom_max,
+  (regexp_matches((csv.values::text), E's:\\\\d+:"length";s:\\\\d+:"(-?[\\\\d]+(\\\\.[\\\\d]+)?)";'))[1]::numeric as length,
+  to_char(csv.timestamp, 'MM-YYYY') as year_month,
+  csv.status as status
+from csv 
+where csv.form_type in ('TDF','LDF', 'SPECS') and csv.timestamp > '2013-09-01') as result
+group by form_type, year_month, status
+order by form_type, year_month, status;
+EOD;
+          $fullname = SGS::wordify(strtoupper('DATA_PROCESSING_REPORT'));
+          break;
+
+        case 'harvest':
+          $sql = <<<EOD
+select distinct
+  sites.name as site_name,
+  operators.name as operator_name,
+  species.code as species_code,
+  species.trade_name as species_name,
+  sum(tdf_data.volume) as volume
+from tdf_data
+join species on tdf_data.species_id = species.id
+join sites on tdf_data.site_id = sites.id
+join operators on tdf_data.operator_id = operators.id
+where tdf_data.timestamp  between '$from' and '$to'
+group by sites.name, operators.name, species.code, species.trade_name;
+EOD;
+          $fullname = SGS::wordify(strtoupper('HARVESTING_REPORT'));
+          break;
+        
+        case 'export':
+          $sql = <<<EOD
+select distinct
+  sites.name as site_name,
+  operators.name as operator_name,
+  species.code as species_code,
+  species.trade_name as species_name,
+  sum(specs_data.volume) as volume
+from specs_data
+join ldf_data on specs_data.barcode_id = ldf_data.barcode_id
+join species on specs_data.species_id = species.id
+join sites on ldf_data.site_id = sites.id
+join operators on sites.operator_id = operators.id
+where specs_data.timestamp between '2016-07-01' and '2016-08-01'
+group by sites.name, operators.name, species.code, species.trade_name;
+EOD;
+          $fullname = SGS::wordify(strtoupper('EXPORTING_REPORT'));
+          break;
+      }
+
+      if ($sql) {
+        $result = DB::query(Database::SELECT, $sql)->execute();
+        if ($result) {
+          $ext = 'csv';
+          $excel = new PHPExcel();
+          $excel->setActiveSheetIndex(0);
+          $excel->getActiveSheet()->fromArray(array_keys($result[0]), NULL, 'A1');
+          $row_count = 2;
+          foreach ($result as $row) $excel->getActiveSheet()->fromArray($row, NULL, 'A'.$row_count++);
+          $mime_type = 'text/csv';
+
+          $tempname = tempnam(sys_get_temp_dir(), $report_type . '_report');
+
+          $writer = new PHPExcel_Writer_CSV($excel);
+          $writer->save($tempname);
+
+          $this->response->send_file($tempname, $fullname.'.'. $ext, array('mime_type' => $mime_type, 'delete' => TRUE));
+        } else Notify::msg('Sorry, no data found for report.', 'warning');
+      }
+    }
+
+    if ($form) $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
+
+  public function handle_report_create_export() {
+    set_time_limit(0);
+
+    $form = Formo::form()
+        ->add_group('report_type', 'select', SGS::$export_report, NULL, array('label' => 'Report', 'required' => TRUE))
+        ->add('from', 'input', array('label' => 'From', 'attr' => array('class' => 'dpicker', 'id' => 'from-dpicker'), 'required' => TRUE))
+        ->add('to', 'input', array('label' => 'To', 'attr' => array('class' => 'dpicker', 'id' => 'to-dpicker'), 'required' => TRUE));
+
+    $form->add('search', 'submit', 'Download Report');
+
+    if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
+      $report_type = $form->report_type->val();
+      $from = SGS::date($form->from->val(), SGS::PGSQL_DATE_FORMAT);
+      $to   = SGS::date($form->to->val(), SGS::PGSQL_DATE_FORMAT);
+
+      switch ($report_type) {
+        case 'exp':
+        case 'specs':
+          $document_type = strtoupper($report_type);
+          $sql = <<<EOD
+select
+  documents.type || ' ' || lpad(documents.number::text, 6, '0') as number,
+  documents.operator_id,
+  operators.name as operator,
+  documents.site_id,
+  sites.name as site,
+  specs_data.create_date as date,
+  specs_data.barcode_id,
+  barcodes.barcode as barcode,
+  specs_data.species_id,
+  species.code as species_code,
+  specs_data.diameter,
+  specs_data.length,
+  specs_data.volume
+from documents
+join document_data on documents.id = document_data.document_id
+join specs_data on document_data.form_data_id = specs_data.id and document_data.form_type = 'SPECS'
+join barcodes on specs_data.barcode_id = barcodes.id
+join species on specs_data.species_id = species.id
+join operators on documents.operator_id = operators.id
+left outer join sites on documents.site_id = sites.id
+where documents.type = '$document_type' and documents.timestamp between '$from' and '$to';
+EOD;
+          $fullname = SGS::wordify(strtoupper($report_type.'_REPORT'));
+          break;
+
+        case 'cert':
+          $sql = <<<EOD
+select
+  documents.type || ' ' || lpad(documents.number::text, 6, '0') as number,
+  'EXP ' || lpad((regexp_matches((documents.values::text), E's:\\d+:"exp_number";s:\\d+:"(-?[\\d.]+)";'))[1]::text, 6, '0') as exp_number,
+  documents.operator_id,
+  operators.name as operator,
+  documents.site_id,
+  sites.name as site,
+  specs_data.create_date as date,
+  specs_data.barcode_id,
+  barcodes.barcode as barcode,
+  specs_data.species_id,
+  species.code as species_code,
+  specs_data.diameter,
+  specs_data.length,
+  specs_data.volume
+from documents
+join document_data on documents.id = document_data.document_id
+join specs_data on document_data.form_data_id = specs_data.id and document_data.form_type = 'SPECS'
+join barcodes on specs_data.barcode_id = barcodes.id
+join species on specs_data.species_id = species.id
+join operators on documents.operator_id = operators.id
+left outer join sites on documents.site_id = sites.id
+where documents.type = 'CERT' and documents.timestamp between '$from' and '$to';
+EOD;
+          $fullname = SGS::wordify(strtoupper('CERT_REPORT'));
+          break;
+      }
+
+      if ($sql) {
+        $result = DB::query(Database::SELECT, $sql)->execute();
+        if ($result) {
+          $ext = 'csv';
+          $excel = new PHPExcel();
+          $excel->setActiveSheetIndex(0);
+          $excel->getActiveSheet()->fromArray(array_keys($result[0]), NULL, 'A1');
+          $row_count = 2;
+          foreach ($result as $row) $excel->getActiveSheet()->fromArray($row, NULL, 'A'.$row_count++);
+          $mime_type = 'text/csv';
+
+          $tempname = tempnam(sys_get_temp_dir(), $report_type . '_report');
+
+          $writer = new PHPExcel_Writer_CSV($excel);
+          $writer->save($tempname);
+
+          $this->response->send_file($tempname, $fullname.'.'. $ext, array('mime_type' => $mime_type, 'delete' => TRUE));
+        } else Notify::msg('Sorry, no data found for report.', 'warning');
+      }
+    }
+
+    if ($form) $content .= $form->render();
+
+    $view = View::factory('main')->set('content', $content);
+    $this->response->body($view);
+  }
+
   public function action_index() {
     $id      = $this->request->param('id');
     $command = $this->request->param('command');
@@ -460,9 +718,11 @@ class Controller_Reports extends Controller {
     $report_type = $this->request->param('id');
 
     switch ($report_type) {
+      case 'monthly': return self::handle_report_create_monthly();
       case 'csv':  return self::handle_report_create('CSV');
       case 'data':  return self::handle_report_create('DATA');
       case 'summary': return self::handle_report_create('SUMMARY');
+      case 'export': return self::handle_report_create_export();
     }
 
     $view = View::factory('main')->set('content', $content);
