@@ -213,12 +213,15 @@ create table species (
   botanic_name d_text_short unique,
   trade_name d_text_short unique,
   fob_price d_money not null,
+  fob_price_low d_money,
+  fob_price_high d_money,
   min_diameter d_diameter not null,
   user_id d_id default 1 not null,
   timestamp d_timestamp default current_timestamp not null,
 
   constraint species_pkey primary key (id),
-  constraint species_user_id_fkey foreign key (user_id) references users (id) on update cascade
+  constraint species_user_id_fkey foreign key (user_id) references users (id) on update cascade,
+  constraint species_fob_price_check check (not((fob_price_high is not null) and (fob_price_high < fob_price_low)))
 );
 
 create table operators (

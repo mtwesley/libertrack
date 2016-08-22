@@ -975,12 +975,16 @@ class Controller_Invoices extends Controller {
         $table = 'tdf_data'; break;
     }
 
-    if ($data_ids) $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
+    if ($data_ids) $data = DB::select(array('code', 'species_code'),
+                                      array('class', 'species_class'),
+                                      array(DB::expr(Model_Species::fob_price_sql()), 'fob_price'),
+                                      array(DB::expr('sum(volume)'), 'volume'))
       ->from($table)
       ->join('species')
       ->on('species_id', '=', 'species.id')
       ->where($table.'.id', 'IN', (array) $data_ids)
-      ->group_by('species_code', 'species_class', 'fob_price')
+      ->group_by('species_code', 'species_class', DB::expr(Model_Species::fob_price_sql()))
+      ->order_by('species_code')
       ->execute()
       ->as_array();
 
@@ -1016,12 +1020,16 @@ class Controller_Invoices extends Controller {
         $table = 'tdf_data'; break;
     }
 
-    $summary_data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
+    $summary_data = DB::select(array('code', 'species_code'),
+                               array('class', 'species_class'),
+                               array(DB::expr(Model_Species::fob_price_sql()), 'fob_price'),
+                               array(DB::expr('sum(volume)'), 'volume'))
       ->from($table)
       ->join('species')
       ->on('species_id', '=', 'species.id')
       ->where($table.'.id', 'IN', (array) $data_ids)
-      ->group_by('species_code', 'species_class', 'fob_price')
+      ->group_by('species_code', 'species_class', DB::expr(Model_Species::fob_price_sql()))
+      ->order_by('species_code')
       ->execute()
       ->as_array();
     
@@ -1237,12 +1245,16 @@ class Controller_Invoices extends Controller {
   private function generate_exf_preview($invoice, $data_ids) {
     $data_ids = $data_ids ?: $invoice->get_data();
 
-    if ($data_ids) $data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
+    if ($data_ids) $data = DB::select(array('code', 'species_code'),
+                                      array('class', 'species_class'),
+                                      array(DB::expr(Model_Species::fob_price_sql()), 'fob_price'),
+                                      array(DB::expr('sum(volume)'), 'volume'))
       ->from('specs_data')
       ->join('species')
       ->on('species_id', '=', 'species.id')
       ->where('specs_data.id', 'IN', (array) $data_ids)
-      ->group_by('species_code', 'species_class', 'fob_price')
+      ->group_by('species_code', 'species_class', DB::expr(Model_Species::fob_price_sql()))
+      ->order_by('species_code')
       ->execute()
       ->as_array();
 
@@ -1266,12 +1278,16 @@ class Controller_Invoices extends Controller {
 
     $sample = ORM::factory('SPECS', reset($data_ids));
 
-    $summary_data = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array(DB::expr('sum(volume)'), 'volume'))
+    $summary_data = DB::select(array('code', 'species_code'),
+                               array('class', 'species_class'),
+                               array(DB::expr(Model_Species::fob_price_sql()), 'fob_price'),
+                               array(DB::expr('sum(volume)'), 'volume'))
       ->from('specs_data')
       ->join('species')
       ->on('species_id', '=', 'species.id')
       ->where('specs_data.id', 'IN', (array) $data_ids)
-      ->group_by('species_code', 'species_class', 'fob_price')
+      ->group_by('species_code', 'species_class', DB::expr(Model_Species::fob_price_sql()))
+      ->order_by('species_code')
       ->execute()
       ->as_array();
 

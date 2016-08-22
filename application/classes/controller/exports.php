@@ -23,13 +23,20 @@ class Controller_Exports extends Controller {
       return FALSE;
     }
 
+    $fob_price_cm = Model_Species::FOB_PRICE_CM;
+
     $total_quantity = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
       ->where('id', 'IN', (array) $data_ids)
       ->execute()
       ->get('sum');
 
-    $total_fob = DB::select(array(DB::expr('sum(volume * fob_price)'), 'sum'))
+    $total_fob = DB::select(array(DB::expr("
+          sum(volume * (
+            case when (fob_price is not null) and (diameter < $fob_price_cm) 
+                 then fob_price_low else fob_price_high 
+            end)
+          )"), 'sum'))
       ->from('specs_data')
       ->join('species')
       ->on('specs_data.species_id', '=', 'species.id')
@@ -50,13 +57,20 @@ class Controller_Exports extends Controller {
       return FALSE;
     }
 
+    $fob_price_cm = Model_Species::FOB_PRICE_CM;
+
     $total_quantity = DB::select(array(DB::expr('sum(volume)'), 'sum'))
       ->from('specs_data')
       ->where('id', 'IN', (array) $data_ids)
       ->execute()
       ->get('sum');
 
-    $total_fob = DB::select(array(DB::expr('sum(volume * fob_price)'), 'sum'))
+    $total_fob = DB::select(array(DB::expr("
+          sum(volume * (
+            case when (fob_price is not null) and (diameter < $fob_price_cm) 
+                 then fob_price_low else fob_price_high 
+            end)
+          )"), 'sum'))
       ->from('specs_data')
       ->join('species')
       ->on('specs_data.species_id', '=', 'species.id')
@@ -1660,13 +1674,18 @@ VALIDATION: $secret";
 
     $summary_info  = array();
     $species_order = array();
-
-    $summary_info  = DB::select(array('code', 'species_code'), array('class', 'species_class'), 'fob_price', array('sum("volume")', 'volume'), array('count("specs_data"."id")', 'count'))
+    
+    $summary_info  = DB::select(array('code', 'species_code'),
+                                array('class', 'species_class'),
+                                array(DB::expr(Model_Species::fob_price_sql()), 'fob_price'),
+                                array('sum("volume")', 'volume'),
+                                array('count("specs_data"."id")', 'count'))
       ->from('specs_data')
       ->join('species')
       ->on('species_id', '=', 'species.id')
       ->where('specs_data.id', 'IN', (array) $data_ids)
-      ->group_by('species_code', 'species_class', 'fob_price')
+      ->group_by('species_code', 'species_class', DB::expr(Model_Species::fob_price_sql()))
+      ->order_by('species_code')
       ->execute()
       ->as_array();
 

@@ -312,4 +312,8 @@ class SGS_Form_ORM extends ORM {
     if ($parent = $this->parent()) return $parent->children($type);
   }
 
+  public function fob_price() {
+    return $this->species->get_fob_price($this->diameter);
+  }
+
 }

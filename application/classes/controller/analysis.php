@@ -2034,7 +2034,7 @@ EOD;
 
           case 'species':
             $sql = <<<EOD
-select id, code, class, botanic_name, trade_name, fob_price from species
+select id, code, class, botanic_name, trade_name, fob_price_low, fob_price_high from species
 order by code;
 EOD;
             break;

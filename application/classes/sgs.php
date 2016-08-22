@@ -1037,22 +1037,27 @@ class SGS {
 
   public static function floatify($float, $precision = 0)
   {
-    return (string) number_format(floor($float * pow(10, $precision)) / pow(10, $precision), $precision);
+    return (string) number_format((float) $float, $precision);
   }
 
   public static function quantitify($quantity, $precision = 3)
   {
-    return (string) number_format(floor($quantity * pow(10, $precision)) / pow(10, $precision), $precision);
+    return (string) number_format((float) $quantity, $precision);
   }
 
   public static function amountify($amount, $precision = 2)
   {
-    return (string) number_format(floor($amount * pow(10, $precision)) / pow(10, $precision), $precision);
+    return (string) number_format((float) $amount, $precision);
   }
 
   public static function volumify($diameter, $height)
   {
     return self::quantitify(SGS::PI * pow(($diameter / 2), 2) * $height);
+  }
+  
+  public static function fob_pricify($diameter, $low, $high)
+  {
+    return (int) ($diameter and $diameter < Model_Species::FOB_PRICE_CM) ? $low : $high;
   }
 
   public static function locationify($string, $slash = '/')

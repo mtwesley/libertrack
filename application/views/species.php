@@ -7,7 +7,8 @@
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'trade_name')), 'Trade Name'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'botanic_name')), 'Botanic Name'); ?></th>
     <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'class')), 'Class'); ?></th>
-    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'fob_price')), 'FOB Price'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'fob_price_low')), 'FOB Low Price'); ?></th>
+    <th><?php echo HTML::anchor(Request::$current->url().URL::query(array('sort' => 'fob_price_high')), 'FOB High Price'); ?></th>
     <th class="links"></th>
   </tr>
   <?php foreach ($species as $spcs): ?>
@@ -18,7 +19,8 @@
     <td><?php echo $spcs->trade_name; ?></td>
     <td><?php echo $spcs->botanic_name; ?></td>
     <td><?php echo $spcs->class; ?></td>
-    <td><?php echo $spcs->fob_price; ?></td>
+    <td><?php echo $spcs->fob_price_low; ?></td>
+    <td><?php echo $spcs->fob_price_high; ?></td>
     <td class="links">
       <div class="links-container">
         <span class="link link-title">+</span>
