@@ -390,7 +390,7 @@ class Controller_Reports extends Controller {
           break;
       }
 
-      $excel->getActiveSheet()->fromArray(array_keys(reset($results)));
+      $excel->getActiveSheet()->fromArray((array) array_keys(reset($results)));
       $excel->getActiveSheet()->fromArray($results, '', 'A2');
 
       $tempname = tempnam(sys_get_temp_dir(), 'report_').'.'.$type;
@@ -570,7 +570,7 @@ EOD;
           $ext = 'csv';
           $excel = new PHPExcel();
           $excel->setActiveSheetIndex(0);
-          $excel->getActiveSheet()->fromArray(array_keys($result[0]), NULL, 'A1');
+          $excel->getActiveSheet()->fromArray((array) array_keys($result[0]), NULL, 'A1');
           $row_count = 2;
           foreach ($result as $row) $excel->getActiveSheet()->fromArray($row, NULL, 'A'.$row_count++);
           $mime_type = 'text/csv';
@@ -674,7 +674,7 @@ EOD;
           $ext = 'csv';
           $excel = new PHPExcel();
           $excel->setActiveSheetIndex(0);
-          $excel->getActiveSheet()->fromArray(array_keys($result[0]), NULL, 'A1');
+          $excel->getActiveSheet()->fromArray((array) array_keys($result[0]), NULL, 'A1');
           $row_count = 2;
           foreach ($result as $row) $excel->getActiveSheet()->fromArray($row, NULL, 'A'.$row_count++);
           $mime_type = 'text/csv';

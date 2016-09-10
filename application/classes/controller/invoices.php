@@ -519,9 +519,9 @@ class Controller_Invoices extends Controller {
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
       try {
         $payment = ORM::factory('payment');
-        $payment->invoice = $invoice;
-        $payment->number  = $form->number->val();
-        $payment->amount  = $form->amount->val();
+        $payment->invoice = trim($invoice);
+        $payment->number  = trim($form->number->val());
+        $payment->amount  = trim($form->amount->val());
         $payment->save();
         Notify::msg('Payment successfully added.', 'success', TRUE);
         $this->request->redirect('invoices/'.$invoice->id.'/payment');

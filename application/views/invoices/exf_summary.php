@@ -44,19 +44,21 @@ $classes[] = 'data';
   <?php if ($data): ?>
   <?php foreach ($data as $record): ?>
   <tr>
-    <td rowspan="2"><?php echo $record['species_code']; ?></td>
-    <td rowspan="2"><?php echo $record['species_class']; ?></td>
-    <td rowspan="2"><?php echo SGS::quantitify($record['volume']); ?></td>
+    <td><?php echo $record['species_code']; ?></td>
+    <td><?php echo $record['species_class']; ?></td>
+    <td><?php echo SGS::quantitify($record['volume']); ?></td>
     <td>Log and Wood Product Export Fee <em>(FDA Regulation 107-7, Section 44-45</em></td>
     <td>1415-17</td>
-    <td rowspan="2"><?php echo SGS::amountify($record['fob_price']); ?></td>
+    <td><?php echo SGS::amountify($record['fob_price']); ?></td>
     <td><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']]); ?></td>
   </tr>
+  <?php /*
   <tr>
     <td class="split-row">Chain of Custody Management Fee <em>(GoL-SGS Contract, 1.4% of FOB Value)</em></td>
     <td class="split-row">1415-18</td>
     <td class="split-row"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::FEE_SGS_CONTRACT_RATE); ?></td>
   </tr>
+  */ ?>
   <?php endforeach; ?>
   <?php endif; ?>
   <tr class="blank">
@@ -72,8 +74,8 @@ $classes[] = 'data';
     <th>Price</th>
   </tr>
   <tr>
-    <td rowspan="3" colspan="2">Total</td>
-    <td rowspan="3"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
+    <td rowspan="2" colspan="2">Total</td>
+    <td rowspan="2"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
     <td>Timber Export License Fee <em>(FDA Regulation 107-7 section 42c)</em></td>
     <td>1415-16</td>
     <td></td>
@@ -85,12 +87,14 @@ $classes[] = 'data';
     <td class="split-row"></td>
     <td class="split-row"><?php echo SGS::amountify($gol_total = $total['summary']['total']); ?></td>
   </tr>
+  <?php /*
   <tr>
     <td class="split-row">Chain of Custody Management Fee <em>(GoL-SGS Contract, 1.4% of FOB Value)</em></td>
     <td class="split-row">1415-18</td>
     <td class="split-row"></td>
     <td class="split-row"><?php echo SGS::amountify($sgs_total = $total['summary']['fob_total'] * SGS::FEE_SGS_CONTRACT_RATE); ?></td>
   </tr>
+  */ ?>
   <tr class="blank">
     <td colspan="7"></td>
   </tr>
@@ -100,6 +104,6 @@ $classes[] = 'data';
     <td></td>
     <td></td>
     <td></td>
-    <td><?php echo SGS::amountify($fee_total + $gol_total + $sgs_total); ?></td>
+    <td><?php echo SGS::amountify($fee_total + $gol_total); ?></td>
   </tr>
 </table>

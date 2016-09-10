@@ -25,10 +25,10 @@ class SGS {
   const PGSQL_TRUE  = 't';
   const PGSQL_FALSE = 'f';
 
-  const FEE_SGS_RATE = 0.348;
-  const FEE_GOL_RATE = 0.652;
+  const FEE_SGS_RATE = 0;
+  const FEE_GOL_RATE = 1;
 
-  const FEE_SGS_CONTRACT_RATE = 0.014;
+  const FEE_SGS_CONTRACT_RATE = 0;
 
   const INSPECTION_RATE = 0.05;
   

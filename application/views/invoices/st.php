@@ -327,17 +327,18 @@ $options = (array) $options + array(
       </tr>
       <?php foreach ($data as $record): ?>
       <tr>
-        <td class="volume" rowspan="2"><?php echo SGS::quantitify($record['volume']); ?></td>
-        <td class="species_code" rowspan="2"><?php echo $record['species_code']; ?></td>
-        <td class="species_class" rowspan="2"><?php echo $record['species_class']; ?></td>
+        <td class="volume"><?php echo SGS::quantitify($record['volume']); ?></td>
+        <td class="species_code"><?php echo $record['species_code']; ?></td>
+        <td class="species_class"><?php echo $record['species_class']; ?></td>
         <td class="fee_desc">
-          Stumpage Fee (GoL share)<br />
+          Stumpage Fee (GoL)<br />
           <em>FDA Regulation 107-7, Section 22(b)</em>
         </td>
         <td class="tax_code">1415-14</td>
-        <td class="fob_price" rowspan="2"><?php echo SGS::amountify($record['fob_price']); ?></td>
+        <td class="fob_price"><?php echo SGS::amountify($record['fob_price']); ?></td>
         <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_GOL_RATE); ?></td>
       </tr>
+      <?php /*
       <tr>
         <td class="fee_desc">
           Chain of Custody Stumpage Share<br />
@@ -346,6 +347,7 @@ $options = (array) $options + array(
         <td class="tax_code">1415-15</td>
         <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']] * SGS::FEE_SGS_RATE); ?></td>
       </tr>
+      */ ?>
       <?php endforeach; ?>
       <?php endif; ?>
       <?php if ($options['total']): ?>
@@ -360,15 +362,16 @@ $options = (array) $options + array(
         <td class="total" colspan="2">Total<br />(USD)</td>
       </tr>
       <tr class="total">
-        <td class="volume" rowspan="2"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
-        <td class="items" colspan="2" rowspan="2"><?php echo $total['summary']['count']; ?></td>
+        <td class="volume"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
+        <td class="items" colspan="2"><?php echo $total['summary']['count']; ?></td>
         <td class="fee_desc">
-          Stumpage Fee (GoL share)<br />
+          Stumpage Fee (GoL)<br />
           <em>FDA Regulation 107-7, Section 22(b)</em>
         </td>
         <td class="tax_code">1415-14</td>
         <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total'] * SGS::FEE_GOL_RATE); ?></td>
       </tr>
+      <?php /*
       <tr class="total">
         <td class="fee_desc">
           Chain of Custody Stumpage Share<br />
@@ -377,6 +380,7 @@ $options = (array) $options + array(
         <td class="tax_code">1415-15</td>
         <td class="total" colspan="2"><?php echo SGS::amountify($total['summary']['total'] * SGS::FEE_SGS_RATE); ?></td>
       </tr>
+      */ ?>
       <tr>
         <td colspan="7" class="blank blank-slim">&nbsp;</td>
       </tr>

@@ -4,7 +4,7 @@
 alter table species add column fob_price_low d_money;
 alter table species add column fob_price_high d_money;
 
-alter table species add check (not((fob_price_high is not null) and (fob_price_high < fob_price_low)));
+alter table species add constraint species_fob_price_check check (not((fob_price_high is not null) and (fob_price_high < fob_price_low)));
 
 -- FOB Price updates
 
