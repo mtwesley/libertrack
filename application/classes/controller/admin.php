@@ -567,11 +567,16 @@ class Controller_Config extends Controller {
       ->execute()
       ->as_array('id', 'name');
 
+    $barcode_query_options = array('exact' => 'Exact');
+    if (Auth::instance()->get_user()->id == 1) {
+      $barcode_query_options += array('high' => 'High', 'medium' => 'Medium', 'low' => 'Low');
+    }
+
     $form = Formo::form(array('attr' => array('class' => 'search')))
       ->add('barcode', 'input', array('label' => 'Barcode', 'rules' => array(array('min_length', array(':value', 3))), 'attr' => array('class' => 'barcode-text autocomplete-barcode-barcode')))
       ->add_group('operator_id', 'select', $operator_ids, NULL, array('label' => 'Operator', 'attr' => array('class' => 'site_operatoropts')))
       ->add_group('site_id', 'select', $site_ids, NULL, array('label' => 'Site', 'attr' => array('class' => 'siteopts')))
-      ->add_group('similarity', 'select', array('exact' => 'Exact', 'high' => 'High', 'medium' => 'Medium', 'low' => 'Low'), 'medium', array('label' => 'Similarity'))
+      ->add_group('similarity', 'select', $barcode_query_options, 'exact', array('label' => 'Similarity'))
       ->add('submit', 'submit', 'Query');
 
     if ($form->sent($_REQUEST) and $form->load($_REQUEST)->validate()) {
@@ -584,12 +589,12 @@ class Controller_Config extends Controller {
       if ($operator_id) $args['operators.id'] = $operator_id;
 
       switch ($similarity) {
-        case 'exact': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', TRUE, 2, 0.8, 1, 25, 0); break;
-        case 'high': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.5, 5, 25, 0); break;
         case 'low': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.1, 10, 25, 0); break;
+        case 'medium': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.3, 7, 25, 0); break;
+        case 'high': $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.5, 5, 25, 0); break;
 
-        case 'medium':
-        default: $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', FALSE, 2, 0.3, 7, 25, 0); break;
+        case 'exact':
+        default: $suggestions = SGS::suggest_barcode($barcode, $args ?: array(), 'id', TRUE, 2, 0.8, 1, 25, 0); break;
       }
 
       if ($suggestions) {
