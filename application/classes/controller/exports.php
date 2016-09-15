@@ -993,7 +993,10 @@ VALIDATION: $secret";
             ->and_having(DB::expr('NOT coalesce(array_agg(distinct "barcode_activity"."activity"::text), \'{}\')'), '&&', DB::expr("array['E', 'O', 'H', 'Y', 'A', 'L', 'Z']"))
 
             ->and_having(DB::expr('array_agg(distinct "exp_documents"."id"::text)'), '=', NULL)
-            ->and_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '@>', DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'))
+            ->and_having_open()
+                ->or_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '@>', DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'))
+                ->or_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '=', DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'))
+            ->and_having_close()
 
             ->order_by('barcodes.barcode')
             ->execute()
@@ -1090,7 +1093,10 @@ VALIDATION: $secret";
             ->and_having(DB::expr('array_agg(distinct "parent_documents"."id"::text)'), '=', NULL)
             ->and_having(DB::expr('array_agg(distinct "children_documents"."id"::text)'), '=', NULL)
 
-            ->and_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '@>', DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'))
+            ->and_having_open()
+              ->or_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '@>', DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'))
+              ->or_having(DB::expr('coalesce(array_agg(distinct "invoices_paid"."id"::text), \'{}\')'), '=', DB::expr('coalesce(array_agg(distinct "invoices"."id"::text), \'{}\')'))
+            ->and_having_close()
 
             ->order_by('barcodes.barcode')
             ->execute()
