@@ -168,17 +168,17 @@ class Controller_Invoices extends Controller {
             ->group_by('barcodes.barcode')
             ->group_by('tdf_data.id')
 
-            ->having(DB::expr('NOT coalesce(remove_null_from_array(array_agg(distinct "tdf_barcode_activity"."activity"::text), NULL), \'{}\')'), '@>', DB::expr("array['T']"))
-            ->and_having(DB::expr('NOT coalesce(remove_null_from_array(array_agg(distinct "ldf_barcode_activity"."activity"::text), NULL), \'{}\')'), '@>', DB::expr("array['T']"))
+            ->having(DB::expr('NOT coalesce(remove_null_from_array(array_agg(distinct "tdf_barcode_activity"."activity"::text)), \'{}\')'), '@>', DB::expr("array['T']"))
+            ->and_having(DB::expr('NOT coalesce(remove_null_from_array(array_agg(distinct "ldf_barcode_activity"."activity"::text)), \'{}\')'), '@>', DB::expr("array['T']"))
 
             ->and_having_open()
-                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "tdf_invoices"."id"::text), NULL)'), '=', NULL)
-                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "tdf_invoices"."id"::text), NULL)'), '=', '{}')
+                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "tdf_invoices"."id"::text))'), '=', NULL)
+                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "tdf_invoices"."id"::text))'), '=', '{}')
             ->and_having_close()
 
             ->and_having_open()
-                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "ldf_invoices"."id"::text), NULL)'), '=', NULL)
-                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "ldf_invoices"."id"::text), NULL)'), '=', '{}')
+                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "ldf_invoices"."id"::text))'), '=', NULL)
+                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "ldf_invoices"."id"::text))'), '=', '{}')
             ->and_having_close()
 
             ->order_by('barcodes.barcode')
@@ -232,17 +232,17 @@ class Controller_Invoices extends Controller {
             ->group_by('barcodes.barcode')
             ->group_by('specs_data.id')
 
-            // ->having(DB::expr('coalesce(remove_null_from_array(array_agg(distinct "barcode_activity"."activity"::text), NULL), \'{}\')'), '@>', DB::expr("array['D']"))
-            ->having(DB::expr('NOT coalesce(remove_null_from_array(array_agg(distinct "barcode_activity"."activity"::text), NULL), \'{}\')'), '&&', DB::expr("array['S','E','O','H','Y','A','L','X','Z']"))
+            // ->having(DB::expr('coalesce(remove_null_from_array(array_agg(distinct "barcode_activity"."activity"::text)), \'{}\')'), '@>', DB::expr("array['D']"))
+            ->having(DB::expr('NOT coalesce(remove_null_from_array(array_agg(distinct "barcode_activity"."activity"::text)), \'{}\')'), '&&', DB::expr("array['S','E','O','H','Y','A','L','X','Z']"))
 
             ->and_having_open()
-                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "invoices"."id"::text), NULL)'), '=', NULL)
-                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "invoices"."id"::text), NULL)'), '=', '{}')
+                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "invoices"."id"::text))'), '=', NULL)
+                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "invoices"."id"::text))'), '=', '{}')
             ->and_having_close()
 
             ->and_having_open()
-                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "related_invoices"."id"::text), NULL)'), '=', NULL)
-                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "related_invoices"."id"::text), NULL)'), '=', '{}')
+                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "related_invoices"."id"::text))'), '=', NULL)
+                ->or_having(DB::expr('remove_null_from_array(array_agg(distinct "related_invoices"."id"::text))'), '=', '{}')
             ->and_having_close()
 
             ->order_by('barcodes.barcode')
