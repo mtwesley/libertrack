@@ -255,6 +255,8 @@ class Controller_Invoices extends Controller {
         $site     = ORM::factory('site', $site_id);
         $operator = ORM::factory('operator', $operator_id ?: $site->operator->id);
 
+        $invoice = ORM::factory('invoice');
+
         if ($invoice_type == 'EXF') {
           $_site_id = DB::select('sites.id')
             ->distinct(TRUE)
@@ -271,7 +273,6 @@ class Controller_Invoices extends Controller {
         
         if ($invoice_type == 'TAG') $values['tag_quantity'] = $tag_quantity;
 
-        $invoice = ORM::factory('invoice');
         $invoice->type = $invoice_type;
         $invoice->created_date = SGS::date($created, SGS::PGSQL_DATE_FORMAT, TRUE);
         $invoice->due_date = SGS::date($due, SGS::PGSQL_DATE_FORMAT, TRUE);
