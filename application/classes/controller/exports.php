@@ -1169,7 +1169,11 @@ VALIDATION: $secret";
 
             ->having(DB::expr('coalesce(remove_from_array(array_agg(distinct "barcode_activity"."activity"::text), NULL), \'{}\')'), '&&', DB::expr("array['O', 'S']"))
             ->and_having(DB::expr('NOT coalesce(remove_from_array(array_agg(distinct "barcode_activity"."activity"::text), NULL), \'{}\')'), '&&', DB::expr("array['H', 'Y', 'A', 'Z']"))
-            ->and_having(DB::expr('remove_from_array(array_agg(distinct "cert_documents"."id"::text), NULL)'), '=', NULL)
+
+            ->and_having_open()
+                ->or_having(DB::expr('remove_from_array(array_agg(distinct "cert_documents"."id"::text), NULL)'), '=', NULL)
+                ->or_having(DB::expr('remove_from_array(array_agg(distinct "cert_documents"."id"::text), NULL)'), '=', '{}')
+            ->and_having_close()
 
             ->order_by('barcodes.barcode')
             ->execute()
