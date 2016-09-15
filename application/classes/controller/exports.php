@@ -992,7 +992,10 @@ VALIDATION: $secret";
             ->having(DB::expr('coalesce(remove_from_array(array_agg(distinct "barcode_activity"."activity"::text), NULL), \'{}\')'), '@>', DB::expr("array[/*'D',*/'X']"))
             ->and_having(DB::expr('NOT coalesce(remove_from_array(array_agg(distinct "barcode_activity"."activity"::text), NULL), \'{}\')'), '&&', DB::expr("array['E', 'O', 'H', 'Y', 'A', 'L', 'Z']"))
 
-            ->and_having(DB::expr('remove_from_array(array_agg(distinct "exp_documents"."id"::text), NULL)'), '=', NULL)
+            ->and_having_open()
+              ->or_having(DB::expr('remove_from_array(array_agg(distinct "exp_documents"."id"::text), NULL)'), '=', NULL)
+              ->or_having(DB::expr('remove_from_array(array_agg(distinct "exp_documents"."id"::text), NULL)'), '=', '{}')
+            ->and_having_close()
             ->and_having(DB::expr('coalesce(remove_from_array(array_agg(distinct "invoices_paid"."id"::text), NULL), \'{}\')'), '@>', DB::expr('coalesce(remove_from_array(array_agg(distinct "invoices"."id"::text), NULL), \'{}\')'))
 
             ->order_by('barcodes.barcode')
@@ -1082,13 +1085,25 @@ VALIDATION: $secret";
             ->and_having(DB::expr('NOT coalesce(remove_from_array(array_agg(distinct "parent_barcode_activity"."activity"::text), NULL), \'{}\')'), '&&', DB::expr("array['D','E','O','H','Y','A','L','S','Z']"))
             ->and_having(DB::expr('NOT coalesce(remove_from_array(array_agg(distinct "children_barcode_activity"."activity"::text), NULL), \'{}\')'), '&&', DB::expr("array['D','E','O','H','Y','A','L','S','Z']"))
 
-            ->and_having(DB::expr('remove_from_array(array_agg(distinct "documents"."id"::text), NULL)'), '=', NULL)
+            ->and_having_open()
+                ->or_having(DB::expr('remove_from_array(array_agg(distinct "documents"."id"::text), NULL)'), '=', NULL)
+                ->or_having(DB::expr('remove_from_array(array_agg(distinct "documents"."id"::text), NULL)'), '=', '{}')
+            ->and_having_close()
             ->and_having_open()
                 ->or_having(DB::expr('remove_from_array(array_agg(distinct "related_documents"."id"::text), NULL)'), '=', NULL)
+                ->or_having(DB::expr('remove_from_array(array_agg(distinct "related_documents"."id"::text), NULL)'), '=', '{}')
                 ->or_having(DB::expr('coalesce(remove_from_array(array_agg(distinct "barcode_activity"."activity"::text), NULL), \'{}\')'), '@>', DB::expr("array['S']"))
             ->and_having_close()
-            ->and_having(DB::expr('remove_from_array(array_agg(distinct "parent_documents"."id"::text), NULL)'), '=', NULL)
-            ->and_having(DB::expr('remove_from_array(array_agg(distinct "children_documents"."id"::text), NULL)'), '=', NULL)
+
+            ->and_having_open()
+                ->or_having(DB::expr('remove_from_array(array_agg(distinct "parent_documents"."id"::text), NULL)'), '=', NULL)
+                ->or_having(DB::expr('remove_from_array(array_agg(distinct "parent_documents"."id"::text), NULL)'), '=', '{}')
+            ->and_having_close()
+
+            ->and_having_open()
+                ->or_having(DB::expr('remove_from_array(array_agg(distinct "children_documents"."id"::text), NULL)'), '=', NULL)
+                ->or_having(DB::expr('remove_from_array(array_agg(distinct "children_documents"."id"::text), NULL)'), '=', '{}')
+            ->and_having_close()
 
             ->and_having(DB::expr('coalesce(remove_from_array(array_agg(distinct "invoices_paid"."id"::text), NULL), \'{}\')'), '@>', DB::expr('coalesce(remove_from_array(array_agg(distinct "invoices"."id"::text), NULL), \'{}\')'))
 
