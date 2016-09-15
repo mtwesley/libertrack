@@ -1341,6 +1341,13 @@ create index tolerances_form_type_check on tolerances (form_type,"check");
 
 -- create language plpgsql;
 
+create function remove_null_from_array(a anyarray)
+  returns anyarray as
+$$
+begin
+  return array(select x from unnest(a) x where x is not null);
+end;
+$$ language plpgsql;
 
 -- functions
 
