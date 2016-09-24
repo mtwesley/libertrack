@@ -247,7 +247,7 @@ $options = (array) $options + array(
   <div class="schedule-header">
     <table class="schedule-header-table">
       <tr>
-        <td class="liberfor-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_liberfor.jpg" /></td>
+        <td class="liberfor-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_libertrace.jpg" /></td>
         <td class="fda-logo"><img src="<?php echo DOCROOT; ?>images/invoice/st_fda.jpg" /></td>
       </tr>
     </table>
@@ -383,7 +383,7 @@ $options = (array) $options + array(
       <tr>
         <td class="date"></td>
         <td class="info">
-          <img class="liberfor-bw" src="<?php echo DOCROOT; ?>images/invoice/st_liberfor_bw.jpg" /> &nbsp; is operated by &nbsp; <img class="sgs-bw" src="<?php echo DOCROOT; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img class="fda-bw" src="<?php echo DOCROOT; ?>images/invoice/st_fda_small.jpg" /><br />
+          <img class="liberfor-bw" src="<?php echo DOCROOT; ?>images/invoice/st_libertrace_bw.jpg" /> &nbsp; is operated by &nbsp; <img class="sgs-bw" src="<?php echo DOCROOT; ?>images/invoice/st_sgs.jpg" /> &nbsp; Liberia on the behalf of &nbsp; <img class="fda-bw" src="<?php echo DOCROOT; ?>images/invoice/st_fda_small.jpg" /><br />
           LiberFor, SGS Compound, Old Road, Sinkor, Monrovia, Liberia
         </td>
         <td class="pageinfo">
