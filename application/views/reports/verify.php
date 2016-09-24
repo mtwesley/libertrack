@@ -633,7 +633,7 @@ $num = $cntr;
   <style>
     * {
       font-family: "Arial";
-      font-size: 13px;
+      font-size: 10px;
     }
 
     img.liberfor-bw {

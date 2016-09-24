@@ -511,7 +511,7 @@ $options = (array) $options + array(
   <style>
     * {
       font-family: "Arial";
-      font-size: 13px;
+      font-size: 10px;
     }
 
     img.liberfor-bw {

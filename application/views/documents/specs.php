@@ -354,7 +354,7 @@ $num = $cntr;
       <?php endif; ?>
       <?php if ($options['total']): ?>
       <tr>
-        <td class="total_label" colspan="9"><strong>Total volume (m<sup)3</sup>)</strong></td>
+        <td class="total_label" colspan="9"><strong>Total volume (m<sup>3</sup>)</strong></td>
         <td class="total_volume"><?php echo SGS::quantitify($total); ?></td>
       </tr>
       <?php endif; ?>
@@ -382,7 +382,7 @@ $num = $cntr;
   <style>
     * {
       font-family: "Arial";
-      font-size: 13px;
+      font-size: 10px;
     }
 
     img.liberfor-bw {
