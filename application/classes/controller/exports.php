@@ -1814,18 +1814,32 @@ VALIDATION: $secret";
       $arr = array_keys($site_reference);
       if (count($site_reference) == 1) $document->site = ORM::factory('site', reset($arr));
 
+      $data_ids = $document->get_data();
       $document->is_draft = FALSE;
       
       $_values = $document->values;
       $_values['site_reference'] = implode(', ', $site_reference);
+
+      if ($document->values['product_description']) {
+        foreach (DB::select('species.code', array('sum("volume")', 'volume'))
+                   ->from('specs_data')
+                   ->join('species')
+                   ->on('specs_data.species_id', '=', 'species.id')
+                   ->where('specs_data.id', 'IN', (array) $data_ids)
+                   ->group_by('species.code')
+                   ->execute()
+                   ->as_array('code', 'volume') as $code => $volume) $prod_desc[] = $code.': '.SGS::quantitify($volume).'m3';
+        $_values['product_description'] = implode(', ', $prod_desc);
+      }
+
       if ($document->type == 'CERT') $_values['statement_number'] = trim($form->statement_number->val());
       $document->values = $_values;
 
       switch ($document->type) {
-        case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
-        case 'SHSH': $document->file_id = self::generate_shsh_document($document, $document->get_data()); break;
-        case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
-        case 'CERT':  $document->file_id = self::generate_cert_document($document, $document->get_data()); break;
+        case 'SPECS': $document->file_id = self::generate_specs_document($document, $data_ids); break;
+        case 'SHSH': $document->file_id = self::generate_shsh_document($document, $data_ids); break;
+        case 'EXP':   $document->file_id = self::generate_exp_document($document, $data_ids); break;
+        case 'CERT':  $document->file_id = self::generate_cert_document($document, $data_ids); break;
       }
 
       if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);
@@ -1890,17 +1904,31 @@ VALIDATION: $secret";
       $arr = array_keys($site_reference);
       if (count($site_reference) == 1) $document->site = ORM::factory('site', reset($arr));
 
+      $data_ids = $document->get_data();
       $document->is_draft = FALSE;
 
       $_values = $document->values;
       $_values['site_reference'] = implode(', ', $site_reference);
+
+      if ($document->values['product_description']) {
+        foreach (DB::select('species.code', array('sum("volume")', 'volume'))
+                   ->from('specs_data')
+                   ->join('species')
+                   ->on('specs_data.species_id', '=', 'species.id')
+                   ->where('specs_data.id', 'IN', (array) $data_ids)
+                   ->group_by('species.code')
+                   ->execute()
+                   ->as_array('code', 'volume') as $code => $volume) $prod_desc[] = $code.': '.SGS::quantitify($volume).'m3';
+        $_values['product_description'] = implode(', ', $prod_desc);
+      }
+
       $document->values = $_values;
 
       switch ($document->type) {
-        case 'SPECS': $document->file_id = self::generate_specs_document($document, $document->get_data()); break;
-        case 'SHSH': $document->file_id = self::generate_shsh_document($document, $document->get_data()); break;
-        case 'EXP':   $document->file_id = self::generate_exp_document($document, $document->get_data()); break;
-        case 'CERT':  $document->file_id = self::generate_cert_document($document, $document->get_data()); break;
+        case 'SPECS': $document->file_id = self::generate_specs_document($document, $data_ids); break;
+        case 'SHSH': $document->file_id = self::generate_shsh_document($document, $data_ids); break;
+        case 'EXP':   $document->file_id = self::generate_exp_document($document, $data_ids); break;
+        case 'CERT':  $document->file_id = self::generate_cert_document($document, $data_ids); break;
       }
 
       if ($document->file_id) Notify::msg('Document file successfully generated.', NULL, TRUE);
