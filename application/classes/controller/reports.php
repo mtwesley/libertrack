@@ -391,7 +391,7 @@ class Controller_Reports extends Controller {
       }
 
       $excel->getActiveSheet()->fromArray((array) array_keys(reset($results)));
-      $excel->getActiveSheet()->fromArray($results, '', 'A2');
+      $excel->getActiveSheet()->fromArray((array) $results, '', 'A2');
 
       $tempname = tempnam(sys_get_temp_dir(), 'report_').'.'.$type;
       $fullname = strtoupper("report_$report_type.").$type;
@@ -570,9 +570,9 @@ EOD;
           $ext = 'csv';
           $excel = new PHPExcel();
           $excel->setActiveSheetIndex(0);
-          $excel->getActiveSheet()->fromArray((array) array_keys($result[0]), NULL, 'A1');
+          $excel->getActiveSheet()->fromArray((array) array_keys((array) $result[0]), NULL, 'A1');
           $row_count = 2;
-          foreach ($result as $row) $excel->getActiveSheet()->fromArray($row, NULL, 'A'.$row_count++);
+          foreach ($result as $row) $excel->getActiveSheet()->fromArray((array) $row, NULL, 'A'.$row_count++);
           $mime_type = 'text/csv';
 
           $tempname = tempnam(sys_get_temp_dir(), $report_type . '_report');
@@ -674,9 +674,9 @@ EOD;
           $ext = 'csv';
           $excel = new PHPExcel();
           $excel->setActiveSheetIndex(0);
-          $excel->getActiveSheet()->fromArray((array) array_keys($result[0]), NULL, 'A1');
+          $excel->getActiveSheet()->fromArray((array) array_keys((array) $result[0]), NULL, 'A1');
           $row_count = 2;
-          foreach ($result as $row) $excel->getActiveSheet()->fromArray($row, NULL, 'A'.$row_count++);
+          foreach ($result as $row) $excel->getActiveSheet()->fromArray((array) $row, NULL, 'A'.$row_count++);
           $mime_type = 'text/csv';
 
           $tempname = tempnam(sys_get_temp_dir(), $report_type . '_report');
