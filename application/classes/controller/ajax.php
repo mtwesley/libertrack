@@ -13,11 +13,8 @@ class Controller_Ajax extends Controller {
 
     $csv = ORM::factory('CSV', $id);
 
-    if ((!(in_array($csv->form_type, array('SSF', 'SSFV')) and Auth::instance()->get_user()->id == 10)) and // FIXME: give better permissions for albert to edit SSF
-        (strpos($key, 'barcode') === FALSE) and
-        (strpos($key, 'species') === FALSE) and
-        (strpos($key, 'operator') === FALSE) and
-        (strpos($key, 'site') === FALSE) and !Auth::instance()->logged_in('management')) return $this->response->status(401);
+    // Only super user can edit CSV uploads
+    if (!(Auth::instance()->get_user()->id == 1)) return $this->response->status(401);
 
     if (!$csv->loaded()) return $this->response->status(403);
 
@@ -46,6 +43,9 @@ class Controller_Ajax extends Controller {
     $key     = trim($vars[2]);
     $value   = trim($this->request->post('data'));
 
+    // Only super user can edit analysis data
+    if (!(Auth::instance()->get_user()->id == 1)) return $this->response->status(401);
+    
     $data = ORM::factory($model, $id);
     if (!$data->loaded()) return $this->response->status(403);
 

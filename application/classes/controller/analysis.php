@@ -720,7 +720,7 @@ class Controller_Analysis extends Controller {
   }
 
   private function handle_data_edit($form_type, $id) {
-    if (!Auth::instance()->logged_in('management')) $this->request->redirect('analysis/review/'.strtolower($form_type).'/'.$id);
+    if (!(Auth::instance()->get_user()->id == 1)) $this->request->redirect('analysis/review/'.strtolower($form_type).'/'.$id);
 
     $item = ORM::factory($form_type, $id);
 

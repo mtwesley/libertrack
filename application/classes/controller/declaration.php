@@ -402,7 +402,7 @@ class Controller_Declaration extends Controller {
   }
 
   private function handle_csv_edit($id) {
-    if (!Auth::instance()->logged_in('management')) $this->request->redirect('declaration/data/'.$id);
+    if (!(Auth::instance()->get_user()->id == 1)) $this->request->redirect('declaration/data/'.$id);
 
     $id = $this->request->param('id');
 
