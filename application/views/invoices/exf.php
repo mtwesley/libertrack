@@ -357,16 +357,14 @@ $options = (array) $options + array(
         <td class="fob_price"><?php echo SGS::amountify($record['fob_price']); ?></td>
         <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']]); ?></td>
       </tr>
-      <?php /*
       <tr>
         <td class="fee_desc">
           Chain of Custody Management Fee<br />
-          <em>GoL-SGS Contract (1.4% of FOB Value)</em>
+          <em>1.4% of FOB Value</em>
         </td>
         <td class="tax_code">1415-18</td>
         <td class="total"><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::FEE_SGS_CONTRACT_RATE); ?></td>
       </tr>
-      */ ?>
       <?php endforeach; ?>
       <?php endif; ?>
       <?php if ($options['total']): ?>
@@ -398,22 +396,20 @@ $options = (array) $options + array(
         <td class="tax_code">1415-17</td>
         <td class="total" colspan="2"><?php echo SGS::amountify($gol_total = $total['summary']['total']); ?></td>
       </tr>
-      <?php /*
       <tr class="total">
         <td class="fee_desc">
           Chain of Custody Management Fee<br />
-          <em>GoL-SGS Contract (1.4% of FOB Value)</em>
+          <em>1.4% of FOB Value</em>
         </td>
         <td class="tax_code">1415-18</td>
         <td class="total" colspan="2"><?php echo SGS::amountify($sgs_total = $total['summary']['fob_total'] * SGS::FEE_SGS_CONTRACT_RATE); ?></td>
       </tr>
-      */ ?>
       <tr>
         <td colspan="7" class="blank blank-slim">&nbsp;</td>
       </tr>
       <tr>
         <td colspan="5" class="blank">&nbsp;</td>
-        <td class="total" colspan="2"><?php echo SGS::amountify($fee_total + $gol_total); ?></td>
+        <td class="total" colspan="2"><?php echo SGS::amountify($fee_total + $gol_total + $sgs_total); ?></td>
       </tr>
       <?php if ($options['signature']): ?>
       <tr>
