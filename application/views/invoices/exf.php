@@ -346,9 +346,9 @@ $options = (array) $options + array(
       </tr>
       <?php foreach ($data as $record): ?>
       <tr>
-        <td class="volume"><?php echo SGS::quantitify($record['volume']); ?></td>
-        <td class="species_code"><?php echo $record['species_code']; ?></td>
-        <td class="species_class"><?php echo $record['species_class']; ?></td>
+        <td class="volume" rowspan="2"><?php echo SGS::quantitify($record['volume']); ?></td>
+        <td class="species_code" rowspan="2"><?php echo $record['species_code']; ?></td>
+        <td class="species_class" rowspan="2"><?php echo $record['species_class']; ?></td>
         <td class="fee_desc">
           Log and Wood Product Export Fee<br />
           <em>FDA Regulation 107-7, Section 44-45</em>

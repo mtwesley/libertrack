@@ -44,12 +44,12 @@ $classes[] = 'data';
   <?php if ($data): ?>
   <?php foreach ($data as $record): ?>
   <tr>
-    <td><?php echo $record['species_code']; ?></td>
-    <td><?php echo $record['species_class']; ?></td>
-    <td><?php echo SGS::quantitify($record['volume']); ?></td>
+    <td rowspan="2"><?php echo $record['species_code']; ?></td>
+    <td rowspan="2"><?php echo $record['species_class']; ?></td>
+    <td rowspan="2"><?php echo SGS::quantitify($record['volume']); ?></td>
     <td>Log and Wood Product Export Fee <em>(FDA Regulation 107-7, Section 44-45</em></td>
     <td>1415-17</td>
-    <td><?php echo SGS::amountify($record['fob_price']); ?></td>
+    <td rowspan="2"><?php echo SGS::amountify($record['fob_price']); ?></td>
     <td><?php echo SGS::amountify($record['volume'] * $record['fob_price'] * SGS::$species_fee_rate[$record['species_class']]); ?></td>
   </tr>
   <tr>
@@ -72,8 +72,8 @@ $classes[] = 'data';
     <th>Price</th>
   </tr>
   <tr>
-    <td rowspan="2" colspan="2">Total</td>
-    <td rowspan="2"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
+    <td rowspan="3" colspan="2">Total</td>
+    <td rowspan="3"><?php echo SGS::quantitify($total['summary']['volume']); ?></td>
     <td>Timber Export License Fee <em>(FDA Regulation 107-7 section 42c)</em></td>
     <td>1415-16</td>
     <td></td>
