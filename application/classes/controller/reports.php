@@ -557,7 +557,7 @@ join ldf_data on specs_data.barcode_id = ldf_data.barcode_id
 join species on specs_data.species_id = species.id
 join sites on ldf_data.site_id = sites.id
 join operators on sites.operator_id = operators.id
-where specs_data.timestamp between '2016-07-01' and '2016-08-01'
+where specs_data.timestamp between '$from' and '$to'
 group by sites.name, operators.name, species.code, species.trade_name;
 EOD;
           $fullname = SGS::wordify(strtoupper('EXPORTING_REPORT'));
